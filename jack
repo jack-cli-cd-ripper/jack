@@ -295,9 +295,9 @@ elif find(s, "Frame:") >= 0:    # older versions, like 3.13
 else:
     percent = 0
 
-#################### end of auto-generated .jackrc ############################
 \"\"\"
 }
+#################### end of auto-generated .jackrc ############################
 
 """
 
@@ -616,8 +616,8 @@ while l:
         l = split(l, '.', 1)
         num = int(l[0])
         l = split(l[1])
-        if len(erg) == 0 and num != 1:
-            erg.append([1, int(l[2]), 0, 0, 0, 0, 0, 0, name % 1])
+        #if len(erg) == 0 and num != 1:
+            #erg.append([1, int(l[2]), 0, 0, 0, 0, 0, 0, name % 1])
         erg.append([num, int(l[0]), int(l[2]), l[4] == 'OK', l[5] == 'yes', int(l[6]), 1, bitrate, name % num])
     l = p.readline()
 \"\"\"
@@ -639,8 +639,26 @@ else:
 final_status = ("%4.1f" % speed) + "x [ DAE done with cdda2wav       ]"
 \"\"\",
         'toc': 1,
-        'toc_cmd': "cdda2wav --no-infofile -D %D -J -v 35 2>&1",
+        'toc_cmd': "cdda2wav --no-infofile -D %D -J -v 35 --gui 2>&1",
         'toc_fkt': \"\"\"
+while 1:
+    l = p.readline()
+    if not l:
+        break
+    if l[0] == "T" and l[1] in string.digits and l[2] in string.digits and l[3] == ":":
+        num, start, length, type, pre, copy, ch = string.split(l)[:7]
+        if type == "audio":
+            num = int(num[1:3])
+            start = int(start)
+            length = string.replace(length,".", ":")
+            length = timestrtoblocks(length)
+            pre = pre == "pre-emphasized"
+            copy = copy != "copydenied"
+            ch = [ "none", "mono", "stereo", "three", "quad" ].index(ch)
+            erg.append([num, length, start, copy, pre, ch, 1, bitrate, name % (num + 1)])
+\"\"\",
+        'toc_cmd_old': "cdda2wav --no-infofile -D %D -J -v 35 2>&1",
+        'toc_fkt_old': \"\"\"
 new_c2w = 0
 new_toc1 = 0
 new_toc2 = 0
@@ -787,7 +805,7 @@ for i in range(first, last + 1):
 (min, sec, frame) = cdrom.leadout(device)
 toc.append(min * 60 * 75 + sec * 75 + frame)
 for i in range(first, last + 1):
-    erg.append([i, toc[i] - toc[i - 1], toc[i - 1] - toc[0], 0, 0, 2, 1, bitrate, name % i])
+    erg.append([i, toc[i - first + 1] - toc[i - first], toc[i - first] - toc[0], 0, 0, 2, 1, bitrate, name % i])
 \"\"\"
     }
 }
@@ -1007,7 +1025,9 @@ def pprint_i(num, fmt = "%i%s", scale = 2.0**10, max = 4):
 def gettoc(toc_prog = toc_prog):
     "Returns track list"
     if helpers[toc_prog].has_key('toc_cmd'):
-        p = popen(replace(helpers[toc_prog]['toc_cmd'], "%d", cd_device))
+        cmd = replace(helpers[toc_prog]['toc_cmd'], "%d", cd_device)
+        cmd = replace(cmd, "%D", gen_device)
+        p = popen(cmd)
         start = 0
         erg = []
         l = p.readline()
@@ -3063,16 +3083,17 @@ if not path.exists(freedb_form_file):
 if toc_just_read and helpers[ripper].has_key("toc_cmd") and ripper != toc_prog:
     ripper_tracks = gettoc(toc_prog=ripper)
     if ripper_tracks != all_tracks:
-        for i in range(len(ripper_tracks)):
-            for j in range(6):
-                # "NUM LEN START COPY PRE CH" (not: "RIP RATE NAME")
-                if ripper_tracks[i][j] != all_tracks[i][j]:
-                    progress(i + 1, "patch", "%s %d -> %d" % (fields[j], all_tracks[i][j], ripper_tracks[i][j]))
-                    print "Info: Track %02d %s" % (i + 1, fields[j]), all_tracks[i][j], "!=", ripper_tracks[i][j], "(trusting <-- %s)" % ripper
-
-        for i in range(len(ripper_tracks), len(all_tracks)):
-            progress(i + 1, "off", "non-audio")
-            print "Info: Track %02d not found by %s. Treated as non-audio." % (i + 1, ripper)
+        for i in range(len(all_tracks)):
+            rtn = has_track(ripper_tracks, all_tracks[i][NUM])
+            if rtn >= 0:
+                for j in range(6):
+                    # "NUM LEN START COPY PRE CH" (not: "RIP RATE NAME")
+                    if ripper_tracks[rtn][j] != all_tracks[i][j]:
+                        progress(i + 1, "patch", "%s %d -> %d" % (fields[j], all_tracks[i][j], ripper_tracks[rtn][j]))
+                        print "Info: Track %02d %s" % (i + 1, fields[j]), all_tracks[i][j], "!=", ripper_tracks[rtn][j], "(trusting %s; to the right)" % ripper
+            else:
+                progress(i + 1, "off", "non-audio")
+                print "Info: Track %02d not found by %s. Treated as non-audio." % (i + 1, ripper)
     
 ### (4b) Parse tracks from argv, generate todo
 
