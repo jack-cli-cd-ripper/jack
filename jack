@@ -854,6 +854,7 @@ width = default_width       # if we need to restore xterm
 height = default_height     # if we need to restore xterm
 old_tc = tcgetattr(stdin.fileno())  # terminal attributes
 revision = 0        # initial revision of freedb data
+status_all = {}             # progress info common for all track
 
 # curses related globals
 curses_init = 0             # initscr has been called
@@ -1382,24 +1383,27 @@ def freedb_query(cd_id, tracks, file):
             print "Found inexact matches choose one:"
             num = 1
             matches = []
-            buf = f.readline()
-            while buf:
+            while 1:
+                buf = f.readline()
+                if not buf:
+                    break
                 buf = rstrip(buf)
                 if buf != ".":
                     print "%2i" % num + ".) " + buf
                     matches.append(buf)
                     num = num + 1
-                buf = f.readline()
             x = -1
             while x < 0 or x > num - 1:
                 input = raw_input(" 0.) none of the above: ")
                 if not input:
-                    print "ok, aborting."
-                    exit()
+                    continue
                 try:
                     x = int(input)
                 except ValueError:
                     x = -1    # start the loop again
+                if not x:
+                    print "ok, aborting."
+                    exit()
 
             buf = matches[x-1]
             buf = split(buf, " ", 2)
@@ -1434,6 +1438,8 @@ def freedb_query(cd_id, tracks, file):
                     of.write(buf + "\n")
                 buf = f.readline()
             of.close()
+            progress("all", "freedb_cat", freedb_cat)
+            status_all['freedb_cat'] = freedb_cat
             err = 0
         else:
             print rstrip(buf)
@@ -1728,6 +1734,31 @@ def freedb_names(cd_id, tracks, name, various, verb = 0, warn = 1):
                     i[j] = replace(i[j][1:], '"', '', 1)
     return error, names, read_id, revision
 
+def choose_cat(cat = ["blues", "classical", "country", "data", "folk", "jazz", "misc", "newage", "reggae", "rock", "soundtrack"]):
+    print "choose a category:"
+    for i in range(1, len(cat)):
+        print "%2d" % i + ".) " + cat[i]
+
+    x = -1
+    while x < 0 or x > len(cat) - 1:
+        if status_all.has_key('freedb_cat') and status_all['freedb_cat'][-1] in cat:
+            input = raw_input(" 0.) none of the above (default='%s'): " % status_all['freedb_cat'][-1])
+            if not input:
+                x = cat.index(status_all['freedb_cat'][-1])
+                continue
+        else:
+            input = raw_input(" 0.) none of the above: ")
+        try:
+            x = int(input)
+        except ValueError:
+            x = -1    # start the loop again
+
+        if not x:
+            print "ok, aborting."
+            exit(1)
+
+    return cat[x]
+
 def do_freedb_submit(file, cd_id):
     import httplib
     hello = "hello=" + username + " " + hostname + " " + prog_name + " " + prog_version
@@ -1737,42 +1768,26 @@ def do_freedb_submit(file, cd_id):
     buf = f.readline()
     if buf[0:3] == "500":
         print "Info: LSCAT failed, using builtin categories..."
-        print "choose a category:"
-        cat = ["blues", "classical", "country", "data", "folk", "jazz", "misc", "newage", "reggae", "rock", "soundtrack"]
-        num = 1
-        for i in cat:
-            print "%2i" % num + ".) " + cat[num - 1]
-            num = num + 1
-        
+        cat = choose_cat()
+
     elif buf[0:3] == "210":
         print "choose a category:"
-        num = 1
-        cat = []
-        buf = f.readline()
-        while buf:
+        cat = ["null", ]
+        while 1:
+            buf = f.readline()
+            if not buf:
+                break
             buf = rstrip(buf)
             if buf != ".":
-                print "%2i" % num + ".) " + buf
                 cat.append(buf)
-                num = num + 1
-            buf = f.readline()
         f.close()
+        cat = choose_cat(cat)
+
     else:
         print "Error: LSCAT failed: " + rstrip(buf)
         print f.read()
-        exit()
-    x = -1
-    while x < 0 or x > num - 1:
-        input = raw_input(" 0.) none of the above: ")
-        if not input:
-            print "ok, aborting."
-            exit()
-        try:
-            x = int(input)
-        except ValueError:
-            x = -1    # start the loop again
+        sys.exit(1)
 
-    cat = cat[x - 1]
     print "OK, using `" + cat + "'."
     email = freedb_servers[freedb_server]['my_mail']
     print "Your e-mail address is needed to send error messages to you."
@@ -1837,25 +1852,7 @@ def do_freedb_submit(file, cd_id):
     #print f.read()
 
 def do_freedb_mailsubmit(file, cd_id):
-    cat = ["blues", "classical", "country", "data", "folk", "jazz", "misc", "newage", "reggae", "rock", "soundtrack"]
-    num = 1
-    
-    print "choose a category:"
-    for i in cat:
-        print "%2i" % num + ".) " + cat[num - 1]
-        num = num + 1
-    x = -1
-    while x < 0 or x > num - 1:
-        input = raw_input(" 0.) none of the above: ")
-        if not input:
-            print "ok, aborting."
-            exit()
-        try:
-            x = int(input)
-        except ValueError:
-            x = -1    # start the loop again
-
-    cat = cat[x - 1]
+    cat = chosse_cat()
     print "OK, using `" + cat + "'."
     if find(freedb_servers[freedb_server]['my_mail'], "@") >= 1 and len(freedb_servers[freedb_server]['my_mail']) > 3:
         return system("( echo 'To: " + freedb_servers[freedb_server]['submit_mail'] + "'; echo From: '" + freedb_servers[freedb_server]['my_mail'] + "'; echo 'Subject: cddb " + cat + " " + cd_id + "' ; cat '" + file + "' ) | sendmail -t")
@@ -2982,6 +2979,7 @@ if check_toc:
 
 ### (3) read and interpret toc_file
 
+is_submittable = 0
 if path.exists(toc_file):
     all_tracks, new_image_file, multi_file_mode, track1_offset = cdrdao_gettoc(toc_file)
     if not path.exists(def_toc):
@@ -2990,20 +2988,23 @@ if path.exists(toc_file):
         image_file = new_image_file
     if multi_file_mode:
         image_file = ""
-    if freedb_submit:               # freedb submit
-        err, track_names, cd_id, revision = freedb_names(freedb_id(all_tracks), all_tracks, freedb_form_file, various)
-        if not err:
-            do_freedb_submit(freedb_form_file, cd_id)
-        else:
-            print "Error: invalid freedb file."
-        exit()
-    elif freedb_mailsubmit:
-        err, track_names, cd_id, revision = freedb_names(freedb_id(all_tracks), all_tracks, freedb_form_file, various)
-        if not err:
-            do_freedb_mailsubmit(freedb_form_file, cd_id)
-        else:
-            print "Error: invalid freedb file."
-        exit()
+
+    is_submittable = 1
+
+    #if freedb_submit:               # freedb submit
+        #err, track_names, cd_id, revision = freedb_names(freedb_id(all_tracks), all_tracks, freedb_form_file, various)
+        #if not err:
+            #do_freedb_submit(freedb_form_file, cd_id)
+        #else:
+            #print "Error: invalid freedb file."
+        #exit()
+    #elif freedb_mailsubmit:
+        #err, track_names, cd_id, revision = freedb_names(freedb_id(all_tracks), all_tracks, freedb_form_file, various)
+        #if not err:
+            #do_freedb_mailsubmit(freedb_form_file, cd_id)
+        #else:
+            #print "Error: invalid freedb file."
+        #exit()
         
 if not path.exists(freedb_form_file):
     freedb_template(all_tracks) # ... or if it has been deleted.
@@ -3103,7 +3104,7 @@ if upd_progress:
                 status[num]['enc'] = `x['bitrate']` + progr_sep + "[simulated]"
                 progress(num, "enc", status[num]['enc'])
 
-# now read in the progress file
+### (7) now read in the progress file
 
 if path.exists(progress_file):
     f = open(progress_file, "r")
@@ -3196,7 +3197,25 @@ else:
     if id3_year != status_all['id3_year']:
         progress("all", "id3_year", `id3_year`)
 
-### (7) do query on start
+### (8) submit freedb data on user's request
+
+if is_submittable:
+    if freedb_submit:               # freedb submit
+        err, track_names, cd_id, revision = freedb_names(freedb_id(all_tracks), all_tracks, freedb_form_file, various)
+        if not err:
+            do_freedb_submit(freedb_form_file, cd_id)
+        else:
+            print "Error: invalid freedb file."
+        exit()
+    elif freedb_mailsubmit:
+        err, track_names, cd_id, revision = freedb_names(freedb_id(all_tracks), all_tracks, freedb_form_file, various)
+        if not err:
+            do_freedb_mailsubmit(freedb_form_file, cd_id)
+        else:
+            print "Error: invalid freedb file."
+        exit()
+
+### (9) do query on start
 
 if query_on_start:
     print "Info: Querying..."
@@ -3210,7 +3229,7 @@ else:
     err, track_names, freedb_rename, revision = interpret_db_file(all_tracks, freedb_form_file, various, verb = query_on_start, warn = query_on_start)
 
 
-### (8) update freedb dbfile
+### (10) update freedb dbfile
 
 if update_freedb:
     freedb_template(all_tracks, track_names, revision + 1)
@@ -3225,7 +3244,7 @@ if update_freedb:
     print "Don't forget to activate your change with -R"
     sys.exit()
 
-### (9) undo renaming (operation mode)
+### (11) undo renaming (operation mode)
 
 if undo_rename:
     maxnames = max(map(lambda x: len(x['names']), status.values()))
