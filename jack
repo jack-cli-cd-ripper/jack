@@ -46,7 +46,7 @@ import pty
 import wave
 import types
 import traceback
-#from pprint import pprint
+from pprint import pprint
 from jack_TOC import TOC
 from jack_TOCentry import TOCentry
 from jack_CDTime import CDTime
@@ -110,7 +110,7 @@ except ImportError:
         from curses import endwin, A_REVERSE, newwin, newpad, initscr, noecho, cbreak, echo, nocbreak
         curses_enable = 1
     except ImportError:
-        print "curses module not found, please install it (see README)"
+        print "curses module not found or too old, please install it (see README)"
         curses_enable = 0
 
 if DEBUG: curses_enable = 0
@@ -399,16 +399,17 @@ hostname = uname()[1]           # that is required for freedb query
 
 ## better not touch these: ##
 if environ.has_key("OSTYPE") and environ['OSTYPE'] in ["Linux", "linux-gnu"]:
-  Linux = 1       # some things can be done faster on Linux
+  Linux = 1             # some things can be done faster on Linux
 else:
   Linux = 0
 if Linux:
   loadavg = "get_sysload_linux_proc()"  # this is eval()'d to get the sysload
 else:
-  loadavg = "-1"    # tell me how to get sysload on non-Linux systems!
-                    # preferably without calling uptime
+  loadavg = "-1"        # tell me how to get sysload on non-Linux systems!
+                        # preferably without calling uptime
 image_toc_file = None
-image_file = ""     # normal operation: DAE from CD, not from image
+image_file = ""         # normal operation: DAE from CD, not from image
+rip_from_device = 1     # rip from physical device, not from image_file
 toc_file = prog_name + ".toc"   # if noexistent, create on startup
 def_toc = prog_name + ".toc"    # cache toc here
 freedb_form_file = prog_name + ".freedb"    # name of submission template
@@ -1336,11 +1337,12 @@ def cdrdao_gettoc(tocfile):     # get toc from cdrdao-style toc-file
     toc = real_cdrdao_gettoc(tocfile)
     tracks = toc.export()
     track1_pregap = tracks[0][1]
-    multi_file_mode = not toc.same_image()
     use_filename = toc.image_file
-    if DEBUG: print "t1_pre:", track1_pregap, "multi:", multi_file_mode,
+    # note: toc.image_file is None if different files are specified
+
+    if DEBUG: print "t1_pre:", track1_pregap,
     if DEBUG: print "toc=", tracks
-    return tracks[1:], use_filename, multi_file_mode, track1_pregap
+    return tracks[1:], use_filename, track1_pregap
 
 
 ##XXX this will be moved to jack_convert
@@ -2409,11 +2411,11 @@ def cmp_toc(x, y):
     elif x == y: return 0
     elif x < y: return -1
 
-def cmp_toc_cd(x, y):
+def cmp_toc_cd(x, y, what=(NUM, LEN, START)):
     "compare the relevant parts of two TOCs"
     if len(x) == len(y):
         for i in range(len(x)):
-            for j in NUM, LEN, START:
+            for j in what:
                 if x[i][j] != y[i][j]:
                     return 0
     else:
@@ -2752,10 +2754,12 @@ while i<len(argv):
         i = i + 1
     elif argv[i] in ("-F", "--from-image"):
         image_file = argv[i + 1]
+        rip_from_device = 0
         read_ahead = 0          # we do not want to waste discspace
         i = i + 1
     elif argv[i] in ("-f", "--from-tocfile"):
         image_toc_file = argv[i + 1]
+        rip_from_device = 0
         read_ahead = 0          # we do not want to waste discspace
         i = i + 1
     elif argv[i] in ("-e", "--encoders"):
@@ -3083,27 +3087,28 @@ while (not path.exists(toc_file)) or multi_mode:
             all_tracks = []
         else:
             if image_toc_file:
-                all_tracks, dummy, dummy, dummy = cdrdao_gettoc(image_toc_file)
+                all_tracks, dummy, dummy = cdrdao_gettoc(image_toc_file)
             else:
                 all_tracks = gettoc()
                 toc_just_read = 1
                 # check that the generic device is usable, too
                 if not os.access(gen_device, os.R_OK | os.W_OK):
-                    print "Warning: could not open generic device %s for reading and writing." % gen_device
-                    print "This may or may not be a problem. Maybe you just didn't set up gen_device"
-                    print "in your .jackrc. This is fine, unless you're using a ripper which needs to"
-                    print "know the generic device (cdparanoia doesn't need to know). But you have to"
-                    print "make sure that the generic device is read- and writable by you."
-                    print "How to find the generic device:"
-                    print "On Linux, first make sure that you have set up your SCSI subsystem correctly."
-                    print "Yes, even if you don't have SCSI devices, you need this, see"
-                    print "http://www.tldp.org/HOWTO/SCSI-2.4-HOWTO/sr.html (\"ATAPI cdroms\")"
-                    print "Then, in a shell, enter 'cat /proc/scsi/scsi' (without the ticks)"
-                    print "Count the devices, starting with 0 and stopping with the CD-ROM you're using."
-                    print "Your generic device is /dev/sg[the number you stopped at]."
-                    print "So: 1. make sure the gen_device is correct"
-                    print "    2. make it read- and writable by you, then this message will not come back."
-                    print "Note: other errors below may result from this problem."
+                    print \
+r"""Warning: could not open generic device %s for reading and writing.
+This may or may not be a problem. Maybe you just didn't set up gen_device
+in your .jackrc. This is fine, unless you're using a ripper which needs to
+know the generic device (cdparanoia doesn't need to know). But you have to
+make sure that the generic device is read- and writable by you.
+How to find the generic device:
+On Linux, first make sure that you have set up your SCSI subsystem correctly.
+Yes, even if you don't have SCSI devices, you need this, see
+http://www.tldp.org/HOWTO/SCSI-2.4-HOWTO/sr.html ("ATAPI cdroms")
+Then, in a shell, enter 'cat /proc/scsi/scsi' (without the ticks)
+Count the devices, starting with 0 and stopping with the CD-ROM you're using.
+Your generic device is /dev/sg[the number you stopped at].
+So: 1. make sure the gen_device is correct
+    2. make it read- and writable by you, then this message will not come back.
+Note: other errors below may result from this problem.""" % gen_device
 
         if scan_dirs != None:
             recurse_dirs = scan_dirs
@@ -3132,7 +3137,7 @@ while (not path.exists(toc_file)) or multi_mode:
         for i in dirs:
             if path.exists(path.join(i, toc_file)):
                 jack_dirs.append(i)
-                file_toc, my_image_file, my_multi_file_mode, my_track1_offset = cdrdao_gettoc(path.join(i, toc_file))
+                file_toc, dummy, dummy = cdrdao_gettoc(path.join(i, toc_file))
                 if freedb_id(all_tracks) == freedb_id(file_toc):
                     possible_dirs.append(i)
 
@@ -3146,7 +3151,7 @@ while (not path.exists(toc_file)) or multi_mode:
                 if not found:
                     unique_dirs.append(jack_dirs[i])
             for i in unique_dirs:
-                all_tracks, new_image_file, multi_file_mode, track1_offset = cdrdao_gettoc(path.join(i, toc_file))
+                all_tracks, dummy, track1_offset = cdrdao_gettoc(path.join(i, toc_file))
                 err, track_names, cd_id, revision = freedb_names(freedb_id(all_tracks), all_tracks,  path.join(i, freedb_form_file), verb = 0, warn = 0)
                 if err or force:# this means freedb data is not there yet
                     print "Info: matching dir found:", i
@@ -3205,12 +3210,16 @@ while (not path.exists(toc_file)) or multi_mode:
 if check_toc:
     cd_toc = gettoc()
     if path.exists(toc_file):
-        file_toc, new_image_file, multi_file_mode, track1_offset = cdrdao_gettoc(toc_file)
+        file_toc, dummy, dummy = cdrdao_gettoc(toc_file)
     else:
         print "no toc-file named " + toc_file + " found, exiting."
         exit()
-    print cd_toc
-    print file_toc
+    print "This is the inserted CD:"
+    pprint(cd_toc)
+    print
+    print "And This is what we expect:"
+    pprint(file_toc)
+    print
     if cmp(cd_toc, file_toc) == 0:
         print 'Yes, toc-file ("' + toc_file + '") matches inserted CD.'
     else:
@@ -3223,12 +3232,15 @@ is_submittable = 0
 if path.exists(toc_file):
     if image_toc_file:
         toc_file = image_toc_file
-    all_tracks, new_image_file, multi_file_mode, track1_offset = cdrdao_gettoc(toc_file)
+    all_tracks, new_image_file, track1_offset = cdrdao_gettoc(toc_file)
     if not path.exists(def_toc):
         cdrdao_puttoc(def_toc, all_tracks, freedb_id(all_tracks))
-    if not image_file:
+
+    # if image_file is not set (-F), we can guess it from image_toc_file
+    if not image_file and not rip_from_device:
         image_file = new_image_file
-    if multi_file_mode:
+
+    if rip_from_device:
         image_file = ""
 
     is_submittable = 1
@@ -3375,6 +3387,10 @@ if path.exists(progress_file):
         # strip doesn't work here as we may have trailing spaces
         buf = replace(buf, "\n", "")
 
+        # ignore empty lines
+        if not buf:
+            continue
+
         buf = split(buf, progr_sep, 3)
         try:
             num = int(buf[0])
@@ -3436,7 +3452,10 @@ for i in status.keys():
             if tracknum[i][fields.index(p_what)] == p_from:
                 tracknum[i][fields.index(p_what)] = p_to
             else:
-                print "Error: illegal patch", j, todo[k][fields.index(p_what)], p_from
+                #print "Error: illegal patch", j , todo[has_track(todo, i)][fields.index(p_what)], p_from
+                print "Error: illegal patch %s." % j,
+                print "Track %02d: %s is %d" % (i, p_what, todo[has_track(todo, i)][fields.index(p_what)])
+
                 exit(1)
 
     if status[i]['off']:
@@ -3737,10 +3756,11 @@ if (space + freeable_space<space_needed or not will_work) and not dont_work:
 max_load = max_load + encoders
 
 if not dont_work and dae_queue:     # check if inserted cd matches toc.
-    if not image_file:
+    if rip_from_device:
         all_tracks_on_cd = gettoc()
-        if not force and not cmp_toc_cd(all_tracks_orig, all_tracks_on_cd):
+        if not force and not cmp_toc_cd(all_tracks_orig, all_tracks_on_cd, what=(NUM, LEN)):
             print "Error: you did not insert the right cd, aborting."
+            sys.exit(1)
 
 if remove_q and not force and not dont_work:
     if silent_mode:
@@ -3915,9 +3935,12 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, enc_running, da
             if pause:
                 this_is_ok = 0
                 dae_stat_upd(dae_queue[0][NUM], "Paused. Press 'c' to continue.")
-            elif not image_file:
+            elif rip_from_device:
                 all_tracks_on_cd = gettoc()
-                if not cmp_toc_cd(all_tracks_orig, all_tracks_on_cd):
+                if not cmp_toc_cd(all_tracks_orig, all_tracks_on_cd, what=(NUM, LEN)):
+                    print all_tracks_orig
+                    print all_tracks_on_cd
+                    sys.exit()
                     while dae_queue:
                         track = dae_queue[0]
                         dae_queue = dae_queue[1:]
@@ -3937,8 +3960,8 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, enc_running, da
                 dae_running = dae_running + 1
                 track = dae_queue[0]
                 dae_queue = dae_queue[1:]
-                if otf and not image_file:
-                    #XXX image_reader can't do otf at the moment.
+                if otf:
+                    # note: image_reader can't do otf at the moment.
                     dae_stat_upd(track[NUM], ":DAE: waiting for status report...")
                     if encoder in ("lame", "gogo", "flac", "mppenc"):
                         enc_stat_upd(track[NUM], "[no otf status for %s]" % encoder)
@@ -3956,10 +3979,12 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, enc_running, da
                         enc_cache[track[NUM]] = enc_status[track[NUM]]
                         enc_stat_upd(track[NUM], "[...]")
                     dae_stat_upd(track[NUM], ":DAE: waiting for status report...")
-                    if image_file:
+                    if rip_from_device:
+                        children.append(start_new_ripper(track, ripper))
+                    elif image_file:
                         children.append(ripread(track, track1_offset))
                     else:
-                        children.append(start_new_ripper(track, ripper))
+                        dae_stat_upd(track[NUM], ":?AE: don't know how to rip this!")
 
                                             # start new encoder subprocess
 
