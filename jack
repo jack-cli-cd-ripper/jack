@@ -428,8 +428,8 @@ targets = {
         'file_extension': ".ogg"
         },
     'flac': {
-        'can_cbr': 1,
-        'can_vbr': 0,
+        'can_cbr': 0,
+        'can_vbr': 1,
         'can_id3': 1,
         'can_pretag': 0,
         'can_posttag': 1,
@@ -616,8 +616,8 @@ else:
     'flac': {
         'type': "encoder",
         'target': "flac",
-        'cmd': "flac -o %o %i",     
-        'otf-cmd': "flac -fr -fb -fc 2 -fp 16 -fs 44100 -o %o", 
+        'vbr-cmd': "flac -o %o %i",     
+        'vbr-otf-cmd': "flac -fr -fb -fc 2 -fp 16 -fs 44100 -o %o", 
         'status_blocksize': 160,
         'status_start': "%", 
         'percent_fkt': \"\"\"
@@ -3590,12 +3590,11 @@ for track in todo:
             enc_status[track[NUM]] = "no encoder run."
         # with vbr encoded files can't legally be too small
         # but to reduce confusion, the check is then removed:
-        # (don't do this for flac)
-        elif ext != ".flac" and not vbr and filesize(mp3) <= tracksize(track)[ENC] * 0.99: # found by trial'n'err
+        elif not vbr and filesize(mp3) <= tracksize(track)[ENC] * 0.99: # found by trial'n'err
             space = space + filesize(mp3)
             remove_q.append(mp3)
             enc_status[track[NUM]] = "encoded file too small by " + pprint_i(tracksize(track)[ENC] - filesize(mp3)) + "."
-        elif ext != ".flac" and not vbr and filesize(mp3) >= tracksize(track)[ENC] * 1.05: # found by trial'n'err
+        elif not vbr and filesize(mp3) >= tracksize(track)[ENC] * 1.05: # found by trial'n'err
             print ext
             space = space + filesize(mp3)
             remove_q.append(mp3)
