@@ -1193,7 +1193,7 @@ def guesstoc(names):
             erg.append([num, blocks, start, 0, 0, 2, 1, bitrate, i_name])
             progr.append([num, "dae", "  =p  [  s  i  m  u  l  a  t  e  d   ]"])
             if name % num != i_name:
-                progr.append(num, "ren", name % num + "-->" + i_name)
+                progr.append([num, "ren", name % num + "-->" + i_name])
         elif i_ext == ".OGG":
             print "Error: you still have to wait for ogg support for this ooperation, sorry."
             exit()
@@ -3340,14 +3340,20 @@ status = {}
 for i in all_tracks:
     num = i[NUM]
     status[num] = {}
-    status[num]['dae'] = status[num]['enc'] = status[num]['ren'] = []
+    status[num]['dae'] = []
+    status[num]['enc'] = []
+    status[num]['ren'] = []
     status[num]['names'] = [i[NAME],]
-    status[num]['patch'] = status[num]['off'] = []
+    status[num]['patch'] = []
+    status[num]['off'] = []
 
 status['all'] = {}
 status['all']['mkdir'] = status['all']['names'] = [[],]
-status['all']['dae'] = status['all']['enc'] = status['all']['ren'] = []
-status['all']['patch'] = status['all']['off'] = []
+status['all']['dae'] = []
+status['all']['enc'] = []
+status['all']['ren'] = []
+status['all']['patch'] = []
+status['all']['off'] = []
 status['all']['id3_genre'] = ["-1",]
 status['all']['id3_year'] = ["-1",]
 
