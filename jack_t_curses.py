@@ -1,6 +1,6 @@
 ### jack_t_curses: dumb terminal functions for
 ### jack - extract audio from a CD and encode it using 3rd party software
-### Copyright (C) 1999-2002  Arne Zellentin <zarne@users.sf.net>
+### Copyright (C) 1999-2004  Arne Zellentin <zarne@users.sf.net>
 
 ### This program is free software; you can redistribute it and/or modify
 ### it under the terms of the GNU General Public License as published by
@@ -46,7 +46,7 @@ except ImportError:
 
 
 # screen objects
-stdscr = status_pad = usage_win = None  # screen objects
+stdscr = status_pad = usage_win = None
 
 # status pad geometry
 pad_x = pad_y = pad_start_y = pad_start_x = pad_end_y = pad_end_x = None
@@ -95,7 +95,7 @@ def enable():
     stdscr.leaveok(0)
 
     # build the pad
-    pad_height, pad_width = len(jack_ripstuff.all_tracks_todo_sorted), jack_term.size_x
+    pad_height, pad_width = len(jack_ripstuff.all_tracks_todo_sorted), jack_ripstuff.max_name_len + 72
     status_pad = newpad(pad_height, pad_width)
     usage_win = newwin(usage_win_height, usage_win_width, 0, 0)
     map_track_num = {}

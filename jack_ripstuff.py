@@ -1,6 +1,6 @@
 ### jack_ripstuff: container module for
 ### jack - extract audio from a CD and encode it using 3rd party software
-### Copyright (C) 1999-2002  Arne Zellentin <zarne@users.sf.net>
+### Copyright (C) 1999-2004  Arne Zellentin <zarne@users.sf.net>
 
 ### This program is free software; you can redistribute it and/or modify
 ### it under the terms of the GNU General Public License as published by
@@ -48,7 +48,9 @@ def gen_printable_names(track_names, todo):
         if cf['_show_time']:
             max_name_len = max_name_len + 6
     else:
-        max_name_len = max(map(lambda x: len(x[NAME]), todo))
+        max_name_len = len("01")
+        if cf['_show_time']:
+            max_name_len = max_name_len + len(" 01:23")
 
     for i in todo:
         if cf['_show_time']:
