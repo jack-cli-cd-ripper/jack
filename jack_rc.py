@@ -72,7 +72,7 @@ def load(cf, file):
     for i in rc:
         if i[0] != None:
             if cf.has_key(i[0]):
-                ret, val = jack_argv.parse_option(cf, i[0:2], 0, i[0])
+                ret, val = jack_argv.parse_option(cf, i[0:2], 0, i[0], None)
                 if ret != None:
                     rc_cf[i[0]] = {'val': val}
                 else:
@@ -121,6 +121,12 @@ def write(file, rc):
             f.write("#" + i[2])
         f.write("\n")
 
+def write_yes(x):
+    if x:
+        return "yes"
+    else:
+        return "no"
+
 def convert(cf):
     rc = []
     for i in cf.keys():
@@ -129,7 +135,7 @@ def convert(cf):
         elif cf[i]['type'] == types.IntType:
             rc.append([i, `cf[i]['val']`, None])
         elif cf[i]['type'] == 'toggle':
-            rc.append([i, None, 'toggle'])
+            rc.append([i, write_yes(cf[i]['val']), 'toggle'])
         else:
             error("don't know how to handle " + `cf[i]['type']`)
     return rc

@@ -62,19 +62,30 @@ While Jack is running, press q or Q to quit,
     else:
         print "These are the most commom options. For a complete list, run jack --longhelp"
 
-def get_next(argv, i):
-    i = i + 1
-    if len(argv) > i:
-        return i, argv[i]
+def get_next(argv, i, extra_arg = None):
+    if extra_arg != None:
+        return i, extra_arg
+    elif argv[i].find("=") > 0:
+        return i, argv[i].split("=", 1)[1]
     else:
-        return i, None
+        i = i + 1
+        if len(argv) > i:
+            return i, argv[i]
+        else:
+            return i, None
 
-def parse_option(cf, argv, i, option):
+def istrue(x):
+    return x.upper() in ["Y", "YES", "1", "TRUE"]
+
+def parse_option(cf, argv, i, option, alt_arg):
     ty = cf[option]['type']
     if ty == 'toggle':
-        return i, not cf[option]['val']
+        if alt_arg:
+            return i, istrue(alt_arg)
+        else:
+            return i, not cf[option]['val']
     if ty == types.IntType:
-        i, data = get_next(argv, i)
+        i, data = get_next(argv, i, alt_arg)
         if data != None:
             try:
                 data = int(data)
@@ -86,7 +97,7 @@ def parse_option(cf, argv, i, option):
         else:
             return None, "Option `%s' needs exactly one argument" % option
     if ty == types.StringType:
-        i, data = get_next(argv, i)
+        i, data = get_next(argv, i, alt_arg)
         if data != None:
             return i, data
         else:
@@ -94,7 +105,7 @@ def parse_option(cf, argv, i, option):
     if ty == types.ListType:
         l = []
         while 1:
-            i, data = get_next(argv, i)
+            i, data = get_next(argv, i,alt_arg)
             if data != None:
                 if data == ";":
                     break
@@ -137,24 +148,33 @@ def parse_argv(cf, argv):
             sys.exit(0)
 
         option = ""
-        if len(argv[i]) == 2 and argv[i][0] == "-":
-            o = argv[i][1]
+        tmp_option = tmp_arg = None
+
+        if argv[i].find("=") >= 2:
+            tmp_option, tmp_arg = argv[i].split("=", 1)
+        else:
+            tmp_option = argv[i]
+
+        if len(tmp_option) == 2 and tmp_option[0] == "-":
+            o = tmp_option[1]
             if allargs.has_key(o):
                 option = allargs[o]
 
-        elif argv[i] == "--override":
-            i, option = get_next(argv, i)
+        elif tmp_option == "--override":
+            i, option = get_next(argv, i, tmp_arg)
+            if option.find("=") > 0:
+                option, tmp_arg = option.split("=", 1)
             if option == None:
                 print "--override takes two arguments: <VARIABLE> <VALUE>"
                 sys.exit(1)
 
-        elif len(argv[i]) > 2 and argv[i][0:2] == "--":
-            o = argv[i][2:]
+        elif len(tmp_option) > 2 and tmp_option[0:2] == "--":
+            o = tmp_option[2:]
             if allargs.has_key(o):
                 option = allargs[o]
 
         if option:
-            i, value = parse_option(cf, argv, i, option)
+            i, value = parse_option(cf, argv, i, option, tmp_arg)
             if i == None:
                 error(value)
             if not argv_cf.has_key(option):
