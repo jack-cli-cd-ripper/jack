@@ -98,6 +98,18 @@ encode how many files in parallel. If you have a SMP machine or
 simply want to stress your system, you can have Jack encode
 several files at once.
 .TP
+.B \-\-extt-is-artist
+the artist is contained in the EXTT fields. The EXTT fields are lines in the
+freedb file which contain additional data for each track. As it's the
+submitting user's choice what to use them for, Jack can't determine by itself
+what they were intended for. You have to provide this information.
+.TP
+.B \-\-extt-is-title
+the track title is contained in the EXTT fields.
+.TP
+.B \-\-extt-is-comment
+a track comment is contained in the EXTT fields.
+.TP
 .B \-f, \-\-from-tocfile <tocfile>
 rip from a cdrdao created CD image on hd. The specified toc-file 
 contains the name of the image file.
@@ -133,7 +145,7 @@ set ID3 genre. Use 'help' to get a list of all known genres.
 Show summary of options.
 .TP
 .B \-k, \-\-keep-wavs
-do not delete WAVs after encoding them
+do not delete WAVs after encoding them.
 .TP
 .B \-l, \-\-max-load <max_load>
 only start new encoders if your system's load is below (max_load
@@ -182,7 +194,7 @@ do freedb query when starting. Use this if you are connected to
 the internet when starting Jack. Know that the query may need
 user-interaction. After having finished ripping and encoding, Jack
 will rename the files and tag them using Ben Gertzfield's ID3.py
-module
+module.
 .TP
 .B \-r, \-\-reorder
 optimize track-order for disk space. This can save you some peak
@@ -221,6 +233,10 @@ that are "wrong".
 Scan 
 .B <recurse_dirs>
 levels from the current working directory for a matching toc-file.
+.TP
+.B \-\-search <search_dir>
+add <search_dir> to the list of directories searched when looking for the
+workdir.
 .TP
 .B \-\-server <freedb_server> 
 which freedb server to use. Don't forget to set your proxy.
@@ -262,9 +278,12 @@ is set to "Various Artists" the track titles have the format
 "[artist] - [title]". If the disc title is set to something else
 and you still want above behaviour, use 
 .B \-\-various.
-.TP.
+.TP
 .B \-\-various-swap
 exchange artist and title, many freedb entries have them wrong.
+.TP
+.B \-\-wait
+wait for key press before quitting.
 .TP
 .B \-x, \-\-exec
 run predefined command when finished.
@@ -282,8 +301,7 @@ jack
 Now watch it work. It's fun for a while. After having finished, you have
 the follwing files on your HD: track_01.mp3, track_02.mp3, ...,
 track_nn.mp3 plus jack.toc, jack.freedb, jack.progress. The last three are
-used to store the state jack is in so it can resume work when
-interrupted.
+used to store the state jack is in so it can resume work when interrupted.
 .br
 Jack will create a directory called jack-xxxxxxxx for you, there it
 stores all the file for the CD whose id is xxxxxxxx. After a freedb query
@@ -301,7 +319,7 @@ Now let's try a freedb query:
 jack -q
 .RE
 .PP
-when succesful the files are now renamed to something more readable and
+when succesful the files are now renamed to something more readable and 
 have been ID3 tagged accordingly. jack.freedb contains the queried freedb
 entry, the original file has been backed up to jack.freedb.bak.
 .br
@@ -312,4 +330,12 @@ jack -Q --remove
 .PP
 .br
 .SH AUTHOR
-Arne Zellentin <arne@unix-ag.org> is the author of Jack.
+Arne Zellentin <zarne@users.sf.net> is the author of Jack.
+.SH SEE ALSO
+.BR cdparanoia (1)
+,
+.BR cdda2wav (1)
+,
+.BR oggenc (1)
+and
+.BR lame (1)
