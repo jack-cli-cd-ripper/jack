@@ -334,6 +334,7 @@ check_toc = 0           # compare toc-file with cd-toc and exit
 undo_rename = 0         # undo file renaming and exit
 dont_work = 0           # use this to avoid actual work, good for query only
 update_freedb = 0       # update the freedb file
+sloppy = 0
 tlist = []              # tracks to encode, empty = use all tracks
 name = "track_%02i"     # filename template (before renaming)
 rippers = 1             # not implemented: rip in parallel
@@ -2901,6 +2902,8 @@ while i<len(argv):
         i = i + 1
         if not char_filter:
             print "Warning: option --charset has no effect without a char_filter"
+    elif argv[i] == "--I-swear-I'll-never-give-these-files-to-anyone,-including-hot-babes-tm":
+        sloppy = 1
     else:
         if not argv[i] in ("-h", "-help", "--help"):
             print "unknown option", argv[i]
@@ -3038,6 +3041,10 @@ if vbr and not helpers[encoder].has_key('vbr-cmd'):
 if not vbr and not helpers[encoder].has_key('cmd'):
     print "Error: can't do CBR because " + encoder + " doesn't support it.\nUse -v or set vbr=1 in your .jackrc."
     exit()
+
+if ripper == "cdparanoia" and sloppy:
+    helpers['cdparanoia']['cmd'] = replace(helpers['cdparanoia']['cmd'], "--abort-on-skip", "")
+    helpers['cdparanoia']['otf-cmd'] = replace(helpers['cdparanoia']['otf-cmd'], "--abort-on-skip", "")
 
 if query_on_start and query_when_ready:
     print "Error: it doesn't make sense to query now _and_ when finished."
@@ -4107,7 +4114,7 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, enc_running, da
                                 dae_stat_upd(num, strip(split(exited_proc['buf'], "\n")[-2]))
                                 res = 243
                             global_error = global_error + res
-                    if res:
+                    if res and not sloppy:
                         if path.exists(track[NAME] + ".wav"):
                             remove(track[NAME] + ".wav")
                             space = space + tracksize(track)[WAV]
