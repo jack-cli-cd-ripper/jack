@@ -831,7 +831,7 @@ def gettoc():
             try:
                 f = open(cd_device, "r")
             except IOError:
-                print "     : no read permission for " + cd_device + "."
+                print "     : could not open " + cd_device + ". Check permissions and that a disc is inserted."
             else:
                 print "     : maybe " + ripper + " is not installed?"
         else:
