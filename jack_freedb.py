@@ -212,7 +212,7 @@ def freedb_template(tracks, names = "", revision = 0):
 
 def freedb_query(cd_id, tracks, file):
     if cf['_freedb_dir']:
-        if local_freedb(cd_id, freedb_dir, file)==0: # use local database (if any)
+        if local_freedb(cd_id, cf['_freedb_dir'], file)==0: # use local database (if any)
             return 0
 
     qs = "cmd=cddb query " + cd_id + " " + `len(tracks)` + " " # query string
