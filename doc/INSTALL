@@ -34,15 +34,6 @@ if you don't already have them. (If you don't have them you'll get errors like
 
     # python setup-cursesmodule.py install
 
-* deactivate the original cursesmodule, as root
-
-    # cd /usr/lib/python1.5/lib-dynload
-    or
-    # cd /usr/local/lib/python1.5/lib-dynload
-
-    # mv cursesmodule.so cursesmodule.so-orig
-
-
 --- Step 3 - install jack and it's modules -----------------------------------
 
 Copy it somewhere in your $PATH, e.g.:
@@ -51,7 +42,8 @@ Copy it somewhere in your $PATH, e.g.:
 
 or (you may have to be root)
 
-    # cp jack* /usr/local/bin
+    # cp jack /usr/local/bin/
+    # cp jack_*py /usr/local/lib/python1.5/site-packages/
 
 --- That's it -- you're done! Congratulations!
 
@@ -61,6 +53,7 @@ or (you may have to be root)
 --- help on installing the cursesmodule manually -----------------------------
 ------------------------------------------------------------------------------
 
+(some of this is outdated, the module is now called jack_curses)
 If you want to use the curses mode (belive me, you want to), you have to
 install a special cursesmodule. The one which comes with python has no support
 for pads.  The improved version from Oliver Andrich is missing the function

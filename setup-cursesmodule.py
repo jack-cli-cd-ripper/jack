@@ -5,7 +5,7 @@
 from distutils.core import setup, Extension
 
 setup (# Distribution meta-data
-       name = "curses",
+       name = "jack_curses",
        version = "1.5b1",
        description = "standard curses module, patched to include newpad() and resizeterm()",
        author = "Arne Zellentin (just for the patch!)",
@@ -13,5 +13,5 @@ setup (# Distribution meta-data
        url = "http://www.home.unix-ag.org/arne/jack/",
 
        # Description of the modules and packages in the distribution
-       ext_modules = [ Extension('cursesmodule', ['cursesmodule/cursesmodule.c'], libraries=["ncurses"]) ]
+       ext_modules = [ Extension('jack_cursesmodule', ['cursesmodule/jack_cursesmodule.c'], libraries=["ncurses"]) ]
       )
