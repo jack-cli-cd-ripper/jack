@@ -987,7 +987,7 @@ def pprint_i(num, fmt = "%i%s", scale = 2.0**10, max = 4):
     else:
         return fmt % (num, c)
 
-def gettoc():
+def gettoc(toc_prog = toc_prog):
     "Returns track list"
     if helpers[toc_prog].has_key('toc_cmd'):
         p = popen(replace(helpers[toc_prog]['toc_cmd'], "%d", cd_device))
@@ -1003,7 +1003,7 @@ def gettoc():
                 except IOError:
                     print "     : could not open " + cd_device + ". Check permissions and that a disc is inserted."
                 else:
-                    print "     : maybe " + ripper + " is not installed?"
+                    print "     : maybe " + toc_prog + " is not installed?"
             else:
                 print "      : try setting cd_device to your CD device, e.g. /dev/cdrom"
             exit()
@@ -2314,6 +2314,10 @@ def sig_handler(sig, frame):
         system("xtermset -fg black -bg white -restore -geom "+ `new_width`+ "x" + `new_height`)
     if exit_code and silent_mode:
         progress("all", "err", "abnormal exit (code %i), check %s and %s" % (exit_code, err_file, out_file))
+
+    if globals().has_key("wait_on_quit") and wait_on_quit:
+        raw_input("press ENTER to exit")
+
     sys.exit(exit_code)
 #/ end of sig_handler /#
 
@@ -2681,12 +2685,18 @@ while i<len(argv):
     elif argv[i] in ("-R", "--rename-only"):
         read_freedb_file = 1
         set_id3tag = 1
+    elif argv[i] in ("-w", "--workdir"):
+        base_dir = argv[i + 1]
+        i = i + 1
+    elif argv[i] == "--search":
+        searchdirs.append(argv[i + 1])
+        i = i + 1
     elif argv[i] in ("-C", "--claim-dir"):
         claim_dir = 1
     elif argv[i] in ("-u", "--undo-rename"):
         undo_rename = 1
-    elif argv[i] in ("-X1", "--bl-a"):
-        dir_template = "%a - %l"
+    elif argv[i] == "--wait":
+        wait_on_quit = 1
     elif argv[i] in ("-G", "--id3-genre"):
         id3_genre = argv[i + 1]
         if upper(id3_genre) == "HELP":
@@ -2737,6 +2747,7 @@ while i<len(argv):
         print "  -R, --rename-only:  rename according to freedb file, eg. after editing it (" + yes(read_freedb_file and set_id3tag) + ")"
         print "  -G, --id3-genre:   *set ID3 genre (empty=don't set, help=list)"
         print "  -Y, --id3-year:    +set ID3 year (0=don't set) (" + `id3_year` + ")"
+        print "  -w, --workdir:     *where to create directories and put the files"
         print "  -C, --claim-dir:    rename the dir even if it was not created by jack (" + yes(claim_dir) + ")"
         print "  -u, --undo-rename:  undo file renaming and exit (" + yes(undo_rename) + ")"
         print "  -g, --guess-toc:   *guess TOC from files (until terminating \";\") (" + yes(guess_mp3s) + ")"
@@ -2748,6 +2759,7 @@ while i<len(argv):
         print "      --silent-mode:  be quiet (no screen output) (" + yes(silent_mode) + ")"
         print "      --device:      *use which cdrom device (" + cd_device + ")"
         print "      --scan-dirs:   +scan in cwd n dir levels deep, e.g. 0 to disable"
+        print "      --search:      *add dir to the list of searched dirs"
         print "      --force:        don't ask. (" + yes(force) + ")"
         print "      --remove:       remove jack.* file when done (" + yes(remove_files) + ")"
         print "      --upd-progress: re-generate progress file if \"lost\" (" + yes(upd_progress) + ")"
@@ -2758,6 +2770,7 @@ while i<len(argv):
         print "      --extt-is-title: the track title is contained in the EXTT fields"
         print "      --extt-is-comment: a track comment is contained in the EXTT fields"
         print "      --todo:         print what would be done and exit (" + yes(todo_exit) + ")"
+        print "      --wait:         wait for key press before quitting"
         print "      --otf:          on-the-fly encoding *experimental* (" + yes(otf) + ")"
         print
         print "    When a freedb query is done, files are renamed and tagged accordingly."
@@ -2860,13 +2873,18 @@ while (not path.exists(toc_file)) or multi_mode:
             dirs = [os.getcwd()]
         else:
             dirs = searchdirs
+
         while recurse_dirs > 0:
             recurse_dirs = recurse_dirs - 1
             new_dirs = []
             for i in dirs:
                 if not i in new_dirs:
                     new_dirs.append(i)
-                subdir = os.listdir(i)
+                try:
+                    subdir = os.listdir(i)
+                except OSError, msg:
+                    print "skipped %s, %s" % (i, msg)
+                    continue
                 for j in subdir:
                     dir = path.join(i,j)
                     if path.isdir(dir) and not dir in new_dirs:
@@ -2924,6 +2942,8 @@ while (not path.exists(toc_file)) or multi_mode:
             os.chdir(unique_dirs[0])
         else:
             if create_dirs:
+                if not path.exists(base_dir):
+                    os.makedirs(base_dir)
                 os.chdir(base_dir)
                 dir_name = prog_name + "-" + freedb_id(all_tracks, warn=0)
                 if not path.exists(dir_name) and not path.isdir(dir_name):
