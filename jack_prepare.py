@@ -62,21 +62,7 @@ def find_workdir():
                     toc_just_read = 1
                     # check that the generic device is usable, too
                     if cf['_gen_device'] and not os.access(cf['_gen_device'], os.R_OK | os.W_OK):
-                        warning(r"""could not open generic device %s for reading and writing.
-    This may or may not be a problem. Maybe you just didn't set up gen_device
-    in your .jackrc. This is fine, unless you're using a ripper which needs to
-    know the generic device (cdparanoia doesn't need to know). But you have to
-    make sure that the generic device is read- and writable by you.
-    How to find the generic device:
-    On Linux, first make sure that you have set up your SCSI subsystem correctly.
-    Yes, even if you don't have SCSI devices, you need this, see
-    http://www.tldp.org/HOWTO/SCSI-2.4-HOWTO/sr.html ("ATAPI cdroms")
-    Then, in a shell, enter 'cat /proc/scsi/scsi' (without the ticks)
-    Count the devices, starting with 0 and stopping with the CD-ROM you're using.
-    Your generic device is /dev/sg[the number you stopped at].
-    So: 1. make sure the gen_device is correct
-        2. make it read- and writable by you, then this message will not come back.
-    Note: other errors below may result from this problem.""" % cf['_gen_device'])
+                        warning(r"""could not open generic device %s for reading and writing.""" % cf['_gen_device'])
 
             if cf['_scan_dirs']:
                 dirs = [os.getcwd()]

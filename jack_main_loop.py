@@ -345,9 +345,9 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
                     else:
                         global_done = global_done + exited_proc['track'][LEN]
                         if cf['_vbr']:
-                            jack_status.enc_stat_upd(num, "[coding @" + '%1.2f' % speed + "× done,%03.0fkbit]" % ((jack_utils.filesize(track[NAME] + ext) * 0.008) / (track[LEN] / 75.0)))
+                            jack_status.enc_stat_upd(num, "[coding @" + '%1.2f' % speed + "x done,%03.0fkbit]" % ((jack_utils.filesize(track[NAME] + ext) * 0.008) / (track[LEN] / 75.0)))
                         else:
-                            jack_status.enc_stat_upd(num, "[coding @" + '%1.2f' % speed + "× done, mp3 OK]")
+                            jack_status.enc_stat_upd(num, "[coding @" + '%1.2f' % speed + "x done, mp3 OK]")
                         if not cf['_otf'] and not cf['_keep_wavs']:
                             os.remove(track[NAME] + ".wav")
                             space = space + jack_functions.tracksize(track)[WAV]

@@ -82,9 +82,9 @@ def consistency_check(cf):
 
     # check for unsername
     if cf['username']['val'] == None:
-        if os.environ.has_key('USER'):
+        if os.environ.has_key('USER') and os.environ['USER'] != "":
             cf['username']['val'] = os.environ['USER']
-        elif os.environ.has_key('LOGNAME'):
+        elif os.environ.has_key('LOGNAME') and os.environ['LOGNAME'] != "":
             cf['username']['val'] = os.environ['LOGNAME']
         else:
             error("can't determine your username, please set it manually.")

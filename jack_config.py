@@ -66,7 +66,7 @@ cf = jack_misc.dict2({
     'gen_device': {
         'type': types.StringType,
         'val': None,
-        'doc': "cdda2wav needs the scsi generic device",
+        'doc': "cdda2wav may need the scsi generic device",
         'long': 'AUTO',
         },
     'encoder': {
