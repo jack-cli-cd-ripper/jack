@@ -59,13 +59,10 @@ from jack_mp3 import mp3format
 desperately_seeking_curses = 0
 
 try:
-    import curses
+    import jack_curses
     curses_enable = 1
-    if not 'newpad' in dir(curses) or not 'resizeterm' in dir(curses):
-        print "You need the alternate (n)curses module, install the supplied one!"
-        curses_enable = 0
 except ImportError:
-    print "curses module not found, strange..."
+    print "jack_curses module not found, please install it (see README)"
     curses_enable = 0
 
 if DEBUG: curses_enable = 0
@@ -106,21 +103,29 @@ prefs_file = environ['HOME'] + "/.jackrc"
 ### your prefs_file (~/.jackrc) instead.                                  ###
 
 prefs = """
-## edit these defaults ##
-my_mail = "@"           # needed for e-mail submissions, please set
-freedb_server = "freedb"# your freedb server, see/edit details below
-
-# if environ.has_key('http_proxy'): del environ['http_proxy']
-                        # uncomment above line if you don't want to use your
-                        # default proxy for freedb queries
-ripper = "cdparanoia"   # use which program to rip: cdparanoia, tosha, cdda2wav,                        # dagrab (untested)
+## edit these defaults:
+ripper = "cdparanoia"       # use which program to rip: cdparanoia, tosha,
+                            # cdda2wav, dagrab (untested)
 cd_device = "/dev/cdrom"    # use which device for ripping
 gen_device = "/dev/sgXXX"   # cdda2wav needs the scsi generic device
-keep_free = 5*2**20     # suspend if less than keep_free bytes are free
-                        # don't set this to zero as encoded file size prediction
-                        # is always a bit below actual sizes => we might need
-                        # some extra space.
 
+encoder = "oggenc"          # use which encoder (bladeenc, lame, gogo, l3enc,
+                            # mp3enc, xing, oggenc) attention: this is a
+                            # symbolic name which is defined later in this file
+                            # (see helpers), NOT the executable's name
+
+bitrate = 160               # default bitrate
+vbr = 1                     # use variable bitrate for encoders which support it
+
+# set up freedb (if needed):
+freedb_server = "freedb"    # your freedb server, see freedb_servers below
+my_mail = "@"               # your e-mail address, needed for freedb submissions
+
+# if environ.has_key('http_proxy'): del environ['http_proxy']
+                            # uncomment above line if you don't want to use
+                            # your default proxy for freedb queries
+
+# specify how the resulting files are named:
 #   %n: track number
 #   %a: artist
 #   %t: track title
@@ -128,12 +133,10 @@ keep_free = 5*2**20     # suspend if less than keep_free bytes are free
 #   %y: album release year - individual track years are unsupported
 #   %g: album genre - individual track genres are unsupported
 
-rename_fmt = "%n.%a (%l) - %t"  # encoded files are renamed to
-                                # "01.Artist (Album) - Tracktitle.[ext]"
-rename_fmt_va = "%n.%a - %t"    # ditto for Various Artists CDs
-                                # note that a '%' in freedb data may lead to
-                                # problems - if it does, please mail me so I
-                                # can think of a better way of doing this
+#rename_fmt = "%n.%t"           # encoded files are renamed to
+rename_fmt = "%a - %l - %n - %t"# "Artist - Album - 01 - Tracktitle.[ext]"
+#rename_fmt_va = "%n.%a - %t"   # ditto for Various Artists CDs
+rename_fmt_va = "%l - %n - %a - %t"
 rename_num = "%02i"             # numbering format, used for %n above, e.g.
                                 # %02i with leading '0': 01, 02, ... , 11, ...
 rename_dir = 1                  # rename directory as well:
@@ -141,7 +144,7 @@ append_year = " (%y)"           # append the year (if given) to dir: " (1999)"
 dir_template = "%a/%l"          # if create_dirs is set and freedb data is
                                 # available, files are put in
                                 # base_dir + "/<artist>/<albumname>".
-unusable_chars = "/\r"            # put chars which can't be used in filenames
+unusable_chars = "/\r"          # put chars which can't be used in filenames
                                 # here and their
 replacement_chars = ["%", ""]   # replacements here. replacement_chars is
                                 # automagically stretched to match
@@ -161,6 +164,7 @@ replacement_chars = ["%", ""]   # replacements here. replacement_chars is
 # unusable_chars = " " + uppercase
 # replacement_chars = "_" + lowercase
 
+# other stuff:
 recurse_dirs = 2                # search how deep for workdir
 #searchdirs = ["/opt/mp3", "."] # where to start when searching for workdir
 searchdirs = [os.curdir]        # the default is the current directory (".")
@@ -170,7 +174,7 @@ base_dir = os.curdir            # where to create the subdir(s) (".")
 update_interval = 1.0           # update status screen every ... seconds
 max_load = 10                   # only start new encoders when load < max_load
 
-## xtermset related stuff - obsoleted by the curses mode
+# xtermset related stuff - obsoleted by the curses mode:
 xtermset_enable = 0             # disable if you don't have xtermset installed
 restore_xterm_width = 0         # so you can still read all output
 default_width = 80              # your xterm's geometry
@@ -179,18 +183,16 @@ show_time = 1       # display track length instead of "track"
 show_names = 1      # set this to 1 to display freedb track names instead
                     # "track_01", ... This will not fit in 80x24 term's
 
-## more defaults, these can be changed via argv ##
-encoder = "lame"    # use which encoder (bladeenc, lame, gogo, l3enc, mp3enc)
-                    # NEW: xing - completely untested - this is a symbolic name
-                    # which is defined later in this file, NOT the executable's
-                    # name
-                    # almost there: Ogg Vorbis by oggenc
-bitrate = 160       # default bitrate
+keep_free = 5*2**20     # suspend if less than keep_free bytes are free
+                        # don't set this to zero as encoded file size prediction
+                        # is always a bit below actual sizes => we might need
+                        # some extra space.
+
+# more defaults, these can be changed from the command line:
 encoders = 1        # encode how many files in parallel
-vbr = 0             # use variable bitrate for encoders which support it
 otf = 0             # on-the-fly operation with supported helper apps
 create_dirs = 1     # create (and name if applicable) subdir(s)
-force = 0           # general Override
+force = 0           # General Override
 reorder = 0         # reorder tracks to save space while encoding
 keep_wavs = 0       # keep encoded WAVs
 only_dae = 0        # only rip, do not code, implies keep_wavs
@@ -199,7 +201,7 @@ nice_value = 12     # what nice level (priority) encoders get
 recheck_space = 1   # yes we want to react to disc space dropping.
 overwrite = 0       # overwrite existing files
 various = 0         # assume CD has various artists, 0 = auto
-various_swap = 0    # exchange artist and title for broken freedb entrys
+various_swap = 0    # exchange artist and title for broken freedb entries
 extt_is_artist = 0  # extt contains artist
 extt_is_title = 0   # extt contains track title
 extt_is_comment = 0 # extt contains track comment
@@ -207,21 +209,19 @@ remove_files = 0    # remove jack.* files when done
 silent_mode = 0     # silent-mode means: no output to screen
 
 ## Things to do when finished
-exec_when_done = 0  # execute below commands when finished, default: no
+exec_when_done = 0  # execute commands below when finished, default: no
                     # this is command line controllable
 exec_rip_done = "eject " + cd_device # eject the CD when ripping is finished
-exec_no_err = "wavplay /usr/local/audio/allok.wav"  # play sound when finished
-exec_err = "wavplay /usr/local/audio/error.wav"     # this is played when an
+exec_no_err = "play /usr/local/audio/allok.wav"  # play sound when finished
+exec_err = "play /usr/local/audio/error.wav"     # this is played when an
                                                     # error occured
 
                         # there are two ways of freedb operation:
 query_on_start = 0      # do query when starting, rename files when finished
 query_when_ready = 0    # do query when done with encoding, rename files
-freedb_submit = 0       # use this to submit freedb file (after editing)
-freedb_mailsubmit = 0   # submit entry by e-mail
 
 freedb_servers = {
-    'default': {
+    'freedb': {
         'host': "freedb.freedb.org",
         'id': prog_name + " " + prog_version,
         'mail': "freedb-submit@freedb.org",
@@ -247,14 +247,15 @@ freedb_pedantic = 0     # don't be pedantic when parsing freedb data, e.g.
 ###############################################################################
 ## no need to go below this line ##############################################
 ###############################################################################
-swap_byteorder = 1  # swap byteorder when reading from image
-todo_exit = 0       # print what would be done and exit
-space_from_argv = 0 # use currently free discspace (or override via argv)
-check_toc = 0       # compare toc-file with cd-toc and exit
-undo_rename = 0     # undo file renaming and exit
-dont_work = 0       # use this to avoid actual work, good for query only
-update_freedb = 0   # update the freedb file
-tlist = []          # tracks to encode, empty = use all tracks
+swap_byteorder = 1      # swap byteorder when reading from image
+todo_exit = 0           # print what would be done and exit
+space_from_argv = 0     # use currently free discspace (or override via argv)
+check_toc = 0           # compare toc-file with cd-toc and exit
+undo_rename = 0         # undo file renaming and exit
+dont_work = 0           # use this to avoid actual work, good for query only
+update_freedb = 0       # update the freedb file
+tlist = []              # tracks to encode, empty = use all tracks
+
 
 ## Misc stuff ##
 name = "track_%02i" # filename template (before renaming)
@@ -262,8 +263,9 @@ rippers = 1         # not implemented: rip in parallel
 toc_prog = "CDDB.py"# use which program to read cd's toc
                     # ripper (without quotes) means same as for ripping
 
-## FREEDB stuff starts here: ##
-
+## FREEDB stuff starts here ##
+freedb_submit = 0       # use this to submit freedb file (after editing)
+freedb_mailsubmit = 0   # submit entry by e-mail
 read_freedb_file = 0    # read freedb file, e.g. to
 freedb_rename = 0       #                    rename tracks accordingly
 set_id3tag = 0          #                    and to set id3 tag info
@@ -2094,6 +2096,15 @@ def rename_path(old, new):
         if type(i) != types.ListType:
             print "Error: invalid type for rename_path:", i
             exit()
+
+    # weed out empty dirs (which are technically illegal on freedb but exist)
+    tmp = []
+    for i in new:
+        if i:
+            tmp.append(i)
+    new = tmp
+    del tmp
+
     for i in old:
         os.chdir(os.pardir)
     for i in new[:-1]:
@@ -2157,7 +2168,7 @@ def sig_handler(sig, frame):
     if not curses_enable:
         tcsetattr(stdin.fileno(), TERMIOS.TCSADRAIN, old_tc)
     elif curses_init:
-        curses.endwin()
+        jack_curses.endwin()
     if sig:
         exit_code = 2
         print "Info: signal", sig, "caught, exiting."
@@ -2206,9 +2217,10 @@ def sig_winch_handler(sig, frame):
     new_y, new_x, xpixel, ypixel = winsize.tolist()
 
     old_y, old_x = stdscr.getmaxyx()
-    curses.resizeterm(new_y, new_x)
-    if sig == signal.SIGWINCH:
-        stdscr.getkey()         # resizeterm ungetch a 'KEY_RESIZE'
+    jack_curses.resizeterm(new_y, new_x)
+    #XXX
+    #if sig == signal.SIGWINCH:
+    #    stdscr.getkey()         # resizeterm ungetch a 'KEY_RESIZE'
     max_y, max_x = stdscr.getmaxyx()
     pad_y, pad_x = pad_disp_start_y, pad_disp_start_x
     pad_start_y, pad_start_x = extra_lines - 1, 0
@@ -2238,24 +2250,24 @@ def sig_winch_handler(sig, frame):
         scroll_keys = scroll_keys + " "
     if extra_lines < max_y:
         if global_discname:
-            stdscr.addstr(0, 0, (center_line(global_options + " [" + scroll_keys + "]", fill = " ", width = width))[:max_x], curses.A_REVERSE)
-            stdscr.addstr(1, 0, center_line(global_discname, fill = "- ", fill_r = " -", width = width)[:max_x], curses.A_REVERSE)
+            stdscr.addstr(0, 0, (center_line(global_options + " [" + scroll_keys + "]", fill = " ", width = width))[:max_x], jack_curses.A_REVERSE)
+            stdscr.addstr(1, 0, center_line(global_discname, fill = "- ", fill_r = " -", width = width)[:max_x], jack_curses.A_REVERSE)
 
         else:
-            stdscr.addstr(0, 0, (global_options + " " * (max_x - len(global_options) - (0 + 4)) + scroll_keys)[:max_x], curses.A_REVERSE)
+            stdscr.addstr(0, 0, (global_options + " " * (max_x - len(global_options) - (0 + 4)) + scroll_keys)[:max_x], jack_curses.A_REVERSE)
 
         if special_line:
-            stdscr.addstr(2, 0, center_line(special_line, fill = " ", width = width)[:max_x], curses.A_REVERSE)
+            stdscr.addstr(2, 0, center_line(special_line, fill = " ", width = width)[:max_x], jack_curses.A_REVERSE)
 
         if bottom_line:
-            stdscr.addstr(max_y - 1, 0, (bottom_line + " " * (max_x - len(bottom_line) - 1 ))[:max_x - 1], curses.A_REVERSE)
+            stdscr.addstr(max_y - 1, 0, (bottom_line + " " * (max_x - len(bottom_line) - 1 ))[:max_x - 1], jack_curses.A_REVERSE)
 
         stdscr.refresh()
 
         usage_win_y, usage_win_x = max_y - usage_win_height - 2, (max_x - usage_win_width) / 2
         if usage_win_y > extra_lines and usage_win_x > 0 and max_y > extra_lines + 2 + usage_win_height and max_x > usage_win_width:
             del usage_win
-            usage_win = curses.newwin(usage_win_height, usage_win_width, usage_win_y, usage_win_x)
+            usage_win = jack_curses.newwin(usage_win_height, usage_win_width, usage_win_y, usage_win_x)
             usage_win.box()
             usage_win.addstr(1, 2, "* * * " + prog_name + " " + prog_version + " (C)2001 Arne Zellentin * * *")
             usage_win.addstr(2, 2, "use cursor keys or hjkl to scroll status info")
@@ -2380,7 +2392,7 @@ def dae_stat_upd(num, string):
             pos = find(dae_status[num], ">")
             if pos < 7:
                 pos = 37
-            status_pad.addstr(dae_status[num][7:pos], curses.A_REVERSE)
+            status_pad.addstr(dae_status[num][7:pos], jack_curses.A_REVERSE)
             status_pad.addstr(dae_status[num][pos:])
         else:
             status_pad.addstr(map_track_num[num], 0, printable_names[num] + ": " + dae_status[num] + " " + enc_status[num])
@@ -3365,8 +3377,8 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, enc_running, da
 
         if curses_enable:
             pad_height, pad_width = len(all_tracks_todo_sorted), width
-            status_pad = curses.newpad(pad_height, pad_width)
-            usage_win = curses.newwin(usage_win_height, usage_win_width, 0, 0)
+            status_pad = jack_curses.newpad(pad_height, pad_width)
+            usage_win = jack_curses.newwin(usage_win_height, usage_win_width, 0, 0)
             map_track_num = {}
             for i in range(len(all_tracks_todo_sorted)):
                 map_track_num[all_tracks_todo_sorted[i][NUM]] = i
@@ -3445,7 +3457,6 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, enc_running, da
                 dae_running = dae_running + 1
                 track = dae_queue[0]
                 dae_queue = dae_queue[1:]
-                #YYY dae_tracks.append(track)
                 if otf and not image_file:
                     #XXX image_reader can't do otf at the moment.
                     dae_stat_upd(track[NUM], ":DAE: waiting for status report...")
@@ -3626,7 +3637,6 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, enc_running, da
 
                 if exited_proc['type'] in ("ripper", "image_reader"):
                     dae_running = dae_running - 1
-                    #YYY dae_tracks.remove(exited_proc['track'])
                     if exec_when_done and exited_proc['type'] == "ripper" and dae_running == 0 and len(dae_queue) == 0:
                         system(exec_rip_done)
                     if not res:
@@ -3675,7 +3685,6 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, enc_running, da
 
                 elif exited_proc['type'] == "encoder":
                     enc_running = enc_running - 1
-                    #YYY mp3s_done.append(exited_proc['track'])
                     # completed vbr files shouldn't be to small, but this still
                     # caused confusion so again, vbr is an exception:
                     if not vbr and not res and tracksize(track)[ENC] * 0.99 > filesize(track[NAME] + ext):
@@ -3733,8 +3742,6 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, enc_running, da
                             eta = (100 - i['percent']) * i['elapsed'] / i['percent']
                             eta_ms = "%02i:%02i" % (eta / 60, eta % 60)
                             enc_stat_upd(i['track'][NUM], '%2i%% done, ETA:%6s, %5.2fx' % (i['percent'], eta_ms, speed))
-                            #YYY if curses_enable:
-                                #YYY status_pad.addstr(map_track_num[i['track'][NUM]], max_name_len + 9, dae_status[i['track'][NUM]][7:8+int(30 * percent / 100)], curses.A_NORMAL)
         
                 elif i['type'] == "image_reader":
                     line = split(i['buf'], "\n")
@@ -3836,7 +3843,7 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, enc_running, da
                     extra_lines = extra_lines - 1
                     sig_winch_handler(None, None)
                 if 1 < max_y:
-                    stdscr.addstr(max_y - 1, 0, (bottom_line + " " * (max_x - len(bottom_line)))[:max_x - 1], curses.A_REVERSE)
+                    stdscr.addstr(max_y - 1, 0, (bottom_line + " " * (max_x - len(bottom_line)))[:max_x - 1], jack_curses.A_REVERSE)
                     # why can't I put a char in the bootom right corner?
                     #stdscr.addch(max_y, max_x, "x")
                     status_pad.refresh(pad_y, pad_x, pad_start_y, pad_start_x, pad_end_y, pad_end_x)
@@ -3857,29 +3864,29 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, enc_running, da
 try:
     if curses_enable and (wavs_todo or mp3s_todo):
         # Initialize curses
-        stdscr = curses.initscr()
+        stdscr = jack_curses.initscr()
         curses_init = 1
         curses_sighandler = signal.signal(signal.SIGWINCH, signal.SIG_IGN)
         # Turn off echoing of keys, and enter cbreak mode,
         # where no buffering is performed on keyboard input
-        curses.noecho() ; curses.cbreak()
+        jack_curses.noecho() ; jack_curses.cbreak()
 
         # In keypad mode, escape sequences for special keys
         # (like the cursor keys) will be interpreted and
-        # a special value like curses.KEY_LEFT will be returned
+        # a special value like jack_curses.KEY_LEFT will be returned
         stdscr.keypad(1)
         stdscr.leaveok(0)
     main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, enc_running, dae_running)
     if curses_init:
         # Set everything back to normal
         stdscr.keypad(0)
-        curses.echo() ; curses.nocbreak()
-        curses.endwin()                 # Terminate curses
+        jack_curses.echo() ; jack_curses.nocbreak()
+        jack_curses.endwin()                 # Terminate curses
 except SystemExit:
     if curses_init:
         stdscr.keypad(0)
-        curses.echo() ; curses.nocbreak()
-        curses.endwin()
+        jack_curses.echo() ; jack_curses.nocbreak()
+        jack_curses.endwin()
     print global_options
     print "--- Last status: ---------------------------------------------------------------"
     if max_x and max_x >= pad_width:
@@ -3892,8 +3899,8 @@ except:
         # In the event of an error, restore the terminal
         # to a sane state.
         stdscr.keypad(0)
-        curses.echo() ; curses.nocbreak()
-        curses.endwin()
+        jack_curses.echo() ; jack_curses.nocbreak()
+        jack_curses.endwin()
     traceback.print_exc()         
     exit()
 
