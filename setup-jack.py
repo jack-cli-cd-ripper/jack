@@ -15,7 +15,7 @@ setup (# Distribution meta-data
        version = "2.99.5",
        description = "A frontend for several cd-rippers and mp3 encoders",
        author = "Arne Zellentin",
-       author_email = "arne@unix-ag.org",
+       author_email = "zarne@users.sf.net",
        url = "http://www.home.unix-ag.org/arne/jack/",
 
        # Description of the modules and packages in the distribution

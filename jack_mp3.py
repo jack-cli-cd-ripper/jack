@@ -1,6 +1,6 @@
 ### jack_mp3 - mp3 layer stuff for
 ### jack - extract audio from a CD and MP3ify it using 3rd party software
-### Copyright (C) 1999-2001  Arne Zellentin <arne@unix-ag.org>
+### Copyright (C) 1999-2001  Arne Zellentin <zarne@users.sf.net>
 ### Transformed from mp3info (c) Thorvald Natvig
 
 ### This program is free software; you can redistribute it and/or modify

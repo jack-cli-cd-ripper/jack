@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 ### jack - extract audio from a CD and encode it using 3rd party software
-### Copyright (C) 1999-2001  Arne Zellentin <arne@unix-ag.org>
+### Copyright (C) 1999-2001  Arne Zellentin <zarne@users.sf.net>
 
 ### This program is free software; you can redistribute it and/or modify
 ### it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
 ### along with this program; if not, write to the Free Software
 ### Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-### If you want to comment on this program, contact me: arne@unix-ag.org ###
+### If you want to comment on this program, contact me: zarne@users.sf.net ###
 ### Visit the homepage: http://www.home.unix-ag.org/arne/jack/
 
 ### see CHANGELOG for recent changes in this program
@@ -2598,7 +2598,7 @@ tracks = ""
 guess_mp3s = []
 
 # say hello...
-print "This is ", prog_name, prog_version, "(C) 2001  Arne Zellentin <arne@unix-ag.org>"
+print "This is ", prog_name, prog_version, "(C) 2001  Arne Zellentin <zarne@users.sf.net>"
 
 while i<len(argv):
     if argv[i] in ("-t", "--tracks"):

@@ -1,5 +1,5 @@
 ### jack - extract audio from a CD and encode it using 3rd party software
-### Copyright (C) 1999-2001  Arne Zellentin <arne@unix-ag.org>
+### Copyright (C) 1999-2001  Arne Zellentin <zarne@users.sf.net>
 
 ### This program is free software; you can redistribute it and/or modify
 ### it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
 
 Requirements:
 
-    * python-1.5.2 or later - python2 is untested
+    * python-1.5.2 or later
     * CDDB.py  - see doc/INSTALL on how to get/install it
     * ID3.py   - see doc/INSTALL on how to get/install it
     * an MP3 encoder like lame or oggenc for Ogg/Vorbis (default)
@@ -32,4 +32,4 @@ Edit your .jackrc -- Some options are important.
 run jack -h for quick help or read the doc/(umentation).
 
 Jack has his home at http://www.home.unix-ag.org/arne/jack/
-His creators e-mail address is arne@unix-ag.org
+His creators e-mail address is zarne@users.sf.net

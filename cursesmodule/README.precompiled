@@ -1,5 +1,5 @@
 This is Oliver Andrich's cursesmodule-1.5b2, slightly patched
-by Arne Zellentin <arne@unix-ag.org> so that it includes "termresize".
+by Arne Zellentin <zarne@users.sf.net> so that it includes "termresize".
 
 Note: I renamed it to jack_cursesmodule so that it doesn't conflict with
     the original cursesmodule. I think it's a valid replacement but I've

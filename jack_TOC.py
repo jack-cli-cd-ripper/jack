@@ -1,6 +1,6 @@
 ### jack_toc - class for CDDA TOCs - part ("module") of 
 ### jack - extract audio from a CD and MP3ify it using 3rd party software
-### Copyright (C) 1999,2000  Arne Zellentin <arne@unix-ag.org>
+### Copyright (C) 1999,2000  Arne Zellentin <zarne@users.sf.net>
 
 ### This program is free software; you can redistribute it and/or modify
 ### it under the terms of the GNU General Public License as published by

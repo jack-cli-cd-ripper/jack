@@ -9,7 +9,7 @@ setup (# Distribution meta-data
        version = "1.5b1",
        description = "standard curses module, patched to include newpad() and resizeterm()",
        author = "Arne Zellentin (just for the patch!)",
-       author_email = "arne@unix-ag.org",
+       author_email = "zarne@users.sf.net",
        url = "http://www.home.unix-ag.org/arne/jack/",
 
        # Description of the modules and packages in the distribution
