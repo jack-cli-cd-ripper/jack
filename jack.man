@@ -116,14 +116,17 @@ a track comment is contained in the EXTT fields.
 .TP
 .B \-f, \-\-from-tocfile <tocfile>
 rip from a cdrdao created CD image on hd. The specified toc-file 
-contains the name of the image file.
+contains the name of the image file. Use
+.B \-F
+if jack can't find the image file.
 .TP
 .B \-F, \-\-from-image <image_file>
 read audio data from image file. Like
 .B \-\-from-tocfile
 , but the
-image itself is specified instead of the tocfile. Use this if you
-do not have a toc-file; the TOC is then read from the CD itself.
+image itself is specified instead of the tocfile. If you
+do not have a toc-file (or don't specify a toc-file),
+the TOC is read from the CD itself.
 .TP
 .B \-\-force
 do not ask. Like when deleting incomplete files.
