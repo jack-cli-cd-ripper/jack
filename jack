@@ -442,26 +442,6 @@ helpers = {
         'status_blocksize': 160
         },
 
-    'flac': {
-        'type': "encoder",
-        'target': "flac",
-        'cmd': "flac -o %o %i",     
-        'otf-cmd': "flac -c -o %o", 
-        'status_blocksize': 160,
-        'status_start': "%", 
-        'percent_fkt': \"\"\"
-s = split(i['buf'], '\\\\015')    
-if len (s) >= 2: s = s[-2]
-if len (s) == 1: s = s[0]       
-y0 = find (s, ": ")             
-y1 = find (s, "%")
-if y0 != -1 and y1 != -1: 
-    percent = float(s[y0 + 1:y1])
-else:                   
-    percent = 0         
-\"\"\"
-    },
-    
     'oggenc': { # based on a patch kindly provided by Bryan Larsen.
         'type': "encoder",
         'target': "ogg",
@@ -625,6 +605,26 @@ else:
 \"\"\"
     },
 
+    'flac': {
+        'type': "encoder",
+        'target': "flac",
+        'cmd': "flac -o %o %i",     
+        'otf-cmd': "flac -fr -fb -fc 2 -fp 16 -fs 44100 -o %o", 
+        'status_blocksize': 160,
+        'status_start': "%", 
+        'percent_fkt': \"\"\"
+s = split(i['buf'], '\\\\015')    
+if len (s) >= 2: s = s[-2]
+if len (s) == 1: s = s[0]       
+y0 = find (s, ": ")             
+y1 = find (s, "%")
+if y0 != -1 and y1 != -1: 
+    percent = float(s[y0 + 1:y1])
+else:                   
+    percent = 0         
+\"\"\"
+    },
+    
     'cdparanoia': {
         'type': "ripper",
         'cmd': "cdparanoia --abort-on-skip -d %d %n %o",
@@ -3875,10 +3875,8 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, enc_running, da
                 if otf and not image_file:
                     #XXX image_reader can't do otf at the moment.
                     dae_stat_upd(track[NUM], ":DAE: waiting for status report...")
-                    if encoder == "lame":
-                        enc_stat_upd(track[NUM], "[no otf status for lame]")
-                    elif encoder == "gogo":
-                        enc_stat_upd(track[NUM], "[no otf status for gogo]")
+                    if encoder in ("lame", "gogo", "flac"):
+                        enc_stat_upd(track[NUM], "[no otf status for %s]" % encoder)
                     else:
                         enc_stat_upd(track[NUM], "waiting for encoder.")
                     enc_running = enc_running + 1
@@ -4394,7 +4392,7 @@ if set_id3tag or freedb_rename:
                         t_name2 = replace(t_name2, "(" + t_comm + ")", "")
                     else:
                         t_comm = ""
-            if helpers[encoder]['target'] == "mp3" or helpers[encoder]['target'] == "flac":
+            if helpers[encoder]['target'] in ("mp3", "flac"):
                 id3 = ID3(mp3name)
                 id3.album = a_title
                 id3.track = i[NUM] # this is ignored if we have an ID3v1.0 tag
