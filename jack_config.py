@@ -710,6 +710,18 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
         'usage': "create a playlist in .m3u format",
         'long': 'AUTO',
         },
+    'write_id3v1': {
+        'type': 'toggle',
+        'val': 1,
+        'usage': "write a smart id3v1 tag to the encoded file",
+        'long': 'AUTO',
+        },
+    'write_id3v2': {
+        'type': 'toggle',
+        'val': 1,
+        'usage': "write an id3v1 and an id3v2 tag to the encoded file",
+        'long': 'AUTO',
+        },
     'playorder': {
         'type': 'toggle',
         'val': 0,

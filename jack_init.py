@@ -61,4 +61,21 @@ except:
             warning("ogg module not installed, ogg support disabled")
     ogg = dummy_ogg()
 
+try:
+    import pyid3lib
+except:
+    class dummy_tag:
+        def __init__(self):
+            pass
+        def update(self):
+            pass
+
+    class dummy_pyid3:
+        def __init__(self):
+            warning("pyid3lib not installed, id3v2 tag will not get written. Install pyid3lib, available at http://pyid3lib.sourceforge.net/")
+        def tag(self, file):
+            return dummy_tag()
+
+    pyid3lib = dummy_pyid3()
+
 os.environ['LC_ALL'] = "C"

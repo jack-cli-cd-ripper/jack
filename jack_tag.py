@@ -29,6 +29,7 @@ import jack_misc
 import jack_m3u
 
 from jack_init import ogg
+from jack_init import pyid3lib
 from jack_globals import *
 
 track_names = None
@@ -88,36 +89,53 @@ def tag(freedb_rename):
                         else:
                             t_comm = ""
                 if jack_helpers.helpers[cf['_encoder']]['target'] in ("mp3", "flac"):
-                    id3 = ID3(mp3name)
-                    id3.album = a_title
-                    id3.track = i[NUM] # this is ignored if we have an ID3v1.0 tag
-                    if t_comm:
-                        id3.comment = t_comm
-                        id3.title = t_name2
-                    else:
-                        id3.title = t_name
-                    if t_artist:
-                        id3.artist = t_artist
-                    else:
-                        id3.artist = a_artist
-                    if cf['_id3_genre'] != -1:
-                        id3.genre = cf['_id3_genre']
-                    elif not id3.had_tag:
-                        id3.genre = 255
-                    if cf['_id3_year'] != -1:
-                        id3.year = `cf['_id3_year']`
-                    id3.write()
+                    if jack_helpers.helpers[cf['_encoder']]['target'] == "mp3" and cf['_write_id3v2']:
+                        v2tag = pyid3lib.tag(mp3name)
+                        v2tag.album = a_title
+                        v2tag.track = (i[NUM], len(jack_ripstuff.all_tracks_orig))
+                        v2tag.title = t_name
+                        if t_artist:
+                            v2tag.artist = t_artist
+                        else:
+                            v2tag.artist = a_artist
+                        if cf['_id3_genre'] == 255:
+                            try:
+                                del v2tag.contenttype
+                            except AttributeError:
+                                pass
+                        elif cf['_id3_genre'] != -1:
+                            v2tag.contenttype = "(%d)" % (cf['_id3_genre'])
+                        if cf['_id3_year'] != -1:
+                            v2tag.year = `cf['_id3_year']`
+                        v2tag.songlen = `int(i[LEN] * 1000.0 / 75 + 0.5)`
+                        v2tag.update()
+                    if cf['_write_id3v1']:
+                        id3 = ID3(mp3name)
+                        id3.album = a_title
+                        id3.track = i[NUM] # this is ignored if we have an ID3v1.0 tag
+                        if t_comm:
+                            id3.comment = t_comm
+                            id3.title = t_name2
+                        else:
+                            id3.title = t_name
+                        if t_artist:
+                            id3.artist = t_artist
+                        else:
+                            id3.artist = a_artist
+                        if cf['_id3_genre'] != -1:
+                            id3.genre = cf['_id3_genre']
+                        elif not id3.had_tag:
+                            id3.genre = 255
+                        if cf['_id3_year'] != -1:
+                            id3.year = `cf['_id3_year']`
+                        id3.write()
                 elif jack_helpers.helpers[cf['_encoder']]['target'] == "ogg":
                     vf = ogg.vorbis.VorbisFile(mp3name)
                     oggi = vf.comment()
                     oggi.clear()
                     oggi.add_tag('ALBUM', a_title)
                     oggi.add_tag('TRACKNUMBER', `i[NUM]`)
-                    if t_comm:
-                        oggi.add_tag('COMMENT' , t_comm)
-                        oggi.add_tag('TITLE', t_name2)
-                    else:
-                        oggi.add_tag('TITLE', t_name)
+                    oggi.add_tag('TITLE', t_name)
                     if t_artist:
                         oggi.add_tag('ARTIST', t_artist)
                     else:

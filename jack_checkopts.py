@@ -181,3 +181,5 @@ def consistency_check(cf):
     if cf['_query_on_start'] and cf['_query_when_ready']:
         error("it doesn't make sense to query now _and_ when finished.")
 
+    if cf['_dont_work'] and cf['_query_when_ready']:
+        warning("you want to use --query-now / -Q instead of --query / -q")
