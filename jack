@@ -3209,7 +3209,7 @@ else:
         progress("all", "id3_genre", `id3_genre`)
 
 id3_genretxt = ""
-if id3_genre > 0 and id3_genre < len(id3genres):
+if id3_genre >= 0 and id3_genre < len(id3genres):
     id3_genretxt = id3genres[id3_genre]
 
 if id3_year == -1:
@@ -4203,6 +4203,8 @@ if set_id3tag or freedb_rename:
                     id3.artist = a_artist
                 if id3_genre != -1:
                     id3.genre = id3_genre
+                elif not id3.had_tag:
+                    id3.genre = 255
                 if id3_year != -1:
                     id3.year = `id3_year`
                 id3.write()
