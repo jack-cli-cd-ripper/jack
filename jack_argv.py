@@ -77,7 +77,7 @@ def get_next(argv, i, extra_arg = None):
 def istrue(x):
     return x.upper() in ["Y", "YES", "1", "TRUE"]
 
-def parse_option(cf, argv, i, option, alt_arg):
+def parse_option(cf, argv, i, option, alt_arg, origin="argv"):
     ty = cf[option]['type']
     if ty == 'toggle':
         if alt_arg:
@@ -104,15 +104,19 @@ def parse_option(cf, argv, i, option, alt_arg):
             return None, "Option `%s' needs exactly one string argument" % option
     if ty == types.ListType:
         l = []
-        while 1:
-            i, data = get_next(argv, i,alt_arg)
-            if data != None:
-                if data == ";":
+        if origin == "argv":
+            while 1:
+                i, data = get_next(argv, i,alt_arg)
+                if data != None:
+                    if data == ";":
+                        break
+                    l.append(data)
+                else:
                     break
-                l.append(data)
-            else:
-                break
-        if l:
+        elif origin == "rcfile":
+            i, data = get_next(argv, i,alt_arg)
+            l = eval(data)
+        if l and type(l) == types.ListType:
             return i, l
         else:
             return None, "option `%s' takes a non-empty list (which may be terminated by \";\")" % `option`

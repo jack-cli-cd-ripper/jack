@@ -85,7 +85,7 @@ cf = jack_misc.dict2({
         },
     'vbr_quality': {
         'type': types.IntType,
-        'val': 4,
+        'val': 6,
         'usage': "vbr encoding quality. -1 is lowest, 10 highest.",
         'long': 'quality',
         },

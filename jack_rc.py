@@ -72,7 +72,7 @@ def load(cf, file):
     for i in rc:
         if i[0] != None:
             if cf.has_key(i[0]):
-                ret, val = jack_argv.parse_option(cf, i[0:2], 0, i[0], None)
+                ret, val = jack_argv.parse_option(cf, i[0:2], 0, i[0], None, origin="rcfile")
                 if ret != None:
                     rc_cf[i[0]] = {'val': val}
                 else:
@@ -136,6 +136,8 @@ def convert(cf):
             rc.append([i, `cf[i]['val']`, None])
         elif cf[i]['type'] == 'toggle':
             rc.append([i, write_yes(cf[i]['val']), 'toggle'])
+        elif cf[i]['type'] == types.ListType:
+            rc.append([i, `cf[i]['val']`, None])
         else:
             error("don't know how to handle " + `cf[i]['type']`)
     return rc

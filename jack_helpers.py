@@ -104,10 +104,10 @@ else:
         'type': "encoder",
         'target': "mp3",
         'inverse-quality': 1,
-        'cmd': "lame --alt-preset cbr %r --strictly-enforce-ISO %i %o",
-        'vbr-cmd': "lame --alt-preset standard --nohist --strictly-enforce-ISO %i %o",
-        'otf-cmd': "lame --alt-preset cbr %r --strictly-enforce-ISO - %o",
-        'vbr-otf-cmd': "lame --alt-preset standard --nohist --strictly-enforce-ISO - %o",
+        'cmd': "lame --preset cbr %r --strictly-enforce-ISO %i %o",
+        'vbr-cmd': "lame --preset standard --vbr-new --nohist --strictly-enforce-ISO %i %o",
+        'otf-cmd': "lame --preset cbr %r --strictly-enforce-ISO - %o",
+        'vbr-otf-cmd': "lame --preset standard --vbr-new --nohist --strictly-enforce-ISO - %o",
         'status_blocksize': 160,
         'bitrate_factor': 1,
         'status_start': "%",
@@ -242,7 +242,7 @@ if len(s) >= 3:
         'type': "ripper",
         'cmd': "cdparanoia --abort-on-skip -d %d %n %o",
         'otf-cmd': "cdparanoia --abort-on-skip -e -d %d %n -R -",
-        'status_blocksize': 700,
+        'status_blocksize': 250,
         'status_start': "%",
         'status_fkt': r"""
 # (== PROGRESS == [                              | 013124 00 ] == :^D * ==)
@@ -263,9 +263,17 @@ if len(tmp) >= 2:
 """,
         'final_status_fkt': r"""
 last_status="0123456789012345 [ -- error decoding status --  ]" # fallback
-for tmp in string.split(exited_proc['buf'], '\r'):
+if 0 and cf['_debug']: # disabled for now
+    import jack_version
+    tmpf=open("%s.debug.%02d.txt" % (jack_version.prog_name, exited_proc['track'][NUM]), "w")
+    tmpf.write(exited_proc['buf'])
+    del tmpf
+tmps = string.split(exited_proc['buf'], '\r')
+tmps.reverse()
+for tmp in tmps:
     if string.find(tmp, "PROGRESS") != -1:
         last_status = tmp
+        break
 final_status = ("%4.1fx" % speed) + last_status[16:48] + "]"
 """,
         'otf-final_status_fkt': r"""
@@ -291,7 +299,7 @@ while l:
 
     'cdda2wav': {
         'type': "ripper",
-        'cmd': "cdda2wav --no-infofile -H -v 1 -D %D -O wav -t %n %o",
+        'cmd': "cdda2wav --no-infofile -H -v 1 -D %d -O wav -t %n %o",
         'status_blocksize': 200,
         'status_start': "percent_done:",
         'status_fkt': r"""
@@ -305,14 +313,14 @@ else:
 final_status = ("%4.1f" % speed) + "x [ DAE done with cdda2wav       ]"
 """,
         'toc': 1,
-        'toc_cmd': "cdda2wav --no-infofile -D %D -J -v 35 --gui 2>&1",
+        'toc_cmd': "cdda2wav --no-infofile -D %d -J -v toc --gui 2>&1",
         'toc_fkt': r"""
 while 1:
     l = p.readline()
     if not l:
         break
     if l[0] == "T" and l[1] in string.digits and l[2] in string.digits and l[3] == ":":
-        num, start, length, type, pre, copy, ch = string.split(l)[:7]
+        num, start, length, type, pre, copy, ch, dummy = string.split(l)[:8]
         if type == "audio":
             num = int(num[1:3])
             start = int(start)
@@ -477,6 +485,12 @@ for i in range(first, last + 1):
 """,
     }
 }
+
+helpers['lame-user'] = helpers['lame'].copy()
+helpers['lame-user'].update({'cmd': "lame --preset cbr %r --strictly-enforce-ISO %i %o",
+        'vbr-cmd': "lame -V %q --vbr-new --nohist --strictly-enforce-ISO %i %o",
+        'otf-cmd': "lame --preset cbr %r --strictly-enforce-ISO - %o",
+        'vbr-otf-cmd': "lame -V %q --vbr-new --nohist --strictly-enforce-ISO - %o", })
 
 # compile exec strings # comment these lines out if it doesn't work...
 for h in helpers.keys():

@@ -23,6 +23,7 @@ import select
 import time
 import sys
 import os
+import re
 
 import jack_functions
 import jack_ripstuff
@@ -38,6 +39,8 @@ import jack_misc
 import jack_term
 
 from jack_globals import *
+
+filter = re.compile(r'(\r)+')
 
 def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
     global_error = 0    # remember if something went wrong
@@ -222,9 +225,10 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
                     x = ""
                     while read_chars < jack_helpers.helpers[i['prog']]['status_blocksize']:
                         try:
-                            x = x + i['file'].read(1)
+                            xchar = i['file'].read(1)
                         except IOError:
                             break
+                        x = x + xchar
                         read_chars = read_chars + 1
                         try:
                             rfd2, wfd2, xfd2 = select.select([i['fd']], [], [], 0.0)
@@ -234,7 +238,10 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
                         if i['fd'] not in rfd2:
                             break
                 # put read data into child's buffer
-                i['buf'] = (i['buf'] + x)[-jack_helpers.helpers[i['prog']]['status_blocksize']:]
+                i['buf'] = i['buf'] + x
+                i['buf'] = i['buf'].replace('\n', '\r')
+                i['buf'] = filter.sub('\r', i['buf'])
+                i['buf'] = i['buf'][-jack_helpers.helpers[i['prog']]['status_blocksize']:]
 
         # check for exiting child processes
         if jack_children.children:
