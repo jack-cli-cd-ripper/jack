@@ -1,0 +1,228 @@
+### jack_utils: utility functions for
+### jack - extract audio from a CD and encode it using 3rd party software
+### Copyright (C) 1999-2002  Arne Zellentin <zarne@users.sf.net>
+
+### This program is free software; you can redistribute it and/or modify
+### it under the terms of the GNU General Public License as published by
+### the Free Software Foundation; either version 2 of the License, or
+### (at your option) any later version.
+
+### This program is distributed in the hope that it will be useful,
+### but WITHOUT ANY WARRANTY; without even the implied warranty of
+### MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+### GNU General Public License for more details.
+
+### You should have received a copy of the GNU General Public License
+### along with this program; if not, write to the Free Software
+### Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+import sys
+import signal
+import types
+import os
+import stat
+import string
+
+import jack_functions
+import jack_globals
+import jack_misc
+import jack_term
+
+from jack_globals import cg, NUM, LEN, START, COPY, PRE, CH, RIP, RATE, NAME
+
+def all_paths(p):
+    "return all path leading to and including p"
+    if type(p) == types.StringType:
+        p = split_dirname(p)
+    all = []
+    x = ""
+    for i in p:
+        x = os.path.join(x, i)
+        all.append(x)
+    return all
+
+def check_path(p1, p2):
+    "check if p1 and p2 are equal or sub/supersets"
+    if type(p1) == types.StringType:
+        p1 = split_dirname(p1)
+    if type(p2) == types.StringType:
+        p2 = split_dirname(p2)
+    for i in p1, p2:
+        if type(i) != types.ListType:
+            print "Error: invalid type for check_path", i
+            exit()
+    if len(p1) > len(p2):   # make sure p1 is shorter or as long as p2
+        p1, p2 = p2, p1
+    ok = 1
+    for i in range(1, len(p1) + 1):
+        if p1[-i] != p2[-i]:
+            ok = 0
+    return ok
+
+def rename_path(old, new):
+    "this is complicated."
+    cwd = os.getcwd()
+    cwds = split_dirname(cwd)
+    if type(old) == types.StringType:
+        old = split_dirname(old)
+    if type(new) == types.StringType:
+        new = split_dirname(new)
+    for i in old, new, cwds:
+        if type(i) != types.ListType:
+            print "Error: invalid type for rename_path:", i
+            exit()
+
+    # weed out empty dirs (which are technically illegal on freedb but exist)
+    tmp = []
+    for i in new:
+        if i:
+            tmp.append(i)
+    new = tmp
+    del tmp
+
+    for i in old:
+        os.chdir(os.pardir)
+    for i in new[:-1]:
+        if not os.path.exists(i):
+            os.mkdir(i)
+        if os.path.isdir(i):
+            os.chdir(i)
+        else:
+            print "Error: could not create or change to " + i + " from " + os.getcwd()
+            exit()
+    last_of_new = new[-1]
+    if os.path.exists(last_of_new):
+        print "Error: destination directory already exists:", last_of_new
+        exit()
+    os.rename(cwd, last_of_new)
+    os.chdir(last_of_new)
+                                               # now remove empty "orphan" dirs
+
+    old_dirs = all_paths(cwds)
+    old_dirs.reverse()
+    for i in old_dirs[:len(old)][1:]:
+        try:
+            rmdir(i)
+        except OSError:
+            pass
+
+def cmp_toc(x, y):
+    "compare two track's length"
+    x, y = x[LEN], y[LEN]
+    if x > y: return 1
+    elif x == y: return 0
+    elif x < y: return -1
+
+def cmp_toc_cd(x, y, what=(NUM, LEN, START)):
+    "compare the relevant parts of two TOCs"
+    if len(x) == len(y):
+        for i in range(len(x)):
+            for j in what:
+                if x[i][j] != y[i][j]:
+                    return 0
+    else:
+        return 0
+    return 1
+
+def filesize(name):
+    return os.stat(name)[stat.ST_SIZE]
+
+def yes(what):
+    if what:
+        return "yes"
+    else:
+        return "no"
+
+def safe_float(number, message):
+    try:
+        return float(number)
+    except ValueError:
+        print message
+        exit(1)
+
+def mkdirname(names, template):
+    "generate mkdir-able directory name(s)"
+    dirs = list(os.path.split(template))
+        
+    dirs2 = []
+    for i in dirs:
+        replace_list = (("%a", names[0][0]), ("%l", names[0][1]), ("%y", `cg['id3_year']`), ("%g", cg['id3_genre_txt']))
+        x = jack_misc.multi_replace(i, replace_list)
+        exec("x = x" + cg['char_filter'])
+        for char_i in range(len(cg['unusable_chars'])):
+            x = string.replace(x, cg['unusable_chars'][char_i], cg['replacement_chars'][char_i])
+        dirs2.append(x)
+    if cg['append_year'] and len(`cg['id3_year']`) == 4:  # Y10K bug!
+        dirs2[-1] = dirs2[-1] + jack_misc.multi_replace(cg['append_year'], replace_list)
+    name = ""
+    for i in dirs2:
+        name = os.path.join(name, i)
+    return dirs2, name
+
+def split_dirname(name):
+    "split path in components"
+    names = []
+    while 1:
+        base, sub = os.path.split(name)
+        if not base or base == os.sep:
+            names.append(os.path.join(base, sub))
+            break
+        names.append(sub)
+        name = base
+    names.reverse()
+    return names
+
+def split_path(path, num):
+    "split given path in num parts"
+    new_path = []
+    for i in range(1, num):
+        base, end = os.path.split(path)
+        path = base
+        new_path.append(end)
+    new_path.append(base)
+    new_path.reverse()
+
+def ex_edit(file):
+    editor = "/usr/bin/sensible-editor"
+    if os.environ.has_key("EDITOR"):
+        editor = os.environ['EDITOR']
+    print "invoking your editor,", editor, "..."
+    os.system(string.split(editor)[0] + " " + file)
+
+def has_track(l, num):
+    for i in range(len(l)):
+        if l[i][NUM] == num:
+            return i
+    return -1.5
+
+def ewprint(pre, msg):
+    msg = string.split(msg)
+    pre = " *" + pre + "*"
+    print pre,
+    p = len(pre)
+    y = p
+    for i in msg:
+        if len(i) + y > 78:
+            print
+            print " " * p,
+            y = p
+        print i,
+        y = y + len(i) + 1
+    print
+
+def error(msg):
+    jack_term.disable()
+    ewprint("error", msg)
+    sys.exit(1)
+
+def warning(msg):
+    ewprint("warning", msg)
+
+def info(msg):
+    ewprint("info", msg)
+
+def debug(msg):
+    if jack_globals.DEBUG:
+        ewprint("debug", msg)
+        if globals().has_key('cg') and cg and cg.has_key('progress_file'):
+            jack_functions.progress_error(msg)

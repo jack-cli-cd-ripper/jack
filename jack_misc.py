@@ -17,6 +17,7 @@
 ### Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 import string, types
+import sys
 
 def multi_replace(s, rules):
     "like string.replace but take list (('from0', 'to0'), ('from1', 'to1'))..."
@@ -38,3 +39,12 @@ def multi_replace(s, rules):
             maybe = 1
         res = res + i
     return res
+
+def safe_int(number, message):
+    try:
+        return int(number)
+    except ValueError:
+        print message
+        sys.exit(1)
+
+

@@ -1,3 +1,164 @@
+2002-06-20 14:36  zarne
+
+	* jack: 
+	
+	- fixed a stupid variable initialisation bug
+	
+	- fixed another (hope it was the last one) append() with >1 args
+	bug
+
+2002-06-13 05:43  zarne
+
+	* jack.man: 
+	
+	- -F and -f clarified
+
+2002-06-13 05:37  zarne
+
+	* jack: 
+	
+	- strange that nobody noticed it, but jack couldn't rip CDs with
+	only one track on them. fixed.
+	
+	- some cleanups
+
+2002-06-09 02:06  zarne
+
+	* jack: 
+	
+	- only import what we use from the curses module
+
+2002-06-09 01:56  zarne
+
+	* jack: 
+	
+	- jack can use normal curses now (to the extent possible, i.e.
+	without reacting to SIGWINCH (terminal window resizing)) (inspired
+	by Oleg Broytmann's patch, thanks!)
+
+2002-06-01 17:03  zarne
+
+	* jack: 
+	
+	* added sloppy ripping mode which is activated by a secret switch
+
+2002-05-25 04:01  zarne
+
+	* jack: 
+	
+	* to my understanding FLAC produces VBR files. now jack thinks so,
+	too.
+
+2002-05-25 03:42  zarne
+
+	* jack: 
+	
+	* added support for MPEGplus (encoder: mppenc, extension: .mpc)
+
+2002-05-25 01:46  zarne
+
+	* jack.man: 
+	
+	* typo
+
+2002-05-25 01:44  zarne
+
+	* jack.man: 
+	
+	* (hopefully) clarify how the -R / --rename option works
+
+2002-05-25 01:36  zarne
+
+	* jack: 
+	
+	* nobody complained, but I re-added --rename-only with a
+	deprecation warning
+
+2002-05-25 00:56  zarne
+
+	* jack, jack.man: 
+	
+	* renamed option --rename-only to --rename -- old name was
+	confusing. I'll revert this if enough people complain.
+
+2002-05-24 15:51  zarne
+
+	* jack: 
+	
+	* --quality switch for vbr, thanks to Michael Banck for the patch!
+
+2002-05-24 14:17  zarne
+
+	* jack: 
+	
+	* small changes to the flac patch
+
+2002-05-24 14:15  zarne
+
+	* jack: 
+	
+	* flac patch from Drew Hess - thanks, great work!
+
+2002-05-24 12:12  zarne
+
+	* jack: 
+	
+	* hide --charset option from --help if char_filter is not used.
+	having no effect, it would then only confuse people.
+
+2002-05-24 12:10  zarne
+
+	* jack: 
+	
+	* some small cleanups, options reordered
+	
+	* new char_filter, e.g. for upper->lowercase conversion. should
+	work with any character encoding
+	
+	* new option --charset, see above, default is latin-1
+	
+	* needs python >= 2.2; can anybody tell me how to do this in python
+	< 2.2?
+
+2002-05-04 04:55  zarne
+
+	* jack: 
+	
+	* fixed Debian Bug#140903 (replacement_chars doesn't work on
+	uppercase umlauts) by documenting it - there's no way to "fix" it
+	but the workaround is simple: just add the umlauts explicitly to
+	unusable_chars and replacement_chars
+
+2002-05-03 00:03  zarne
+
+	* jack: 
+	
+	* fixed Debian Bug#141781: --upd-progress assumes that the tracks
+	are encoded in mp3 format, even if the encoder is oggenc
+
+2002-04-30 01:36  zarne
+
+	* jack: 
+	
+	* Debian Bug#144996 (jack uses ogg tag "YEAR" instead of "DATE")
+	fixed.
+
+2002-04-17 11:55  zarne
+
+	* jack: 
+	
+	* upped version to 2.99.9
+	
+	* switch from FCNTL to fcntl module
+
+2002-04-16 09:28  zarne
+
+	* jack.man, doc/ChangeLog: 
+	
+	* added one example to the manpage
+	
+	* ChangeLog isn't auto-updated currently, will fix soon
+
 2002-04-15 04:49  zarne
 
 	* jack: 
