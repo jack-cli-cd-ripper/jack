@@ -26,6 +26,7 @@ import jack_helpers
 import jack_freedb
 import jack_utils
 import jack_misc
+import jack_m3u
 
 from jack_init import ogg
 from jack_globals import *
@@ -57,6 +58,7 @@ def tag(freedb_rename):
         a_title = track_names[0][1]
 
     if cf['_set_id3tag'] or freedb_rename:
+        jack_m3u.init()
         if len(track_names[0]) == 4:
             # use freedb year and genre data if available
             if cf['_id3_genre'] == -1:
@@ -150,8 +152,10 @@ def tag(freedb_rename):
                     if ok:
                         if not cf['_only_dae']:
                             os.rename(mp3name, newname + ext)
+                            jack_m3u.add(newname + ext)
                         if cf['_keep_wavs']:
                             os.rename(wavname, newname + ".wav")
+                            jack_m3u.add_wav(newname + ".wav")
                         jack_functions.progress(i[NUM], "ren", "%s-->%s" % (i[NAME], newname))
                     elif cf['_silent_mode']:
                         jack_functions.progress(i[NUM], "err", "while renaming track")
@@ -173,4 +177,6 @@ def tag(freedb_rename):
             print "Avg. bitrate: %03.0fkbit" % ((total_size * 0.008) / (total_length / 75))
         else:
             print
+
+    jack_m3u.write()
 

@@ -704,6 +704,12 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
         'save': 0,
         'doc': "user config file",
         },
+    'write_m3u': {
+        'type': 'toggle',
+        'val': 0,
+        'usage': "create a playlist in .m3u format",
+        'long': 'AUTO',
+        },
     })
 
 for i in cf.keys():
