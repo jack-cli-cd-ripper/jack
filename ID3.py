@@ -100,123 +100,124 @@ def strip(s):
 
 class InvalidTagError:
     def __init__(self, msg):
-	self.msg = msg
+        self.msg = msg
     def __str__(self):
-	return self.msg
+        return self.msg
 
 class ID3:
     InvalidTagError = 'InvalidTagError'
 
     genres = [ 
-	"Blues", "Classic Rock", "Country", "Dance", "Disco", "Funk", 
-	"Grunge", "Hip-Hop", "Jazz", "Metal", "New Age", "Oldies", "Other", 
-	"Pop", "R&B", "Rap", "Reggae", "Rock", "Techno", "Industrial", 
-	"Alternative", "Ska", "Death Metal", "Pranks", "Soundtrack", 
-	"Euro-Techno", "Ambient", "Trip-Hop", "Vocal", "Jazz+Funk", "Fusion", 
-	"Trance", "Classical", "Instrumental", "Acid", "House", "Game", 
-	"Sound Clip", "Gospel", "Noise", "Alt. Rock", "Bass", "Soul", 
-	"Punk", "Space", "Meditative", "Instrum. Pop", "Instrum. Rock", 
-	"Ethnic", "Gothic", "Darkwave", "Techno-Indust.", "Electronic", 
-	"Pop-Folk", "Eurodance", "Dream", "Southern Rock", "Comedy", 
-	"Cult", "Gangsta", "Top 40", "Christian Rap", "Pop/Funk", "Jungle", 
-	"Native American", "Cabaret", "New Wave", "Psychadelic", "Rave", 
-	"Showtunes", "Trailer", "Lo-Fi", "Tribal", "Acid Punk", "Acid Jazz", 
-	"Polka", "Retro", "Musical", "Rock & Roll", "Hard Rock", "Folk", 
-	"Folk/Rock", "National Folk", "Swing", "Fusion", "Bebob", "Latin", 
-	"Revival", "Celtic", "Bluegrass", "Avantgarde", "Gothic Rock", 
-	"Progress. Rock", "Psychadel. Rock", "Symphonic Rock", "Slow Rock", 
-	"Big Band", "Chorus", "Easy Listening", "Acoustic", "Humour", 
-	"Speech", "Chanson", "Opera", "Chamber Music", "Sonata", "Symphony", 
-	"Booty Bass", "Primus", "Porn Groove", "Satire", "Slow Jam", 
-	"Club", "Tango", "Samba", "Folklore", "Ballad", "Power Ballad", 
-	"Rhythmic Soul", "Freestyle", "Duet", "Punk Rock", "Drum Solo", 
-	"A Capella", "Euro-House", "Dance Hall", "Goa", "Drum & Bass", 
-	"Club-House", "Hardcore", "Terror", "Indie", "BritPop", "Negerpunk", 
-	"Polsk Punk", "Beat", "Christian Gangsta Rap", "Heavy Metal", 
-	"Black Metal", "Crossover", "Contemporary Christian", "Christian Rock",
-	"Merengue", "Salsa", "Thrash Metal", "Anime", "Jpop", "Synthpop" 
-	]
+        "Blues", "Classic Rock", "Country", "Dance", "Disco", "Funk", 
+        "Grunge", "Hip-Hop", "Jazz", "Metal", "New Age", "Oldies", "Other", 
+        "Pop", "R&B", "Rap", "Reggae", "Rock", "Techno", "Industrial", 
+        "Alternative", "Ska", "Death Metal", "Pranks", "Soundtrack", 
+        "Euro-Techno", "Ambient", "Trip-Hop", "Vocal", "Jazz+Funk", "Fusion", 
+        "Trance", "Classical", "Instrumental", "Acid", "House", "Game", 
+        "Sound Clip", "Gospel", "Noise", "Alt. Rock", "Bass", "Soul", 
+        "Punk", "Space", "Meditative", "Instrum. Pop", "Instrum. Rock", 
+        "Ethnic", "Gothic", "Darkwave", "Techno-Indust.", "Electronic", 
+        "Pop-Folk", "Eurodance", "Dream", "Southern Rock", "Comedy", 
+        "Cult", "Gangsta", "Top 40", "Christian Rap", "Pop/Funk", "Jungle", 
+        "Native American", "Cabaret", "New Wave", "Psychadelic", "Rave", 
+        "Showtunes", "Trailer", "Lo-Fi", "Tribal", "Acid Punk", "Acid Jazz", 
+        "Polka", "Retro", "Musical", "Rock & Roll", "Hard Rock", "Folk", 
+        "Folk/Rock", "National Folk", "Swing", "Fusion", "Bebob", "Latin", 
+        "Revival", "Celtic", "Bluegrass", "Avantgarde", "Gothic Rock", 
+        "Progress. Rock", "Psychadel. Rock", "Symphonic Rock", "Slow Rock", 
+        "Big Band", "Chorus", "Easy Listening", "Acoustic", "Humour", 
+        "Speech", "Chanson", "Opera", "Chamber Music", "Sonata", "Symphony", 
+        "Booty Bass", "Primus", "Porn Groove", "Satire", "Slow Jam", 
+        "Club", "Tango", "Samba", "Folklore", "Ballad", "Power Ballad", 
+        "Rhythmic Soul", "Freestyle", "Duet", "Punk Rock", "Drum Solo", 
+        "A Capella", "Euro-House", "Dance Hall", "Goa", "Drum & Bass", 
+        "Club-House", "Hardcore", "Terror", "Indie", "BritPop", "Negerpunk", 
+        "Polsk Punk", "Beat", "Christian Gangsta Rap", "Heavy Metal", 
+        "Black Metal", "Crossover", "Contemporary Christian", "Christian Rock",
+        "Merengue", "Salsa", "Thrash Metal", "Anime", "Jpop", "Synthpop" 
+        ]
 
     def __init__(self, filename):
-	self.filename = filename
-	self.delete_tag = 0
-	self.zero()
-	self.modified = 0
-	self.has_tag = 0
-	self.had_tag = 0
-	
-	try:
-	    self.file = open(filename, 'r')
-	    self.file.seek(-128, 2)
+        self.filename = filename
+        self.delete_tag = 0
+        self.zero()
+        self.modified = 0
+        self.has_tag = 0
+        self.had_tag = 0
+        
+        try:
+            self.file = open(filename, 'r')
+            self.file.seek(-128, 2)
 
-	except IOError, msg:
-	    self.modified = 0
-	    raise InvalidTagError("Can't open %s: %s" % (filename, msg))
-	    return
+        except IOError, msg:
+            self.modified = 0
+            raise InvalidTagError("Can't open %s: %s" % (filename, msg))
+            return
 
-	try:
-	    if self.file.read(3) == 'TAG':
-		self.has_tag = 1
-		self.had_tag = 1
-		self.title = strip(self.file.read(30))
-		self.artist = strip(self.file.read(30))
-		self.album = strip(self.file.read(30))
-		self.year = self.file.read(4)
-		self.comment = self.file.read(30)
-                if self.comment[28] == "\000":
-                    self.track = ord(self.comment[29])
+        try:
+            if self.file.read(3) == 'TAG':
+                self.has_tag = 1
+                self.had_tag = 1
+                self.title = strip(self.file.read(30))
+                self.artist = strip(self.file.read(30))
+                self.album = strip(self.file.read(30))
+                self.year = self.file.read(4)
+                self.year = strip(self.year)
+                self.comment = self.file.read(30)
+                if self.comment[-2] == "\000":
+                    self.track = ord(self.comment[-1])
                     self.subversion = 1
-                    self.comment = self.comment[:28]
+                    self.comment = self.comment[:-2]
                 else:
                     self.subversion = 0
-	            self.genre = ord(self.file.read(1))
+                self.genre = ord(self.file.read(1))
                 self.comment = strip(self.comment)
-		self.file.close()
-	except IOError, msg:
-	    self.modified = 0
-	    raise InvalidTagError("Invalid ID3 tag in %s: %s" % (filename, msg))
-	self.modified = 0
+                self.file.close()
+        except IOError, msg:
+            self.modified = 0
+            raise InvalidTagError("Invalid ID3 tag in %s: %s" % (filename, msg))
+        self.modified = 0
 
     def delete(self):
-	self.zero()
-	self.delete_tag = 1
-	self.has_tag = 0
+        self.zero()
+        self.delete_tag = 1
+        self.has_tag = 0
 
     def zero(self):
         self.subversion = 1
-	self.title = ''
-	self.artist = ''
-	self.album = ''
-	self.year = ''
-	self.comment = ''
+        self.title = ''
+        self.artist = ''
+        self.album = ''
+        self.year = ''
+        self.comment = ''
         self.track = 0
-	self.genre = -1
+        self.genre = -1
 
     def find_genre(self, genre_to_find):
-	i = 0
-	find_me = string.lower(genre_to_find)
+        i = 0
+        find_me = string.lower(genre_to_find)
 
-	for genre in self.genres:
-	    if string.lower(genre) == find_me:
-		break
-	    i = i + 1
-	if i == len(self.genres):
-	    return -1
-	else:
-	    return i
+        for genre in self.genres:
+            if string.lower(genre) == find_me:
+                break
+            i = i + 1
+        if i == len(self.genres):
+            return -1
+        else:
+            return i
 
     def write(self):
-	if self.modified:
-	    try:
-		self.file = open(self.filename, 'r+')
-		if self.had_tag:
+        if self.modified:
+            try:
+                self.file = open(self.filename, 'r+')
+                if self.had_tag:
                     self.file.seek(-128, 2)
                 else:
                     self.file.seek(0, 2) # a new tag is appended at the end
-		if self.delete_tag and self.had_tag:
-		    self.file.truncate()
+                if self.delete_tag and self.had_tag:
+                    self.file.truncate()
                     self.had_tag = 0
-		elif self.has_tag:
+                elif self.has_tag:
                     go_on = 1
                     if self.had_tag:
                         if self.file.read(3) == "TAG":
@@ -226,49 +227,49 @@ class ID3:
                             go_on = 0
                             raise IOError("File has been modified, losing tag changes")
                     if go_on:
-		        self.file.write('TAG')
-		        self.file.write(lengthen(self.title, 30))
-		        self.file.write(lengthen(self.artist, 30))
-		        self.file.write(lengthen(self.album, 30))
-		        self.file.write(lengthen(self.year, 4))
+                        self.file.write('TAG')
+                        self.file.write(lengthen(self.title, 30))
+                        self.file.write(lengthen(self.artist, 30))
+                        self.file.write(lengthen(self.album, 30))
+                        self.file.write(lengthen(self.year, 4))
                         if self.subversion == 0:
-		            self.file.write(lengthen(self.comment, 30))
+                            self.file.write(lengthen(self.comment, 30))
                         else:
-		            self.file.write(lengthen(self.comment, 28))
-		            self.file.write('\000')
+                            self.file.write(lengthen(self.comment, 28))
+                            self.file.write('\000')
                             if self.track != None and self.track >=0 and self.track <= 99:
-		                self.file.write(chr(self.track))
+                                self.file.write(chr(self.track))
                             else:
-		                self.file.write('\377')
-		        if self.genre < 0 or self.genre > 255:
-			    self.genre = 255
-		        self.file.write(chr(self.genre))
+                                self.file.write('\377')
+                        if self.genre < 0 or self.genre > 255:
+                            self.genre = 255
+                        self.file.write(chr(self.genre))
                         self.had_tag = 1
-		self.file.close()
-	    except IOError, msg:
-		raise InvalidTagError("Cannot write modified ID3 tag to %s: %s" % (self.filename, msg))
-	    else:
-		self.modified = 0
+                self.file.close()
+            except IOError, msg:
+                raise InvalidTagError("Cannot write modified ID3 tag to %s: %s" % (self.filename, msg))
+            else:
+                self.modified = 0
 
     def __del__(self):
-	self.write()
+        self.write()
 
     def __str__(self):
-	if self.has_tag:
-	    if self.genre != None and self.genre > 0 and self.genre < len(self.genres):
-		genre = self.genres[self.genre]
-	    else:
-		genre = 'Unknown'
-            if self.subversion == 0:
-	        return "File   : %s\nTitle  : %-30.30s  Artist: %-30.30s\nAlbum  : %-30.30s  Year  : %-4.4s\nComment: %-30.30s  Genre : %s (%i)" % (self.filename, self.title, self.artist, self.album, self.year, self.comment, genre, self.genre)
+        if self.has_tag:
+            if self.genre != None and self.genre > 0 and self.genre < len(self.genres):
+                genre = self.genres[self.genre]
             else:
-	        return "File   : %s\nTitle  : %-30.30s  Artist: %-30.30s\nAlbum  : %-30.30s  Year  : %-4.4s\nComment: %-30.30s  Genre : %s (%i), Track No. %02i" % (self.filename, self.title, self.artist, self.album, self.year, self.comment, genre, self.genre, self.track)
-	else:
-	    return "%s: No ID3 tag." % self.filename
+                genre = 'Unknown'
+            if self.subversion == 0:
+                return "File   : %s\nTitle  : %-30.30s  Artist: %-30.30s\nAlbum  : %-30.30s  Year  : %-4.4s\nComment: %-30.30s  Genre : %s (%i)" % (self.filename, self.title, self.artist, self.album, self.year, self.comment, genre, self.genre)
+            else:
+                return "File   : %s\nTitle  : %-30.30s  Artist: %-30.30s\nAlbum  : %-30.30s  Year  : %-4.4s\nComment: %-30.30s  Genre : %s (%i), Track No. %02i" % (self.filename, self.title, self.artist, self.album, self.year, self.comment, genre, self.genre, self.track)
+        else:
+            return "%s: No ID3 tag." % self.filename
 
     # intercept setting of attributes to set self.modified
     def __setattr__(self, name, value):
-	if name in ['title', 'artist', 'album', 'year', 'comment', 'track', 'genre', 'subversion']:
-	    self.__dict__['modified'] = 1
-	    self.__dict__['has_tag'] = 1
-	self.__dict__[name] = value
+        if name in ['title', 'artist', 'album', 'year', 'comment', 'track', 'genre', 'subversion']:
+            self.__dict__['modified'] = 1
+            self.__dict__['has_tag'] = 1
+        self.__dict__[name] = value
