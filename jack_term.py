@@ -90,7 +90,7 @@ def init(arg_type="auto", arg_xtermset = 0):
     size_x, size_y = 80, 24     # fallback value
 
     oldsize = getsize()
-    if oldsize:
+    if oldsize != (None, None):
         orig_size_x, orig_size_y = oldsize
         size_x, size_y = oldsize
     del oldsize

@@ -289,8 +289,9 @@ def ripread(track, offset = 0):
         if hdr[0] == 'wav':
             expected_filesize = expected_filesize + 44
 
-        if jack_utils.filesize(cf['_image_file']) != expected_filesize:
-            debug("image file size mismatch, aborted. %i != %i"% (jack_utils.filesize(cf['_image_file']), expected_filesize))
+        if abs(jack_utils.filesize(cf['_image_file']) - expected_filesize) > CDDA_BLOCKSIZE:
+            # we *do* allow a difference of one frame
+            debug("image file size mismatch, aborted. %d != %d" % (jack_utils.filesize(cf['_image_file']), expected_filesize))
             posix._exit(1)
 
         elif hdr[0] == 'wav' and (hdr[1], hdr[2], hdr[4]) != (44100, 2, 16):

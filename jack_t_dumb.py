@@ -58,7 +58,7 @@ def update(special_line, bottom_line):
     print
     print
     if special_line:
-        print jack_display.center_line(special_line, fill = "#", width = width)
+        print jack_display.center_line(special_line, fill = "#")
     print jack_display.options_string
     for i in jack_ripstuff.all_tracks_todo_sorted:
         print jack_ripstuff.printable_names[i[NUM]] + ": " + jack_status.dae_status[i[NUM]], jack_status.enc_status[i[NUM]]

@@ -16,6 +16,7 @@
 ### along with this program; if not, write to the Free Software
 ### Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+import signal
 import types
 import os
 
@@ -124,14 +125,14 @@ def consistency_check(cf):
         del u, r
 
     if cf['silent_mode']['val']:
-        cf['terminal'] = "dumb"
+        cf['terminal']['val'] = "dumb"
         cf['xtermset_enable']['val'] = 0
-        cf['out_f']['val'] = open(out_file, "a")
-        cf['err_f']['val'] = open(err_file, "a")
-        os.dup2(cf['out_f']['val'].fileno(), STDOUT_FILENO)
-        cf['out_f']['val'].close()
-        os.dup2(cf['err_f']['val'].fileno(), STDERR_FILENO)
-        cf['err_f']['val'].close()
+        out_f = open(cf['_out_file'], "a")
+        err_f = open(cf['_err_file'], "a")
+        os.dup2(out_f.fileno(), STDOUT_FILENO)
+        out_f.close()
+        os.dup2(err_f.fileno(), STDERR_FILENO)
+        err_f.close()
         signal.signal(signal.SIGTTOU, signal.SIG_IGN)
 
     if not helpers.has_key(cf['_encoder']) or helpers[cf['_encoder']]['type'] != "encoder":

@@ -41,6 +41,7 @@ def debug(x):
 
 # globals
 revision = 0                        # initial revision of freedb data
+is_submittable = 0                  # well-formed freedb-file?
 
 #misc stuff
 tmp = ID3("/dev/null")

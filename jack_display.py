@@ -88,7 +88,7 @@ def sig_handler(sig, frame):
         i['file'].close()
 
     if exit_code and cf['_silent_mode']:
-        progress("all", "err", "abnormal exit (code %i), check %s and %s" % (exit_code, err_file, out_file))
+        progress("all", "err", "abnormal exit (code %i), check %s and %s" % (exit_code, cf['_err_file'], cf['_out_file']))
 
     if cf['_wait_on_quit']:
         raw_input("press ENTER to exit")

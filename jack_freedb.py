@@ -427,7 +427,7 @@ def freedb_names(cd_id, tracks, name, verb = 0, warn = 1):
             warning("the disc's title must be set to \"artist / title\" (\"DTITLE\").")
         err = 6
  
-    if string.upper(names[0][0]) in ("VARIOUS", "VARIOUS ARTISTS", "SAMPLER", "COMPILATION", "DIVERSE", "V.A."):
+    if string.upper(names[0][0]) in ("VARIOUS", "VARIOUS ARTISTS", "SAMPLER", "COMPILATION", "DIVERSE", "V.A.", "VA"):
         #XXX
         if not cf['_various']:
             cf['_various'] = 1
@@ -615,6 +615,7 @@ def freedb_names(cd_id, tracks, name, verb = 0, warn = 1):
 
 def choose_cat(cat = ["blues", "classical", "country", "data", "folk", "jazz", "misc", "newage", "reggae", "rock", "soundtrack"]):
     print "choose a category:"
+    cat.sort()
     for i in range(1, len(cat)):
         print "%2d" % i + ".) " + cat[i]
 
@@ -640,7 +641,7 @@ def choose_cat(cat = ["blues", "classical", "country", "data", "folk", "jazz", "
 
 def do_freedb_submit(file, cd_id):
     import httplib
-    hello = "hello=" + username + " " + hostname + " " + prog_name + " " + prog_version
+    hello = "hello=" + cf['_username'] + " " + cf['_hostname'] + " " + prog_name + " " + prog_version
     print "Info: querying categories..."
     url = "http://" + freedb_servers[cf['_freedb_server']]['host'] + "/~cddb/cddb.cgi?" + urllib.quote_plus("cmd=cddb lscat" + "&" + hello + "&proto=3", "=&")
     f = urllib2.urlopen(url)
@@ -650,7 +651,6 @@ def do_freedb_submit(file, cd_id):
         cat = choose_cat()
 
     elif buf[0:3] == "210":
-        print "choose a category:"
         cat = ["null", ]
         while 1:
             buf = f.readline()
@@ -666,15 +666,18 @@ def do_freedb_submit(file, cd_id):
         error("LSCAT failed: " + string.rstrip(buf) + f.read())
 
     print "OK, using `" + cat + "'."
-    email = freedb_servers[freedb_server]['my_mail']
+    email = freedb_servers[cf['_freedb_server']]['my_mail']
     print "Your e-mail address is needed to send error messages to you."
     x = raw_input("enter your e-mail-address [" + email + "]: ")
     if x:
         email = x
+
+    sys.stdout.write("Submitting...") ; sys.stdout.flush()
+
     selector = '/~cddb/submit.cgi'
     proxy = ""
-    if environ.has_key('http_proxy'):
-        proxy = environ['http_proxy']
+    if os.environ.has_key('http_proxy'):
+        proxy = os.environ['http_proxy']
         def splittype(url):
             import re
             _typeprog = re.compile('^([^/:] + ):')
@@ -694,21 +697,24 @@ def do_freedb_submit(file, cd_id):
         type, proxy = splittype(proxy)
         host, selector2 = splithost(proxy)
         h = httplib.HTTP(host)
-        h.putrequest('POST', 'http://' + freedb_servers[freedb_server]['host'] + selector)
+        h.putrequest('POST', 'http://' + freedb_servers[cf['_freedb_server']]['host'] + selector)
     else:
-        h = httplib.HTTP(freedb_servers[freedb_server]['host'])
+        h = httplib.HTTP(freedb_servers[cf['_freedb_server']]['host'])
         h.putrequest('POST', '/~cddb/submit.cgi')
     h.putheader('Category', cat)
     h.putheader('Discid', cd_id)
     h.putheader('User-Email', email)
+    #h.putheader('Submit-Mode', 'test')
     h.putheader('Submit-Mode', 'submit')
     h.putheader('Charset', 'ISO-8859-1')
-    h.putheader('X-Cddbd-Note', 'Problems submitting with ' + prog_name + '? - RTFS(ource)!')
+    h.putheader('X-Cddbd-Note', 'Problems submitting with ' + prog_name + '? Visit jack.sf.net.')
     h.putheader('Content-Length', str(jack_utils.filesize(file)))
     h.endheaders()
     f = open(file, "r")
     h.send(f.read())
     f.close()
+
+    print
 
     err, msg, headers = h.getreply()
     f = h.getfile()
@@ -726,10 +732,13 @@ def do_freedb_submit(file, cd_id):
     print err, msg
 
 def do_freedb_mailsubmit(file, cd_id):
+    warning("Support for freedb submission via e-mail may be dropped in future versions. Please begin to use HTTP to submit your entries (--submit)")
+    sendmail = '/usr/lib/sendmail -t'
+    #sendmail = 'cat > /tmp/jack.test.mailsubmit'
     cat = choose_cat()
     print "OK, using `" + cat + "'."
-    if string.find(freedb_servers[freedb_server]['my_mail'], "@") >= 1 and len(freedb_servers[freedb_server]['my_mail']) > 3:
-        return system("( echo 'To: " + freedb_servers[freedb_server]['mail'] + "'; echo From: '" + freedb_servers[freedb_server]['my_mail'] + "'; echo 'Subject: cddb " + cat + " " + cd_id + "' ; cat '" + file + "' ) | /usr/lib/sendmail -t")
+    if string.find(freedb_servers[cf['_freedb_server']]['my_mail'], "@") >= 1 and len(freedb_servers[cf['_freedb_server']]['my_mail']) > 3:
+        return os.system("( echo 'To: " + freedb_servers[cf['_freedb_server']]['mail'] + "'; echo From: '" + freedb_servers[cf['_freedb_server']]['my_mail'] + "'; echo 'Subject: cddb " + cat + " " + cd_id + "' ; cat '" + file + "' ) | " + sendmail)
     else:
         print "please set your e-mail address. aborting..."
 

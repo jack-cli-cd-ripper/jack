@@ -193,6 +193,7 @@ def check_toc():
 
 def read_toc_file():
     "read and interpret toc_file"
+    global is_submittable
 
     is_submittable = 0
     if os.path.exists(cf['_toc_file']):
@@ -458,14 +459,14 @@ def freedb_submit():
     if not is_submittable:
         error("can't submit in current state, please fix jack.freedb")
 
-    err, jack_tag.track_names, cd_id, revision = freedb_names(jack_freedb.freedb_id(jack_ripstuff.all_tracks), jack_ripstuff.all_tracks, cf['_freedb_form_file'])
+    err, jack_tag.track_names, cd_id, revision = jack_freedb.freedb_names(jack_freedb.freedb_id(jack_ripstuff.all_tracks), jack_ripstuff.all_tracks, cf['_freedb_form_file'])
     if err:
         error("invalid freedb file")
     else:
         if cf['_freedb_submit']:
-            do_freedb_submit(cf['_freedb_form_file'], cd_id)
+            jack_freedb.do_freedb_submit(cf['_freedb_form_file'], cd_id)
         elif cf['_freedb_mailsubmit']:
-            do_freedb_mailsubmit(cf['_freedb_form_file'], cd_id)
+            jack_freedb.do_freedb_mailsubmit(cf['_freedb_form_file'], cd_id)
 
     ### (9) do query on start
 
