@@ -423,6 +423,7 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
     'dont_work': {
         'type': 'toggle',
         'val': 0,
+        'save': 0,
         'usage': "don't do DAE or encoding",
         'long': 'AUTO',
         'short': 'd',

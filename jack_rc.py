@@ -1,6 +1,6 @@
 ### jack_rc: read/write config file, a module for
 ### jack - extract audio from a CD and encode it using 3rd party software
-### Copyright (C) 1999-2002  Arne Zellentin <zarne@users.sf.net>
+### Copyright (C) 1999-2004  Arne Zellentin <zarne@users.sf.net>
 
 ### This program is free software; you can redistribute it and/or modify
 ### it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@ import string
 import types
 
 import jack_argv
+import jack_version
 
 from jack_globals import *
 
@@ -62,7 +63,23 @@ def read(file):
         else:
             opt = None
         read_rc.append([opt, val, com, lineno])
+    version = get_version(read_rc[0])
+    if version != jack_version.prog_rcversion:
+        warning("config file %s has illegal/old version %s." % (file, `version`))
     return read_rc
+
+def get_version(line):
+    opt, val, com, lineno = line
+    if opt == None and val == None and lineno == 1:
+        vers = com.strip().split(":", 1)
+        if len(vers) != 2:
+            return None
+        if vers[0] != "jackrc-version":
+            return None
+        ver = int(vers[1])
+        return ver
+    else:
+        return None
 
 def load(cf, file):
     file = os.path.expandvars(file)
@@ -110,6 +127,10 @@ def merge(old, new):
 
 def write(file, rc):
     f = open(file, "w")
+    version = get_version(rc[0])
+    if version == None:
+        f.write("# jackrc-version:%d\n" % jack_version.prog_rcversion)
+
     for i in rc:
         if i[0]:
             f.write(i[0])

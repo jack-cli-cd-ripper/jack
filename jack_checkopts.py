@@ -1,6 +1,6 @@
 ### jack_checkopts: check the options for consistency, a module for
 ### jack - extract audio from a CD and encode it using 3rd party software
-### Copyright (C) 1999-2003  Arne Zellentin <zarne@users.sf.net>
+### Copyright (C) 1999-2004  Arne Zellentin <zarne@users.sf.net>
 
 ### This program is free software; you can redistribute it and/or modify
 ### it under the terms of the GNU General Public License as published by
@@ -104,9 +104,10 @@ def consistency_check(cf):
         debug("mail is " + jack_freedb.freedb_servers[cf['freedb_server']['val']]['my_mail'] + ", was " + tmp_mail + " / " + tmp_mail2)
         del tmp_mail, tmp_mail2
 
-    if cf.has_key('charset'):
-        if not cf['char_filter']['val']:
-            warning("charset has no effect without a char_filter")
+    #if cf.has_key('charset'):
+    #    if not cf['char_filter']['val']:
+    #        warning("charset has no effect without a char_filter")
+    #                 this is not true, the ogg tag uses this.
 
     if len(cf['replacement_chars']['val']) == 0:
         cf.rupdate({'replacement_chars': {'val': ["",]}}, "check")

@@ -263,7 +263,7 @@ if len(tmp) >= 2:
 """,
         'final_status_fkt': r"""
 last_status="0123456789012345 [ -- error decoding status --  ]" # fallback
-if 0 and cf['_debug']: # disabled for now
+if cf['_debug']: # not disabled for now
     import jack_version
     tmpf=open("%s.debug.%02d.txt" % (jack_version.prog_name, exited_proc['track'][NUM]), "w")
     tmpf.write(exited_proc['buf'])
