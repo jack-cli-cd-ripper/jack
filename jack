@@ -22,16 +22,16 @@
 ### see CHANGELOG for recent changes in this program
 ### see TODO if you want to see what needs to be implemented
 
-prog_version = "2.99.6"
+prog_version = "2.99.7"
 prog_name = "jack"
 DEBUG = 0
 
+import os, sys, posix, string
 from string import atoi, atof, split, find, rfind, replace, upper, strip, rstrip
 from string import digits, uppercase, lowercase
 from os import nice, remove, popen, fdopen, waitpid, WNOHANG, execlp, execvp
 from os import stat, environ, uname, fork, rename, system, kill, mkdir
 from os import rmdir, path, execv
-import os, sys, posix, string
 from sys import argv, exit, stdin
 from time import time, sleep, localtime, strftime
 from stat import ST_SIZE
@@ -42,19 +42,41 @@ from select import select
 from fcntl import fcntl, ioctl
 import FCNTL
 from termios import tcgetattr, tcsetattr
-import TERMIOS
+import termios
 import signal
 import pty
 import wave
 import types
 import traceback
-from pprint import pprint
-from ID3 import ID3
+#from pprint import pprint
 from jack_TOC import TOC
 from jack_TOCentry import TOCentry
 from jack_CDTime import CDTime
 from jack_misc import multi_replace
 from jack_mp3 import mp3format
+
+try:
+    from ID3 import ID3
+except:
+    print "Please install the ID3 module available at http://id3-py.sourceforge.net"
+    sys.exit(1)
+
+try:
+    import cdrom
+except:
+    print "Please install the CDDB module available at http://cddb-py.sourceforge.net"
+    print "Without it, you'll not be able to rip from CDs."
+
+    # want to see my favorite ugly hack of the day?
+    class dummy_cdrom:
+        def __init__(self):
+            pass
+        def open(self, dummy=None):
+            print "Cannot access cdrom device while the CDDB module is not installed. See above."
+            sys.exit(1)
+    cdrom = dummy_cdrom()
+
+py_version = split(sys.version)[0]
 
 desperately_seeking_curses = 0
 
@@ -74,7 +96,7 @@ if curses_enable:
         tiocgwinsz_found = 1
     except ImportError:
         try:
-            from TERMIOS import TIOCGWINSZ
+            from termios import TIOCGWINSZ
             tiocgwinsz_found = 1
         except ImportError:
             pass
@@ -164,6 +186,11 @@ replacement_chars = ["%", ""]   # replacements here. replacement_chars is
 # unusable_chars = " " + uppercase
 # replacement_chars = "_" + lowercase
 
+# these influence the status screen while processing tracks
+show_time = 1       # display track length instead of "track"
+show_names = 1      # set this to 1 to display freedb track names instead
+                    # "track_01", ... This will not fit in 80x24 term's
+
 # other stuff:
 recurse_dirs = 2                # search how deep for workdir
 #searchdirs = ["/opt/mp3", "."] # where to start when searching for workdir
@@ -174,14 +201,12 @@ base_dir = os.curdir            # where to create the subdir(s) (".")
 update_interval = 1.0           # update status screen every ... seconds
 max_load = 10                   # only start new encoders when load < max_load
 
-# xtermset related stuff - obsoleted by the curses mode:
+# xtermset related stuff - when enabled, jack uses xtermset to resize your
+# xterm so that you can see all tracks.
 xtermset_enable = 0             # disable if you don't have xtermset installed
-restore_xterm_width = 0         # so you can still read all output
+restore_xterm_width = 0
 default_width = 80              # your xterm's geometry
 default_height = 24             # these are autodetected when using curses
-show_time = 1       # display track length instead of "track"
-show_names = 1      # set this to 1 to display freedb track names instead
-                    # "track_01", ... This will not fit in 80x24 term's
 
 keep_free = 5*2**20     # suspend if less than keep_free bytes are free
                         # don't set this to zero as encoded file size prediction
@@ -192,19 +217,12 @@ keep_free = 5*2**20     # suspend if less than keep_free bytes are free
 encoders = 1        # encode how many files in parallel
 otf = 0             # on-the-fly operation with supported helper apps
 create_dirs = 1     # create (and name if applicable) subdir(s)
-force = 0           # General Override
 reorder = 0         # reorder tracks to save space while encoding
 keep_wavs = 0       # keep encoded WAVs
 only_dae = 0        # only rip, do not code, implies keep_wavs
 read_ahead = 99     # number of tracks to read in advance
 nice_value = 12     # what nice level (priority) encoders get
-recheck_space = 1   # yes we want to react to disc space dropping.
 overwrite = 0       # overwrite existing files
-various = 0         # assume CD has various artists, 0 = auto
-various_swap = 0    # exchange artist and title for broken freedb entries
-extt_is_artist = 0  # extt contains artist
-extt_is_title = 0   # extt contains track title
-extt_is_comment = 0 # extt contains track comment
 remove_files = 0    # remove jack.* files when done
 silent_mode = 0     # silent-mode means: no output to screen
 
@@ -214,26 +232,7 @@ exec_when_done = 0  # execute commands below when finished, default: no
 exec_rip_done = "eject " + cd_device # eject the CD when ripping is finished
 exec_no_err = "play /usr/local/audio/allok.wav"  # play sound when finished
 exec_err = "play /usr/local/audio/error.wav"     # this is played when an
-                                                    # error occured
-
-                        # there are two ways of freedb operation:
-query_on_start = 0      # do query when starting, rename files when finished
-query_when_ready = 0    # do query when done with encoding, rename files
-
-freedb_servers = {
-    'freedb': {
-        'host': "freedb.freedb.org",
-        'id': prog_name + " " + prog_version,
-        'mail': "freedb-submit@freedb.org",
-        'my_mail': my_mail
-        },
-    'freedb-de': {
-        'host': "de.freedb.org",
-        'id': prog_name + " " + prog_version,
-        'mail': "freedb-submit@freedb.org",
-        'my_mail': my_mail
-        }
-    }   
+                                                 # error occured
 
 freedb_dir = ""         # change this to something like "/var/spool/cddb" and
                         # all queries will be done in this (local) directory
@@ -244,9 +243,81 @@ freedb_pedantic = 0     # don't be pedantic when parsing freedb data, e.g.
                         # "The Artist - Track a Title - Cool Remix" is split
                         # at the first possible separator.
 
-###############################################################################
-## no need to go below this line ##############################################
-###############################################################################
+########################## end of normal options ##############################
+
+# you can add/modify all helper apps, here are some examples:
+freedb_servers['freedb-user'] = {
+    'host': "freedb.freedb.org",
+    'id': prog_name + " " + prog_version,
+    'mail': "freedb-submit@freedb.org",
+    'my_mail': "default"
+}
+
+helpers['lame-user'] = {
+    'type': "encoder",
+    'target': "mp3",
+    'cmd': "lame -h -b %r %i %o",
+    'vbr-cmd': "lame --r3mix --nohist %i %o",
+    'otf-cmd': "lame -h -b %r - %o",
+    'vbr-otf-cmd': "lame --r3mix --nohist - %o",
+
+# from lame:     -V n    quality setting for VBR.  default n=4
+#                        0=high quality,bigger files. 9=smaller files
+
+    'status_blocksize': 160,
+    'bitrate_factor': 1,
+    'status_start': "%",
+    'percent_fkt': \"\"\"
+s = split(i['buf'], '\\\\015')
+if len(s) >= 2: s=s[-2]
+if len(s) == 1: s=s[0]
+if find(s, "%") >= 0:       # status reporting starts here
+    y = split(s, "/")
+    y1 = split(y[1], "(")[0]
+    percent = atof(y[0]) / atof(y1) * 100.0
+elif find(s, "Frame:") >= 0:    # older versions, like 3.13
+    y = split(s, "/")
+    y0 = split(y[0], "[")[-1]
+    y1 = split(y[1], "]")[0]
+    percent = atof(y0) / atof(y1) * 100.0
+else:
+    percent = 0
+
+#################### end of auto-generated .jackrc ############################
+\"\"\"
+}
+
+"""
+
+prefs2="""
+force = 0           # General Override
+recheck_space = 1   # yes we want to react to disc space dropping.
+various = 0         # assume CD has various artists, 0 = auto
+various_swap = 0    # exchange artist and title for broken freedb entries
+extt_is_artist = 0  # extt contains artist
+extt_is_title = 0   # extt contains track title
+extt_is_comment = 0 # extt contains track comment
+
+
+# there are two ways of freedb operation:
+query_on_start = 0      # do query when starting, rename files when finished
+query_when_ready = 0    # do query when done with encoding, rename files
+
+freedb_servers = {
+'freedb': {
+    'host': "freedb.freedb.org",
+    'id': prog_name + " " + prog_version,
+    'mail': "freedb-submit@freedb.org",
+    'my_mail': "default"
+    },
+    'freedb-de': {
+        'host': "de.freedb.org",
+        'id': prog_name + " " + prog_version,
+        'mail': "freedb-submit@freedb.org",
+        'my_mail': "default"
+        }
+    }   
+
 swap_byteorder = 1      # swap byteorder when reading from image
 todo_exit = 0           # print what would be done and exit
 space_from_argv = 0     # use currently free discspace (or override via argv)
@@ -323,10 +394,11 @@ targets = {
 # supported helper apps
 helpers = {
     'builtin': {
+        'type': "dummy",
         'status_blocksize': 160
         },
 
-    'oggenc': {
+    'oggenc': { # based on a patch kindly provided by Bryan Larsen.
         'type': "encoder",
         'target': "ogg",
         'can_tag': 1,
@@ -420,10 +492,13 @@ else:
 \"\"\"
     },
 
-    'gogo': {
+    'gogo': { # Thanks to José Antonio Pérez Sánchez for the vbr and otf presets
         'type': "encoder",
         'target': "mp3",
         'cmd': "gogo %i %o -b %r",
+        'vbr-cmd': "gogo %i %o -v 4",
+        'otf-cmd': "gogo stdin %o -b %r",
+        'vbr-otf-cmd': "gogo stdin %o -v 4",
         'status_blocksize': 160,
         'bitrate_factor': 1,
         'status_start': "%",
@@ -688,7 +763,6 @@ while l:
         'type': "toc-reader",
         'toc': 1,
         'toc_fkt': \"\"\"
-import cdrom
 device = cdrom.open(cd_device)
 (first, last) = cdrom.toc_header(device)
 toc = []
@@ -705,19 +779,31 @@ for i in range(first, last + 1):
 """
 
 # read the defaults
+exec(prefs2)
 exec(prefs)
 if path.exists(prefs_file):
+    jackrc_version = "0.too old"
+    jackrc_py_version = "0.unknown"
     execfile(prefs_file)
-    try:
-        if jackrc_version != prog_version:
-            print "Warning: Your " + path.basename(prefs_file) + "'s version (" + jackrc_version + ") doesn't match this version"
-            print "       : of jack (" + prog_version + ")."
-            print "       : make sure that nothing important is missing! (sleeping 5s)"
-            sleep(5)
-    except NameError:
-        print "Warning: Your " + path.basename(prefs_file) + "'s version (unknown, too old) doesn't match"
-        print "       : this version of jack (" + prog_version + ")."
+    if jackrc_version < "2.99.7":
+        print "Error: Your " + path.basename(prefs_file) + " is too old. I'm sorry for the inconvenience,"
+        print "but you have to re-configure jack:"
+        print "  1. back up", prefs_file
+        print "  2. remove", prefs_file
+        print "  3. run", prog_name, "once - this will generate a new one"
+        print "  4. edit", prefs_file, "- use your backup for hints."
+        sys.exit(1)
+
+    elif jackrc_version != prog_version:
+        print "Warning: Your " + path.basename(prefs_file) + "'s version (" + jackrc_version + ") doesn't match this version"
+        print "       : of jack (" + prog_version + ")."
         print "       : make sure that nothing important is missing! (sleeping 5s)"
+        sleep(5)
+
+    if py_version != jackrc_py_version:
+        print "Warning: Your " + path.basename(prefs_file) + "'s version (" + jackrc_py_version + ") doesn't match this version"
+        print "       : of python (" + py_version + ")."
+        print "       : If jack doesn't work, re-install jack and related modules (sleeping 5s)"
         sleep(5)
 
 else:
@@ -728,7 +814,8 @@ else:
     f.write("# preferences for " + prog_name + "-" + prog_version + "\n")
     f.write("# remove this file to get a new one filled with the defaults.\n")
     f.write("# This file is parsed as python code, it's easy to break things.\n\n")
-    f.write("jackrc_version = \"" + prog_version + "\"\n\n")
+    f.write("jackrc_version = \"" + prog_version + "\"\n")
+    f.write("jackrc_py_version = \"" + py_version + "\"\n\n")
     f.write(prefs)
     f.close()
     print "    : done. now edit this file and start " + prog_name + " again."
@@ -799,12 +886,12 @@ STDIN_FILENO = 0
 STDOUT_FILENO = 1
 STDERR_FILENO = 2
 
-# compile exec strings #XXX doesn't work anymore
-#for h in helpers.keys():
-#    for i in helpers[h].keys():
-#        if i[-4:] == "_fkt":
-#            pass
-#            helpers[h][i] = compile(helpers[h][i], '<string>', 'exec')
+# compile exec strings # comment these lines out if it doesn't work...
+for h in helpers.keys():
+    for i in helpers[h].keys():
+        if i[-4:] == "_fkt":
+            #pass
+            helpers[h][i] = compile(helpers[h][i], '<string>', 'exec')
 
 #################################################################### functions
 
@@ -1612,10 +1699,10 @@ def freedb_names(cd_id, tracks, name, various, verb = 0, warn = 1):
     # append the EXTT fields to the track names
     if extt_is_comment:
         for i in range(len(names[1:])):
-            if freedb['EXTT'+`i`]:
+            if freedb.has_key('EXTT'+`i`) and freedb['EXTT'+`i`]:
                 names[i+1][1] = names[i+1][1] + " (%s)" % freedb['EXTT'+`i`]
             else:
-                print "Warning: track %i (startin at 0) has no EXTT entry." % i
+                print "Warning: track %i (starting at 0) has no EXTT entry." % i
 
     # clean up a bit:
     for i in names:
@@ -1631,7 +1718,7 @@ def freedb_names(cd_id, tracks, name, various, verb = 0, warn = 1):
     return error, names, read_id, revision
 
 def do_freedb_submit(file, cd_id):
-    from httplib import *
+    import httplib
     hello = "hello=" + username + " " + hostname + " " + prog_name + " " + prog_version
     print "Info: querying categories..."
     url = "http://" + freedb_servers[freedb_server]['host'] + "/~cddb/cddb.cgi?" + quote_plus("cmd=cddb lscat" + "&" + hello + "&proto=3", "=&")
@@ -1698,10 +1785,10 @@ def do_freedb_submit(file, cd_id):
 
         type, proxy = splittype(proxy)
         host, selector2 = splithost(proxy)
-        h = HTTP(host)
+        h = httplib.HTTP(host)
         h.putrequest('POST', 'http://' + freedb_servers[freedb_server]['host'] + selector)
     else:
-        h = HTTP(freedb_servers[freedb_server]['host'])
+        h = httplib.HTTP(freedb_servers[freedb_server]['host'])
         h.putrequest('POST', '/~cddb/submit.cgi')
     h.putheader('Category', cat)
     h.putheader('Discid', cd_id)
@@ -2170,7 +2257,7 @@ def sig_handler(sig, frame):
     else:
         exit_code = 0
     if not curses_enable:
-        tcsetattr(stdin.fileno(), TERMIOS.TCSADRAIN, old_tc)
+        tcsetattr(stdin.fileno(), termios.TCSADRAIN, old_tc)
     elif curses_init:
         jack_curses.endwin()
     if sig:
@@ -2432,7 +2519,7 @@ while len(unusable_chars) > len(replacement_chars): # stretch rep._chars
 
 space_set_from_argv = 0
 argv_bitrate = 0
-if len(freedb_servers[freedb_server]['my_mail']) <= 3:
+if len(freedb_servers[freedb_server]['my_mail']) <= 3 or freedb_servers[freedb_server]['my_mail'] == "default":
     freedb_servers[freedb_server]['my_mail'] = username + "@" + hostname
 
 #### Parse argv
@@ -2493,7 +2580,8 @@ while i<len(argv):
     elif argv[i] == "--server":
         freedb_server = argv[i + 1]
         if not freedb_servers.has_key(freedb_server):
-            print "Error: unknown server, choose one from your " + prefs_file + "."
+            print "Error: unknown server, choose one or define one in", prefs_file + ":"
+            print freedb_servers.keys()
             exit(1)
         i = i + 1
     elif argv[i] == "--device":
@@ -2664,6 +2752,23 @@ if silent_mode:
     os.dup2(err_f.fileno(), STDERR_FILENO)
     err_f.close()
     signal.signal(signal.SIGTTOU, signal.SIG_IGN)
+
+# check for wrong options:
+if not helpers.has_key(encoder) or helpers[encoder]['type'] != "encoder":
+    print "Invalid encoder, choose one of (",
+    for dummy in helpers.keys():
+        if helpers[dummy]['type'] == "encoder":
+            print dummy,
+    print ")"
+    sys.exit(1)
+
+if not helpers.has_key(ripper) or helpers[ripper]['type'] != "ripper":
+    print "Invalid ripper, choose one of (",
+    for dummy in helpers.keys():
+        if helpers[dummy]['type'] == "ripper":
+            print dummy,
+    print ")"
+    sys.exit(1)
 
 # check for option conflicts:
 if otf and only_dae:
@@ -3300,9 +3405,9 @@ signal.signal(signal.SIGHUP, sig_handler)
 
 if not curses_enable and (wavs_todo or mp3s_todo):
     new = tcgetattr(stdin.fileno())     # set terminal attributes
-    new[3] = new[3] & ~TERMIOS.ECHO
-    new[3] = new[3] & ~TERMIOS.ICANON
-    tcsetattr(stdin.fileno(), TERMIOS.TCSADRAIN, new)
+    new[3] = new[3] & ~termios.ECHO
+    new[3] = new[3] & ~termios.ICANON
+    tcsetattr(stdin.fileno(), termios.TCSADRAIN, new)
 
 
              #\                                                 /#
@@ -3670,9 +3775,9 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, enc_running, da
                             dae_stat_upd(num, strip(split(exited_proc['buf'], "\n")[-2]))
                         else:
                             if exited_proc['otf'] and helpers[exited_proc['prog']].has_key('otf-final_status_fkt'):
-                                exec(helpers[exited_proc['prog']]['otf-final_status_fkt'])
+                                exec(helpers[exited_proc['prog']]['otf-final_status_fkt']) in globals(), locals()
                             else:
-                                exec(helpers[exited_proc['prog']]['final_status_fkt'])
+                                exec(helpers[exited_proc['prog']]['final_status_fkt']) in globals(), locals()
                             dae_stat_upd(num, final_status)
                         if enc_cache[num]:
                             enc_stat_upd(num, enc_cache[num])
@@ -3730,16 +3835,17 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, enc_running, da
                 if i['type'] == "ripper":
                     if len(i['buf']) == helpers[i['prog']]['status_blocksize']:
                         if i['otf'] and helpers[i['prog']].has_key('otf-status_fkt'):
-                            exec(helpers[i['prog']]['otf-status_fkt'])
+                            exec(helpers[i['prog']]['otf-status_fkt']) in globals(), locals()
                         else:
-                            exec(helpers[i['prog']]['status_fkt'])
+                            exec(helpers[i['prog']]['status_fkt']) in globals(), locals()
                         if new_status:
                             dae_stat_upd(i['track'][NUM], ":DAE: " + new_status)
         
                 elif i['type'] == "encoder":
                     if len(i['buf']) == helpers[i['prog']]['status_blocksize']:
-                        exec(helpers[i['prog']]['percent_fkt'])
-                        i['percent'] = percent
+                        tmp_d = {'i': i, 'percent': 0}
+                        exec(helpers[i['prog']]['percent_fkt']) in globals(), tmp_d
+                        i['percent'] = tmp_d['percent']
                         if i['percent'] > 0:
                             i['elapsed'] = time() - i['start_time']
                             speed = ((i['track'][LEN] / float(CDDA_BLOCKS_PER_SECOND)) * ( i['percent'] / 100 )) / i['elapsed']
