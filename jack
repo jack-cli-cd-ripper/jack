@@ -163,8 +163,8 @@ xtermset_enable = 0             # disable if you don't have xtermset installed
 restore_xterm_width = 0         # so you can still read all output
 default_width = 80              # your xterm's geometry
 default_height = 24             # these are autodetected when using curses
-show_time = 0       # display track length instead of "track"
-show_names = 0      # set this to 1 to display freedb track names instead
+show_time = 1       # display track length instead of "track"
+show_names = 1      # set this to 1 to display freedb track names instead
                     # "track_01", ... This will not fit in 80x24 term's
 
 ## more defaults, these can be changed via argv ##
@@ -269,123 +269,153 @@ progress_file = prog_name + ".progress"     # subprocess output is cached here
 progr_sep = "/|\\\\"    # field seperator in progress_file
 
 # supported helper apps
-helpers = {}
-helpers['builtin'] = {}
-helpers['builtin']['status_blocksize'] = 160
+helpers = {
+    'builtin': {
+        'status_blocksize': 160
+        },
 
-helpers['mp3enc'] = {}
-helpers['mp3enc']['type'] = "encoder"
-helpers['mp3enc']['cmd'] = "mp3enc -v -qual 9 -br %r -if %i -of %o"
-helpers['mp3enc']['otf-cmd'] = "mp3enc -v -qual 9 -br %r -sti -be -of %o"
-helpers['mp3enc']['status_blocksize'] = 99
-helpers['mp3enc']['bitrate_factor'] = 1000
-helpers['mp3enc']['status_start'] = "%"
-helpers['mp3enc']['percent_fkt'] = \"\"\"
+    'mp3enc': {
+        'type': "encoder",
+        'cmd': "mp3enc -v -qual 9 -br %r -if %i -of %o",
+        'otf-cmd': "mp3enc -v -qual 9 -br %r -sti -be -of %o",
+        'status_blocksize': 99,
+        'bitrate_factor': 1000,
+        'status_start': "%",
+        'percent_fkt': \"\"\"
 s = split(i['buf'], '\\\\015')
 if len(s) >= 4:
-  s = s[-2]
-  if find(s, "%") >= 0:
-    y = split(s, " ", 3)
-    percent = atof(y[0]) / (i['track'][LEN] * CDDA_BLOCKSIZE / 2) * 100.0
-  else:
-    percent = 0
+    s = s[-2]
+    if find(s, "%") >= 0:
+        y = split(s, " ", 3)
+        percent = atof(y[0]) / (i['track'][LEN] * CDDA_BLOCKSIZE / 2) * 100.0
+    else:
+        percent = 0
 \"\"\"
+    },
 
-helpers['l3enc'] = {}
-helpers['l3enc']['type'] = "encoder"
-helpers['l3enc']['cmd'] = "l3enc -hq -br %r %i %o"
-helpers['l3enc']['status_blocksize'] = 99
-helpers['l3enc']['bitrate_factor'] = 1000
-helpers['l3enc']['status_start'] = "%"
-helpers['l3enc']['percent_fkt'] = \"\"\"
+    'l3enc': {
+        'type': "encoder",
+        'cmd': "l3enc -hq -br %r %i %o",
+        'status_blocksize': 99,
+        'bitrate_factor': 1000,
+        'status_start': "%",
+        'percent_fkt': \"\"\"
 s = split(i['buf'], '\\\\015')
 if len(s) >= 2: s = s[-2]
 if len(s) == 1: s = s[0]
 if find(s, "%") >= 0:
-  y = split(s, " / ")
-  y0 = split(y[0])[-1]
-  y1 = split(y[1])[0]
-  percent=atof(y0) / atof(y1) * 100.0
+    y = split(s, " / ")
+    y0 = split(y[0])[-1]
+    y1 = split(y[1])[0]
+    percent=atof(y0) / atof(y1) * 100.0
 else:
-  percent = 0
+    percent = 0
 \"\"\"
+    },
 
-helpers['lame'] = {}
-helpers['lame']['type'] = "encoder"
-helpers['lame']['cmd'] = "lame -h -b %r %i %o"
-helpers['lame']['vbr-cmd'] = "lame -V1 -q1 -mj -k -b112 -h --nohist %i %o"
-helpers['lame']['otf-cmd'] = "lame -h -b %r - %o"
-helpers['lame']['vbr-otf-cmd'] = "lame -V1 -q1 -mj -k -b112 -h --nohist - %o"
+    'lame': {
+        'type': "encoder",
+        'cmd': "lame -h -b %r %i %o",
+        'vbr-cmd': "lame -V1 -q1 -mj -k -b112 -B320 -h --nohist %i %o",
+        'otf-cmd': "lame -h -b %r - %o",
+        'vbr-otf-cmd': "lame -V1 -q1 -mj -k -b112 -B320 -h --nohist - %o",
 
 # from lame:     -V n    quality setting for VBR.  default n=4
 #                        0=high quality,bigger files. 9=smaller files
 
-helpers['lame']['status_blocksize'] = 160
-helpers['lame']['bitrate_factor'] = 1
-helpers['lame']['status_start'] = "%"
-helpers['lame']['percent_fkt'] = \"\"\"
+        'status_blocksize': 160,
+        'bitrate_factor': 1,
+        'status_start': "%",
+        'percent_fkt': \"\"\"
 s = split(i['buf'], '\\\\015')
 if len(s) >= 2: s=s[-2]
 if len(s) == 1: s=s[0]
 if find(s, "%") >= 0:       # status reporting starts here
-  y = split(s, "/")
-  y1 = split(y[1], "(")[0]
-  percent = atof(y[0]) / atof(y1) * 100.0
+    y = split(s, "/")
+    y1 = split(y[1], "(")[0]
+    percent = atof(y[0]) / atof(y1) * 100.0
 elif find(s, "Frame:") >= 0:    # older versions, like 3.13
-  y = split(s, "/")
-  y0 = split(y[0], "[")[-1]
-  y1 = split(y[1], "]")[0]
-  percent = atof(y0) / atof(y1) * 100.0
+    y = split(s, "/")
+    y0 = split(y[0], "[")[-1]
+    y1 = split(y[1], "]")[0]
+    percent = atof(y0) / atof(y1) * 100.0
 else:
-  percent = 0
+    percent = 0
 \"\"\"
+    },
 
-helpers['gogo'] = {}
-helpers['gogo']['type'] = "encoder"
-helpers['gogo']['cmd'] = "gogo %i %o -b %r"
-helpers['gogo']['status_blocksize'] = 160
-helpers['gogo']['bitrate_factor'] = 1
-helpers['gogo']['status_start'] = "%"
-helpers['gogo']['percent_fkt'] = \"\"\"
+    'gogo': {
+        'type': "encoder",
+        'cmd': "gogo %i %o -b %r",
+        'status_blocksize': 160,
+        'bitrate_factor': 1,
+        'status_start': "%",
+        'percent_fkt': \"\"\"
 s = split(i['buf'], '\\\\015')
 if len(s) >= 2: s=s[-2]
 if len(s) == 1: s=s[0]
 if find(s, "%") >= 0: # status reporting starts here
-  s = replace(s, "\\\\000", " ")
-  y = split(s, "/")
-  y0 = split(y[0], "{")[-1]
-  y1 = split(y[1], "}")[0]
-  percent = atof(y0) / atof(y1) * 100.0
+    s = replace(s, "\\\\000", " ")
+    y = split(s, "/")
+    y0 = split(y[0], "{")[-1]
+    y1 = split(y[1], "}")[0]
+    percent = atof(y0) / atof(y1) * 100.0
 else:
-  percent = 0
+    percent = 0
 \"\"\"
+    },
 
-helpers['bladeenc'] = {}
-helpers['bladeenc']['type'] = "encoder"
-helpers['bladeenc']['cmd'] = "bladeenc %i %o -br %r"
-helpers['bladeenc']['status_blocksize'] = 180
-helpers['bladeenc']['bitrate_factor'] = 1000
-helpers['bladeenc']['status_start'] = "%"
-helpers['bladeenc']['percent_fkt'] = \"\"\"
+    'bladeenc': {
+        'type': "encoder",
+        'cmd': "bladeenc %i %o -br %r",
+        'status_blocksize': 180,
+        'bitrate_factor': 1000,
+        'status_start': "%",
+        'percent_fkt': \"\"\"
 s = split(i['buf'], '\\\\015')
 if len(s) >= 2: s=s[-2]
 if find(s, "Status:") != -1:
-  y = split(s[8:])
-  percent = atof(split(y[0], '%')[0])
+    y = split(s[8:])
+    percent = atof(split(y[0], '%')[0])
 else:
-  percent = 0
+    percent = 0
 \"\"\"
+    },
 
-helpers['cdparanoia'] = {}
-helpers['cdparanoia']['type'] = "ripper"
-helpers['cdparanoia']['cmd'] = "cdparanoia --abort-on-skip -d %d %n %o"
-helpers['cdparanoia']['otf-cmd'] = "cdparanoia --abort-on-skip -e -d %d %n -R -"
-helpers['cdparanoia']['status_blocksize'] = 500
-helpers['cdparanoia']['status_start'] = "%"
-helpers['cdparanoia']['status_fkt'] = \"\"\"
-new_status = split(i['buf'], '\\\\015')[-2][17:68]
+# xing  definitions kindly provided by Sebastian Weber
+    'xing': {
+        'type': "encoder",
+        'cmd': "xingmp3enc -B %r %i %o",
+        'vbr-cmd': "xingmp3enc -V 100 %i %o",
+        'otf-cmd': "xingmp3enc -b %r -- %o",
+        'vbr-otf-cmd': "xingmp3enc -V 100 -- %o",
+        'status_blocksize': 160,
+        'bitrate_factor': 1,
+        'status_start': "%",
+        'percent_fkt': \"\"\"
+s = split(i['buf'], '\\\\015')
+if len(s) >= 2: s = s[-2]
+if find(s, "ETA:") != -1:
+    y = strip(split(s, '%')[0])
+    if len(y) == 0:
+        percent = 0
+    else:
+        percent = atof(y)
+else:
+    percent = 0
 \"\"\"
-helpers['cdparanoia']['otf-status_fkt'] = \"\"\"
+    },
+
+    'cdparanoia': {
+        'type': "ripper",
+        'cmd': "cdparanoia --abort-on-skip -d %d %n %o",
+        'otf-cmd': "cdparanoia --abort-on-skip -e -d %d %n -R -",
+        'status_blocksize': 500,
+        'status_start': "%",
+        'status_fkt': \"\"\"
+new_status = split(i['buf'], '\\\\015')[-2][17:68]
+\"\"\",
+        'otf-status_fkt': \"\"\"
 buf = i['buf']
 tmp = split(buf, "\\\\012")
 new_status = ""
@@ -394,163 +424,145 @@ if len(tmp) >= 2:
     if tmp[0] == "##: -2 [wrote]":
         percent = (atof(tmp[1]) - (i['track'][START] * CDDA_BLOCKSIZE / 2.0)) / (i['track'][LEN] * CDDA_BLOCKSIZE / 2.0) * 100.0
         new_status = "[otf - reading, %2i%%]" % percent
-\"\"\"
-helpers['cdparanoia']['final_status_fkt'] = \"\"\"
+\"\"\",
+        'final_status_fkt': \"\"\"
 for tmp in split(exited_proc['buf'], '\\\\015'):
-  if find(tmp, "PROGRESS") != -1:
-    last_status = tmp
+    if find(tmp, "PROGRESS") != -1:
+        last_status = tmp
 final_status = ("%4.1fx" % speed) + last_status[16:48] + "]"
-\"\"\"
-helpers['cdparanoia']['otf-final_status_fkt'] = \"\"\"
+\"\"\",
+        'otf-final_status_fkt': \"\"\"
 final_status = "[otf - done]"
-\"\"\"
-helpers['cdparanoia']['toc'] = 1
-helpers['cdparanoia']['toc_cmd'] = "cdparanoia -d %d -Q 2>&1"
-helpers['cdparanoia']['toc_fkt'] = \"\"\"
+\"\"\",
+        'toc': 1,
+        'toc_cmd': "cdparanoia -d %d -Q 2>&1",
+        'toc_fkt': \"\"\"
 while l:
-  l = rstrip(l)
-  if l and l[0:5] == "TOTAL":
-    start = 0
-  if l and l == '=' * (len(l)):
-    start = 1
-  elif l and start:
-    l = split(l, '.', 1)
-    num = atoi(l[0])
-    l = split(l[1])
-    if len(erg) == 0 and num != 1:
-        erg.append([1, atoi(l[2]), 0, 0, 0, 0, 0, 0, name % 1])
-    erg.append([num, atoi(l[0]), atoi(l[2]), l[4] == 'OK', l[5] == 'yes', atoi(l[6]), 1, bitrate, name % num])
-  l = p.readline()
+    l = rstrip(l)
+    if l and l[0:5] == "TOTAL":
+        start = 0
+    if l and l == '=' * (len(l)):
+        start = 1
+    elif l and start:
+        l = split(l, '.', 1)
+        num = atoi(l[0])
+        l = split(l[1])
+        if len(erg) == 0 and num != 1:
+            erg.append([1, atoi(l[2]), 0, 0, 0, 0, 0, 0, name % 1])
+        erg.append([num, atoi(l[0]), atoi(l[2]), l[4] == 'OK', l[5] == 'yes', atoi(l[6]), 1, bitrate, name % num])
+    l = p.readline()
 \"\"\"
+    },
 
-helpers['cdda2wav'] = {}
-helpers['cdda2wav']['type'] = "ripper"
-helpers['cdda2wav']['cmd'] = "cdda2wav -H -v 1 -D %d -O wav -t %n %o"
-helpers['cdda2wav']['status_blocksize'] = 200
-helpers['cdda2wav']['status_start'] = "percent_done:"
-helpers['cdda2wav']['status_fkt'] = \"\"\"
+    'cdda2wav': {
+        'type': "ripper",
+        'cmd': "cdda2wav -H -v 1 -D %d -O wav -t %n %o",
+        'status_blocksize': 200,
+        'status_start': "percent_done:",
+        'status_fkt': \"\"\"
 x = split(i['buf'], '\\\\015')[-2]
 if find(x, '%') != -1:
-  new_status = "ripping: " + strip(split(i['buf'], '\\\\015')[-2])
+    new_status = "ripping: " + strip(split(i['buf'], '\\\\015')[-2])
 else:
-  new_status = "waiting..."
-\"\"\"
-helpers['cdda2wav']['final_status_fkt'] = \"\"\"
+    new_status = "waiting..."
+\"\"\",
+        'final_status_fkt': \"\"\"
 final_status = ("%5.1f" % speed) + "x [DAE done]"
-\"\"\"
-helpers['cdda2wav']['toc'] = 1
-helpers['cdda2wav']['toc_cmd'] = "cdda2wav -D %d -J -v 1 2>&1"
-helpers['cdda2wav']['toc_fkt'] = \"\"\"
+\"\"\",
+        'toc': 1,
+        'toc_cmd': "cdda2wav -D %d -J -v 1 2>&1",
+        'toc_fkt': \"\"\"
 while l:
-  l = strip(l)
-  if l and l[0:11] == "Album title":
-    start = 1
-  elif l and start:
-    l = split(l)
-    if l[0] == "Leadout:":
-      start = 0
-    else:
-      num = atoi(l[0][1:3])
-      if l[6] == "stereo":
-        channels = 2
-      elif l[6] == "mono":
-        channels = 1
-      else:
-        channels = 0
-      t_start = atoi(l[1])
-      msf = split(l[2], ":")
-      sf = split(msf[1], ".")
-      t_length = atoi(sf[1]) + atoi(sf[0]) * 75 + atoi(msf[0]) * 60 * 75
-      erg.append([num, t_length, t_start, l[5] == "copyallowed", l[4] != "linear", channels, 1, bitrate, name % num])
-  l = p.readline()
+    l = strip(l)
+    if l and l[0:11] == "Album title":
+        start = 1
+    elif l and start:
+        l = split(l)
+        if l[0] == "Leadout:":
+            start = 0
+        else:
+            num = atoi(l[0][1:3])
+            if l[6] == "stereo":
+                channels = 2
+            elif l[6] == "mono":
+                channels = 1
+            else:
+                channels = 0
+            t_start = atoi(l[1])
+            msf = split(l[2], ":")
+            sf = split(msf[1], ".")
+            t_length = atoi(sf[1]) + atoi(sf[0]) * 75 + atoi(msf[0]) * 60 * 75
+            erg.append([num, t_length, t_start, l[5] == "copyallowed", l[4] != "linear", channels, 1, bitrate, name % num])
+    l = p.readline()
 \"\"\"
+    },
 
-helpers['dagrab'] = {}
-helpers['dagrab']['type'] = "ripper"
-helpers['dagrab']['cmd'] = "dagrab -d %d -f %o %n"
-helpers['dagrab']['status_blocksize'] = 100
-helpers['dagrab']['status_start'] = "total:"
-helpers['dagrab']['status_fkt'] = \"\"\"
+    'dagrab': {
+        'type': "ripper",
+        'cmd': "dagrab -d %d -f %o %n",
+        'status_blocksize': 100,
+        'status_start': "total:",
+        'status_fkt': \"\"\"
 x = split(i['buf'], '\\\\015')[-2]
 if find(x, 'total:') != -1:
-  new_status = strip(split(i['buf'], '\\\\015')[-2])
+    new_status = strip(split(i['buf'], '\\\\015')[-2])
 else:
-  new_status = "waiting..."
-\"\"\"
-helpers['dagrab']['final_status_fkt'] = \"\"\"
+    new_status = "waiting..."
+\"\"\",
+        'final_status_fkt': \"\"\"
 final_status = ("%5.1f" % speed) + "x [DAE done]"
-\"\"\"
-helpers['dagrab']['toc'] = 1
-helpers['dagrab']['toc_cmd'] = "dagrab -d %d -i 2>&1"
-helpers['dagrab']['toc_fkt'] = \"\"\"
+\"\"\",
+        'toc': 1,
+        'toc_cmd': "dagrab -d %d -i 2>&1",
+        'toc_fkt': \"\"\"
 while l:
-  l = strip(l)
-  if l and l[0:5] == "track":
-    start = 1
-  elif l and start:
-    l = split(l)
-    if l[3] == "leadout":
-      start = 0
-    else:
-      num = atoi(l[0])
-      channels = 2
-      copy = 0
-      pre = 0
-      t_start = atoi(l[1]) - 150
-      t_length = atoi(l[2])
-      erg.append([num, t_length, t_start, copy, pre, channels, 1, bitrate, name % num])
-  l = p.readline()
+    l = strip(l)
+    if l and l[0:5] == "track":
+        start = 1
+    elif l and start:
+        l = split(l)
+        if l[3] == "leadout":
+            start = 0
+        else:
+            num = atoi(l[0])
+            channels = 2
+            copy = 0
+            pre = 0
+            t_start = atoi(l[1]) - 150
+            t_length = atoi(l[2])
+            erg.append([num, t_length, t_start, copy, pre, channels, 1, bitrate, name % num])
+    l = p.readline()
 \"\"\"
+    },
 
-helpers['tosha'] = {}
-helpers['tosha']['type'] = "ripper"
-helpers['tosha']['cmd'] = "tosha -d %d -f wav -t %n -o %o"
-helpers['tosha']['status_blocksize'] = 100
-helpers['tosha']['status_start'] = "total:"
-helpers['tosha']['status_fkt'] = \"\"\"
+    'tosha': {
+        'type': "ripper",
+        'cmd': "tosha -d %d -f wav -t %n -o %o",
+        'status_blocksize': 100,
+        'status_start': "total:",
+        'status_fkt': \"\"\"
 x = split(i['buf'], '\\\\015')[-2]
 if find(x, 'total:') != -1:
-  new_status = strip(split(i['buf'], '\\\\015')[-2])
+    new_status = strip(split(i['buf'], '\\\\015')[-2])
 else:
-  new_status = "waiting..."
-\"\"\"
-helpers['tosha']['final_status_fkt'] = \"\"\"
+    new_status = "waiting..."
+\"\"\",
+        'final_status_fkt': \"\"\"
 final_status = ("%5.1f" % speed) + "x [DAE done]"
-\"\"\"
-helpers['tosha']['toc'] = 1
-helpers['tosha']['toc_cmd'] = "tosha -d %d -iq 2>&1"
-helpers['tosha']['toc_fkt'] = \"\"\"
+\"\"\",
+        'toc': 1,
+        'toc_cmd': "tosha -d %d -iq 2>&1",
+        'toc_fkt': \"\"\"
 while l:
-  l = rstrip(l)
-  if l:
-    l = split(l)
-    num = atoi(l[0])
-    erg.append([num, 1 + atoi(l[3]) - atoi(l[2]), atoi(l[2]), 0, 0, 2, 1, bitrate, name % num])
-  l = p.readline()
+    l = rstrip(l)
+    if l:
+        l = split(l)
+        num = atoi(l[0])
+        erg.append([num, 1 + atoi(l[3]) - atoi(l[2]), atoi(l[2]), 0, 0, 2, 1, bitrate, name % num])
+    l = p.readline()
 \"\"\"
-
-# xing  definitions kindly provided by Sebastian Weber
-helpers['xing'] = {}
-helpers['xing']['type'] = "encoder"
-helpers['xing']['cmd'] = "xingmp3enc -B %r %i %o"
-helpers['xing']['vbr-cmd'] = "xingmp3enc -V 100 %i %o"
-helpers['xing']['otf-cmd'] = "xingmp3enc -b %r -- %o"
-helpers['xing']['vbr-otf-cmd'] = "xingmp3enc -V 100 -- %o"
-helpers['xing']['status_blocksize'] = 160
-helpers['xing']['bitrate_factor'] = 1
-helpers['xing']['status_start'] = "%"
-helpers['xing']['percent_fkt'] = \"\"\"
-s = split(i['buf'], '\\\\015')
-if len(s) >= 2: s=s[-2]
-if find(s, "ETA:") != -1:
-y = strip(split(s, '%')[0])
-if len(y) == 0:
-percent = 0
-else:
-percent = atof(y)
-else:
-percent = 0
-\"\"\"
+    }
+}
 """
 
 # read the defaults
