@@ -424,6 +424,14 @@ targets = {
         'can_pretag': 1,
         'can_posttag': (1 & has_ogg_vorbis),
         'file_extension': ".ogg"
+        },
+    'flac': {
+        'can_cbr': 1,
+        'can_vbr': 0,
+        'can_id3': 1,
+        'can_pretag': 0,
+        'can_posttag': 1,
+        'file_extension': ".flac"
         }
     }
 
@@ -434,6 +442,26 @@ helpers = {
         'status_blocksize': 160
         },
 
+    'flac': {
+        'type': "encoder",
+        'target': "flac",
+        'cmd': "flac -o %o %i",     
+        'otf-cmd': "flac -c -o %o", 
+        'status_blocksize': 160,
+        'status_start': "%", 
+        'percent_fkt': \"\"\"
+s = split(i['buf'], '\\\\015')    
+if len (s) >= 2: s = s[-2]
+if len (s) == 1: s = s[0]       
+y0 = find (s, ": ")             
+y1 = find (s, "%")
+if y0 != -1 and y1 != -1: 
+    percent = float(s[y0 + 1:y1])
+else:                   
+    percent = 0         
+\"\"\"
+    },
+    
     'oggenc': { # based on a patch kindly provided by Bryan Larsen.
         'type': "encoder",
         'target': "ogg",
@@ -1132,8 +1160,11 @@ def guesstoc(names):
         elif i_ext == ".OGG":
             print "Error: you still have to wait for ogg support for this ooperation, sorry."
             exit()
+        elif i_ext == ".FLAC":
+            print "Error: you still have to wait for FLAC support for this ooperation, sorry."
+            exit()
         else:
-            print "Error: this is neither .mp3 nor .ogg nor .wav:", i
+            print "Error: this is neither .mp3 nor .ogg nor .wav nor .flac:", i
             exit()
         num = num + 1
         start = start + blocks
@@ -3513,11 +3544,13 @@ for track in todo:
             enc_status[track[NUM]] = "no encoder run."
         # with vbr encoded files can't legally be too small
         # but to reduce confusion, the check is then removed:
-        elif not vbr and filesize(mp3) <= tracksize(track)[ENC] * 0.99: # found by trial'n'err
+        # (don't do this for flac)
+        elif ext != ".flac" and not vbr and filesize(mp3) <= tracksize(track)[ENC] * 0.99: # found by trial'n'err
             space = space + filesize(mp3)
             remove_q.append(mp3)
             enc_status[track[NUM]] = "encoded file too small by " + pprint_i(tracksize(track)[ENC] - filesize(mp3)) + "."
-        elif not vbr and filesize(mp3) >= tracksize(track)[ENC] * 1.05: # found by trial'n'err
+        elif ext != ".flac" and not vbr and filesize(mp3) >= tracksize(track)[ENC] * 1.05: # found by trial'n'err
+            print ext
             space = space + filesize(mp3)
             remove_q.append(mp3)
             enc_status[track[NUM]] = "enc. file too large by " + pprint_i(filesize(mp3) - tracksize(track)[ENC]) + "."
@@ -4361,7 +4394,7 @@ if set_id3tag or freedb_rename:
                         t_name2 = replace(t_name2, "(" + t_comm + ")", "")
                     else:
                         t_comm = ""
-            if helpers[encoder]['target'] == "mp3":
+            if helpers[encoder]['target'] == "mp3" or helpers[encoder]['target'] == "flac":
                 id3 = ID3(mp3name)
                 id3.album = a_title
                 id3.track = i[NUM] # this is ignored if we have an ID3v1.0 tag
