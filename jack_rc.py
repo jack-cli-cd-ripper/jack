@@ -129,10 +129,9 @@ def merge(old, new):
     old.reverse()
     return old + append
 
-def write(file, rc):
+def write(file, rc, rcfile_exists = True):
     f = open(file, "w")
-    version = get_version(rc)
-    if version == None:
+    if not rcfile_exists:
         f.write("# jackrc-version:%d\n" % jack_version.prog_rcversion)
 
     for i in rc:
@@ -182,8 +181,9 @@ def save(file, cf):
     oldrc = read(file)
     argvrc = convert(rc_cf)
     newrc = merge(oldrc, argvrc)
+    rcfile_exists = os.path.exists(file)
     try:
-        write(file + ".tmp", newrc)
+        write(file + ".tmp", newrc, rcfile_exists)
     except:
         error("can't write config file")
     if os.path.exists(file):

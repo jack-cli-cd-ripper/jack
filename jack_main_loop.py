@@ -23,7 +23,6 @@ import select
 import time
 import sys
 import os
-import re
 
 import jack_functions
 import jack_ripstuff
@@ -39,8 +38,6 @@ import jack_misc
 import jack_term
 
 from jack_globals import *
-
-filter = re.compile(r'(\r)+')
 
 def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
     global_error = 0    # remember if something went wrong
@@ -239,8 +236,11 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
                             break
                 # put read data into child's buffer
                 i['buf'] = i['buf'] + x
-                i['buf'] = i['buf'].replace('\n', '\r')
-                i['buf'] = filter.sub('\r', i['buf'])
+
+                if jack_helpers.helpers[i['prog']].has_key('filters'):
+                    for fil in jack_helpers.helpers[i['prog']]['filters']:
+                        i['buf'] = fil[0].sub(fil[1], i['buf'])
+
                 i['buf'] = i['buf'][-jack_helpers.helpers[i['prog']]['status_blocksize']:]
 
         # check for exiting child processes

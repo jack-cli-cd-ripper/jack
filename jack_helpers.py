@@ -18,6 +18,7 @@
 ### Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 import string
+import re
 
 helpers = {
     'builtin': {
@@ -108,7 +109,7 @@ else:
         'vbr-cmd': "lame --preset standard --vbr-new --nohist --strictly-enforce-ISO %i %o",
         'otf-cmd': "lame --preset cbr %r --strictly-enforce-ISO - %o",
         'vbr-otf-cmd': "lame --preset standard --vbr-new --nohist --strictly-enforce-ISO - %o",
-        'status_blocksize': 200,
+        'status_blocksize': 160,
         'bitrate_factor': 1,
         'status_start': "%",
         'percent_fkt': r"""
@@ -239,10 +240,11 @@ if len(s) >= 3:
     },
 
     'cdparanoia': {
+        'filters': [[r'\n', r'\r'], [r'(\r)+', r'\r'], [r'(Done\.\r)+', r'Done.\r']],
         'type': "ripper",
         'cmd': "cdparanoia --abort-on-skip -d %d %n %o",
         'otf-cmd': "cdparanoia --abort-on-skip -e -d %d %n -R -",
-        'status_blocksize': 250,
+        'status_blocksize': 500,
         'status_start': "%",
         'status_fkt': r"""
 # (== PROGRESS == [                              | 013124 00 ] == :^D * ==)
@@ -492,9 +494,16 @@ helpers['lame-user'].update({'cmd': "lame --preset cbr %r --strictly-enforce-ISO
         'otf-cmd': "lame --preset cbr %r --strictly-enforce-ISO - %o",
         'vbr-otf-cmd': "lame -V %q --vbr-new --nohist --strictly-enforce-ISO - %o", })
 
-# compile exec strings # comment these lines out if it doesn't work...
+# compile exec strings
 for h in helpers.keys():
     for i in helpers[h].keys():
         if i[-4:] == "_fkt":
             helpers[h][i] = compile(helpers[h][i], '<string>', 'exec')
 
+# compile filters
+for h in helpers.keys():
+    if helpers[h].has_key('filters'):
+        newf = []
+        for i in helpers[h]['filters']:
+            newf.append([re.compile(i[0]), i[1]])
+        helpers[h]['filters'] = newf
