@@ -1,5 +1,5 @@
 ### jack - extract audio from a CD and MP3ify it using 3rd party software
-### Copyright (C) 1999  Arne Zellentin <arne@unix-ag.org>
+### Copyright (C) 1999-2001  Arne Zellentin <arne@unix-ag.org>
 
 ### This program is free software; you can redistribute it and/or modify
 ### it under the terms of the GNU General Public License as published by
@@ -11,21 +11,26 @@
 ### MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ### GNU General Public License for more details.
 
-### the ID3.py module is a:
-# Module for manipulating ID3 informational tags in MP3 audio files
-# Written 2 May 1999 by Ben Gertzfield <che@debian.org>
-# This work is released under the GNU GPL, version 2 or later.
-###
+### This is jack 2.99.5
 
-### This is jack 2.99.4
+Requirements:
 
-### Be warned: you will need python-1.5.2 (or later)!
+    * python-1.5.2 or later - python2 is untested
+    * CDDB.py  - see doc/INSTALL on how to get/install it
+    * ID3.py   - see doc/INSTALL on how to get/install it
+    * and MP3 encoder like lame
+    * a DAE tool like cdparanioa
 
-Please note that jack is a python script. No compilation is needed.
-Copy it somewhere in your $PATH.
-Read doc/INSTALL for further installation details.
+
+*********************************************************************
+*** Read doc/INSTALL for further installation details.            ***
+*** It's very unlikely that it'll run out of the box, you need to ***
+*** install additional software.                                  ***
+*********************************************************************
+
+Install the software as described in doc/INSTALL.
 First time users: run jack once to create your .jackrc
-Edit your .jackrc! Some prefs are important!
+Edit your .jackrc -- Some options are important.
 run jack -h for quick help or read the doc/(umentation).
 
 Jack has his home at http://www.home.unix-ag.org/arne/jack/

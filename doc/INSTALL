@@ -2,35 +2,64 @@
 ### free to use, no warranties, no nothing
 ### see COPYING
 
-uncompress it:
-# gunzip jack-*.gz
-untar it:
-# tar xvf jack-*.tar
-change dir:
-# cd jack-*
-[You are here :] Copy it somewhere in your $PATH, e.g.:
-# cp jack* $HOME/bin
-or (you may have to be root)
-# cp jack* /usr/local/bin
+
+--- Step 1 - install 3rd party modules ---------------------------------------
 
 install the ID3.py and CDDB.py module:
+
 * grab them from http://cddb-py.sourceforge.net
   and            http://id3-py.sourceforge.net
-* if you have the python distutils installed, simply install them with
-# python setup.py install
-  (will probably require root privileges
+
+Too ease up the installations, install the Python Distutils-SIG
+from
+
+    http://www.python.org/sigs/distutils-sig/
+
+if you don't already have them. (If you don't have them you'll get errors like
+"ImportError: No module named distutils.core".)
+
+* if you have the python distutils installed, simply install them (as root)
+  with
+
+    # python setup.py install
+
 * if not, follow the instructions
 
-install my curses module
-* if you have the python distutils installed, run
-# python setup-cursesmodule.py install
-  (will probably require root privileges
-* deactivate the original cursesmodule, as root
-# cd /usr/lib/python1.5/lib-dynload
-  (or /usr/local/lib/python1.5/lib-dynload
-# mv cursesmodule.so cursesmodule.so-orig
 
-If you can't install it with the distutils, read on, else: YOU'RE DONE!
+--- Step 2 - install my curses module ----------------------------------------
+
+* see the end of this file for tips on installing it without distutils!
+
+* if you have the python distutils installed, run (as root if needed)
+
+    # python setup-cursesmodule.py install
+
+* deactivate the original cursesmodule, as root
+
+    # cd /usr/lib/python1.5/lib-dynload
+    or
+    # cd /usr/local/lib/python1.5/lib-dynload
+
+    # mv cursesmodule.so cursesmodule.so-orig
+
+
+--- Step 3 - install jack and it's modules -----------------------------------
+
+Copy it somewhere in your $PATH, e.g.:
+
+    # cp jack* $HOME/bin
+
+or (you may have to be root)
+
+    # cp jack* /usr/local/bin
+
+--- That's it -- you're done! Congratulations!
+
+
+
+------------------------------------------------------------------------------
+--- help on installing the cursesmodule manually -----------------------------
+------------------------------------------------------------------------------
 
 If you want to use the curses mode (belive me, you want to), you have to
 install a special cursesmodule. The one which comes with python has no support
