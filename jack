@@ -1888,7 +1888,7 @@ def do_freedb_mailsubmit(file, cd_id):
     cat = choose_cat()
     print "OK, using `" + cat + "'."
     if find(freedb_servers[freedb_server]['my_mail'], "@") >= 1 and len(freedb_servers[freedb_server]['my_mail']) > 3:
-        return system("( echo 'To: " + freedb_servers[freedb_server]['mail'] + "'; echo From: '" + freedb_servers[freedb_server]['my_mail'] + "'; echo 'Subject: cddb " + cat + " " + cd_id + "' ; cat '" + file + "' ) | sendmail -t")
+        return system("( echo 'To: " + freedb_servers[freedb_server]['mail'] + "'; echo From: '" + freedb_servers[freedb_server]['my_mail'] + "'; echo 'Subject: cddb " + cat + " " + cd_id + "' ; cat '" + file + "' ) | /usr/lib/sendmail -t")
     else:
         print "please set your e-mail address. aborting..."
 
