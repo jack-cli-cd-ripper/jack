@@ -9,3 +9,4 @@
 #          - create a man page
 #          - a function to query all unqueried rips would be nice... *DONE*
 #          - preallocate discspace
+#          - write get_toc for ogg/vorbis
