@@ -18,7 +18,7 @@ Requirements:
     * python-1.5.2 or later - python2 is untested
     * CDDB.py  - see doc/INSTALL on how to get/install it
     * ID3.py   - see doc/INSTALL on how to get/install it
-    * and MP3 encoder like lame
+    * an MP3 encoder like lame or oggenc for Ogg/Vorbis (default)
     * a DAE tool like cdparanioa
 
 
