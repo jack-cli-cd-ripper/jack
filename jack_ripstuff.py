@@ -29,6 +29,8 @@ wavs_ready = None
 printable_names = None              # these are displayed for the track names
 max_name_len = None                 # max len of printable_names[]
 
+raw_space = None                    # free diskspace
+
 def gen_printable_names(track_names, todo):
     global printable_names
     global max_name_len
