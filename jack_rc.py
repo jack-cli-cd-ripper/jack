@@ -63,13 +63,17 @@ def read(file):
         else:
             opt = None
         read_rc.append([opt, val, com, lineno])
-    version = get_version(read_rc[0])
+    version = get_version(read_rc)
     if version != jack_version.prog_rcversion:
-        warning("config file %s has illegal/old version %s." % (file, `version`))
+        warning("config file %s is of unknown version %s." % (file, `version`))
     return read_rc
 
-def get_version(line):
-    opt, val, com, lineno = line
+def get_version(rc):
+    if not rc:
+        return None
+    if len(rc[0]) != 4:
+        return None
+    opt, val, com, lineno = rc[0]
     if opt == None and val == None and lineno == 1:
         vers = com.strip().split(":", 1)
         if len(vers) != 2:
@@ -127,7 +131,7 @@ def merge(old, new):
 
 def write(file, rc):
     f = open(file, "w")
-    version = get_version(rc[0])
+    version = get_version(rc)
     if version == None:
         f.write("# jackrc-version:%d\n" % jack_version.prog_rcversion)
 
