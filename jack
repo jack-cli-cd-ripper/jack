@@ -65,7 +65,7 @@ import jack_prepare
 ##############################################################################
 
 # say hello...
-print "This is ", jack_version.prog_name, jack_version.prog_version, "(C) 2003  Arne Zellentin <zarne@users.sf.net>"
+print "This is", jack_version.prog_name, jack_version.prog_version, jack_version.prog_copyright, jack_version.prog_devemail
 
 ### interpret options
 global_cf = jack_rc.load(cf, cf['global_rc']['val'])
@@ -149,7 +149,7 @@ if cf['_update_freedb']:
         err, jack_tag.track_names, freedb_rename, revision = jack_freedb.interpret_db_file(jack_ripstuff.all_tracks, cf['_freedb_form_file'], verb = 1, dirs = 0)
     jack_freedb.freedb_template(jack_ripstuff.all_tracks, jack_tag.track_names, revision + 1)
     jack_utils.ex_edit(cf['_freedb_form_file'])
-    info("now submit your changes if you like, either via e-mail using the option -m or with --submit via http POST. Don't forget to activate your change locally with -R")
+    info("now submit your changes if you like, using the option --submit (via http POST). Don't forget to activate your changes locally with -R")
     sys.exit(0)
 
 ### (11) undo renaming (operation mode)

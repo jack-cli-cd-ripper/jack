@@ -152,7 +152,7 @@ def guesstoc(names):
                 yes = raw_input("May I strip %d bytes (= %.4fseconds) off the end? " % (extra_bytes, extra_bytes / 2352.0 / 75.0))
                 if not string.upper((yes + "x")[0]) == "Y":
                     print "Sorry, I can't process non-aligned files (yet). Bye!"
-                    exit()
+                    sys.exit()
                 f = open(i, "r+")
                 f.seek(-extra_bytes, 2)
                 f.truncate()

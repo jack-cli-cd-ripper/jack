@@ -270,11 +270,11 @@ def freedb_query(cd_id, tracks, file):
             freedb_cat = buf[1]
         elif buf[0:3] == "202":
             if cf['_cont_failed_query']:
-                warning(buf + f.read() + " --how about trying another --server?")
+                warning(buf + f.read() + " How about trying another --server?")
                 err = 1
                 return err
             else:
-                error(buf + f.read() + " --how about trying another --server?")
+                error(buf + f.read() + " How about trying another --server?")
         else:
             if cf['_cont_failed_query']:
                 warning(buf + f.read() + " --don't know what to do, aborting query.")
