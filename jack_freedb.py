@@ -428,11 +428,8 @@ def freedb_names(cd_id, tracks, name, verb = 0, warn = 1):
         err = 6
  
     if string.upper(names[0][0]) in ("VARIOUS", "VARIOUS ARTISTS", "SAMPLER", "COMPILATION", "DIVERSE", "V.A.", "VA"):
-        #XXX
-        if not cf['_various']:
+        if not cf['_various'] and not ['argv', False] in cf['various']['history']:
             cf['_various'] = 1
-        elif cf['_various'] == 2:
-            cf['_various'] = 0
  
 # user says additional info is in the EXTT fields
  

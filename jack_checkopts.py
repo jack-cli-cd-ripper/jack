@@ -47,9 +47,6 @@ def checkopts(cf, cf2):
     if cf2.has_key('only_dae') and cf2['only_dae']['val']:
         cf.rupdate({'encoders': {'val': 0}}, "check")
 
-    if cf2.has_key('no_various') and cf2['no_various']['val']:
-        cf.rupdate({'various': {'val': 0}}, "check")
-
     if cf2.has_key('query_when_ready') and cf2['query_when_ready']['val']:
         cf.rupdate({'read_freedb_file': {'val': 1}, 'set_id3tag':{'val': 1}}, "check")
 

@@ -37,8 +37,7 @@ def show_usage(cf, long=0):
                 if cf[i].has_key('short'):
                     s = s + ", -%s" % cf[i]['short']
             else:
-                print "hm?", i, cf[i]
-                sys.exit(1)
+                error("internal error in show_usage")
 
             x_char = " "
             l.append([s, cf[i]['usage'] + jack_utils.yes(cf[i])])
@@ -93,9 +92,9 @@ def parse_option(cf, argv, i, option, alt_arg, origin="argv"):
                 return i, data
             except:
                 return None, "option `%s' needs a float argument" % option
-            error("huh?")
         else:
             return None, "Option `%s' needs exactly one argument" % option
+
     if ty == types.IntType:
         i, data = get_next(argv, i, alt_arg)
         if data != None:
@@ -108,6 +107,7 @@ def parse_option(cf, argv, i, option, alt_arg, origin="argv"):
             return i, safe_int(data, "option `%s' needs an integer argument" % option)
         else:
             return None, "Option `%s' needs exactly one argument" % option
+
     if ty == types.StringType:
         i, data = get_next(argv, i, alt_arg)
         if data != None:
@@ -118,15 +118,18 @@ def parse_option(cf, argv, i, option, alt_arg, origin="argv"):
         l = []
         if origin == "argv":
             while 1:
-                i, data = get_next(argv, i,alt_arg)
+                i, data = get_next(argv, i, alt_arg)
                 if data != None:
                     if data == ";":
                         break
                     l.append(data)
+                    if alt_arg: # only one option in --opt=val form
+                        break
                 else:
                     break
+
         elif origin == "rcfile":
-            i, data = get_next(argv, i,alt_arg)
+            i, data = get_next(argv, i, alt_arg)
             l = eval(data)
         if l and type(l) == types.ListType:
             return i, l

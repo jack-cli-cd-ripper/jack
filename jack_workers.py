@@ -187,7 +187,7 @@ def start_new_otf(track, ripper, encoder):
     data['rip']['type'] = "ripper"
     data['rip']['prog'] = cf['_ripper']
     data['rip']['track'] = track
-    if vbr:
+    if cf['_vbr']:
         cmd = string.split(helpers[cf['_encoder']]['vbr-otf-cmd'])
     else:
         cmd = string.split(helpers[cf['_encoder']]['otf-cmd'])
