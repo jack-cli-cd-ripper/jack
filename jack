@@ -22,7 +22,7 @@
 ### see CHANGELOG for recent changes in this program
 ### see TODO if you want to see what needs to be implemented
 
-prog_version = "2.99.0"
+prog_version = "2.99.3"
 prog_name = "jack"
 DEBUG = 0
 
@@ -108,14 +108,17 @@ my_mail = "@"           # needed for e-mail submissions, please set
 ripper = "cdparanoia"   # use which program to rip: cdparanoia, tosha, cdda2wav,                        # dagrab (untested)
 cd_device = "/dev/cdrom"    # use which device for ripping
                             # note: cdda2wav needs something like "/dev/sgb"
-keep_free = 5*2**20     # stop if less than keep_free bytes are free
+keep_free = 5*2**20     # suspend if less than keep_free bytes are free
                         # don't set this to zero as mp3 size prediction is
-                        # always a bit below actual sizes
+                        # always a bit below actual sizes => we might need
+                        # some extra space.
 
 #   %n: track number
 #   %a: artist
 #   %t: track title
 #   %l: album title
+#   %y: album release year - individual track years are unsupported
+#   %g: album genre - individual track genres are unsupported
 
 rename_fmt = "%n.%a (%l) - %t"# MP3s are renamed to
                                 # "01.Artist (Album) - Tracktitle.mp3"
@@ -126,12 +129,13 @@ rename_fmt_va = "%n.%a - %t"  # ditto for Various Artists CDs
 rename_num = "%02i"             # numbering format, used for %n above, e.g.
                                 # %02i with leading '0': 01, 02, ... , 11, ...
 rename_dir = 1                  # rename directory as well:
+append_year = " (%y)"           # append the year (if given) to dir: " (1999)"
 dir_template = "%a/%l"          # if create_dirs is set and freedb data is
                                 # available, files are put in
                                 # base_dir + "/<artist>/<albumname>".
-unusable_chars = ""             # put chars which can't be used in filenames
+unusable_chars = "/"            # put chars which can't be used in filenames
                                 # here and their
-replacement_chars = ""          # replacements here. replacement_chars is
+replacement_chars = "."         # replacements here. replacement_chars is
                                 # automagically stretched to match
                                 # unusable_chars' length using the last char
                                 # as fill
@@ -203,8 +207,14 @@ freedb_dir = ""         # change this to something like "/var/spool/cddb" and
                         # all queries will be done in this (local) directory
                         # later I will allow failed local queries to be
                         # done via network
+freedb_pedantic = 0     # don't be pedantic when parsing freedb data, e.g.
+                        # the ambigous (various artists) TTITLE
+                        # "The Artist - Track a Title - Cool Remix" is split
+                        # at the first possible seperator.
 
-## no need to go below this line ##
+###############################################################################
+## no need to go below this line ##############################################
+###############################################################################
 swap_byteorder = 1  # swap byteorder when reading from image
 todo_exit = 0       # print what would be done and exit
 space_from_argv = 0 # use currently free discspace (or override via argv)
@@ -224,6 +234,11 @@ toc_prog = ripper   # use which program to read cd's toc
 read_freedb_file = 0    # read freedb file, e.g. to
 freedb_rename = 0       #                    rename tracks accordingly
 set_id3tag = 0          #                    and to set id3 tag info
+id3_genre = -1          # the default genre to set for id3 genre. Better use
+                        # the command-line option (-G) except you only own
+                        # only CDs from one genre, e.g. jazz.
+id3_year = -1            # the default year to set for id3 year info. You sure
+                        # don't own only CDs released during the same year?!
 gen_freedb_form = 1     # yes, generate a freedb submission template
 if environ.has_key('USER'):
   username = environ['USER']
@@ -332,7 +347,7 @@ helpers['gogo']['percent_fkt'] = \"\"\"
 s = split(i['buf'], '\\\\015')
 if len(s) >= 2: s=s[-2]
 if len(s) == 1: s=s[0]
-if find(s, "%") >= 0:		# status reporting starts here
+if find(s, "%") >= 0: # status reporting starts here
   y = split(s, "/")
   y0 = split(y[0], "{")[-1]
   y1 = split(y[1], "}")[0]
@@ -608,6 +623,11 @@ pad_disp_start_y = pad_disp_start_x = 0
 usage_win_y = usage_win_x = 0
 usage_win_height, usage_win_width = 7, 49
 
+#misc stuff
+tmp = ID3("/dev/null")
+id3genres = tmp.genres
+del tmp
+
 # track representation format
 # [ track#, len, start, copy, pre, ch, unused, bitrate, filename ]
 NUM, LEN, START, COPY, PRE, CH, RIP, RATE, NAME = 0, 1, 2, 3, 4, 5, 6, 7, 8
@@ -635,7 +655,6 @@ STDERR_FILENO = 2
 def local_freedb(id, freedb_dir, outfile = "/tmp/testfilefreedb"):
     "Use file from local freedb directory"
     # Moritz Moeller-Herrmann kindly provided this functionality.
-    DEBUG=0
     if not path.isdir(freedb_dir):
         print "Error: freedb directory not found"
         sys.exit(1)
@@ -704,6 +723,8 @@ def mp3format(file, warn = 1, max_skip = 100000):
 
     f = open(file, "r")
     buffer = f.read(4)
+    if len(buffer) < 4:
+        return None
     tmp = ((ord(buffer[0]) << 4) & 0xFF0) | ((ord(buffer[1]) >> 4) & 0xE)
     ok = 1
     x={}
@@ -933,13 +954,12 @@ def real_cdrdao_gettoc(tocfile):     # get toc from cdrdao-style toc-file
 ## example: FILE "data.wav" 08:54:22 04:45:53
 
         elif starts_with(line, "FILE "):
-            filename, start, length = split(line[5:])
+            dummy, filename, offsets = split(line[5:], "\"", 2)
+            dummy, start, length = split(offsets, " ", 2)
 
-## chop off filenames '"'s, convert time string to blocks(int), update info.
+## convert time string to blocks(int), update info.
 
-            filename = filename[1:-1]
             actual_track.length = CDTime(length).blocks
-
             actual_track.image_name = path.join(tocpath, filename)
             actual_track.rip_name = name % num
 
@@ -967,114 +987,6 @@ def cdrdao_gettoc(tocfile):     # get toc from cdrdao-style toc-file
     if DEBUG: print "toc=", tracks
     return tracks[1:], use_filename, multi_file_mode, track1_pregap
 
-
-#XXX remove asap
-def xxcdrdao_gettoc(tocfile):     # get toc from cdrdao-style toc-file
-    "Returns track list and datafile name, needs name of toc-file"
-    ### this only supports machine-generated tocfiles as done by cdrdao 1.1.3
-    tracks = []
-    num = 0
-    pregap = 0
-    track1_pregap = 0
-    f = open(tocfile, "r")
-    buf = f.readline()
-    multi_file_mode = 0
-    while buf:
-        buf = rstrip(buf)
-        if buf == "TRACK AUDIO":
-            if num > 0:
-                if pregap:
-                    if tracks:
-                        tracks[-1][LEN] = tracks[-1][LEN] + pregap
-                tracks.append([num, length, start + track1_pregap, copy, pre, ch, 1, bitrate, this_filename])
-                pregap = 0
-            num = num + 1
-        elif buf == "NO COPY":
-            copy = 0
-        elif buf == "COPY":
-            copy = 1
-        elif buf == "NO PRE_EMPHASIS":
-            pre = 0
-        elif buf == "PRE_EMPHASIS":
-            pre = 1
-        elif buf == "TWO_CHANNEL_AUDIO":
-            ch = 2
-        elif buf == "FOUR_CHANNEL_AUDIO":
-            ch = 4              # this is not supported.
-            print "Error: can't do FOUR_CHANNEL_AUDIO, exiting."
-            exit()
-#
-#        elif buf[0:8]=="SILENCE " and num==1 : # this only works for
-#                        # automatically (i.e. cdrdao-) generated toc-files
-#            track1_pregap=timestrtoblocks(buf[8:])
-        elif buf[0:4] == "FILE":
-            buf = "", '"' + split(buf, '"', 2)[1] + '"', split(buf)[-2], split(buf)[-1]
-            if num == 1:
-                filename = buf[1]
-                use_filename = filename[1:-1]
-                this_filename = use_filename[:-4]
-                if not path.exists(use_filename):
-                    toc_base = path.basename(tocfile)
-                    use_filename = tocfile[:len(tocfile) - len(toc_base)] + filename[1:-1]
-                    if not path.exists(use_filename):
-                        use_filename = filename[1:-1]
-                    this_filename = name % num
-                track_1_filename = use_filename
-            else:
-                if filename != buf[1] or multi_file_mode:
-                    filename = buf[1]
-                    if multi_file_mode == 0:
-                        if track_1_filename[-4:] != ".wav":
-                            print 'Error: only ".wav"-files are allowed, aborting.'
-                            exit()
-                        else:
-                            track_1_filename = track_1_filename[:-4]
-                    multi_file_mode = 1
-                    this_filename = buf[1][1:-1]
-                    if this_filename[-4:] != ".wav":
-                        print 'Error: only ".wav"-files are allowed, aborting.'
-                        exit()
-                    else:
-                        this_filename = this_filename[:-4]
-                    tracks[0][NAME] = track_1_filename
-                    if not path.exists(this_filename + ".wav"):
-                        toc_base = path.basename(tocfile)
-                        this_filename = tocfile[:(len(tocfile)-len(toc_base))] + buf[1][1:-1]
-                        if not path.exists(this_filename + ".wav"):
-                            this_filename = filename[1:-5]
-                else:
-                    this_filename = name % num
-            if buf[2] == "0":
-                start = 0
-            else:
-                if multi_file_mode:
-                    if start != 0:
-                        print "Error: in multi-file-mode, only zero start-offsets are allowed"
-                        exit()
-                else:
-                    start = timestrtoblocks(buf[2])
-            length = timestrtoblocks(buf[3])
-            if num == 1:
-                global_offset = length
-            if multi_file_mode:
-                start = global_offset
-                global_offset = global_offset + length
-        elif buf[0:6] == "START ":
-            if multi_file_mode:
-                print "Error: pregap is unsupported in multi-file-mode"
-                exit()
-            pregap = timestrtoblocks(buf[6:])
-            if num == 1:
-                track1_pregap=pregap
-#
-#                pregap = timestrtoblocks(buf[6:]) - track1_pregap
-            start = start + pregap
-            length = length - pregap
-        buf = f.readline()
-    if tracks:
-        tracks[-1][LEN] = tracks[-1][LEN] + pregap
-    tracks.append([num, length, start + track1_pregap, copy, pre, ch, 1, bitrate, this_filename])
-    return tracks, use_filename, multi_file_mode, track1_pregap
 
 ##XXX this will be moved to jack_convert
 def msftostr(msf):
@@ -1349,38 +1261,142 @@ def freedb_names(id, tracks, name, various, verb = 0, warn = 1):
         elif various == 2:
             various = 0
 
-    sep = ""
-    for i in range(tracks_on_cd):
-        buf = freedb['TTITLE'+`i`]
-        buf = replace(buf, " / ", "/")                # kill superflous slashes
-        buf = replace(buf, "/ ", "/")
-        buf = replace(buf, " /", "/")
-        if various:
-            if find(buf, " - ") != -1:
-                if sep and sep != "-":
-                    if verb: print "Error: artist and title are not seperated in a consitent way."
-                    error = 8
-                sep = "-"
-                buf = split(buf, " - ", 1)
-                buf[0] = replace(buf[0], "/", " - ")
-                buf[1] = replace(buf[1], "/", " - ")
+# we'll try some magic to seperate artist and title
+
+    if various:
+        found = [[], [], [], [], [], []]
+        # lenght=3   2   1 , 3   2   1 (secondary)
+        ignore = string.letters + string.digits
+        titles = []
+        braces = [['"', '"'], ["'", "'"], ["(", ")"], ["[", "]"], ["{", "}"]]
+
+# first generate a list of track titles
+
+        for i in range(tracks_on_cd):
+            titles.append(freedb['TTITLE'+`i`])
+
+# now try to find a string common to all titles with length 3...1
+
+        for i in (3,2,1):
+            candidate_found = 0
+            for j in range(len(titles[0])-(i-1)):
+
+# choose a possible candidate
+
+                candidate = titles[0][j:j+i]
+                illegal_letter = 0
+                for k in candidate:
+                    if k in ignore:
+
+# candidate must not have characters from ignore
+
+                        illegal_letter = 1
+                        break
+                if illegal_letter:
+                    continue
+                else:
+                    candidate_found = 1
+
+# if we have a candidate, check that it occurs in all titles
+
+                if candidate_found:
+                    all_matched = 1
+                    append_as_secondary = 0
+                    for l in titles:
+                        matches = 0
+                        where = 0
+                        brace = 0
+                        for b in braces:
+                            if b[0] in candidate:
+                                brace = 1
+                                where2 = find(l, candidate) + len(candidate)
+                                where = where2
+                                while find(l, b[1], where) != -1:
+                                    where = find(l, b[1], where) + len(candidate)
+                                    matches = matches + 1
+                                where = where2
+                                if not b[1] in candidate:
+                                    while find(l, candidate, where) != -1:
+                                        where = find(l, candidate, where) + len(candidate)
+                                        matches = matches + 1
+                                break   # only treat the first pair of braces
+                        if not brace:
+                            while find(l, candidate, where) != -1:
+                                matches = matches + 1
+                                where = find(l, candidate, where) + len(candidate)
+                        if matches == 0:    # not found
+                            all_matched = 0
+                            break
+                        elif matches == 1:  # found exactly once
+                            pass
+                        else:               # found multiple times
+                            if freedb_pedantic:
+                                all_matched = 0
+                                break
+                            else:
+                                append_as_secondary = 1
+                                pass
+                    if all_matched:
+                        if append_as_secondary:
+                            found[6-i].append(candidate)
+                        else:
+                            found[3-i].append(candidate)
+
+# if no candidate has been found, try one with less characters
+
+                else:
+                    continue
+
+        tmp = []
+        eliminate = [" "]
+        for i in found:
+            i.sort()        # I'm not sure anymore why/if this is needed
+            i.reverse()
+            for j in i:
+                if j not in eliminate:
+                    tmp.append(j)
+        found = tmp
+        del tmp
+        if found:
+            # FIXME: when I have time, all candidate should be associated with
+            #        a priority. At the moment, fav_seps prefers favorites
+            #        over secondary candidates (i.e. candidates occuring multiple
+            #        times. EVIL!
+            fav_seps = [" - ", " / "]
+            sep = ""
+            for i in fav_seps:
+                if i in found:
+                    sep = i
+                    break
+            if not sep:
+                sep = found[0]
+            closing_brace = ""
+            for j in braces:
+                if j[0] in sep:
+                    closing_brace = j[1]
+                    break
+            for i in titles:
+                buf = split(i, sep, 1)
+                if closing_brace:
+                    lenbefore = len(buf[0] + buf[1])
+                    buf[0] = replace(buf[0], closing_brace, "")
+                    buf[1] = replace(buf[1], closing_brace, "")
+                    lenafter = len(buf[0] + buf[1])
+                    if lenafter != lenbefore - len(closing_brace):
+                        if verb: print "Error: brace", j," does not close exactly once."
+                        error = 9
+                        
                 if various_swap:
                     buf = [buf[1], buf[0]]
                 names.append(buf)
-            elif find(buf, "/") != -1:  # uncommon but seen
-                if sep and sep != "/":
-                    if verb: print "Error: artist and title are not seperated in a consitent way."
-                    error = 8
-                sep = "/"
-                buf = split(buf, "/", 1)
-                if various_swap:
-                    buf = [buf[1], buf[0]]
-                names.append(buf)
-            else:
-                if verb: print 'Error: could not seperate artist and title in "' + buf + '".'
-                error = 7
         else:
-            names.append(["", replace(buf, "/", " - ")])
+            error = 7
+            if verb: print 'Error: could not seperate artist and title in all TTITLEs.'
+            if verb: print '       Try setting freedb_pedantic = 0'
+    else:
+        for i in range(tracks_on_cd):
+            buf = freedb['TTITLE'+`i`]
+            names.append(["", buf])
 
     # clean up a bit:
     for i in names:
@@ -1582,7 +1598,7 @@ def start_new_ripper(track, ripper):
     return data
 
 def start_new_encoder(track, encoder):
-    "start a new encoeder process"
+    "start a new encoder process"
     helper = helpers[encoder]
     if vbr:
         cmd = split(helper['vbr-cmd'])
@@ -1682,7 +1698,7 @@ def ripread(track, offset = 0):
     pid, master_fd = pty.fork() # this could also be done with a pipe, anyone?
     if pid == CHILD:
 
-# FIXME: all this offset stuff has to go, track0 support has to come.
+# FIXME: all this offset stuff has to go, track 0 support has to come.
 
         print ":fAE: waiting for status report..."
         sys.stdout.flush()
@@ -1710,26 +1726,38 @@ def ripread(track, offset = 0):
                 my_swap_byteorder = not my_swap_byteorder
                 image_offset = 0
 
+            elif upper(image_file)[-4:] == ".RAW":
+                hdr = ('bin', 44100, 2, -1, 16) # Unknown header, assuming raw
+                image_offset = 0
+
+            else:
+                if DEBUG: progress_error("unsupported image file " + image_file)
+                posix._exit(4)
+        
         expected_filesize = tracksize(all_tracks)[CDR] + CDDA_BLOCKSIZE * offset
+#
+## WAVE header is 44 Bytes for normal PCM files...
+#
         if hdr[0] == 'wav':
             expected_filesize = expected_filesize + 44
+
         if filesize(image_file) != expected_filesize:
-            print "Error: image file size mismatch, aborted."
-            progress_error( "Error: image file size mismatch, aborted. %i != %i"% (filesize(image_file), expected_filesize))
+            if DEBUG: progress_error("image file size mismatch, aborted. %i != %i"% (filesize(image_file), expected_filesize))
             posix._exit(1)
+
         elif hdr[0] == 'wav' and (hdr[1], hdr[2], hdr[4]) != (44100, 2, 16):
-            print "Error: unsupported WAV, need CDDA_fmt, aborted."
-            progress_error( "Error: unsupported WAV, need CDDA_fmt, aborted.")
+            if DEBUG: progress_error("unsupported WAV, need CDDA_fmt, aborted.")
             posix._exit(2)
+
         elif hdr[0] not in ('wav', 'cdr', 'bin'):
-            print "Error: unsupported: " + hdr[0] + ", aborted."
-            progress_error( "Error: unsupported: " + hdr[0] + ", aborted.")
+            if DEBUG: progress_error("unsupported: " + hdr[0] + ", aborted.")
             posix._exit(3)
+
         else:
+            f = open(image_file, 'r')
 #
 ## set up output wav file:
 #
-            f = open(image_file, 'r')
             wav = wave.open(track[NAME] + ".wav", 'w')
             wav.setnchannels(2)
             wav.setsampwidth(2)
@@ -1753,20 +1781,20 @@ def ripread(track, offset = 0):
                     buf.byteswap()
                 wav.writeframesraw(buf.tostring())
                 if i % 1000 == 0:
-                    print ":fAE: Block " + `i` + "/" + `track[LEN]` + " (%2i%%)" % (i * 100 / track[LEN])
+                    print ":fAE: Block " + `i` + "/" + `track[LEN]` + (" (%2i%%)" % (i * 100 / track[LEN]))
                     sys.stdout.flush()
             wav.close()
             f.close()
 
             stop_time = time()
             read_speed = track[LEN] / CDDA_BLOCKS_PER_SECOND / ( stop_time - start_time )
-            if hdr[0] == 'wav':
-                print "[" + "%.0fx" % read_speed + "] [-read from image-]"
-            elif hdr[0] == 'cdr':
+            if hdr[0] in ('bin', 'wav'):
+                print "[" + "%.0fx" % read_speed + "] [      - read from image -     ]"
+            else:
                 print "[" + "%.0fx" % read_speed + "] [cdr-WARNING, check byteorder !]"
             sys.stdout.flush()
             posix._exit(0)
-    else:
+    else: # we are not the child
         data['start_time'] = start_time
         data['pid'] = pid
         data['fd'] = master_fd
@@ -1834,8 +1862,9 @@ def rename_path(old, new):
         else:
             print "Error: could not create or change to " + i + " from " + os.getcwd()
             exit()
-    rename(cwd, new[-1])
-    chdir(new[-1])
+    last_of_new = new[-1]
+    rename(cwd, last_of_new)
+    chdir(last_of_new)
                                                # now remove empty "orphan" dirs
 
     old_dirs = all_paths(cwds)
@@ -2012,11 +2041,13 @@ def mkdirname(names, template):
         
     dirs2 = []
     for i in dirs:
-        replace_list = (("%a", names[0][0]), ("%l", names[0][1]))
+        replace_list = (("%a", names[0][0]), ("%l", names[0][1]), ("%y", `id3_year`), ("%g", id3_genretxt))
         x = multi_replace(i, replace_list)
         for char_i in range(len(unusable_chars)):
             x = replace(x, unusable_chars[char_i], replacement_chars[char_i])
         dirs2.append(x)
+    if append_year and len(`id3_year`) == 4:  # Y10K bug!
+        dirs2[-1] = dirs2[-1] + multi_replace(append_year, replace_list)
     name = ""
     for i in dirs2:
         name = path.join(name, i)
@@ -2248,6 +2279,21 @@ while i<len(argv):
         claim_dir = 1
     elif argv[i] in ("-u", "--undo-rename"):
         undo_rename = 1
+    elif argv[i] in ("-G", "--id3-genre"):
+        id3_genre = argv[i + 1]
+        if upper(id3_genre) == "HELP":
+            id3_genre = -2  # print genre list later
+        else:
+            id3temp = ID3("/dev/null")
+            id3_genre = id3temp.find_genre(id3_genre)
+            if id3_genre == -1:
+                print "Error: illegal genre. Try '" + prog_name, argv[i] + " help' for a list."
+                sys.exit(1)
+            del id3temp
+        i = i + 1
+    elif argv[i] in ("-Y", "--id3-year"):
+        id3_year = atoi(argv[i + 1])
+        i = i + 1
     elif argv[i] == "--todo":
         todo_exit = 1
     elif argv[i] == "--otf":
@@ -2279,6 +2325,8 @@ while i<len(argv):
         print "  -d, --dont-work:    don't do DAE or encoding (" + yes(dont_work) + ")"
         print "  -D, --create-dirs:  create subdir for files (" + yes(create_dirs) + ")"
         print "  -R, --rename-only:  rename according to freedb file, eg. after editing it (" + yes(read_freedb_file and set_id3tag) + ")"
+        print "  -G, --id3-genre:   *set ID3 genre (empty=don't set, help=list)"
+        print "  -Y, --id3-year:    +set ID3 year (0=don't set) (" + `id3_year` + ")"
         print "  -C, --claim-dir:    rename the dir even if it was not created by jack (" + yes(claim_dir) + ")"
         print "  -u, --undo-rename:  undo file renaming and exit (" + yes(undo_rename) + ")"
         print "  -g, --guess-toc:   *guess TOC from files (until terminating \";\") (" + yes(guess_mp3s) + ")"
@@ -2314,6 +2362,9 @@ while i<len(argv):
         exit()
     i = i + 1
 
+if id3_genre == -2:
+    print "available genres=" + `id3genres`
+    sys.exit(0)
 if silent_mode:
     curses_enable = 0
     xtermset_enable = 0
@@ -2550,6 +2601,8 @@ for i in all_tracks:
 status['all'] = {}
 status['all']['mkdir'] = status['all']['names'] = [[],]
 status['all']['dae'] = status['all']['enc'] = status['all']['ren'] = []
+status['all']['id3_genre'] = ["-1",]
+status['all']['id3_year'] = ["-1",]
 
 ### (6) update progress file at user's request (operation mode)
 
@@ -2566,13 +2619,19 @@ if upd_progress:
                 status[num]['enc'] = `x['bitrate']` + progr_sep + "[simulated]"
                 progress(num, "enc", status[num]['enc'])
 
+# now read in the progress file
+
 if path.exists(progress_file):
     f = open(progress_file, "r")
     while 1:
         buf = f.readline()
         if not buf:
             break
-        buf = split(strip(buf), progr_sep, 3)
+
+        # strip doesn't work here as we may have trailing spaces
+        buf = replace(buf, "\n", "")
+
+        buf = split(buf, progr_sep, 3)
         try:
             num = atoi(buf[0])
         except ValueError:
@@ -2633,6 +2692,25 @@ for i in status.keys():
         enc_status[i] = status[i]['enc']
 
 dir_created = status_all['names'][-1]
+
+status_all['id3_genre'] = atoi(status_all['id3_genre'][-1])
+status_all['id3_year'] = atoi(status_all['id3_year'][-1])
+
+if id3_genre == -1:
+    id3_genre = status_all['id3_genre']
+else:
+    if id3_genre != status_all['id3_genre']:
+        progress("all", "id3_genre", `id3_genre`)
+
+id3_genretxt = ""
+if id3_genre != -1:
+    id3_genretxt = id3genres[id3_genre]
+
+if id3_year == -1:
+    id3_year = status_all['id3_year']
+else:
+    if id3_year != status_all['id3_year']:
+        progress("all", "id3_year", `id3_year`)
 
 ### (7) do query on start
 
@@ -2726,7 +2804,9 @@ for track in todo:
             space = space + filesize(mp3)
             remove_q.append(mp3)
             enc_status[track[NUM]] = "no MP3 enc run."
-        elif filesize(mp3) <= tracksize(track)[MP3] * 0.99: # found by trial'n'err
+        # with vbr and a given minimum bitrate MP3s can't legally be too small
+        # but to reduce confusion, the check is then removed:
+        elif not vbr and filesize(mp3) <= tracksize(track)[MP3] * 0.99: # found by trial'n'err
             space = space + filesize(mp3)
             remove_q.append(mp3)
             enc_status[track[NUM]] = "MP3 too small by " + pprint_i(tracksize(track)[MP3] - filesize(mp3)) + "."
@@ -3209,7 +3289,7 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, enc_running, da
                 stop_time = time()
                 speed = ( track[LEN] / float(CDDA_BLOCKS_PER_SECOND)) / ( stop_time - exited_proc['start_time'] )
 
-                if exited_proc['type'] == "ripper" or exited_proc['type'] == "image_reader":
+                if exited_proc['type'] in ("ripper", "image_reader"):
                     dae_running = dae_running - 1
                     if exec_when_done and exited_proc['type'] == "ripper" and dae_running == 0 and len(dae_queue) == 0:
                         system(exec_rip_done)
@@ -3259,7 +3339,9 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, enc_running, da
 
                 elif exited_proc['type'] == "encoder":
                     enc_running = enc_running - 1
-                    if not res and tracksize(track)[MP3] * 0.99 > filesize(track[NAME] + ".mp3"):
+                    # completed vbr MP3s shouldn't be to small, but this still
+                    # caused confusion so again, vbr is an exception:
+                    if not vbr and not res and tracksize(track)[MP3] * 0.99 > filesize(track[NAME] + ".mp3"):
                         res = 242
                         global_error = global_error + res
                     if res:
@@ -3305,13 +3387,12 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, enc_running, da
                     if len(i['buf']) == helpers[i['prog']]['status_blocksize']:
                         exec(helpers[i['prog']]['percent_fkt'])
                         i['percent'] = percent
-                        if percent > 0:
-                            elapsed = time() - i['start_time']
-                            i['elapsed'] = elapsed
-                            speed = ((track[LEN] / float(CDDA_BLOCKS_PER_SECOND)) * ( percent / 100 )) / elapsed
-                            eta = (100 - percent) * elapsed / percent
+                        if i['percent'] > 0:
+                            i['elapsed'] = time() - i['start_time']
+                            speed = ((i['track'][LEN] / float(CDDA_BLOCKS_PER_SECOND)) * ( i['percent'] / 100 )) / i['elapsed']
+                            eta = (100 - i['percent']) * i['elapsed'] / i['percent']
                             eta_ms = "%02i:%02i" % (eta / 60, eta % 60)
-                            enc_stat_upd(i['track'][NUM], '%2i%% done, ETA:%6s, %5.2fx' % (percent, eta_ms, speed))
+                            enc_stat_upd(i['track'][NUM], '%2i%% done, ETA:%6s, %5.2fx' % (i['percent'], eta_ms, speed))
         
                 elif i['type'] == "image_reader":
                     line = split(i['buf'], "\n")
@@ -3531,26 +3612,19 @@ elif set_id3tag or freedb_rename:
                 id3.artist = t_artist
             else:
                 id3.artist = a_artist
+            if id3_genre != -1:
+                id3.genre = id3_genre
+            if id3_year != -1:
+                id3.year = `id3_year`
             id3.write()
         if freedb_rename:
             if t_artist:    # 'Various Artists'
-                replacelist = (("%n", rename_num % i[NUM]), ("%a", t_artist), ("%t", t_name), ("%l", a_title))
+                replacelist = (("%n", rename_num % i[NUM]), ("%a", t_artist), ("%t", t_name), ("%l", a_title), ("%y", `id3_year`), ("%g", id3_genretxt))
                 newname = multi_replace(rename_fmt_va, replacelist)
                 
-                #newname = replace(newname, "%", "%_jack_%")
-                #newname = replace(newname, "%_jack_%a", t_artist)
-                #newname = replace(newname, "%_jack_%t", t_name)
-                #newname = replace(newname, "%_jack_%l", a_title)
             else:
                 replacelist = (("%n", rename_num % i[NUM]), ("%a", a_artist), ("%t", t_name), ("%l", a_title))
                 newname = multi_replace(rename_fmt, replacelist)
-                #newname = replace(newname, "%", "%_jack_%")
-                #newname = replace(newname, "%_jack_%a", a_artist)
-                #newname = replace(newname, "%_jack_%t", t_name)
-                #newname = replace(newname, "%_jack_%l", a_title)
-            #newname = replace(newname, "%_jack_%", "%")
-            #if find(newname, "%") != -1:
-                #newname = newname % i[NUM]
             for char_i in range(len(unusable_chars)):
                 newname = replace(newname, unusable_chars[char_i], replacement_chars[char_i])
             if i[NAME] != newname:
