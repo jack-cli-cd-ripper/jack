@@ -1486,8 +1486,9 @@ def freedb_query(cd_id, tracks, file):
     f.close()
     return err
 
-def freedb_names(cd_id, tracks, name, various, verb = 0, warn = 1):
+def freedb_names(cd_id, tracks, name, verb = 0, warn = 1):
     "returns error, [(artist, albumname), (track_01-artist, track_01-name), ...], cd_id, revision"
+    global various
     error = 0
     tracks_on_cd = tracks[-1][NUM]
     freedb = {}
@@ -2496,14 +2497,14 @@ def split_path(path, num):
     new_path.append(base)
     new_path.reverse()
 
-def interpret_db_file(all_tracks, freedb_form_file, various, verb, dirs = 0, warn = None):
+def interpret_db_file(all_tracks, freedb_form_file, verb, dirs = 0, warn = None):
     "read freedb file and rename dir(s)"
     global names_available, claim_dir, dir_created
     freedb_rename = 0
     if warn == None:
-        err, track_names, cd_id, revision = freedb_names(freedb_id(all_tracks), all_tracks, freedb_form_file, various, verb = verb)
+        err, track_names, cd_id, revision = freedb_names(freedb_id(all_tracks), all_tracks, freedb_form_file, verb = verb)
     else:
-        err, track_names, cd_id, revision = freedb_names(freedb_id(all_tracks), all_tracks, freedb_form_file, various, verb = verb, warn = warn)
+        err, track_names, cd_id, revision = freedb_names(freedb_id(all_tracks), all_tracks, freedb_form_file, verb = verb, warn = warn)
     if (not err) and dirs:
         freedb_rename = 1
 
@@ -2948,7 +2949,7 @@ while (not path.exists(toc_file)) or multi_mode:
                     unique_dirs.append(jack_dirs[i])
             for i in unique_dirs:
                 all_tracks, new_image_file, multi_file_mode, track1_offset = cdrdao_gettoc(path.join(i, toc_file))
-                err, track_names, cd_id, revision = freedb_names(freedb_id(all_tracks), all_tracks,  path.join(i, freedb_form_file), various, verb = 0, warn = 0)
+                err, track_names, cd_id, revision = freedb_names(freedb_id(all_tracks), all_tracks,  path.join(i, freedb_form_file), verb = 0, warn = 0)
                 if err or force:# this means freedb data is not there yet
                     print "Info: matching dir found:", i
                     pid = os.fork()
@@ -3035,14 +3036,14 @@ if path.exists(toc_file):
     is_submittable = 1
 
     #if freedb_submit:               # freedb submit
-        #err, track_names, cd_id, revision = freedb_names(freedb_id(all_tracks), all_tracks, freedb_form_file, various)
+        #err, track_names, cd_id, revision = freedb_names(freedb_id(all_tracks), all_tracks, freedb_form_file)
         #if not err:
             #do_freedb_submit(freedb_form_file, cd_id)
         #else:
             #print "Error: invalid freedb file."
         #exit()
     #elif freedb_mailsubmit:
-        #err, track_names, cd_id, revision = freedb_names(freedb_id(all_tracks), all_tracks, freedb_form_file, various)
+        #err, track_names, cd_id, revision = freedb_names(freedb_id(all_tracks), all_tracks, freedb_form_file)
         #if not err:
             #do_freedb_mailsubmit(freedb_form_file, cd_id)
         #else:
@@ -3244,14 +3245,14 @@ else:
 
 if is_submittable:
     if freedb_submit:               # freedb submit
-        err, track_names, cd_id, revision = freedb_names(freedb_id(all_tracks), all_tracks, freedb_form_file, various)
+        err, track_names, cd_id, revision = freedb_names(freedb_id(all_tracks), all_tracks, freedb_form_file)
         if not err:
             do_freedb_submit(freedb_form_file, cd_id)
         else:
             print "Error: invalid freedb file."
         exit()
     elif freedb_mailsubmit:
-        err, track_names, cd_id, revision = freedb_names(freedb_id(all_tracks), all_tracks, freedb_form_file, various)
+        err, track_names, cd_id, revision = freedb_names(freedb_id(all_tracks), all_tracks, freedb_form_file)
         if not err:
             do_freedb_mailsubmit(freedb_form_file, cd_id)
         else:
@@ -3273,12 +3274,12 @@ if query_on_start:
             exit()
 
 if query_on_start:
-    err, track_names, freedb_rename, revision = interpret_db_file(all_tracks, freedb_form_file, various, verb = query_on_start, dirs = 1)
+    err, track_names, freedb_rename, revision = interpret_db_file(all_tracks, freedb_form_file, verb = query_on_start, dirs = 1)
     if err:
         print "Error: query on start failed to give a good freedb file, aborting."
         exit()
 else:
-    err, track_names, freedb_rename, revision = interpret_db_file(all_tracks, freedb_form_file, various, verb = query_on_start, warn = query_on_start)
+    err, track_names, freedb_rename, revision = interpret_db_file(all_tracks, freedb_form_file, verb = query_on_start, warn = query_on_start)
 
 
 ### (10) update freedb dbfile
@@ -3581,7 +3582,10 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, enc_running, da
         printable_names.append("")
 
     if names_available and show_names:
-        max_name_len = max(map(lambda x: len(track_names[x[NUM]][1]), todo))
+        if various:
+            max_name_len = max(map(lambda x: len(track_names[x[NUM]][0] + " - " + track_names[x[NUM]][1]), todo))
+        else:
+            max_name_len = max(map(lambda x: len(track_names[x[NUM]][1]), todo))
         max_name_len = len("01 ") + max_name_len
         if show_time:
             max_name_len = max_name_len + 6
@@ -3595,9 +3599,13 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, enc_running, da
 
         if names_available and show_names:
             if show_time:
-                tmp = "%02i %5s " % (i[NUM], len_tmp) + track_names[i[NUM]][1]
+                tmp = "%02i %5s " % (i[NUM], len_tmp)
             else:
-                tmp = "%02i " % i[NUM] + track_names[i[NUM]][1]
+                tmp = "%02i " % i[NUM]
+            if various:
+                tmp = tmp + track_names[i[NUM]][0] + " - " + track_names[i[NUM]][1]
+            else:
+                tmp = tmp + track_names[i[NUM]][1]
             printable_names[i[NUM]] = tmp + "." * (max_name_len - len(tmp))
         else:
             if show_time:
@@ -4157,7 +4165,7 @@ if query_when_ready:
         exit()
 
 if query_when_ready or read_freedb_file or query_on_start:
-    err, track_names, freedb_rename, revision = interpret_db_file(all_tracks, freedb_form_file, various, verb = 1, dirs = 1)
+    err, track_names, freedb_rename, revision = interpret_db_file(all_tracks, freedb_form_file, verb = 1, dirs = 1)
     if err:
         print "Error: could not read freedb file, aborting."
         exit()
