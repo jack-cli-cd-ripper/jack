@@ -211,7 +211,7 @@ creates a blank freedb entry file (except if
 .B \-\-query-now
 is used, 
 then the file is queried from your freedb server). If you have
-changed it's contents (e.g. because the CD was unknown to freedb)
+changed its contents (e.g. because the CD was unknown to freedb)
 and want to rename and tag your MP3s accordingly, use this option.
 Give all other needed options too, like
 .B \-t
