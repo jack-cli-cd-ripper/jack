@@ -333,6 +333,13 @@ jack -Q --remove
 .RE
 .PP
 .br
+Editing / normalizing / stripping the WAV files before encoding:
+.RS
+jack -O --remove ; gnoise *wav ; jack -g *wav ; jack
+.RE
+.PP
+Just replace gnoise by the operation you'd like to perform.
+.br
 .SH AUTHOR
 Arne Zellentin <zarne@users.sf.net> is the author of Jack.
 .SH SEE ALSO

@@ -1,17 +1,247 @@
+2002-04-15 04:49  zarne
+
+	* jack: 
+	
+	* update copyright notice, welcome to the year 2002
+
+2002-04-15 04:40  zarne
+
+	* jack: 
+	
+	* elaborate on the missing permissions for the device problem many
+	people have
+
+2002-04-15 03:27  zarne
+
+	* jack: 
+	
+	* when guess-tocing WAVs you now have the option to truncate them
+	if they are noch CDDA-block aligned
+	
+	* better defaults for genre and year when pre-tagging
+
+2002-04-15 02:23  zarne
+
+	* jack: 
+	
+	* (re-)enabled correct processing of mixed mode CDs (which have a
+	data track 1)
+	
+	* rewrote and improved toc-reader based on cdda2wav
+	
+	* corrected an assumption in CDDB.py's toc-reader which thought the
+	first track is always numbered 01
+
+2002-04-15 00:32  zarne
+
+	* jack: 
+	
+	* fixed bugs introduced in rev. 1.42
+	
+	* made CD-EXTRA really work ;)
+
+2002-04-14 19:36  zarne
+
+	* jack, jack.man: 
+	
+	* fixed bugs.debian.org/132985 by accepting patch from Martin
+	Michlmayr
+
+2002-04-14 18:23  zarne
+
+	* jack: 
+	
+	* fixed errors ripping CD-EXTRA by double checking the TOC CDDB.py
+	reports against what the ripper thinks
+
+2002-02-12 17:25  zarne
+
+	* jack: 
+	* "various" is now a global variable
+	
+	* on VA CDs the artist is now shown while encoding (thanks to
+	Martin Michlmayr)
+
+2002-02-11 03:54  zarne
+
+	* jack: 
+	* removed the quality switch for oggenc, people say the default (3)
+	is good. In a quick listening test with a difficult CD I could not
+	spot any obvious flaws. Ogg Vorbis is impressive.
+
+2002-02-06 20:18  zarne
+
+	* README, jack, jack_CDTime.py, jack_TOC.py, jack_TOCentry.py,
+	jack_misc.py, jack_mp3.py, setup-cursesmodule.py, setup-jack.py,
+	doc/download.html, doc/examples.html, doc/faq.html, doc/index.html,
+	doc/install.html, doc/links.html, doc/requirements.html,
+	doc/screen.html, doc/todo.html, doc/usage.html: 
+	* I prefer jack related email to zarne@users.sf.net now, thanks.
+
+2002-02-06 20:06  zarne
+
+	* jack.man: * corrections
+	
+	* missing options added (by Michael Banck, thanks.)
+
+2002-02-06 18:48  zarne
+
+	* jack: 
+	* use LC_ALL=C, I hope this helps solve the remaining problems with
+	localization
+
+2002-02-04 01:17  zarne
+
+	* jack.man: 
+	* Michael Banck is too modest get have credits for the manpage.
+
+2002-02-03 18:08  zarne
+
+	* jack: 
+	* sendmail is now called as /usr/lib/sendmail. Does anyone still
+	use mailsubmit?
+
+2002-02-03 16:57  zarne
+
+	* jack.man: 
+	* some edits/corrections/additions
+
+2002-02-03 16:56  zarne
+
+	* jack.man: 
+	* initial checkin of the manpage Michael Banck has written for jack
+
+2002-02-03 15:47  zarne
+
+	* jack: 
+	* added -QQ which is like -Q but allows you to continue on failed
+	queries.
+
+2002-02-03 15:19  zarne
+
+	* jack: 
+	* fixed freedb submission by email (I hope, didn't test it)
+
+2002-02-03 15:04  zarne
+
+	* jack: 
+	* pretagging now allows setting of genre (%g) and year (%y)
+	
+	* changed mnemonic for generic_device from %g to %D -- check your
+	.jackrc!
+
+2002-02-03 14:31  zarne
+
+	* jack: 
+	* workaround for bug in ID3.py which defaults the genre to Blues
+	[0]
+
+2002-02-03 14:09  zarne
+
+	* jack: 
+	* jack now creates directories even when reading --from-tocfile
+
+2002-02-03 13:31  zarne
+
+	* jack: 
+	* Linux OSTYPE is now recognized if it's called linux-gnu (thank
+	you dme!)
+
+2002-02-03 13:14  zarne
+
+	* jack: 
+	* fixed a bug in VA pretagging, thanks to Martin Michlmayr for the
+	patch!
+
+2002-02-03 03:48  zarne
+
+	* jack: 
+	* implemented ogg post-tagging for pyvorbis >= 0.5, for real this
+	time ;-)
+	
+	* fixes for local freedb_dir by Matthew Mueller
+
+2002-02-03 03:20  zarne
+
+	* jack: 
+	* increased status_blocksize from 56 to 64 for oggenc.
+	
+	* implemented ogg post-tagging for pyvorbis >= 0.5, thanks to
+	Michael Banck!
+	
+	* oggenc is now called with -q 5 instead of a bitrate parameter.
+	True VBR now.
+	
+	* [ Sorry, I was terribly busy in the recent past. ]
+	
+	* [ There's still a huge backlog.]
+
+2001-11-12 06:36  zarne
+
+	* jack: 
+	- small code cleanup (the category chooser is one function now
+	instead of 3 instances)
+	
+	- freedb category is now remembered, useful for submitting updated
+	entries
+	
+	- bug fixed: entering "0" as category used last category instead of
+	aborting
+
+2001-11-09 19:34  zarne
+
+	* jack: 
+	- added option --wait (wait on quit)
+	
+	- added option --workdir (where to put files / dirs, == base_dir)
+	
+	- added option --search (where to search for workdir, appends to
+	searchdirs)
+	
+	- create all dirs leading to workdir
+
+2001-11-08 19:57  zarne
+
+	* jack: 
+	This patch - provided by Martin Michlmayr - does this:
+	
+	- use float and int instead of atof and atoi.  The latter are
+	deprecated (see Python documentation). (The jack_*.py modules need
+	to be overhauled likewise)
+	
+	- Check if an input string is really an integer and don't fail if
+	it's not.
+	
+	- Check the range of tracks in the -t arguments and ignore invalid
+	tracks.
+
+2001-11-08 02:22  zarne
+
+	* jack: 
+	now that 2.99.7 is out, bump version to 2.99.8
+
+2001-11-08 02:20  zarne
+
+	* jack, setup-cursesmodule.py, doc/ChangeLog, doc/INSTALL: 
+	- get rid of compiler warnings with -Wno-strict-prototypes
+	
+	- put the two unused functions which gcc complains about to use
+
 2001-11-07 18:52  zarne
 
-	* doc/: ChangeLog, index.html:
+	* doc/: ChangeLog, index.html: 
 	- index.html points to ChageLog instead of CHANGELOG now
+	
 	- ChangeLog will contain the more recent changes now, CHANGELOG the
 	very old ones. ChangeLog will NOT be up-to date in cvs BUT in
-        releases.
+	releases.
 
 2001-11-07 18:43  zarne
 
 	* doc/CHANGELOG: - prepared it for automatic actualization,
 	released versions contain the CVS log from now on. CHANGELOG is now
 	a template from which ChangeLog is generated when releasing, CVS
-        will contain both in a undefined state.
+	will contain both in a undefined state.
 
 2001-11-07 18:08  zarne
 
@@ -20,30 +250,43 @@
 2001-11-07 18:08  zarne
 
 	* jack: - version is now 2.99.7
+	
 	- use termios instead of TERMIOS to make python2 happy
+	
 	- works with python2 now, I tested/use 2.1.1
+	
 	- tell people what to do if modules are missing
+	
 	- re-organized .jackrc, unfortunately everybody has to re-gen it
 	now
+	
 	- with luck, this is the last time everybody has to re-gen it :)
+	
 	- tried xtermset again and found that it still works
+	
 	- try it!
+	
 	- updated gogo helper, thanks to José Antonio Pérez Sánchez
+	
 	- compile helpers, this works in python2. comment out if you have
 	problems.
+	
 	- changed the execs to make python2 happy
+	
 	- encoders, rippers and freedb servers are listed if specified
-        doesn't exist
-
-- we're close to 3.0
+	doesn't exist
+	
+	- we're close to 3.0
 
 2001-10-11 00:38  zarne
 
 	* README, jack, doc/INSTALL: - fixed "tag" info for Ogg/Vorbis
-	- fall back to CBR if selected encoder does not support VBR
+	
+	- fall back to CBR if selected encoder does not support VBR  
 	(thanks to Michael Banck for finding both issues)
+	
 	- removed version info from doc/INSTALL because I keep to forget to
-        update it
+	update it
 
 2001-10-10 23:21  zarne
 
@@ -52,15 +295,22 @@
 2001-10-10 21:57  zarne
 
 	* jack: - Version is now (since 2 commits actually) 2.99.6
+	
 	- cursesmodule was renamed to jack_cursesmodule to avoid conflicts
+	
 	- re-organized .jackrc
+	
 	- fixed freedb-sources
+	
 	- default encoder is now oggenc (which can only do vbr)
+	
 	- default naming scheme has been changed to   "Artist - Album - 01
 	- Tracktitle.[ext]"
+	
 	- fixed resizing (more precisely I removed a hack which made it
 	work for   me on RedHat 6.2)
-        - workaround for illegal freedb entries with empty album name
+	
+	- workaround for illegal freedb entries with empty album name
 
 2001-10-10 18:43  zarne
 
@@ -72,97 +322,126 @@
 
 2001-10-10 18:29  zarne
 
-	* setup-cursesmodule.py, doc/CHANGELOG, doc/INSTALL, doc/TODO:
+	* setup-cursesmodule.py, doc/CHANGELOG, doc/INSTALL, doc/TODO: 
 	- Version is now (since 2 commits actually) 2.99.6
+	
 	- cursesmodule was renamed to jack_cursesmodule to avoid conflicts
+	
 	- the URL in CHANGELOG has been fixed (missing www.)
+	
 	- updated TODO
+	
 	- re-organized .jackrc
+	
 	- fixed freedb-sources
+	
 	- default encoder is now oggenc (which can only do vbr)
+	
 	- default naming scheme has been changed to   "Artist - Album - 01
 	- Tracktitle.[ext]"
+	
 	- fixed resizing (more precisely I removed a hack which made it
-        work for   RedHat 6.2)
+	work for   RedHat 6.2)
 
 2001-10-06 07:14  zarne
 
 	* jack: fixed the bug which prevented successful ogg tagging
-        (Bender, you really should not program when you're sober!)
+	(Bender, you really should not program when you're sober!)
 
 2001-10-06 00:14  zarne
 
-	* README, jack:
+	* README, jack: 
 	started Ogg Vorbis support which seems to work, there's still a bug
 	concerning the ogg info data. I'll try to fix that one later.
-        Jack can now be extended to use any target format.
+	
+	Jack can now be extended to use any target format.
 
 2001-08-31 22:27  zarne
 
-	* README, doc/INSTALL:
-        clarified (I hope) the installation procedure
+	* README, doc/INSTALL: 
+	clarified (I hope) the installation procedure
 
 2001-08-31 06:29  zarne
 
-	* ID3.py, cursesmodule-1.5b2.patch:
+	* ID3.py, cursesmodule-1.5b2.patch: 
 	ID3 is available separately, the patch was moved into the
-        cursesmodule subdir.
+	cursesmodule subdir.
 
 2001-08-31 06:26  zarne
 
-	* setup-cursesmodule.py, setup-jack.py:
-        inital checkin. anyone else I forgot?
+	* setup-cursesmodule.py, setup-jack.py: 
+	inital checkin. anyone else I forgot?
 
 2001-08-31 06:09  zarne
 
-	* jack, jack_TOCentry.py, jack_mp3.py, doc/INSTALL:
+	* jack, jack_TOCentry.py, jack_mp3.py, doc/INSTALL: 
 	* bumped version to 2.9.5
+	
 	* include my patched cursesmodule now, together with a distutils
 	installer
+	
 	* removed ID3.py, this and CDDB.py must be downloaded and installed
 	separately   (instructions included)
+	
 	* runs on python2 again, don't know whether it works
-        * lots of changes, fixes -- I lost track
+	
+	* lots of changes, fixes -- I lost track
 
 2001-03-14 07:32  zarne
 
 	* jack_mp3.py: Why hasn't this been in CVS before??? :]
+	
 	- huge performance gain
+	
 	- better (more accurate) frame syncing (two consecutive rames are
 	searched for now)
+	
 	- more robust now
+	
 	- VBR bitrates are now returned as a float
+	
 	- preliminary ID3v2 support (corrently only the version number is
 	extracted and the tag is skipped)
-        - new info: bpf and framesize
-
-- better detection of Xing tags
+	
+	- new info: bpf and framesize
+	
+	- better detection of Xing tags
 
 2001-03-14 07:23  zarne
 
 	* ID3.py: - small fixes
+	
 	- replaced tabs by spaces
+	
 	- this is not a official version now, I will sync this with
-        official 1.0 soon.
+	official 1.0 soon.
 
 2001-03-14 07:19  zarne
 
 	* README, jack, doc/INSTALL: - support for freedb files which have
 	track title or artist stored in the EXTT fields
+	
 	- toc reading for cdparanois disabled because it's incomplete for
 	CD EXTRA
+	
 	- added support for CDDB.py, available at
 	http://cddb-py.sourceforge.net/ (currently only toc reading) this
 	is now the default
+	
 	- fixed a bug triggered by tocfiles containing quotes on the file
 	name
+	
 	- added support for EXDD=YEAR:	ID3G, who can tell me who set this
 	"standard"?
+	
 	- CRs are now ignored in freedb files
+	
 	- added "Sampler" and "Diverse" to the list of various artists
 	tokens
+	
 	- -G none now sets the ID3v1 genre to 255("unknown")
-        - print year and genre when finished (if available)
+	
+	- print year and genre when finished (if available)
 
 2000-11-21 02:47  zarne
 
@@ -171,26 +450,28 @@
 	What's the "correct" way to flush stdin? fcntl with O_NONBLOCK,
 	then reading (and discarding) until nothing is read? Is there an
 	easy way? *** jack.freedb now has as many spaces in front of the
-        MSF offsets as your favorite CD player *** some reformatting
+	MSF offsets as your favorite CD player *** some reformatting
 
 2000-11-02 20:27  zarne
 
 	* jack: 1) reformatted helpers{} 2) show_time = 1 and show_names =
 	1 are now defaults 3) it's now called 2.99.4 (actually since the
-        last commit)
+	last commit)
 
 2000-11-02 02:08  zarne
 
-	* jack: 1) renamed id -> cd_id; id is a reserved word in python.
+	* jack: 1) renamed id -> cd_id; id is a reserved word in python. 
 	2) ignore data tracks, tested with cdparanoia only 3) quit if there
 	are no audio tracks (to do) 4) --abort-on-skip is now the default
 	for cdparanoia, change it if you    don't like it 5) call it 2.99.4
+	
 	cosmetic changes: 1) more straighforward displays 2) show_time now
 	saves space by reducing track_names to their number.	 Thus the
 	"normal" line for a track fits into 80 columns again.  3) Show
 	freedb-id and total playing time in Options line 4) try to show
 	Options line when exiting
-        "do only one change per commit" is for sissies :-).
+	
+	"do only one change per commit" is for sissies :-).
 
 2000-08-13 20:16  zarne
 
@@ -200,7 +481,7 @@
 
 	* README, doc/CHANGELOG, doc/examples.html: fixed some strings to
 	indicate that freedb now supports entry submission with HTTP POST
-        (option --submit)
+	(option --submit)
 
 2000-08-13 19:26  zarne
 
@@ -209,29 +490,29 @@
 2000-08-11 03:24  zarne
 
 	* jack: added WAV to the file types --guess-toc recognizes
-        internal: progress now also takes a tuple containing the args
+	internal: progress now also takes a tuple containing the args
 
 2000-08-11 00:02  zarne
 
 	* jack: changed the short option for --update-freedb from -u to -U
 	because of conflicts. Thanks to C. Marquardt for finding what I do
-        when I program late at night :-).
+	when I program late at night :-).
 
 2000-08-09 04:52  zarne
 
 	* ID3.py, jack: jack can now "update", i.e. re-generate freedb
 	files (new option -u) updated ID3 module so that it supports
-        ID3v1.1 track info jack now sets ID3v1.1 track info
+	ID3v1.1 track info jack now sets ID3v1.1 track info
 
 2000-08-08 08:17  zarne
 
 	* jack: added xing vbr tag decoding. Not used much yet, but -g now
-        works on vbr mp3s
+	works on vbr mp3s
 
 2000-08-08 01:32  zarne
 
 	* jack: fixed for new versions of gogo; vbr display enhancements
-        and cosmetics
+	and cosmetics
 
 2000-06-28 02:23  zarne
 
@@ -260,7 +541,7 @@
 	doc/screen.gif, doc/usage.gif, doc/install.gif, doc/links.gif,
 	doc/links.html, doc/CHANGELOG, doc/anim.written.in.vi.gif,
 	doc/mine.css, doc/INSTALL, doc/jack-curses-screen.gif, doc/TODO,
-        doc/todo.html: Initial revision
+	doc/todo.html: Initial revision
 
 2000-05-11 16:32  zarne
 
@@ -273,5 +554,5 @@
 	doc/screen.gif, doc/usage.gif, doc/install.gif, doc/links.gif,
 	doc/links.html, doc/CHANGELOG, doc/anim.written.in.vi.gif,
 	doc/mine.css, doc/INSTALL, doc/jack-curses-screen.gif, doc/TODO,
-        doc/todo.html: initial import of jack-2.99.0-pre
+	doc/todo.html: initial import of jack-2.99.0-pre
 
