@@ -1706,7 +1706,7 @@ def do_freedb_submit(file, cd_id):
     h.putheader('Category', cat)
     h.putheader('Discid', cd_id)
     h.putheader('User-Email', email)
-    h.putheader('Submit-Mode', 'test')
+    h.putheader('Submit-Mode', 'submit')
     h.putheader('Charset', 'ISO-8859-1')
     h.putheader('X-Cddbd-Note', 'Problems submitting with ' + prog_name + '? - RTFS(ource)!')
     h.putheader('Content-Length', `filesize(file)`)
