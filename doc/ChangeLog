@@ -1,3 +1,157 @@
+2003-10-12 03:54  zarne
+
+	* README, jack, jack_config.py, jack_freedb.py, jack_functions.py,
+	jack_globals.py, jack_helpers.py, jack_main_loop.py,
+	jack_prepare.py, jack_tag.py, jack_workers.py, doc/INSTALL: - fixed
+	--update-freedb
+	
+	- declare encoding (newer python wants this)
+	
+	- 17_authenticated_http-proxy_support_patch
+	
+	- fixed some deprecation warnings
+	
+	- 07_continue_various_if_blank_artist
+	
+	- various bug fixes
+	
+	- added --strictly-enforce-ISO to lame options
+	
+	- fix for new cdparanoia screen output format
+	
+	- print dots while tagging (which can be time consuming, e.g. with
+	ID3v2)
+	
+	- 19_catch_rename_too_long_fix
+	
+	- slight documentation updates (lots of stuff still missing)
+
+2003-04-30 04:35  zarne
+
+	* jack_checkopts.py, jack_config.py, jack_display.py, jack_init.py,
+	jack_tag.py: - ogg tags are now written as utf-8, as required by
+	the standard
+	
+	- cosmetic stuff
+
+2003-04-30 03:49  zarne
+
+	* jack, jack_checkopts.py, jack_config.py, jack_init.py,
+	jack_tag.py: - id3v2 support, rejoice! you need
+	http://pyid3lib.sourceforge.net/
+	
+	- small stuff
+
+2003-04-19 01:45  zarne
+
+	* jack_helpers.py: - changed default lame command lines: --r3mix ->
+	--alt-preset standard; -h -b <x> -> --alt-preset cbr <x>
+
+2003-04-19 00:55  zarne
+
+	* jack_config.py, jack_freedb.py, jack_functions.py,
+	jack_helpers.py, jack_init.py, jack_playorder.py, jack_prepare.py: 
+	
+	- small bugfixes
+	
+	- nonfunctional (yet) support for the PLAYORDER field in freedb
+	entries
+	
+	- toc reading more robust
+
+2003-01-22 20:15  zarne
+
+	* jack_helpers.py, jack_main_loop.py, jack_workers.py: - fixed
+	missing import signal
+	
+	- fixed signals for child processes
+	
+	- CDDB.py toc-reader now closes rip device (sf.net Bugs item
+	#664344)
+
+2003-01-22 18:40  zarne
+
+	* jack_config.py, jack_m3u.py, jack_tag.py: - added support for
+	creating m3u playlist (as requested)
+
+2003-01-22 18:11  zarne
+
+	* jack, jack_argv.py, jack_checkopts.py, jack_config.py,
+	jack_freedb.py, jack_functions.py, jack_generic.py,
+	jack_main_loop.py, jack_prepare.py, jack_utils.py, jack_workers.py:
+	- quite a number of fixes. Why did nobody complain?
+
+2002-09-05 00:17  zarne
+
+	* jack, jack_checkopts.py, jack_config.py, jack_display.py,
+	jack_freedb.py, jack_functions.py, jack_generic.py,
+	jack_globals.py, jack_helpers.py, jack_main_loop.py,
+	jack_prepare.py, jack_t_curses.py, jack_tag.py, jack_term.py,
+	jack_workers.py: 
+	
+	- more cleanups and bugfixes
+	
+	- out of ignorance I failed to notice that I already use python-2.2
+	features. Who has problems with jack *requiring* python >= 2.2?
+
+2002-09-04 00:34  zarne
+
+	* jack, jack_checkopts.py, jack_config.py, jack_freedb.py,
+	jack_functions.py, jack_t_curses.py, jack_term.py: 
+	
+	- more cleanups
+	
+	- terminal resizing and xtermset both seem to be ok now
+
+2002-09-03 22:45  zarne
+
+	* jack_readprefs.py: 
+	
+	- removed unused module jack_readprefs
+	
+	- jack_generic was not modified, what is CVS trying to tell me?
+
+2002-09-03 21:33  zarne
+
+	* jack, jack_argv.py, jack_freedb.py, jack_functions.py,
+	jack_main_loop.py, jack_utils.py, jack_workers.py: 
+	
+	- cleanups
+	
+	- use error(), info() and warning() more often
+
+2002-09-03 19:56  zarne
+
+	* jack, jack_argv.py, jack_checkopts.py, jack_config.py,
+	jack_constants.py, jack_display.py, jack_encstuff.py,
+	jack_freedb.py, jack_functions.py, jack_generic.py,
+	jack_globals.py, jack_helpers.py, jack_init.py, jack_main_loop.py,
+	jack_misc.py, jack_progress.py, jack_rc.py, jack_ripstuff.py,
+	jack_status.py, jack_t_curses.py, jack_targets.py, jack_term.py,
+	jack_utils.py, jack_workers.py: 
+	
+	- things are taking form, ripping and renaming seems to work
+	
+	- configfile: new format, new filename. save options with --save
+	
+	- this is still unstable, beta, don't expect too much (except bugs)
+
+2002-09-03 10:42  zarne
+
+	* jack, jack_argv.py, jack_checkopts.py, jack_children.py,
+	jack_config.py, jack_display.py, jack_freedb.py, jack_functions.py,
+	jack_globals.py, jack_helpers.py, jack_init.py, jack_misc.py,
+	jack_readprefs.py, jack_ripstuff.py, jack_status.py,
+	jack_t_curses.py, jack_t_dumb.py, jack_tag.py, jack_targets.py,
+	jack_term.py, jack_utils.py, jack_version.py, jack_workers.py,
+	doc/ChangeLog: 
+	
+	- work on version 3.0.0 starts now
+	
+	- don't use this, only the bare minimum functionality is there
+	
+	- e.g. no config file yet
+
 2002-06-20 14:36  zarne
 
 	* jack: 
@@ -234,9 +388,10 @@
 
 	* README, jack, jack_CDTime.py, jack_TOC.py, jack_TOCentry.py,
 	jack_misc.py, jack_mp3.py, setup-cursesmodule.py, setup-jack.py,
-	doc/download.html, doc/examples.html, doc/faq.html, doc/index.html,
-	doc/install.html, doc/links.html, doc/requirements.html,
-	doc/screen.html, doc/todo.html, doc/usage.html: 
+	cursesmodule/README.precompiled, doc/download.html,
+	doc/examples.html, doc/faq.html, doc/index.html, doc/install.html,
+	doc/links.html, doc/requirements.html, doc/screen.html,
+	doc/todo.html, doc/usage.html: 
 	* I prefer jack related email to zarne@users.sf.net now, thanks.
 
 2002-02-06 20:06  zarne
@@ -383,7 +538,8 @@
 
 2001-11-08 02:20  zarne
 
-	* jack, setup-cursesmodule.py, doc/ChangeLog, doc/INSTALL: 
+	* jack, setup-cursesmodule.py, cursesmodule/jack_cursesmodule.c,
+	doc/ChangeLog, doc/INSTALL: 
 	- get rid of compiler warnings with -Wno-strict-prototypes
 	
 	- put the two unused functions which gcc complains about to use
@@ -481,9 +637,22 @@
 
 	* README: - state that oggenc is now the default
 
+2001-10-10 18:34  zarne
+
+	* cursesmodule/: cursesmodule.c, jack_cursesmodule.c: - renamed
+	cursesmodule.c -> jack_cursesmodule.c
+	
+	- patched the module to reflect this change
+
+2001-10-10 18:33  zarne
+
+	* cursesmodule/precompiled/Debian-Woody/jack_cursesmodule.so:
+	jack_cursesmodule, precompiled on Debian-Woody
+
 2001-10-10 18:29  zarne
 
-	* setup-cursesmodule.py, doc/CHANGELOG, doc/INSTALL, doc/TODO: 
+	* setup-cursesmodule.py, cursesmodule/README.precompiled,
+	doc/CHANGELOG, doc/INSTALL, doc/TODO: 
 	- Version is now (since 2 commits actually) 2.99.6
 	
 	- cursesmodule was renamed to jack_cursesmodule to avoid conflicts
@@ -532,6 +701,20 @@
 
 	* setup-cursesmodule.py, setup-jack.py: 
 	inital checkin. anyone else I forgot?
+
+2001-08-31 06:20  zarne
+
+	* cursesmodule/: Makefile, Makefile.pre, Makefile.pre.in,
+	README.cursesmodule, README.precompiled, Setup, config.c,
+	cursesmodule-1.5b2.patch, cursesmodule.c, lifedemo.py, sedscript,
+	precompiled/RedHat-6.0/cursesmodule.so: 
+	initial checkin, the patched cursesmodule is now part of the
+	standard dist.
+
+2001-08-31 06:16  zarne
+
+	* cursesmodule/precompiled/Debian-Potato/cursesmodule.so: 
+	initial checkin
 
 2001-08-31 06:09  zarne
 
