@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-### jack - extract audio from a CD and MP3ify it using 3rd party software
+### jack - extract audio from a CD and encode it using 3rd party software
 ### Copyright (C) 1999-2001  Arne Zellentin <arne@unix-ag.org>
 
 ### This program is free software; you can redistribute it and/or modify
@@ -22,7 +22,7 @@
 ### see CHANGELOG for recent changes in this program
 ### see TODO if you want to see what needs to be implemented
 
-prog_version = "2.99.5"
+prog_version = "2.99.6"
 prog_name = "jack"
 DEBUG = 0
 
@@ -103,11 +103,13 @@ except ImportError:
 prefs_file = environ['HOME'] + "/.jackrc"
 
 ### don't edit things here (unless administering), run jack once and edit ###
-### your prefs_file instead.                                              ###
+### your prefs_file (~/.jackrc) instead.                                  ###
 
 prefs = """
 ## edit these defaults ##
 my_mail = "@"           # needed for e-mail submissions, please set
+freedb_server = "freedb"# your freedb server, see/edit details below
+
 # if environ.has_key('http_proxy'): del environ['http_proxy']
                         # uncomment above line if you don't want to use your
                         # default proxy for freedb queries
@@ -115,8 +117,8 @@ ripper = "cdparanoia"   # use which program to rip: cdparanoia, tosha, cdda2wav,
 cd_device = "/dev/cdrom"    # use which device for ripping
 gen_device = "/dev/sgXXX"   # cdda2wav needs the scsi generic device
 keep_free = 5*2**20     # suspend if less than keep_free bytes are free
-                        # don't set this to zero as mp3 size prediction is
-                        # always a bit below actual sizes => we might need
+                        # don't set this to zero as encoded file size prediction
+                        # is always a bit below actual sizes => we might need
                         # some extra space.
 
 #   %n: track number
@@ -126,9 +128,9 @@ keep_free = 5*2**20     # suspend if less than keep_free bytes are free
 #   %y: album release year - individual track years are unsupported
 #   %g: album genre - individual track genres are unsupported
 
-rename_fmt = "%n.%a (%l) - %t"# MP3s are renamed to
-                                # "01.Artist (Album) - Tracktitle.mp3"
-rename_fmt_va = "%n.%a - %t"  # ditto for Various Artists CDs
+rename_fmt = "%n.%a (%l) - %t"  # encoded files are renamed to
+                                # "01.Artist (Album) - Tracktitle.[ext]"
+rename_fmt_va = "%n.%a - %t"    # ditto for Various Artists CDs
                                 # note that a '%' in freedb data may lead to
                                 # problems - if it does, please mail me so I
                                 # can think of a better way of doing this
@@ -139,9 +141,9 @@ append_year = " (%y)"           # append the year (if given) to dir: " (1999)"
 dir_template = "%a/%l"          # if create_dirs is set and freedb data is
                                 # available, files are put in
                                 # base_dir + "/<artist>/<albumname>".
-unusable_chars = "/"            # put chars which can't be used in filenames
+unusable_chars = "/\r"            # put chars which can't be used in filenames
                                 # here and their
-replacement_chars = "."         # replacements here. replacement_chars is
+replacement_chars = ["%", ""]   # replacements here. replacement_chars is
                                 # automagically stretched to match
                                 # unusable_chars' length using the last char
                                 # as fill
@@ -182,8 +184,9 @@ encoder = "lame"    # use which encoder (bladeenc, lame, gogo, l3enc, mp3enc)
                     # NEW: xing - completely untested - this is a symbolic name
                     # which is defined later in this file, NOT the executable's
                     # name
+                    # almost there: Ogg Vorbis by oggenc
 bitrate = 160       # default bitrate
-encoders = 1        # encode how many mp3s in parallel
+encoders = 1        # encode how many files in parallel
 vbr = 0             # use variable bitrate for encoders which support it
 otf = 0             # on-the-fly operation with supported helper apps
 create_dirs = 1     # create (and name if applicable) subdir(s)
@@ -194,7 +197,7 @@ only_dae = 0        # only rip, do not code, implies keep_wavs
 read_ahead = 99     # number of tracks to read in advance
 nice_value = 12     # what nice level (priority) encoders get
 recheck_space = 1   # yes we want to react to disc space dropping.
-overwrite = 0       # overwrite existing mp3s
+overwrite = 0       # overwrite existing files
 various = 0         # assume CD has various artists, 0 = auto
 various_swap = 0    # exchange artist and title for broken freedb entrys
 extt_is_artist = 0  # extt contains artist
@@ -216,10 +219,22 @@ query_on_start = 0      # do query when starting, rename files when finished
 query_when_ready = 0    # do query when done with encoding, rename files
 freedb_submit = 0       # use this to submit freedb file (after editing)
 freedb_mailsubmit = 0   # submit entry by e-mail
-freedb_server = "freedb.freedb.org"      # which freedb server to use
-freedb_mail = "freedb-submit@freedb.org" # where to send e-mail submission to
-freedb_identify_as = prog_name + " " + prog_version     # client identity
-                        # xmcd, for example, is "xmcd 2.6".
+
+freedb_servers = {
+    'default': {
+        'host': "freedb.freedb.org",
+        'id': prog_name + " " + prog_version,
+        'mail': "freedb-submit@freedb.org",
+        'my_mail': my_mail
+        },
+    'freedb-de': {
+        'host': "de.freedb.org",
+        'id': prog_name + " " + prog_version,
+        'mail': "freedb-submit@freedb.org",
+        'my_mail': my_mail
+        }
+    }   
+
 freedb_dir = ""         # change this to something like "/var/spool/cddb" and
                         # all queries will be done in this (local) directory
                         # later I will allow failed local queries to be
@@ -283,14 +298,56 @@ err_file = prog_name + ".err"   # in silent-mode, stderr goes here
 progress_file = prog_name + ".progress"     # subprocess output is cached here
 progr_sep = "/|\\\\"    # field separator in progress_file
 
+# supported target file fomats
+targets = {
+    'mp3': {
+        'can_cbr': 1,               # can do CBR = constant bitrate
+        'can_vbr': 1,               # can do VBR = variable bitrate
+        'can_id3': 1,               # can set a ID3 tag
+        'can_pretag': 0,            # can set tag info before encoding
+        'can_posttag': 1,           # can set tag info after encoding
+        'file_extension': ".mp3"    # the extension for this target format
+        },
+    'ogg': {
+        'can_cbr': 0,
+        'can_vbr': 1,
+        'can_id3': 0,
+        'can_pretag': 0,
+        'can_posttag': 0,
+        'file_extension': ".ogg"
+        }
+    }
+
 # supported helper apps
 helpers = {
     'builtin': {
         'status_blocksize': 160
         },
 
+    'oggenc': {
+        'type': "encoder",
+        'target': "ogg",
+        'can_tag': 1,
+        'vbr-cmd': "oggenc -o %o -t %t -a %a -N %n -l %l -b %r %i",
+        'status_blocksize': 56,
+        'bitrate_factor': 1,
+        'status_start': "%",
+        'percent_fkt': \"\"\"
+s = split(i['buf'], '\\\\015')
+if len(s) >= 2: s = s[-2]
+if len(s) == 1: s = s[0]
+y0 = find(s, "[")
+y1 = find(s, "%]")
+if y0 != -1 and y1 != -1:
+    percent = atof(s[y0 + 1:y1])
+else:
+    percent = 0
+\"\"\",
+    },
+
     'mp3enc': {
         'type': "encoder",
+        'target': "mp3",
         'cmd': "mp3enc -v -qual 9 -br %r -if %i -of %o",
         'otf-cmd': "mp3enc -v -qual 9 -br %r -sti -be -of %o",
         'status_blocksize': 99,
@@ -310,6 +367,7 @@ if len(s) >= 4:
 
     'l3enc': {
         'type': "encoder",
+        'target': "mp3",
         'cmd': "l3enc -hq -br %r %i %o",
         'status_blocksize': 99,
         'bitrate_factor': 1000,
@@ -330,10 +388,11 @@ else:
 
     'lame': {
         'type': "encoder",
+        'target': "mp3",
         'cmd': "lame -h -b %r %i %o",
-        'vbr-cmd': "lame -V1 -q1 -mj -k -b112 -B320 -h --nohist %i %o",
+        'vbr-cmd': "lame --r3mix --nohist %i %o",
         'otf-cmd': "lame -h -b %r - %o",
-        'vbr-otf-cmd': "lame -V1 -q1 -mj -k -b112 -B320 -h --nohist - %o",
+        'vbr-otf-cmd': "lame --r3mix --nohist - %o",
 
 # from lame:     -V n    quality setting for VBR.  default n=4
 #                        0=high quality,bigger files. 9=smaller files
@@ -361,6 +420,7 @@ else:
 
     'gogo': {
         'type': "encoder",
+        'target': "mp3",
         'cmd': "gogo %i %o -b %r",
         'status_blocksize': 160,
         'bitrate_factor': 1,
@@ -382,6 +442,7 @@ else:
 
     'bladeenc': {
         'type': "encoder",
+        'target': "mp3",
         'cmd': "bladeenc %i %o -br %r",
         'status_blocksize': 180,
         'bitrate_factor': 1000,
@@ -400,6 +461,7 @@ else:
 # xing  definitions kindly provided by Sebastian Weber
     'xing': {
         'type': "encoder",
+        'target': "mp3",
         'cmd': "xingmp3enc -B %r %i %o",
         'vbr-cmd': "xingmp3enc -V 100 %i %o",
         'otf-cmd': "xingmp3enc -b %r -- %o",
@@ -904,8 +966,11 @@ def guesstoc(names):
             progr.append(num, "dae", "  =p  [  s  i  m  u  l  a  t  e  d   ]")
             if name % num != i_name:
                 progr.append(num, "ren", name % num + "-->" + i_name)
+        elif i_ext == ".OGG":
+            print "Error: you still have to wait for ogg support for this ooperation, sorry."
+            exit()
         else:
-            print "Error: this is neither .mp3 nor .wav:", i
+            print "Error: this is neither .mp3 nor .ogg nor .wav:", i
             exit()
         num = num + 1
         start = start + blocks
@@ -1091,18 +1156,18 @@ def cdrdao_puttoc(tocfile, tracks, cd_id):     # put toc to cdrdao toc-file
             f.write("START "+msftostr(blockstomsf(i[START]))+"\n")
         f.write("\n")
 
-MP3, WAV, BOTH, PEAK, AT, CDR, BLOCKS = 0, 1, 2, 3, 4, 5, 6
+ENC, WAV, BOTH, PEAK, AT, CDR, BLOCKS = 0, 1, 2, 3, 4, 5, 6
 def tracksize(list, dont_dae = [], blocksize = 1024):
     "Calculates all kind of sizes for a track or a list of tracks."
     if list and type(list[0]) == types.IntType:
         list = ((list, ))
     peak, at, blocks = 0, 0, 0
-    mp3size = wavsize = cdrsize = 0
+    encoded_size = wavsize = cdrsize = 0
     for track in list:
         blocks = blocks + track[LEN]
-        mp3size = mp3size + track[LEN] / CDDA_BLOCKS_PER_SECOND * track[RATE] * 1000 / 8
-        # mp3s can be a bit shorter, if someone knows a better way of guessing
-        # mp3 filesizes, please let me know.
+        encoded_size = encoded_size + track[LEN] / CDDA_BLOCKS_PER_SECOND * track[RATE] * 1000 / 8
+        # files can be a bit shorter, if someone knows a better way of guessing
+        # filesizes, please let me know.
         count_thiswav = 1
         for i in dont_dae:
             if i[NUM] == track[NUM]:
@@ -1110,11 +1175,11 @@ def tracksize(list, dont_dae = [], blocksize = 1024):
         thiscdrsize = track[LEN] * CDDA_BLOCKSIZE * count_thiswav
         wavsize = wavsize + thiscdrsize + 44
         cdrsize = cdrsize + thiscdrsize
-        now = mp3size + thiscdrsize + 44
+        now = encoded_size + thiscdrsize + 44
         if now>peak:
             at = track[NUM]
             peak = now
-    return mp3size, wavsize, mp3size + wavsize, peak, at, cdrsize, blocks
+    return encoded_size, wavsize, encoded_size + wavsize, peak, at, cdrsize, blocks
 
 def freedb_sum(n):
     "belongs to freedb_id"
@@ -1211,9 +1276,9 @@ def freedb_query(cd_id, tracks, file):
     for i in tracks:
         qs = qs + `i[START] + MSF_OFFSET` + " "
     qs = qs + `(MSF_OFFSET + tracks[-1][START] + tracks[-1][LEN]) / CDDA_BLOCKS_PER_SECOND`
-    hello = "hello=" + username + " " + hostname + " " + freedb_identify_as
+    hello = "hello=" + username + " " + hostname + " " + freedb_servers[freedb_server]['id']
     qs = quote_plus(qs + "&" + hello + "&proto=3", "=&")
-    url = "http://" + freedb_server + "/~cddb/cddb.cgi?" + qs
+    url = "http://" + freedb_servers[freedb_server]['host'] + "/~cddb/cddb.cgi?" + qs
     f = urlopen(url)
     buf = f.readline()
     if buf and buf[0:1] == "2":
@@ -1255,7 +1320,7 @@ def freedb_query(cd_id, tracks, file):
             exit()
 
         cmd = "cmd=cddb read " + freedb_cat + " " + cd_id
-        url = "http://" + freedb_server + "/~cddb/cddb.cgi?" + quote_plus(cmd + "&" + hello + "&proto=3", "=&")
+        url = "http://" + freedb_servers[freedb_server]['host'] + "/~cddb/cddb.cgi?" + quote_plus(cmd + "&" + hello + "&proto=3", "=&")
         f = urlopen(url)
         buf = f.readline()
         if buf and buf[0:3] == "210": # entry follows
@@ -1567,7 +1632,7 @@ def do_freedb_submit(file, cd_id):
     from httplib import *
     hello = "hello=" + username + " " + hostname + " " + prog_name + " " + prog_version
     print "Info: querying categories..."
-    url = "http://" + freedb_server + "/~cddb/cddb.cgi?" + quote_plus("cmd=cddb lscat" + "&" + hello + "&proto=3", "=&")
+    url = "http://" + freedb_servers[freedb_server]['host'] + "/~cddb/cddb.cgi?" + quote_plus("cmd=cddb lscat" + "&" + hello + "&proto=3", "=&")
     f = urlopen(url)
     buf = f.readline()
     if buf[0:3] == "500":
@@ -1604,7 +1669,7 @@ def do_freedb_submit(file, cd_id):
         exit()
     cat = cat[x - 1]
     print "OK, using `" + cat + "'."
-    email = my_mail
+    email = freedb_servers[freedb_server]['my_mail']
     print "Your e-mail address is needed to send error messages to you."
     x = raw_input("enter your e-mail-address [" + email + "]: ")
     if x:
@@ -1632,9 +1697,9 @@ def do_freedb_submit(file, cd_id):
         type, proxy = splittype(proxy)
         host, selector2 = splithost(proxy)
         h = HTTP(host)
-        h.putrequest('POST', 'http://' + freedb_server + selector)
+        h.putrequest('POST', 'http://' + freedb_servers[freedb_server]['host'] + selector)
     else:
-        h = HTTP(freedb_server)
+        h = HTTP(freedb_servers[freedb_server]['host'])
         h.putrequest('POST', '/~cddb/submit.cgi')
     h.putheader('Category', cat)
     h.putheader('Discid', cd_id)
@@ -1682,8 +1747,8 @@ def do_freedb_mailsubmit(file, cd_id):
         exit()
     cat = cat[x - 1]
     print "OK, using `" + cat + "'."
-    if find(my_mail, "@") >= 1 and len(my_mail) > 3:
-        return system("( echo 'To: " + freedb_mail + "'; echo From: '" + my_mail + "'; echo 'Subject: cddb " + cat + " " + cd_id + "' ; cat '" + file + "' ) | sendmail -t")
+    if find(freedb_servers[freedb_server]['my_mail'], "@") >= 1 and len(freedb_servers[freedb_server]['my_mail']) > 3:
+        return system("( echo 'To: " + freedb_servers[freedb_server]['submit_mail'] + "'; echo From: '" + freedb_servers[freedb_server]['my_mail'] + "'; echo 'Subject: cddb " + cat + " " + cd_id + "' ; cat '" + file + "' ) | sendmail -t")
     else:
         print "please set your e-mail address. aborting..."
 
@@ -1766,10 +1831,16 @@ def start_new_encoder(track, encoder):
     else:
         cmd = split(helper['cmd'])
     args = []
+
     for i in cmd:
         if i == "%r": args.append(`track[RATE] * helper['bitrate_factor']`)
         elif i == "%i": args.append(track[NAME] + ".wav")
-        elif i == "%o": args.append(track[NAME] + ".mp3")
+        elif i == "%o": args.append(track[NAME] + ext)
+        elif targets[helper['target']].has_key('can_pretag') and targets[helper['target']]['can_pretag'] and names_available:
+            if i == "%t": args.append(track_names[track[NUM]][0])
+            elif i == "%a": args.append(track_names[track[NUM]][1])
+            elif i == "%n": args.append(`track[NUM]`)
+            elif i == "%l": args.append(track_names[0][1])
         else: args.append(i)
     data = start_new_process(args, nice_value)
     data['type'] = "encoder"
@@ -1819,7 +1890,7 @@ def start_new_otf(track, ripper, encoder):
     args = []
     for i in cmd:
         if i == "%r": args.append(`track[RATE] * helpers[encoder]['bitrate_factor']`)
-        elif i == "%o": args.append(track[NAME] + ".mp3")
+        elif i == "%o": args.append(track[NAME] + ext)
         elif i == "%d": args.append(cd_device)
         elif i == "%g": args.append(gen_device)
         else: args.append(i)
@@ -2341,8 +2412,8 @@ while len(unusable_chars) > len(replacement_chars): # stretch rep._chars
 
 space_set_from_argv = 0
 argv_bitrate = 0
-if len(my_mail) <= 3:
-    my_mail = username + "@" + hostname
+if len(freedb_servers[freedb_server]['my_mail']) <= 3:
+    freedb_servers[freedb_server]['my_mail'] = username + "@" + hostname
 
 #### Parse argv
 i = 1
@@ -2401,6 +2472,9 @@ while i<len(argv):
         i = i + 1
     elif argv[i] == "--server":
         freedb_server = argv[i + 1]
+        if not freedb_servers.has_key(freedb_server):
+            print "Error: unknown server, choose one from your " + prefs_file + "."
+            exit(1)
         i = i + 1
     elif argv[i] == "--device":
         cd_device = argv[i + 1]
@@ -2409,12 +2483,6 @@ while i<len(argv):
         freedb_submit = 1
     elif argv[i] in ("-m", "--mail-submit"):
         freedb_mailsubmit = 1
-    elif argv[i] in ("-M", "--mail-address"):
-        freedb_mail = argv[i + 1]
-        i = i + 1
-    elif argv[i] == "--my-email":
-        my_mail = argv[i + 1]
-        i = i + 1
     elif argv[i] in ("-s", "--swab"):
         swap_byteorder = 1
     elif argv[i] in ("-r", "--reorder"):
@@ -2503,15 +2571,15 @@ while i<len(argv):
         print "usage:", prog_name, "[option]..."
         print "Options marked \"*\" need a string argument; \"+\" marks integer argument."
         print "  -t, --tracks:      *which tracks to process (e.g. 1, 3, 5-9, 12-)"
-        print "  -b, --bitrate:     +MP3 bitrate (in kbit/s, default is " + `bitrate` + ")"
-        print "  -v, --vbr:          generate variable bitrate MP3s (" + yes(vbr) + ")"
-        print "  -o, --overwrite:    overwrite existing WAVs and MP3s (" + yes(overwrite) + ")"
+        print "  -b, --bitrate:     +target bitrate (in kbit/s, default is " + `bitrate` + ")"
+        print "  -v, --vbr:          generate variable bitrate files (" + yes(vbr) + ")"
+        print "  -o, --overwrite:    overwrite existing files (" + yes(overwrite) + ")"
         print "  -O, --only-dae:     only produce WAVs, implies -k (" + yes(only_dae) + ")"
         print "  -F, --from-image:  *read audio data from image file"
         print "  -f, --from-tocfile:*read toc from file"
         print "  -S, --swab:         swap byteorder from image file (" + yes(swap_byteorder) + ")"
-        print "  -e, --encoders:    +encode how many MP3s in parallel (" + `encoders` + ")"
-        print "  -E, --encoder-name:*use which encoder [bladeenc, lame, l3enc, mp3enc] (" + encoder + ")"
+        print "  -e, --encoders:    +encode how many files in parallel (" + `encoders` + ")"
+        print "  -E, --encoder-name:*use which encoder [oggenc, lame, ...] (" + encoder + ")"
         print "  -n, --nice:        +nice-level of encoders (" + `nice_value` + ")"
         print "  -l, --max-load:    +only start new encoders if load < (" + `max_load` + ") + #encoders"
         print "  -a, --read-ahead:  +read how many WAVs in advance (" + `read_ahead` + ")"
@@ -2532,8 +2600,6 @@ while i<len(argv):
         print "  -x, --exec:         run predefined command when finished (" + yes(exec_when_done) + ")"
         print "  -U, --update-freedb:update the freedb info and quit (" + yes(update_freedb) + ")"
         print '  -m, --mail-submit:  submit by e-mail - needs sendmail! (' + yes(freedb_mailsubmit) + ")"
-        print "  -M, --mail-address:*submit database entry by e-mail (" + freedb_mail + ")"
-        print "      --my-email:    *submission report is sent here (" + my_mail + ")"
         print "      --submit:       http-submit freedb file to server and exit (" + yes(freedb_submit) + ")"
         print "      --server:      *use freedb server (" + freedb_server + ")"
         print "      --silent-mode:  be quiet (no screen output) (" + yes(silent_mode) + ")"
@@ -2583,24 +2649,34 @@ if silent_mode:
 if otf and only_dae:
     print "Warning: disabling on-the-fly operation because we're doing DAE only."
     otf = 0
+
 if otf and keep_wavs:
     print "Warning: disabling on-the-fly operation because we want to keep the wavs."
     otf = 0
+
 if otf and image_file:
     print "Warning: disabling on-the-fly operation as we're reading from image."
     otf = 0
+
 if otf:
     for i in (ripper, encoder):
         if not helpers[i].has_key('otf-cmd'):
             print "Error: can't do on-the-fly because " + helpers[i]['type'] + " " + i + " doesn't support it."
             exit()
+
 if vbr and not helpers[encoder].has_key('vbr-cmd'):
     print "Error: can't do VBR because " + encoder + " doesn't support it."
+    exit()
+
+if not vbr and not helpers[encoder].has_key('cmd'):
+    print "Error: can't do CBR because " + encoder + " doesn't support it.\nUse -v or set vbr=1 in your .jackrc."
     exit()
 
 if query_on_start and query_when_ready:
     print "Error: it doesn't make sense to query now _and_ when finished."
     exit()
+
+ext = targets[helpers[encoder]['target']]['file_extension']
 
 ### interpret options
 
@@ -2837,8 +2913,8 @@ if upd_progress:
                 status[num]['dae'] = "  *   [          simulated           ]"
                 progress(num, "dae", status[num]['dae'])
         if not status[num]['enc']:
-            if path.exists(i[NAME] + ".mp3"):
-                x = mp3format(i[NAME] + ".mp3")
+            if path.exists(i[NAME] + ext):
+                x = mp3format(i[NAME] + ext)
                 status[num]['enc'] = `x['bitrate']` + progr_sep + "[simulated]"
                 progress(num, "enc", status[num]['enc'])
 
@@ -2993,11 +3069,11 @@ if undo_rename:
                 break
             act_names = status[i[NUM]]['names']
             if len(act_names) == maxnames:
-                for j in ('.mp3', '.wav'):
+                for j in (ext, '.wav'):
                     new_name, old_name = act_names[-2:]
                     new_name, old_name = new_name + j, old_name + j
                     if not path.exists(old_name):
-                        if j == '.mp3':
+                        if j == ext:
                                     print 'NOT renaming "' + old_name + '": it doesn\'t exist.'
                     else:
                         if path.exists(new_name):
@@ -3032,32 +3108,32 @@ mp3s_ready = [] # we need this later to remove the tracks from wavs_todo
                 # and to prevent re-coding
 
 for track in todo:
-    mp3 = track[NAME] + ".mp3"
+    mp3 = track[NAME] + ext
     if path.exists(mp3):
         if overwrite:
             space = space + filesize(mp3)
             remove_q.append(mp3)
-            enc_status[track[NUM]] = "will o/w MP3."
+            enc_status[track[NUM]] = "will o/w file."
         elif not force and not enc_status[track[NUM]]:
             space = space + filesize(mp3)
             remove_q.append(mp3)
-            enc_status[track[NUM]] = "no MP3 enc run."
-        # with vbr and a given minimum bitrate MP3s can't legally be too small
+            enc_status[track[NUM]] = "no encoder run."
+        # with vbr encoded files can't legally be too small
         # but to reduce confusion, the check is then removed:
-        elif not vbr and filesize(mp3) <= tracksize(track)[MP3] * 0.99: # found by trial'n'err
+        elif not vbr and filesize(mp3) <= tracksize(track)[ENC] * 0.99: # found by trial'n'err
             space = space + filesize(mp3)
             remove_q.append(mp3)
-            enc_status[track[NUM]] = "MP3 too small by " + pprint_i(tracksize(track)[MP3] - filesize(mp3)) + "."
-        elif not vbr and filesize(mp3) >= tracksize(track)[MP3] * 1.05: # found by trial'n'err
+            enc_status[track[NUM]] = "encoded file too small by " + pprint_i(tracksize(track)[ENC] - filesize(mp3)) + "."
+        elif not vbr and filesize(mp3) >= tracksize(track)[ENC] * 1.05: # found by trial'n'err
             space = space + filesize(mp3)
             remove_q.append(mp3)
-            enc_status[track[NUM]] = "MP3 too large by " + pprint_i(filesize(mp3) - tracksize(track)[MP3]) + "."
+            enc_status[track[NUM]] = "enc. file too large by " + pprint_i(filesize(mp3) - tracksize(track)[ENC]) + "."
         else:
             mp3s_todo.remove(track)
             mp3s_ready.append(track)
     else:
         if enc_status[track[NUM]]:
-            enc_status[track[NUM]] = "[MP3 lost, doing again]"
+            enc_status[track[NUM]] = "[file lost-doing again]"
 
 for track in todo:
     wav = track[NAME] + ".wav"
@@ -3073,18 +3149,18 @@ for track in todo:
             space = space + filesize(wav)
             remove_q.append(wav)
             dae_status[track[NUM]] =     " ---- [Existing WAV not done by jack.]"
-            if enc_status[track[NUM]] == "[MP3 lost, doing again]":
+            if enc_status[track[NUM]] == "[file lost-doing again]":
                 enc_status[track[NUM]] = ""
         else:
             space = space + filesize(wav)
             remove_q.append(wav)
             dae_status[track[NUM]] =     " ---- [Existing WAV was not complete.]"
-            if enc_status[track[NUM]] == "[MP3 lost, doing again]":
+            if enc_status[track[NUM]] == "[file lost-doing again]":
                 enc_status[track[NUM]] = ""
     else:
         if dae_status[track[NUM]]:
-            if enc_status[track[NUM]] == "[MP3 lost, doing again]":
-                dae_status[track[NUM]] = " ---- [ WAV+MP3 lost, doing again    ]"
+            if enc_status[track[NUM]] == "[file lost-doing again]":
+                dae_status[track[NUM]] = " ---- [    both lost, doing again    ]"
                 enc_status[track[NUM]] = ""
             elif keep_wavs or track not in mp3s_ready:
                 dae_status[track[NUM]] = " ---- [ WAV lost, doing again        ]"
@@ -3104,7 +3180,7 @@ for track in wavs_todo:
     if track in mp3s_todo:
         mp3s_todo.remove(track) # remove mp3s which are not there yet
 
-if only_dae:            # if only_dae MP3s are not generated _at_all_.
+if only_dae:            # if only_dae nothing is encoded _at_all_.
     mp3s_todo = []
 
 # now mp3s_todo contains the tracks where the wavs only need to be coded and
@@ -3145,19 +3221,19 @@ freeable_space = 0
 if keep_wavs:
     space_needed = tracksize(wavs_todo)[BOTH]
 elif otf:
-    space_needed = tracksize(wavs_todo)[MP3]
+    space_needed = tracksize(wavs_todo)[ENC]
 else:
     space_needed = tracksize(wavs_todo)[PEAK]
 if only_dae:
     space_needed = tracksize(wavs_todo)[WAV]
 else:
     for i in mp3s_todo:
-        if space + freeable_space>tracksize(i)[MP3]:
+        if space + freeable_space>tracksize(i)[ENC]:
             if not keep_wavs:
-                freeable_space = freeable_space + tracksize(i)[WAV] - tracksize(i)[MP3]
+                freeable_space = freeable_space + tracksize(i)[WAV] - tracksize(i)[ENC]
         else:
             will_work = 0
-            space_needed = tracksize(i)[MP3] - space + freeable_space # this is quite dirty
+            space_needed = tracksize(i)[ENC] - space + freeable_space # this is quite dirty
             break
 
 if (space + freeable_space<space_needed or not will_work) and not dont_work:
@@ -3328,16 +3404,16 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, enc_running, da
 
                             # feed in the WAVs which have been there from the start
 
-        if mp3s_todo and tracksize(mp3s_todo[0])[MP3] < space:
+        if mp3s_todo and tracksize(mp3s_todo[0])[ENC] < space:
             waiting_space = 0
             enc_queue.append(mp3s_todo[0])
-            space = space - tracksize(mp3s_todo[0])[MP3]
+            space = space - tracksize(mp3s_todo[0])[ENC]
             enc_stat_upd(mp3s_todo[0][NUM], "waiting for encoder.")
             mp3s_todo = mp3s_todo[1:]
 
                                                     # start new DAE subprocess
 
-        elif (len(enc_queue) + enc_running) < (read_ahead + encoders) and dae_queue and dae_running < rippers and ((tracksize(dae_queue[0])[BOTH] < space) or (only_dae and tracksize(dae_queue[0])[WAV] < space) or (otf and tracksize(dae_queue[0])[MP3] < space)):
+        elif (len(enc_queue) + enc_running) < (read_ahead + encoders) and dae_queue and dae_running < rippers and ((tracksize(dae_queue[0])[BOTH] < space) or (only_dae and tracksize(dae_queue[0])[WAV] < space) or (otf and tracksize(dae_queue[0])[ENC] < space)):
             waiting_space = 0
             this_is_ok = 1
             if pause:
@@ -3357,8 +3433,8 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, enc_running, da
                     space_waiting = space_waiting + tracksize(dae_queue[0])[WAV]
                     space = space - tracksize(dae_queue[0])[WAV]
                 elif otf:
-                    space_waiting = space_waiting + tracksize(dae_queue[0])[MP3]
-                    space = space - tracksize(dae_queue[0])[MP3]
+                    space_waiting = space_waiting + tracksize(dae_queue[0])[ENC]
+                    space = space - tracksize(dae_queue[0])[ENC]
                 else:
                     space_waiting = space_waiting + tracksize(dae_queue[0])[BOTH]
                     space = space - tracksize(dae_queue[0])[BOTH]
@@ -3395,7 +3471,7 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, enc_running, da
                                             # start new encoder subprocess
 
         if enc_queue and enc_running < encoders:
-            if tracksize(enc_queue[0])[MP3] <= space + space_waiting:
+            if tracksize(enc_queue[0])[ENC] <= space + space_waiting:
                 waiting_space = 0
                 actual_load = eval(loadavg)
                 if actual_load < max_load:
@@ -3565,11 +3641,11 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, enc_running, da
                             space = space + tracksize(track)[WAV]
                             if otf:
                                 kill(exited_proc['otf-pid'], signal.SIGTERM)
-                                if path.exists(track[NAME] + ".mp3"):
-                                    remove(track[NAME] + ".mp3")
-                                space = space + tracksize(track)[MP3]
+                                if path.exists(track[NAME] + ext):
+                                    remove(track[NAME] + ext)
+                                space = space + tracksize(track)[ENC]
                             if not otf and not only_dae and track not in mp3s_ready:
-                                space = space + tracksize(track)[MP3]
+                                space = space + tracksize(track)[ENC]
                             dae_stat_upd(num, 'DAE failed with status ' + `res` + ", wav removed.")
                     else:
                         if exited_proc['type'] == "image_reader":
@@ -3587,7 +3663,7 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, enc_running, da
                         if not otf and not only_dae and track not in mp3s_ready:
                             if waiting_space:
                                 mp3s_todo.append(track)
-                                space = space + tracksize(track)[MP3]
+                                space = space + tracksize(track)[ENC]
                             else:
                                 enc_stat_upd(num, 'waiting for encoder.')
                                 enc_queue.append(track)
@@ -3596,9 +3672,9 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, enc_running, da
                 elif exited_proc['type'] == "encoder":
                     enc_running = enc_running - 1
                     #YYY mp3s_done.append(exited_proc['track'])
-                    # completed vbr MP3s shouldn't be to small, but this still
+                    # completed vbr files shouldn't be to small, but this still
                     # caused confusion so again, vbr is an exception:
-                    if not vbr and not res and tracksize(track)[MP3] * 0.99 > filesize(track[NAME] + ".mp3"):
+                    if not vbr and not res and tracksize(track)[ENC] * 0.99 > filesize(track[NAME] + ext):
                         res = 242
                         global_error = global_error + res
                     if res:
@@ -3606,15 +3682,15 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, enc_running, da
                         global_start = global_start + exited_proc['elapsed'] / (enc_running + 1)
                         if global_start > time():
                             global_start = time()
-                        if path.exists(track[NAME] + ".mp3"):
+                        if path.exists(track[NAME] + ext):
                             # mp3enc doesn't report errors when out of discspace...
-                            remove(track[NAME] + ".mp3")
-                        space = space + tracksize(track)[MP3]
+                            remove(track[NAME] + ext)
+                        space = space + tracksize(track)[ENC]
                         enc_stat_upd(num, 'coding failed, err#' + `res`)
                     else:
                         global_done = global_done + exited_proc['track'][LEN]
                         if vbr:
-                            enc_stat_upd(num, "[coding @" + '%1.2f' % speed + "× done,%03.0fkbit]" % ((filesize(track[NAME] + ".mp3") * 0.008) / (track[LEN] / 75.0)))
+                            enc_stat_upd(num, "[coding @" + '%1.2f' % speed + "× done,%03.0fkbit]" % ((filesize(track[NAME] + ext) * 0.008) / (track[LEN] / 75.0)))
                         else:
                             enc_stat_upd(num, "[coding @" + '%1.2f' % speed + "× done, mp3 OK]")
                         if not otf and not keep_wavs:
@@ -3858,7 +3934,10 @@ if vbr and not only_dae:
     total_size = 0
     for i in all_tracks_todo_sorted:
         total_length = total_length + i[LEN]
-        total_size = total_size + filesize(i[NAME] + ".mp3")
+        total_size = total_size + filesize(i[NAME] + ext)
+
+if set_id3tag and not targets[helpers[encoder]['target']]['can_id3']:
+    set_id3tag = 0
 
 if set_id3tag or freedb_rename:
     if len(track_names[0]) == 4:
@@ -3868,7 +3947,7 @@ if set_id3tag or freedb_rename:
         if id3_year == -1:
             id3_year = track_names[0][2]
     for i in all_tracks_todo_sorted:
-        mp3name = i[NAME] + ".mp3"
+        mp3name = i[NAME] + ext
         wavname = i[NAME] + ".wav"
         t_artist = track_names[i[NUM]][0]
         t_name = track_names[i[NUM]][1]
@@ -3917,18 +3996,18 @@ if set_id3tag or freedb_rename:
                 newname = replace(newname, unusable_chars[char_i], replacement_chars[char_i])
             if i[NAME] != newname:
                 ok = 1
-                if path.exists(newname + ".mp3"):
+                if path.exists(newname + ext):
                     ok = 0
-                    print 'NOT renaming "' + mp3name + '" to "' + newname + ".mp3" + '" because dest. exists.'
+                    print 'NOT renaming "' + mp3name + '" to "' + newname + ext + '" because dest. exists.'
                     if keep_wavs:
-                        print 'NOT renaming "' + wavname + '" to "' + newname + ".wav" + '" because MP3 dest. exists.'
+                        print 'NOT renaming "' + wavname + '" to "' + newname + ".wav" + '" because dest. exists.'
                 elif keep_wavs and path.exists(newname + ".wav"):
                     ok = 0
                     print 'NOT renaming "' + wavname + '" to "' + newname + ".wav" + '" because dest. exists.'
-                    print 'NOT renaming "' + mp3name + '" to "' + newname + ".mp3" + '" because WAV dest. exists.'
+                    print 'NOT renaming "' + mp3name + '" to "' + newname + ext + '" because WAV dest. exists.'
                 if ok:
                     if not only_dae:
-                        rename(mp3name, newname + ".mp3")
+                        rename(mp3name, newname + ext)
                     if keep_wavs:
                         rename(wavname, newname + ".wav")
                     progress(i[NUM], "ren", "%s-->%s" % (i[NAME], newname))

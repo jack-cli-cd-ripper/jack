@@ -1,4 +1,4 @@
-### jack - extract audio from a CD and MP3ify it using 3rd party software
+### jack - extract audio from a CD and encode it using 3rd party software
 ### Copyright (C) 1999-2001  Arne Zellentin <arne@unix-ag.org>
 
 ### This program is free software; you can redistribute it and/or modify
@@ -11,7 +11,7 @@
 ### MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ### GNU General Public License for more details.
 
-### This is jack 2.99.5
+### This is jack 2.99.6
 
 Requirements:
 
