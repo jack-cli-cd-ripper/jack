@@ -1,6 +1,6 @@
 ### jack_tag: name information (ID3 among others) stuff for
 ### jack - tag audio from a CD and encode it using 3rd party software
-### Copyright (C) 1999-2002  Arne Zellentin <zarne@users.sf.net>
+### Copyright (C) 1999-2003  Arne Zellentin <zarne@users.sf.net>
 
 ### This program is free software; you can redistribute it and/or modify
 ### it under the terms of the GNU General Public License as published by
@@ -133,13 +133,13 @@ def tag(freedb_rename):
                     vf = ogg.vorbis.VorbisFile(mp3name)
                     oggi = vf.comment()
                     oggi.clear()
-                    oggi.add_tag('ALBUM', a_title)
+                    oggi.add_tag('ALBUM', a_title.decode(cf['_charset']).encode('utf-8'))
                     oggi.add_tag('TRACKNUMBER', `i[NUM]`)
-                    oggi.add_tag('TITLE', t_name)
+                    oggi.add_tag('TITLE', t_name.decode(cf['_charset']).encode('utf-8'))
                     if t_artist:
-                        oggi.add_tag('ARTIST', t_artist)
+                        oggi.add_tag('ARTIST', t_artist.decode(cf['_charset']).encode('utf-8'))
                     else:
-                        oggi.add_tag('ARTIST', a_artist)
+                        oggi.add_tag('ARTIST', a_artist.decode(cf['_charset']).encode('utf-8'))
                     if cf['_id3_genre'] != -1:
                         oggi.add_tag('GENRE', id3genres[cf['_id3_genre']])
                     if cf['_id3_year'] != -1:

@@ -1,6 +1,6 @@
 ### jack_config.py: default config settings for
 ### jack - extract audio from a CD and encode it using 3rd party software
-### Copyright (C) 2002  Arne Zellentin <zarne@users.sf.net>
+### Copyright (C) 2002-2003  Arne Zellentin <zarne@users.sf.net>
 
 ### This program is free software; you can redistribute it and/or modify
 ### it under the terms of the GNU General Public License as published by
