@@ -218,9 +218,8 @@ submit freedb entry via e-mail. HTTP submission is preferred.
 You will have to enter the category of the CD.
 .TP
 .B \-l, \-\-max-load int
-only start new encoders if your system's load is below (max_load
-+ num_encoders). If the load is too high, encoding operation is
-suspended until above criterion is satisfied.
+only start new encoders if your system's load is below the specified value.
+/proc/loadavg must be readable by you for this to work.
 .TP
 .B \-\-multi-mode         
 try to query freedb for all dirs in searchdirs which

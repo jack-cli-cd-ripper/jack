@@ -30,7 +30,6 @@ import jack_version
 
 from jack_globals import *
 
-had_special = None
 enabled = None
 
 try:
@@ -78,7 +77,7 @@ def enable():
         return
 
     had_special = 0
-    extra_lines = 2
+    extra_lines = 2 # top + bottom status lines
     if jack_display.discname:
         extra_lines = extra_lines + 1
     stdscr = initscr()
@@ -168,7 +167,10 @@ def sig_winch_handler(sig, frame):
             stdscr.addstr(0, 0, (jack_display.options_string + " " * (jack_term.size_x - len(jack_display.options_string) - (0 + 4)) + scroll_keys)[:jack_term.size_x], A_REVERSE)
 
         if jack_display.special_line:
-            stdscr.addstr(2, 0, jack_display.center_line(jack_display.special_line, fill = " ", width = jack_term.size_x)[:jack_term.size_x], A_REVERSE)
+            spec_pos = 1
+            if jack_display.discname:
+                spec_pos = 2
+            stdscr.addstr(spec_pos, 0, jack_display.center_line(jack_display.special_line, fill = " ", width = jack_term.size_x)[:jack_term.size_x], A_REVERSE)
 
         if jack_display.bottom_line:
             stdscr.addstr(jack_term.size_y - 1, 0, (jack_display.bottom_line + " " * (jack_term.size_x - len(jack_display.bottom_line) - 1 ))[:jack_term.size_x - 1], A_REVERSE)

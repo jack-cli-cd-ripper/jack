@@ -72,9 +72,9 @@ class dict2(dict):
 
 def loadavg():
     "extract sysload from /proc/loadavg, linux only (?)"
-    if os.uname()[0] == "Linux":
+    try:
         f = open("/proc/loadavg", "r")
         load = float(string.split(f.readline())[0])
         return load
-    else:
+    except:
         return -1

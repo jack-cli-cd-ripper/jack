@@ -247,9 +247,10 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
         'doc': "update status screen every ... seconds",
         },
     'max_load': {
-        'type': types.IntType,
-        'val': 10,
-        'doc': "only start new encoders if load < max_load",
+        'type': types.FloatType,
+        'val': 10.0,
+        'usage': "only start new encoders if load < max_load",
+        'long': 'AUTO',
         },
     'xtermset_enable': {
         'type': 'toggle',

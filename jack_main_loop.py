@@ -452,14 +452,11 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
                 if blocked > 5:
                     space = jack_functions.df() - cf['_keep_free']
             elif waiting_load and waiting_space >= 2:
-                jack_display.special_line = " ...waiting for load (" + `actual_load` + ") < " + `cf['_max_load']` + " and for " + jack_functions.pprint_i(space_adjust, "%i %sBytes") + " to be freed... "
+                jack_display.special_line = " ...waiting for load (%.2f)" % actual_load + ") < %.2f" % cf['_max_load'] + " and for " + jack_functions.pprint_i(space_adjust, "%i %sBytes") + " to be freed... "
             elif waiting_space >= 2:
                 jack_display.special_line = " ...waiting for " + jack_functions.pprint_i(space_adjust, "%i %sBytes") + " to be freed.... "
             elif waiting_load:
-                jack_display.special_line = " ...waiting for load (" \
-                    + `actual_load` \
-                    + ") to drop below " \
-                    + `cf['_max_load']`+"... "
+                jack_display.special_line = " ...waiting for load (%.2f) to drop below %.2f..." % (actual_load, cf['_max_load'])
             else:
                 jack_display.special_line = None
 
