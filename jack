@@ -350,6 +350,7 @@ s = split(i['buf'], '\\\\015')
 if len(s) >= 2: s=s[-2]
 if len(s) == 1: s=s[0]
 if find(s, "%") >= 0: # status reporting starts here
+  s = replace(s, "\\\\000", " ")
   y = split(s, "/")
   y0 = split(y[0], "{")[-1]
   y1 = split(y[1], "}")[0]
@@ -3059,7 +3060,7 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, enc_running, da
         if curses_enable:
             max_y, max_x = stdscr.getmaxyx()
 
-        global_options = "Options: bitrate=" + `bitrate` + " vbr" * vbr + " reorder" * reorder + " read-ahead=" + `read_ahead` + " keep-wavs" * keep_wavs + " -+- press Q to quit"
+        global_options = "Options:" + (" bitrate=%i" % bitrate) * (not vbr) + " vbr" * vbr + " reorder" * reorder + " read-ahead=" + `read_ahead` + " keep-wavs" * keep_wavs + " -+- press Q to quit"
         extra_lines = 2
         if names_available:
             extra_lines = extra_lines + 1
@@ -3362,7 +3363,10 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, enc_running, da
                         enc_stat_upd(num, 'coding failed, err#' + `res`)
                     else:
                         global_done = global_done + exited_proc['track'][LEN]
-                        enc_stat_upd(num, "[coding @" + '%1.2f' % speed + "x done, mp3 OK]")
+                        if vbr:
+                            enc_stat_upd(num, "[coding @" + '%1.2f' % speed + "x done,%03.0fkbit]" % ((filesize(track[NAME] + ".mp3") * 0.008) / (track[LEN] / 75)))
+                        else:
+                            enc_stat_upd(num, "[coding @" + '%1.2f' % speed + "x done, mp3 OK]")
                         if not otf and not keep_wavs:
                             remove(track[NAME] + ".wav")
                             space = space + tracksize(track)[WAV]
@@ -3585,7 +3589,14 @@ if global_error:
         system(exec_err)
     exit()
 
-elif set_id3tag or freedb_rename:
+if vbr:
+    total_length = 0
+    total_size = 0
+    for i in all_tracks_todo_sorted:
+        total_length = total_length + i[LEN]
+        total_size = total_size + filesize(i[NAME] + ".mp3")
+
+if set_id3tag or freedb_rename:
     for i in all_tracks_todo_sorted:
         mp3name = i[NAME] + ".mp3"
         wavname = i[NAME] + ".wav"
@@ -3654,9 +3665,13 @@ elif set_id3tag or freedb_rename:
 
 if not silent_mode:
     if names_available:
-        print "Done with \"" + a_artist+ " - " + a_title + "\"."
+        print "Done with \"" + a_artist+ " - " + a_title + "\".",
     else:
-        print "All done."
+        print "All done.",
+    if vbr:
+        print "Avg. bitrate: %03.0fkbit" % ((total_size * 0.008) / (total_length / 75))
+    else:
+        print
 
 if progress_changed:
     progress("all", "done", strftime("%b %2d %H:%M:%S", localtime(time())))
