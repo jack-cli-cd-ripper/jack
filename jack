@@ -375,6 +375,7 @@ if Linux:
 else:
   loadavg = "-1"    # tell me how to get sysload on non-Linux systems!
                     # preferably without calling uptime
+image_toc_file = None
 image_file = ""     # normal operation: DAE from CD, not from image
 toc_file = prog_name + ".toc"   # if noexistent, create on startup
 def_toc = prog_name + ".toc"    # cache toc here
@@ -2594,7 +2595,7 @@ while i<len(argv):
         read_ahead = 0          # we do not want to waste discspace
         i = i + 1
     elif argv[i] in ("-f", "--from-tocfile"):
-        toc_file = argv[i + 1]
+        image_toc_file = argv[i + 1]
         read_ahead = 0          # we do not want to waste discspace
         i = i + 1
     elif argv[i] in ("-e", "--encoders"):
@@ -2878,7 +2879,10 @@ while (not path.exists(toc_file)) or multi_mode:
         if multi_mode:
             all_tracks = []
         else:
-            all_tracks = gettoc()
+            if image_toc_file:
+                all_tracks, dummy, dummy, dummy = cdrdao_gettoc(image_toc_file)
+            else:
+                all_tracks = gettoc()
 
         if scan_dirs != None:
             recurse_dirs = scan_dirs
@@ -2996,6 +3000,8 @@ if check_toc:
 
 is_submittable = 0
 if path.exists(toc_file):
+    if image_toc_file:
+        toc_file = image_toc_file
     all_tracks, new_image_file, multi_file_mode, track1_offset = cdrdao_gettoc(toc_file)
     if not path.exists(def_toc):
         cdrdao_puttoc(def_toc, all_tracks, freedb_id(all_tracks))
