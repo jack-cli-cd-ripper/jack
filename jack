@@ -416,8 +416,8 @@ helpers = {
         'type': "encoder",
         'target': "ogg",
         'can_tag': 1,
-        #'vbr-cmd': "oggenc -o %o -t %t -a %a -N %n -l %l -b %r %i",
-        'vbr-cmd': "oggenc -q 5 -o %o -t %t -a %a -N %n -l %l %i",
+        #'vbr-cmd': "oggenc -o %o -t %t -a %a -N %n -l %l -G %g -d %y -b %r %i",
+        'vbr-cmd': "oggenc -q 5 -o %o -t %t -a %a -N %n -l %l -G %g -d %y %i",
         'status_blocksize': 64,
         'bitrate_factor': 1,
         'status_start': "%",
@@ -625,7 +625,7 @@ while l:
 
     'cdda2wav': {
         'type': "ripper",
-        'cmd': "cdda2wav --no-infofile -H -v 1 -D %g -O wav -t %n %o",
+        'cmd': "cdda2wav --no-infofile -H -v 1 -D %D -O wav -t %n %o",
         'status_blocksize': 200,
         'status_start': "percent_done:",
         'status_fkt': \"\"\"
@@ -639,7 +639,7 @@ else:
 final_status = ("%4.1f" % speed) + "x [ DAE done with cdda2wav       ]"
 \"\"\",
         'toc': 1,
-        'toc_cmd': "cdda2wav --no-infofile -D %g -J -v 35 2>&1",
+        'toc_cmd': "cdda2wav --no-infofile -D %D -J -v 35 2>&1",
         'toc_fkt': \"\"\"
 new_c2w = 0
 new_toc1 = 0
@@ -1938,7 +1938,7 @@ def start_new_ripper(track, ripper):
         if i == "%n": args.append(`track[NUM]`)
         elif i == "%o": args.append(track[NAME] + ".wav")
         elif i == "%d": args.append(cd_device)
-        elif i == "%g": args.append(gen_device)
+        elif i == "%D": args.append(gen_device)
         else: args.append(i)
     data = start_new_process(args)
     data['type'] = "ripper"
@@ -1969,6 +1969,9 @@ def start_new_encoder(track, encoder):
                         args.append(track_names[0][0])
                 elif i == "%n": args.append(`track[NUM]`)
                 elif i == "%l": args.append(track_names[0][1])
+                elif i == "%G" and id3_genre >= 0: args.append(id3_genre)
+                elif i == "%g" and id3_genre >= 0: args.append(id3_genretxt)
+                elif i == "%y" and id3_year > 0: args.append(`id3_year`)
                 else:
                     args.append(i)
             else:
@@ -1993,7 +1996,7 @@ def start_new_otf(track, ripper, encoder):
     for i in split(helpers[ripper]['otf-cmd']):
         if i == "%n": args.append(`track[NUM]`)
         elif i == "%d": args.append(cd_device)
-        elif i == "%g": args.append(gen_device)
+        elif i == "%D": args.append(gen_device)
         else: args.append(i)
     data['rip']['start_time'] = time()
     pid = os.fork()
@@ -2023,7 +2026,7 @@ def start_new_otf(track, ripper, encoder):
         if i == "%r": args.append(`track[RATE] * helpers[encoder]['bitrate_factor']`)
         elif i == "%o": args.append(track[NAME] + ext)
         elif i == "%d": args.append(cd_device)
-        elif i == "%g": args.append(gen_device)
+        elif i == "%D": args.append(gen_device)
         else: args.append(i)
     data['enc']['start_time'] = time()
     pid = os.fork()
@@ -2711,14 +2714,14 @@ while i<len(argv):
     elif argv[i] == "--wait":
         wait_on_quit = 1
     elif argv[i] in ("-G", "--id3-genre"):
-        id3_genre = argv[i + 1]
-        if upper(id3_genre) == "HELP":
+        id3_genre_txt = argv[i + 1]
+        if upper(id3_genre_txt) == "HELP":
             id3_genre = -2  # print genre list later
-        elif upper(id3_genre) == "NONE":
+        elif upper(id3_genre_txt) == "NONE":
             id3_genre = 255 # set genre to [unknown]
         else:
             id3temp = ID3("/dev/null")
-            id3_genre = id3temp.find_genre(id3_genre)
+            id3_genre = id3temp.find_genre(id3_genre_txt)
             if id3_genre == -1:
                 print "Error: illegal genre. Try '" + prog_name, argv[i] + " help' for a list."
                 sys.exit(1)
