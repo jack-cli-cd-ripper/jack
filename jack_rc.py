@@ -86,9 +86,7 @@ def get_version(rc):
         return None
 
 def load(cf, file):
-    file = os.path.expandvars(file)
-    file = os.path.expanduser(file)
-    rc = read(file)
+    rc = read(expand(file))
     rc_cf = {}
     for i in rc:
         if i[0] != None:
@@ -169,8 +167,7 @@ def convert(cf):
     return rc
 
 def save(file, cf):
-    file = os.path.expandvars(file)
-    file = os.path.expanduser(file)
+    file = expand(file)
     rc_cf = {}
     for i in cf.keys():
         if cf[i].has_key('save') and not cf[i]['save']:

@@ -45,14 +45,8 @@ freedb_servers = {
         'id': prog_name + " " + prog_version,
         'mail': "freedb-submit@freedb.org",
         'my_mail': "default"
-        },
-    'cddb': {
-        'host': "cddb.cddb.com",
-        'id': "xmcd 2.6",
-        'submit_mail': "freedb-submit@freedb.org",
-        'my_mail': "default"
-        },
-    }
+    },
+}
 
 def interpret_db_file(all_tracks, freedb_form_file, verb, dirs = 0, warn = None):
     "read freedb file and rename dir(s)"

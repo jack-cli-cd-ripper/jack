@@ -20,6 +20,11 @@
 import string
 import re
 
+import jack_plugins
+
+from jack_globals import *
+
+
 helpers = {
     'builtin': {
         'type': "dummy",
@@ -494,16 +499,20 @@ helpers['lame-user'].update({'cmd': "lame --preset cbr %r --strictly-enforce-ISO
         'otf-cmd': "lame --preset cbr %r --strictly-enforce-ISO - %o",
         'vbr-otf-cmd': "lame -V %q --vbr-new --nohist --strictly-enforce-ISO - %o", })
 
-# compile exec strings
-for h in helpers.keys():
-    for i in helpers[h].keys():
-        if i[-4:] == "_fkt":
-            helpers[h][i] = compile(helpers[h][i], '<string>', 'exec')
+def init():
+    # import plugin
+    jack_plugins.import_helpers()
 
-# compile filters
-for h in helpers.keys():
-    if helpers[h].has_key('filters'):
-        newf = []
-        for i in helpers[h]['filters']:
-            newf.append([re.compile(i[0]), i[1]])
-        helpers[h]['filters'] = newf
+    # compile exec strings
+    for h in helpers.keys():
+        for i in helpers[h].keys():
+            if i[-4:] == "_fkt":
+                helpers[h][i] = compile(helpers[h][i], '<string>', 'exec')
+
+    # compile filters
+    for h in helpers.keys():
+        if helpers[h].has_key('filters'):
+            newf = []
+            for i in helpers[h]['filters']:
+                newf.append([re.compile(i[0]), i[1]])
+            helpers[h]['filters'] = newf

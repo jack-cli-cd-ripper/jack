@@ -18,6 +18,7 @@
 
 import string
 import sys
+import os
 import jack_version
 from jack_config import cf
 
@@ -61,3 +62,5 @@ def debug(msg):
         tmp.write(msg + "\n")
         del tmp
 
+def expand(filespec):
+    return(os.path.expanduser(os.path.expandvars(filespec)))
