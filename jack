@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 ### jack - extract audio from a CD and encode it using 3rd party software
-### Copyright (C) 1999-2003  Arne Zellentin <zarne@users.sf.net>
+### Copyright (C) 1999-2004  Arne Zellentin <zarne@users.sf.net>
 
 ### This program is free software; you can redistribute it and/or modify
 ### it under the terms of the GNU General Public License as published by
@@ -140,6 +140,9 @@ if cf['_freedb_submit'] or cf['_freedb_mailsubmit']:
 
 ### (9) do query on start
 freedb_rename = 0
+if cf['_query_if_needed']:
+    if not os.path.exists(cf['_freedb_form_file'] + ".bak"):
+        cf['_query_on_start'] = 1
 if cf['_query_on_start']:
     freedb_rename = jack_prepare.query_on_start()
 

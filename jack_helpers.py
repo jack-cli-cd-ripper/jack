@@ -1,7 +1,7 @@
 # -*- coding: iso-8859-15 -*-
 ### jack_helpers: helper applications for
 ### jack - extract audio from a CD and encode it using 3rd party software
-### Copyright (C) 1999-2003  Arne Zellentin <zarne@users.sf.net>
+### Copyright (C) 1999-2004  Arne Zellentin <zarne@users.sf.net>
 
 ### This program is free software; you can redistribute it and/or modify
 ### it under the terms of the GNU General Public License as published by
@@ -242,7 +242,7 @@ if len(s) >= 3:
         'type': "ripper",
         'cmd': "cdparanoia --abort-on-skip -d %d %n %o",
         'otf-cmd': "cdparanoia --abort-on-skip -e -d %d %n -R -",
-        'status_blocksize': 600,
+        'status_blocksize': 700,
         'status_start': "%",
         'status_fkt': r"""
 # (== PROGRESS == [                              | 013124 00 ] == :^D * ==)

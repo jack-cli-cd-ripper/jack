@@ -1,7 +1,7 @@
 # -*- coding: iso-8859-15 -*-
 ### jack_config.py: default config settings for
 ### jack - extract audio from a CD and encode it using 3rd party software
-### Copyright (C) 2002-2003  Arne Zellentin <zarne@users.sf.net>
+### Copyright (C) 2002-2004  Arne Zellentin <zarne@users.sf.net>
 
 ### This program is free software; you can redistribute it and/or modify
 ### it under the terms of the GNU General Public License as published by
@@ -470,6 +470,13 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
         'usage': "do freedb query when starting",
         'long': 'query-now',
         'short': 'Q',
+        },
+    'query_if_needed': {
+        'type': 'toggle',
+        'val': 0,
+        'help': 1,
+        'usage': "query freedb when starting if not queried already",
+        'long': 'AUTO',
         },
     'query_when_ready': {
         'type': 'toggle',
