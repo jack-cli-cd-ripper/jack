@@ -126,12 +126,10 @@ try:
     from os import statvfs
     statvfs_found = 1
 except ImportError:
-    print "Info: os.statvfs not found, using builtin (base on df)"
+    print "Info: os.statvfs not found, using builtin (based on df)"
     statvfs_found = 0
 
-if environ.has_key('LANG'):
-    if DEBUG: print "LANG set to C"
-    environ['LANG'] = "C"
+environ['LC_ALL'] = "C"
 
 prefs_file = environ['HOME'] + "/.jackrc"
 
