@@ -1962,8 +1962,8 @@ def start_new_encoder(track, encoder):
             if targets[helper['target']]['can_pretag']:
                 if i == "%t": args.append(track_names[track[NUM]][1])
                 elif i == "%a":
-                    if track_names[NUM][0]:
-                        args.append(track_names[NUM][0])
+                    if track_names[track[NUM]][0]:
+                        args.append(track_names[track[NUM]][0])
                     else:
                         args.append(track_names[0][0])
                 elif i == "%n": args.append(`track[NUM]`)
