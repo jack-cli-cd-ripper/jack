@@ -1,4 +1,8 @@
-##### This is jack 2.2.0 ...
+Note: This file is no longer kept up-to-date. Use
+http://home.unix-ag.org/arne/jack/ChangeLog
+for changes after those listed below.
+
+##### This is jack 2.2.2 ...
  ### changes from version 2.1.1 (internal) include:
   # added curses frontend
   # added support for variable bitrate MP3s (currently only for lame)

@@ -56,9 +56,13 @@ Note that the ID3 tags are not undone. Fix the freedb file and again, use
 <PRE>$ jack -R</PRE>
 to activate your changes.
 When you are sure the freedb file is suitable for submission, submit it (via
-eMail as freedb does not support http submissions as of now. Sendmail must be
-working on your machine!):
+e-mail (option -m) or via HTTP POST (option --submit). When using the former,
+sendmail must be installed and working on your machine! If you're on a dial-up,
+you can use the -m option to queue submits, provided sendmail is set up
+accordingly):
 <PRE>$ jack -m</PRE>
+or
+<PRE>$jack --submit</PRE>
 </UL>
 Those were the basics. Now some more advanced examples:
 <UL>
