@@ -1636,7 +1636,7 @@ def do_freedb_submit(file, id):
         print "This server doesn't seem to support database submission via http."
         print "consider submitting via mail (" + progname + " -m). full error:\n"
     print err, msg
-    print f.read()
+    #print f.read()
 
 def do_freedb_mailsubmit(file, id):
     cat = ["blues", "classical", "country", "data", "folk", "jazz", "misc", "newage", "reggae", "rock", "soundtrack"]
@@ -2878,8 +2878,9 @@ if update_freedb:
     print "invoking your editor,", editor, "..."
     os.system(editor + " " + freedb_form_file)
     print "now submit your changes if you like, either via e-mail using the"
-    print "option -m or, if your server supports it (freedb doesn't),"
+    print "option -m or, if your server supports it (freedb does now!),"
     print "with --submit via http POST."
+    print "Don't forget to activate your change with -R"
     sys.exit()
 
 ### (9) undo renaming (operation mode)
