@@ -890,7 +890,8 @@ del tmp
 
 # track representation format
 # [ track#, len, start, copy, pre, ch, unused, bitrate, filename ]
-NUM, LEN, START, COPY, PRE, CH, RIP, RATE, NAME = 0, 1, 2, 3, 4, 5, 6, 7, 8
+fields = string.split("NUM LEN START COPY PRE CH RIP RATE NAME")
+NUM, LEN, START, COPY, PRE, CH, RIP, RATE, NAME = range(len(fields))
 # LEN and START is in cdda-blocks:
 CDDA_BLOCKSIZE = 2352
 # more constants
@@ -2285,15 +2286,14 @@ def cmp_toc(x, y):
 
 def cmp_toc_cd(x, y):
     "compare the relevant parts of two TOCs"
-    ok = 1
     if len(x) == len(y):
         for i in range(len(x)):
-            for j in NUM, LEN, START, COPY, CH:
+            for j in NUM, LEN, START:
                 if x[i][j] != y[i][j]:
-                    ok = 0
+                    return 0
     else:
-        ok = 0
-    return ok
+        return 0
+    return 1
 
 def filesize(name):
     return stat(name)[ST_SIZE]
@@ -2575,6 +2575,12 @@ def ex_edit(file):
         editor = os.environ['EDITOR']
     print "invoking your editor,", editor, "..."
     os.system(string.split(editor)[0] + " " + file)
+
+def has_track(l, num):
+    for i in range(len(l)):
+        if l[i][NUM] == num:
+            return i
+    return -1.5
 
 ##############################################################################
 ###################### M A I N ###############################################
@@ -2903,6 +2909,8 @@ ext = targets[helpers[encoder]['target']]['file_extension']
 ### (1) search for a dir containing a toc-file or do the multi-mode
 
 tries = 0
+toc_just_read = 0
+
 while (not path.exists(toc_file)) or multi_mode:
     tries = tries + 1
     if tries > 2:
@@ -2917,6 +2925,7 @@ while (not path.exists(toc_file)) or multi_mode:
                 all_tracks, dummy, dummy, dummy = cdrdao_gettoc(image_toc_file)
             else:
                 all_tracks = gettoc()
+                toc_just_read = 1
 
         if scan_dirs != None:
             recurse_dirs = scan_dirs
@@ -3051,26 +3060,33 @@ if not path.exists(freedb_form_file):
 
 ### (4a) filter out data tracks
 
-audio_tracks = all_tracks[:]
+if toc_just_read and helpers[ripper].has_key("toc_cmd") and ripper != toc_prog:
+    ripper_tracks = gettoc(toc_prog=ripper)
+    if ripper_tracks != all_tracks:
+        for i in range(len(ripper_tracks)):
+            for j in range(6):
+                # "NUM LEN START COPY PRE CH" (not: "RIP RATE NAME")
+                if ripper_tracks[i][j] != all_tracks[i][j]:
+                    progress(i + 1, "patch", "%s %d -> %d" % (fields[j], all_tracks[i][j], ripper_tracks[i][j]))
+                    print "Info: Track %02d %s" % (i + 1, fields[j]), all_tracks[i][j], "!=", ripper_tracks[i][j], "(trusting <-- %s)" % ripper
 
-if helpers[ripper].has_key("toc_cmd") and ripper != toc_prog:
-    audio_tracks = gettoc(toc_prog=ripper)
-    if len(all_tracks) != len(audio_tracks):
-        print "Info: CD has %d tracks but %s reports %d. I'll trust %s." % (len(all_tracks), ripper, len(audio_tracks), ripper)
+        for i in range(len(ripper_tracks), len(all_tracks)):
+            progress(i + 1, "off", "non-audio")
+            print "Info: Track %02d not found by %s. Treated as non-audio." % (i + 1, ripper)
     
 ### (4b) Parse tracks from argv, generate todo
 
 tracknum = {}
-for i in audio_tracks:
+for i in all_tracks:
     tracknum[i[NUM]] = i
 
 if not tracks:
     todo = []
-    for i in audio_tracks:
+    for i in all_tracks:
         if i[CH] == 2:
             todo.append(i)
         else:
-            print "Warning: can't handle non audio track %i" % i[NUM]
+            print "Info: can't handle non audio track %i" % i[NUM]
 
 else:       # example: "1,2,4-8,12-" ->  [ 1,2,4,5,6,7,8,12,13,...,n ]
     tlist = []
@@ -3082,7 +3098,7 @@ else:       # example: "1,2,4-8,12-" ->  [ 1,2,4,5,6,7,8,12,13,...,n ]
             if k[1]:
                 upper_limit = safe_int(k[1], "Track '%s' is not a number." % k[1])
             else:
-                upper_limit = len(audio_tracks)
+                upper_limit = len(all_tracks)
             for j in range(lower_limit, upper_limit + 1):
                 tlist.append(j)
         else:
@@ -3101,10 +3117,10 @@ else:       # example: "1,2,4-8,12-" ->  [ 1,2,4,5,6,7,8,12,13,...,n ]
     # generate todo
     todo = []
     for k in tlist:
-        if k < 1 or k > len(audio_tracks):
-            print 'This CD has tracks 1-%d.  Ignoring request for track %d.' % (len(audio_tracks), k)
+        if k < 1 or k > len(all_tracks):
+            print 'This CD has tracks 1-%d.  Ignoring request for track %d.' % (len(all_tracks), k)
             continue
-        if audio_tracks[k-1][CH] == 2:
+        if all_tracks[k-1][CH] == 2:
             todo.append(all_tracks[k-1])
         else:
             print "Warning: can't handle non audio track %i" % k[NUM]
@@ -3125,16 +3141,22 @@ for i in todo:
 
 ### (5) read progress info into status
 
+all_tracks_orig = []
+for i in all_tracks:
+    all_tracks_orig.append(i[:])
+
 status = {}
 for i in all_tracks:
     num = i[NUM]
     status[num] = {}
     status[num]['dae'] = status[num]['enc'] = status[num]['ren'] = []
     status[num]['names'] = [i[NAME],]
+    status[num]['patch'] = status[num]['off'] = []
 
 status['all'] = {}
 status['all']['mkdir'] = status['all']['names'] = [[],]
 status['all']['dae'] = status['all']['enc'] = status['all']['ren'] = []
+status['all']['patch'] = status['all']['off'] = []
 status['all']['id3_genre'] = ["-1",]
 status['all']['id3_year'] = ["-1",]
 
@@ -3201,6 +3223,7 @@ for i in status.keys():
     del status[i]['ren']
 
 status_all = status['all']  # status info for the whole CD is treated separately
+
 del status['all']
 
                                     # now clean up a little
@@ -3217,6 +3240,23 @@ for i in status.keys():
     if status[i]['dae'] and len(status[i]['dae']) == 1:
         status[i]['dae'] = status[i]['dae'][0]
 
+    if status[i]['patch']:
+        for j in status[i]['patch']:
+            p_what, p_from, dummy, p_to = string.split(j)
+            p_from = int(p_from)
+            p_to = int(p_to)
+            if tracknum[i][fields.index(p_what)] == p_from:
+                tracknum[i][fields.index(p_what)] = p_to
+            else:
+                print "Error: illegal patch", j, todo[k][fields.index(p_what)], p_from
+                exit(1)
+
+    if status[i]['off']:
+        if has_track(todo, i) >= 0:
+            del todo[has_track(todo, i)]
+        if has_track(all_tracks_todo_sorted, i) >= 0:
+            del all_tracks_todo_sorted[has_track(all_tracks_todo_sorted, i)]
+
                                     # extract status from read progress data
 
 for i in status.keys():
@@ -3224,6 +3264,7 @@ for i in status.keys():
         dae_status[i] = status[i]['dae']
     if status[i]['enc']:
         enc_status[i] = status[i]['enc']
+
 
 dir_created = status_all['names'][-1]
 
@@ -3450,9 +3491,9 @@ if only_dae:            # if only_dae nothing is encoded _at_all_.
 # will handle the tracks in mp3s_todo.
 
 if todo_exit:           # print what needs to be done, then exit
-    for i in audio_tracks:
+    for i in all_tracks:
         print "%02i" % i[NUM],
-        if i in todo:
+        if has_track(todo, i[NUM]) >= 0:
             print "*",
         else:
             print "-",
@@ -3509,9 +3550,8 @@ max_load = max_load + encoders
 if not dont_work and dae_queue:     # check if inserted cd matches toc.
     if not image_file:
         all_tracks_on_cd = gettoc()
-        if not force and not cmp_toc_cd(all_tracks, all_tracks_on_cd):
+        if not force and not cmp_toc_cd(all_tracks_orig, all_tracks_on_cd):
             print "Error: you did not insert the right cd, aborting."
-            exit()
 
 if remove_q and not force and not dont_work:
     if silent_mode:
@@ -3544,7 +3584,6 @@ if not curses_enable and (wavs_todo or mp3s_todo):
     new[3] = new[3] & ~termios.ECHO
     new[3] = new[3] & ~termios.ICANON
     tcsetattr(stdin.fileno(), termios.TCSADRAIN, new)
-
 
              #\                                                 /#
 #########> real work starts here <#############################################
@@ -3689,7 +3728,7 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, enc_running, da
                 dae_stat_upd(dae_queue[0][NUM], "Paused. Press 'c' to continue.")
             elif not image_file:
                 all_tracks_on_cd = gettoc()
-                if not cmp_toc_cd(all_tracks, all_tracks_on_cd):
+                if not cmp_toc_cd(all_tracks_orig, all_tracks_on_cd):
                     while dae_queue:
                         track = dae_queue[0]
                         dae_queue = dae_queue[1:]
@@ -4267,9 +4306,9 @@ if set_id3tag or freedb_rename:
                 else:
                     oggi.add_tag('ARTIST', a_artist)
                 if id3_genre != -1:
-                    oggi.add_tag('GENRE', id3_genre)
+                    oggi.add_tag('GENRE', id3genres[id3_genre])
                 if id3_year != -1:
-                    oggi.add_tag('YEAR', id3_year)
+                    oggi.add_tag('YEAR', `id3_year`)
                 oggi.write_to(mp3name)
         if freedb_rename:
             if t_artist:    # 'Various Artists'
