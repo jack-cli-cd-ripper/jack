@@ -2830,6 +2830,8 @@ while i<len(argv):
     elif argv[i] == "--charset":
         charset = argv[i + 1]
         i = i + 1
+        if not char_filter:
+            print "Warning: option --charset has no effect without a char_filter"
     else:
         if not argv[i] in ("-h", "-help", "--help"):
             print "unknown option", argv[i]
@@ -2885,7 +2887,8 @@ while i<len(argv):
         print "      --wait:         wait for key press before quitting"
         print "      --otf:          on-the-fly encoding *experimental* (" + yes(otf) + ")"
         print "      --edit-cddb     edit CDDB information (" + yes(edit_cddb) + ")"
-        print "      --charset      *character set freedb data is encoded in (" + charset + ")"
+        if char_filter:
+            print "      --charset      *character set freedb data is encoded in (" + charset + ")"
         print
         print "    When a freedb query is done, files are renamed and tagged accordingly."
 
