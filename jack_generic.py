@@ -1,6 +1,6 @@
-### jack_globals: Global storage space for
+### jack_generic: generic functions used (here) for
 ### jack - extract audio from a CD and encode it using 3rd party software
-### Copyright (C) 2002  Arne Zellentin <zarne@users.sf.net>
+### Copyright (C) 1999-2002  Arne Zellentin <zarne@users.sf.net>
 
 ### This program is free software; you can redistribute it and/or modify
 ### it under the terms of the GNU General Public License as published by
@@ -16,21 +16,40 @@
 ### along with this program; if not, write to the Free Software
 ### Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-from jack_constants import *
-from jack_config import cf
-from jack_generic import info, error, warning, debug, DEBUG
+import string
+import sys
 
-# globals
-dae_queue = []                      # This stores the tracks to rip
-enc_queue = []                      # WAVs go here to get some codin'
-enc_running = 0                     # what is going on?
-dae_running = 0                     # what is going on?
-progress_changed = 0                # nothing written to progress, yet
-revision = 0                        # initial revision of freedb data
+import jack_term
 
-#misc stuff
-from ID3 import ID3
-tmp = ID3("/dev/null")
-id3genres = tmp.genres
-del tmp
+DEBUG = 1
+
+def ewprint(pre, msg):
+    msg = string.split(msg)
+    pre = " *" + pre + "*"
+    print pre,
+    p = len(pre)
+    y = p
+    for i in msg:
+        if len(i) + y > 78:
+            print
+            print " " * p,
+            y = p
+        print i,
+        y = y + len(i) + 1
+    print
+
+def error(msg):
+    jack_term.disable()
+    ewprint("error", msg)
+    sys.exit(1)
+
+def warning(msg):
+    ewprint("warning", msg)
+
+def info(msg):
+    ewprint("info", msg)
+
+def debug(msg):
+    if DEBUG:
+        ewprint("debug", msg)
 

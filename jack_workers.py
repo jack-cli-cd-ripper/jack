@@ -16,18 +16,19 @@
 ### along with this program; if not, write to the Free Software
 ### Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-from jack_helpers import helpers
-from jack_globals import *
-import jack_targets
-import jack_utils
-import jack_tag
+import string
+import fcntl
 import time
 import pty
 import os
-import fcntl
-from jack_init import F_SETFL, O_NONBLOCK
 
-import string
+import jack_targets
+import jack_utils
+import jack_tag
+
+from jack_globals import *
+from jack_helpers import helpers
+from jack_init import F_SETFL, O_NONBLOCK
 
 def start_new_process(args, nice_value = 0):
     "start a new process in a pty and renice it"
@@ -53,25 +54,25 @@ def start_new_process(args, nice_value = 0):
 
 def start_new_ripper(track, ripper):
     "start a new DAE process"
-    helper = helpers[cg['ripper']]
+    helper = helpers[cf['_ripper']]
     cmd = string.split(helper['cmd'])
     args = []
     for i in cmd:
         if i == "%n": args.append(`track[NUM]`)
         elif i == "%o": args.append(track[NAME] + ".wav")
-        elif i == "%d": args.append(cg['cd_device'])
-        elif i == "%D": args.append(cg['gen_device'])
+        elif i == "%d": args.append(cf['_cd_device'])
+        elif i == "%D": args.append(cf['_gen_device'])
         else: args.append(i)
     data = start_new_process(args)
     data['type'] = "ripper"
-    data['prog'] = cg['ripper']
+    data['prog'] = cf['_ripper']
     data['track'] = track
     return data
 
 def start_new_encoder(track, encoder):
     "start a new encoder process"
-    helper = helpers[cg['encoder']]
-    if cg['vbr']:
+    helper = helpers[cf['_encoder']]
+    if cf['_vbr']:
         cmd = string.split(helper['vbr-cmd'])
     else:
         cmd = string.split(helper['cmd'])
@@ -79,9 +80,9 @@ def start_new_encoder(track, encoder):
     args = []
     for i in cmd:
         if i == "%r": args.append(`track[RATE] * helper['bitrate_factor']`)
-        elif i == "%q": args.append(`cg['vbr_quality']`)
+        elif i == "%q": args.append(`cf['_vbr_quality']`)
         elif i == "%i": args.append(track[NAME] + ".wav")
-        elif i == "%o": args.append(track[NAME] + cg['ext'])
+        elif i == "%o": args.append(track[NAME] + cf['_ext'])
         else:
             if jack_targets.targets[helper['target']]['can_pretag']:
                 if i == "%t": args.append(jack_tag.track_names[track[NUM]][1])
@@ -93,21 +94,21 @@ def start_new_encoder(track, encoder):
                 elif i == "%n": args.append(`track[NUM]`)
                 elif i == "%l": args.append(jack_tag.track_names[0][1])
                 elif i == "%G":
-                    if cg['id3_genre'] >= 0: args.append(cg['id3_genre'])
+                    if cf['_id3_genre'] >= 0: args.append(cf['_id3_genre'])
                     else: args.append('255')
                 elif i == "%g":
-                    if cg['id3_genre'] >= 0: args.append(jack_tag.genretxt)
+                    if cf['_id3_genre'] >= 0: args.append(jack_tag.genretxt)
                     else: args.append('Unknown')
                 elif i == "%y":
-                    if cg['id3_year'] > 0: args.append(`cg['id3_year']`)
+                    if cf['_id3_year'] > 0: args.append(`cf['_id3_year']`)
                     else: args.append('0')
                 else:
                     args.append(i)
             else:
                 args.append(i)
-    data = start_new_process(args, cg['nice_value'])
+    data = start_new_process(args, cf['_nice_value'])
     data['type'] = "encoder"
-    data['prog'] = cg['encoder']
+    data['prog'] = cf['_encoder']
     data['track'] = track
     return data
 
@@ -124,8 +125,8 @@ def start_new_otf(track, ripper, encoder):
     args = []
     for i in string.split(helpers[ripper]['otf-cmd']):
         if i == "%n": args.append(`track[NUM]`)
-        elif i == "%d": args.append(cg['cd_device'])
-        elif i == "%D": args.append(cg['gen_device'])
+        elif i == "%d": args.append(cf['_cd_device'])
+        elif i == "%D": args.append(cf['_gen_device'])
         else: args.append(i)
     data['rip']['start_time'] = time.time()
     pid = os.fork()
@@ -139,30 +140,30 @@ def start_new_otf(track, ripper, encoder):
     os.close(rip_out)
     os.close(rip_err)
     data['rip']['pid'] = pid
-    data['rip']['cmd'] = helpers[cg['ripper']]['otf-cmd']
+    data['rip']['cmd'] = helpers[cf['_ripper']]['otf-cmd']
     data['rip']['buf'] = ""
     data['rip']['percent'] = 0
     data['rip']['elapsed'] = 0
     data['rip']['type'] = "ripper"
-    data['rip']['prog'] = cg['ripper']
+    data['rip']['prog'] = cf['_ripper']
     data['rip']['track'] = track
     if vbr:
-        cmd = string.split(helpers[cg['encoder']]['vbr-otf-cmd'])
+        cmd = string.split(helpers[cf['_encoder']]['vbr-otf-cmd'])
     else:
-        cmd = string.split(helpers[cg['encoder']]['otf-cmd'])
+        cmd = string.split(helpers[cf['_encoder']]['otf-cmd'])
     args = []
     for i in cmd:
-        if i == "%r": args.append(`track[RATE] * helpers[cg['encoder']]['bitrate_factor']`)
-        elif i == "%q": args.append(`cg['vbr_quality']`)
-        elif i == "%o": args.append(track[NAME] + cg['ext'])
-        elif i == "%d": args.append(cg['cd_device'])
-        elif i == "%D": args.append(cg['gen_device'])
+        if i == "%r": args.append(`track[RATE] * helpers[cf['_encoder']]['bitrate_factor']`)
+        elif i == "%q": args.append(`cf['_vbr_quality']`)
+        elif i == "%o": args.append(track[NAME] + cf['_ext'])
+        elif i == "%d": args.append(cf['_cd_device'])
+        elif i == "%D": args.append(cf['_gen_device'])
         else: args.append(i)
     data['enc']['start_time'] = time.time()
     pid = os.fork()
     if pid == CHILD:
-        if cg['nice_value']:
-            os.nice(cg['nice_value'])
+        if cf['_nice_value']:
+            os.nice(cf['_nice_value'])
         os.dup2(enc_in, STDIN_FILENO)
         os.dup2(enc_err, STDERR_FILENO)
         os.close(enc_in)
@@ -178,7 +179,7 @@ def start_new_otf(track, ripper, encoder):
     data['enc']['percent'] = 0
     data['enc']['elapsed'] = 0
     data['enc']['type'] = "encoder"
-    data['enc']['prog'] = cg['encoder']
+    data['enc']['prog'] = cf['_encoder']
     data['enc']['track'] = track
     data['rip']['otf-pid'] = data['enc']['pid']
 
@@ -229,7 +230,7 @@ def ripread(track, offset = 0):
                 image_offset = 0
 
             else:
-                jack_utils.debug("unsupported image file " + image_file)
+                debug("unsupported image file " + image_file)
                 posix._exit(4)
         
         expected_filesize = tracksize(all_tracks)[CDR] + CDDA_BLOCKSIZE * offset
@@ -240,15 +241,15 @@ def ripread(track, offset = 0):
             expected_filesize = expected_filesize + 44
 
         if jack_utils.filesize(image_file) != expected_filesize:
-            jack_utils.debug("image file size mismatch, aborted. %i != %i"% (jack_utils.filesize(image_file), expected_filesize))
+            debug("image file size mismatch, aborted. %i != %i"% (jack_utils.filesize(image_file), expected_filesize))
             posix._exit(1)
 
         elif hdr[0] == 'wav' and (hdr[1], hdr[2], hdr[4]) != (44100, 2, 16):
-            jack_utils.debug("unsupported WAV, need CDDA_fmt, aborted.")
+            debug("unsupported WAV, need CDDA_fmt, aborted.")
             posix._exit(2)
 
         elif hdr[0] not in ('wav', 'cdr', 'bin'):
-            jack_utils.debug("unsupported: " + hdr[0] + ", aborted.")
+            debug("unsupported: " + hdr[0] + ", aborted.")
             posix._exit(3)
 
         else:

@@ -18,6 +18,7 @@
 
 import string, types
 import sys
+import os
 
 def multi_replace(s, rules):
     "like string.replace but take list (('from0', 'to0'), ('from1', 'to1'))..."
@@ -47,4 +48,33 @@ def safe_int(number, message):
         print message
         sys.exit(1)
 
+class dict2(dict):
+    def rupdate(self, d2, where):
+        for i in d2.keys():
+            if self.__contains__(i):
+                new = self.__getitem__(i)
+                if new['val'] != d2[i]['val']:
+                    new.update(d2[i])
+                    new['history'].append([where, new['val']])
+                    dict.__setitem__(self, i, new)
+    def __getitem__(self, y):
+        if type(y) == types.StringType and y and y[0] == "_":
+            return dict.__getitem__(self, y[1:])['val']
+        else:
+            return dict.__getitem__(self, y)
 
+    def __setitem__(self, y, x):
+        if type(y) == types.StringType and y and y[0] == "_":
+            self[y[1:]]['val'] = x
+            #return dict.__setitem__(self, y[1:])['val']
+        else:
+            return dict.__setitem__(self, y, x)
+
+def loadavg():
+    "extract sysload from /proc/loadavg, linux only (?)"
+    if os.uname()[0] == "Linux":
+        f = open("/proc/loadavg", "r")
+        load = float(string.split(f.readline())[0])
+        return load
+    else:
+        return -1

@@ -28,10 +28,8 @@ import jack_freedb
 import jack_functions
 import jack_globals
 import jack_tag
-import jack_utils
 
-from jack_globals import cg
-
+from jack_globals import *
 
 global_total = None
 options_string = None
@@ -53,10 +51,10 @@ def init():
     global_total = jack_functions.tracksize(jack_ripstuff.all_tracks_todo_sorted)[jack_functions.BLOCKS]
 
     options_string = "Options:" \
-        + (" bitrate=%i" % cg['bitrate']) * (not cg['vbr']) + " vbr" * cg['vbr'] \
-        + " reorder" * cg['reorder'] \
-        + " read-ahead=" + `cg['read_ahead']` \
-        + " keep-wavs" * cg['keep_wavs'] \
+        + (" bitrate=%i" % cf['_bitrate']) * (not cf['_vbr']) + " vbr" * cf['_vbr'] \
+        + " reorder" * cf['_reorder'] \
+        + " read-ahead=" + `cf['_read_ahead']` \
+        + " keep-wavs" * cf['_keep_wavs'] \
         + " id=" + jack_freedb.freedb_id(jack_ripstuff.all_tracks) \
         + (" len=%02i:%02i" % (global_total / jack_globals.CDDA_BLOCKS_PER_SECOND \
             / 60, global_total / jack_globals.CDDA_BLOCKS_PER_SECOND % 60)) \
@@ -80,14 +78,14 @@ def sig_handler(sig, frame):
     jack_term.disable()
     if sig:
         exit_code = 2
-        jack_utils.info("signal %d caught, exiting." % sig)
+        info("signal %d caught, exiting." % sig)
     for i in jack_children.children:
         exit_code = 1
-        if not cg['silent_mode']:
-            jack_utils.info("killing %s (pid %d)" % (i['type'], i['pid']))
+        if not cf['_silent_mode']:
+            info("killing %s (pid %d)" % (i['type'], i['pid']))
         os.kill(i['pid'], signal.SIGTERM)
         i['file'].close()
-    if exit_code and cg['silent_mode']:
+    if exit_code and cf['_silent_mode']:
         progress("all", "err", "abnormal exit (code %i), check %s and %s" % (exit_code, err_file, out_file))
 
     if globals().has_key("wait_on_quit") and wait_on_quit:

@@ -16,7 +16,7 @@
 ### along with this program; if not, write to the Free Software
 ### Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-from jack_globals import NUM, cg
+from jack_globals import NUM, cf
 import jack_term
 import jack_ripstuff
 
@@ -25,8 +25,7 @@ enc_cache = {}      # sometimes status messages are stored here
 dae_status = {}     # status messages are stored here
 
 def init(todo):
-    #xxx
-    #global enc_status, enc_cache, dae_status
+    global enc_status, enc_cache, dae_status
     for i in todo:
         dae_status[i[NUM]] = ""
         enc_status[i[NUM]] = ""
@@ -52,7 +51,7 @@ def dae_stat_upd(num, string):
 def print_status(form = 'normal'):
     for i in jack_ripstuff.all_tracks_todo_sorted:
         if form != 'normal' or not jack_ripstuff.printable_names:
-            print cg['name'] % i[NUM] + ":", dae_status[i[NUM]], enc_status[i[NUM]]
+            print cf['_name'] % i[NUM] + ":", dae_status[i[NUM]], enc_status[i[NUM]]
         else:
             print jack_ripstuff.printable_names[i[NUM]] + ":", dae_status[i[NUM]], enc_status[i[NUM]]
 

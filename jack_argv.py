@@ -1,4 +1,4 @@
-### jack_misc - argv parser and help printing -- part of
+### jack_argv - argv parser and help printing -- part of
 ### jack - extract audio from a CD and MP3ify it using 3rd party software
 ### Copyright (C) 2002  Arne Zellentin <zarne@users.sf.net>
 
@@ -18,6 +18,8 @@
 
 import sys
 import types
+
+from jack_globals import *
 from jack_misc import safe_int
 
 def show_usage(cf, long=0):
@@ -75,17 +77,21 @@ def parse_option(cf, argv, i, option):
     if ty == types.IntType:
         i, data = get_next(argv, i)
         if i:
-            return i, safe_int(data, "Option `%s' needs an integer argument" % option)
+            try:
+                data = int(data)
+                return i, data
+            except:
+                return None, "option `%s' needs an integer argument" % option
+
+            return i, safe_int(data, "option `%s' needs an integer argument" % option)
         else:
-            print "Option needs exactly one argument:", option
-            sys.exit(1)
+            return None, "Option `%s' needs exactly one argument" % option
     if ty == types.StringType:
         i, data = get_next(argv, i)
         if i:
             return i, data
         else:
-            print "Option needs exactly one argument:", option
-            sys.exit(1)
+            return None, "Option `%s' needs exactly one string argument" % option
     if ty == types.ListType:
         l = []
         while 1:
@@ -99,13 +105,10 @@ def parse_option(cf, argv, i, option):
         if l:
             return i, l
         else:
-            print "Option takes a non-empty list (which may be terminated by \";\"):", option
-            sys.exit(1)
+            return None, "option `%s' takes a non-empty list (which may be terminated by \";\")" % option
     # default
-    print "Unknown argument type for option `%s'." % option
-    sys.exit(1)
+    return None, "unknown argument type for option `%s'." % option
             
-
 def parse_argv(cf, argv):
     argv_cf = {}
     allargs = {}
@@ -153,9 +156,11 @@ def parse_argv(cf, argv):
 
         if option:
             i, value = parse_option(cf, argv, i, option)
+            if i == None:
+                error(value)
             if not argv_cf.has_key(option):
                 argv_cf[option] = {}
-            argv_cf[option]['val'] = value
+            argv_cf[option].update({'val': value})
         else:
             print "unknown option `%s'" % argv[i]
             show_usage(cf)

@@ -19,7 +19,7 @@
 import string
 import sys
 import os
-import jack_utils
+from jack_globals import *
 
 try:
     from fcntl import F_SETFL
@@ -57,7 +57,7 @@ try:
 except:
     class dummy_ogg:
         def __init__(self):
-            jack_utils.warning("ogg module not installed, ogg support disabled")
+            warning("ogg module not installed, ogg support disabled")
     ogg = dummy_ogg()
 
 os.environ['LC_ALL'] = "C"

@@ -23,9 +23,10 @@ import traceback
 import fcntl
 import sys
 
-import jack_utils
 import jack_ripstuff
 import jack_freedb
+
+from jack_globals import *
 
 # exported functions:
 #init
@@ -79,7 +80,7 @@ def init(arg_type="auto", arg_xtermset = 0):
         term_type = "curses"
 
     if not tmod:
-        jack_utils.error("invalid terminal type `%s'" % type)
+        error("invalid terminal type `%s'" % type)
 
     xtermset = arg_xtermset
 
@@ -108,7 +109,7 @@ def getsize():
             except ImportError:
                 # TIOCGWINSZ = 0x5413 # linux, ix86. Anyone else?
                 can_getsize = 0
-                jack_utils.warning("""could not find a module which exports
+                warning("""could not find a module which exports
 TIOCGWINSZ.  This means I can't determine your terminal's geometry, so please
 don't resize it. Use Tools/scripts/h2py.py from the Python source distribution
 to convert /usr/include/asm/ioctls.h to IOCTLS.py and install it.""")
@@ -156,7 +157,7 @@ def enable(want_x = None, want_y = None):
                 os.system("xtermset -geom %dx%d" % (want_x, want_y))
                 geom_changed = 1
             except:
-                jack_utils.warning("failed to call xtermset, is it really installed?")
+                warning("failed to call xtermset, is it really installed?")
                 xtermset = 0
     enabled = 1
     tmod.enable()

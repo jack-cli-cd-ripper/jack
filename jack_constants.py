@@ -1,4 +1,4 @@
-### jack_globals: Global storage space for
+### jack_constants
 ### jack - extract audio from a CD and encode it using 3rd party software
 ### Copyright (C) 2002  Arne Zellentin <zarne@users.sf.net>
 
@@ -16,21 +16,22 @@
 ### along with this program; if not, write to the Free Software
 ### Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-from jack_constants import *
-from jack_config import cf
-from jack_generic import info, error, warning, debug, DEBUG
+# track representation format
+# LEN and START is in cdda-blocks:
+# [ track#, len, start, copy, pre, ch, unused, bitrate, filename ]
+fields = ["NUM", "LEN", "START", "COPY", "PRE", "CH", "RIP", "RATE", "NAME"]
+NUM, LEN, START, COPY, PRE, CH, RIP, RATE, NAME = 0,1,2,3,4,5,6,7,8
 
-# globals
-dae_queue = []                      # This stores the tracks to rip
-enc_queue = []                      # WAVs go here to get some codin'
-enc_running = 0                     # what is going on?
-dae_running = 0                     # what is going on?
-progress_changed = 0                # nothing written to progress, yet
-revision = 0                        # initial revision of freedb data
+# jack_functions.tracksize() return list format
+ENC, WAV, BOTH, PEAK, AT, CDR, BLOCKS = 0,1,2,3,4,5,6
 
-#misc stuff
-from ID3 import ID3
-tmp = ID3("/dev/null")
-id3genres = tmp.genres
-del tmp
+# more constants
+CDDA_BLOCKSIZE = 2352
+CDDA_BLOCKS_PER_SECOND = 75
+MSF_OFFSET = 150
+CHILD = 0
+CDDA_MAXTRACKS = 100
+STDIN_FILENO = 0
+STDOUT_FILENO = 1
+STDERR_FILENO = 2
 

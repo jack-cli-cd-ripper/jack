@@ -21,7 +21,6 @@ import sys
 import signal
 import types
 
-import jack_utils
 import jack_status
 import jack_ripstuff
 import jack_display
@@ -29,7 +28,7 @@ import jack_term
 import jack_globals
 import jack_version
 
-from jack_globals import cg, NUM
+from jack_globals import *
 
 had_special = None
 
@@ -37,7 +36,7 @@ try:
     from jack_curses import endwin, resizeterm, A_REVERSE, newwin, newpad, initscr, noecho, cbreak, echo, nocbreak
     curses_enable = 1
 except ImportError:
-    jack_utils.warning("jack_curses module not found, trying normal curses...")
+    warning("jack_curses module not found, trying normal curses...")
     try:
         from curses import endwin, A_REVERSE, newwin, newpad, initscr, noecho, cbreak, echo, nocbreak
         def resizeterm(y, x):

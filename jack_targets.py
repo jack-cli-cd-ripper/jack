@@ -16,17 +16,17 @@
 ### along with this program; if not, write to the Free Software
 ### Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-import jack_utils
+from jack_globals import *
 
 try:
     import ogg.vorbis
     has_ogg_vorbis = 1
     if ogg.vorbis.__version__ < "0.5":
         has_ogg_vorbis = 0
-        jack_utils.debug("ogg.vorbis tagging disabled, version is too low.")
+        debug("ogg.vorbis tagging disabled, version is too low.")
 except:
     has_ogg_vorbis = 0
-    jack_utils.debug("ogg.vorbis tagging disabled.")
+    debug("ogg.vorbis tagging disabled.")
 
 # supported target file fomats
 targets = {

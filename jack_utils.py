@@ -28,7 +28,7 @@ import jack_globals
 import jack_misc
 import jack_term
 
-from jack_globals import cg, NUM, LEN, START, COPY, PRE, CH, RIP, RATE, NAME
+from jack_globals import *
 
 def all_paths(p):
     "return all path leading to and including p"
@@ -50,7 +50,7 @@ def check_path(p1, p2):
     for i in p1, p2:
         if type(i) != types.ListType:
             print "Error: invalid type for check_path", i
-            exit()
+            sys.exit(1)
     if len(p1) > len(p2):   # make sure p1 is shorter or as long as p2
         p1, p2 = p2, p1
     ok = 1
@@ -62,6 +62,7 @@ def check_path(p1, p2):
 def rename_path(old, new):
     "this is complicated."
     cwd = os.getcwd()
+    print cwd
     cwds = split_dirname(cwd)
     if type(old) == types.StringType:
         old = split_dirname(old)
@@ -70,7 +71,7 @@ def rename_path(old, new):
     for i in old, new, cwds:
         if type(i) != types.ListType:
             print "Error: invalid type for rename_path:", i
-            exit()
+            sys.exit(1)
 
     # weed out empty dirs (which are technically illegal on freedb but exist)
     tmp = []
@@ -89,11 +90,11 @@ def rename_path(old, new):
             os.chdir(i)
         else:
             print "Error: could not create or change to " + i + " from " + os.getcwd()
-            exit()
+            sys.exit(1)
     last_of_new = new[-1]
     if os.path.exists(last_of_new):
         print "Error: destination directory already exists:", last_of_new
-        exit()
+        sys.exit(1)
     os.rename(cwd, last_of_new)
     os.chdir(last_of_new)
                                                # now remove empty "orphan" dirs
@@ -102,7 +103,7 @@ def rename_path(old, new):
     old_dirs.reverse()
     for i in old_dirs[:len(old)][1:]:
         try:
-            rmdir(i)
+            os.rmdir(i)
         except OSError:
             pass
 
@@ -113,6 +114,7 @@ def cmp_toc(x, y):
     elif x == y: return 0
     elif x < y: return -1
 
+NUM, LEN, START, COPY, PRE, CH, RIP, RATE, NAME = range(9)
 def cmp_toc_cd(x, y, what=(NUM, LEN, START)):
     "compare the relevant parts of two TOCs"
     if len(x) == len(y):
@@ -138,7 +140,7 @@ def safe_float(number, message):
         return float(number)
     except ValueError:
         print message
-        exit(1)
+        sys.exit(1)
 
 def mkdirname(names, template):
     "generate mkdir-able directory name(s)"
@@ -146,14 +148,14 @@ def mkdirname(names, template):
         
     dirs2 = []
     for i in dirs:
-        replace_list = (("%a", names[0][0]), ("%l", names[0][1]), ("%y", `cg['id3_year']`), ("%g", cg['id3_genre_txt']))
+        replace_list = (("%a", names[0][0]), ("%l", names[0][1]), ("%y", `cf['_id3_year']`), ("%g", cf['_id3_genre_txt']))
         x = jack_misc.multi_replace(i, replace_list)
-        exec("x = x" + cg['char_filter'])
-        for char_i in range(len(cg['unusable_chars'])):
-            x = string.replace(x, cg['unusable_chars'][char_i], cg['replacement_chars'][char_i])
+        exec("x = x" + cf['_char_filter'])
+        for char_i in range(len(cf['_unusable_chars'])):
+            x = string.replace(x, cf['_unusable_chars'][char_i], cf['_replacement_chars'][char_i])
         dirs2.append(x)
-    if cg['append_year'] and len(`cg['id3_year']`) == 4:  # Y10K bug!
-        dirs2[-1] = dirs2[-1] + jack_misc.multi_replace(cg['append_year'], replace_list)
+    if cf['_append_year'] and len(`cf['_id3_year']`) == 4:  # Y10K bug!
+        dirs2[-1] = dirs2[-1] + jack_misc.multi_replace(cf['_append_year'], replace_list)
     name = ""
     for i in dirs2:
         name = os.path.join(name, i)
@@ -195,34 +197,3 @@ def has_track(l, num):
             return i
     return -1.5
 
-def ewprint(pre, msg):
-    msg = string.split(msg)
-    pre = " *" + pre + "*"
-    print pre,
-    p = len(pre)
-    y = p
-    for i in msg:
-        if len(i) + y > 78:
-            print
-            print " " * p,
-            y = p
-        print i,
-        y = y + len(i) + 1
-    print
-
-def error(msg):
-    jack_term.disable()
-    ewprint("error", msg)
-    sys.exit(1)
-
-def warning(msg):
-    ewprint("warning", msg)
-
-def info(msg):
-    ewprint("info", msg)
-
-def debug(msg):
-    if jack_globals.DEBUG:
-        ewprint("debug", msg)
-        if globals().has_key('cg') and cg and cg.has_key('progress_file'):
-            jack_functions.progress_error(msg)

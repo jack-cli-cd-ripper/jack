@@ -19,14 +19,16 @@
 import types
 import os
 import string
-from jack_version import prog_version, prog_name
+import jack_misc
+
+import jack_version
 from jack_globals import *
 
 # this must be filled manually (done in main)
-cg = {}
 
 # config space with attributes
-cf = {
+
+cf = jack_misc.dict2({
     ### prefs ###
     'ripper': {
         'type': types.StringType,
@@ -201,11 +203,11 @@ cf = {
         'jackrc': 1,
         'doc': "display freedb track names instead if \"track_01\", ... This will not fit in a 80x24 terminal.",
         },
-    'recurse_dirs': {
+    'scan_dirs': {
         'type': types.IntType,
         'val': 2,
-        'jackrc': 1,
-        'doc': "search how deep for workdir in ",
+        'usage': "scan in cwd n dir levels deep, e.g. 0 to disable",
+        'long': 'AUTO',
         },
     'searchdirs': {
         'type': types.ListType,
@@ -459,11 +461,6 @@ cf = {
         'doc': "XXX",
         'long': 'I-swear-I\'ll-never-give-these-files-to-anyone,-including-hot-babes-TM'
         },
-    'tlist': {
-        'type': types.ListType,
-        'val': [],
-        'doc': "XXXwhich tracks to process (e.g. 1, 3, 5-9, 12-)",
-        },
     'tracks': {
         'type': types.StringType,
         'val': "",
@@ -625,16 +622,6 @@ if environ.has_key("OSTYPE") and environ['OSTYPE'] in ["Linux", "linux-gnu"]:
 else:
   Linux = 0""",
         },
-    'loadavg': {
-        'type': types.StringType,
-        'val': "-1",
-        'init': 0,
-        'doc': r"""XXX this is eval()'d to get the sysload
-if Linux:
-  loadavg = "get_sysload_linux_proc()"
-else:
-  loadavg = "-1" """,
-        },
     'image_toc_file': {
         'type': types.StringType,
         'val': None,
@@ -644,7 +631,7 @@ else:
         },
     'image_file': {
         'type': types.StringType,
-        'val': "",
+        'val': None,
         'doc': "XXX normal operation: DAE from CD, not from image",
         'long': 'from-image',
         'short': 'F',
@@ -656,32 +643,32 @@ else:
         },
     'toc_file': {
         'type': types.StringType,
-        'val': prog_name + ".toc",
+        'val': jack_version.prog_name + ".toc",
         'doc': "if noexistent, create on startup",
         },
     'def_toc': {
         'type': types.StringType,
-        'val': prog_name + ".toc",
+        'val': jack_version.prog_name + ".toc",
         'doc': "cache toc here",
         },
     'freedb_form_file': {
         'type': types.StringType,
-        'val': prog_name + ".freedb",
+        'val': jack_version.prog_name + ".freedb",
         'doc': "name of submission template",
         },
     'out_file': {
         'type': types.StringType,
-        'val': prog_name + ".out",
+        'val': jack_version.prog_name + ".out",
         'doc': "in silent-mode, stdout goes here",
         },
     'err_file': {
         'type': types.StringType,
-        'val': prog_name + ".err",
+        'val': jack_version.prog_name + ".err",
         'doc': "in silent-mode, stderr here",
         },
     'progress_file': {
         'type': types.StringType,
-        'val': prog_name + ".progress",
+        'val': jack_version.prog_name + ".progress",
         'doc': "subprocess output is cached here",
         },
     'progr_sep': {
@@ -709,12 +696,6 @@ else:
         'usage': "try to query freedb for all dirs in searchdirs which have no freedb data",
         'long': 'AUTO',
         },
-    'scan_dirs': {
-        'type': types.IntType,
-        'val': 0,
-        'usage': "scan in cwd n dir levels deep, e.g. 0 to disable",
-        'long': 'AUTO',
-        },
     'claim_dir': {
         'type': 'toggle',
         'val': 0,
@@ -735,10 +716,31 @@ else:
         'long': 'id3-genre',
         'short': 'G',
         },
-    }
+    'save_args': {
+        'type': 'toggle',
+        'val': 0,
+        'save': 0,
+        'usage': "save options to rc file and exit",
+        'long': 'save',
+        },
+    'global_rc': {
+        'type': types.StringType,
+        'val': "/etc/jackrc",
+        'save': 0,
+        'doc': "system-wide config file",
+        },
+    'user_rc': {
+        'type': types.StringType,
+        'val': "~/.jack3rc",
+        'save': 0,
+        'doc': "user config file",
+        },
+    })
 
-# expand long options
 for i in cf.keys():
+    # expand long options
     if cf[i].has_key('long') and cf[i]['long'] == "AUTO":
         cf[i]['long'] = string.replace(i, "_", "-")
+    # init history
+    cf[i]['history'] = [ ["config", cf[i]['val'],],]
 

@@ -16,18 +16,22 @@
 ### along with this program; if not, write to the Free Software
 ### Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-from jack_globals import *
-from jack_helpers import helpers
-import jack_TOC
+import traceback
+import types
+import string
+import sys
+import os
+
 import jack_TOCentry
 import jack_CDTime
-import jack_mp3
 import jack_utils
+import jack_TOC
+import jack_mp3
 
-import string
-import types
-import traceback
-import sys, os
+from jack_globals import *
+from jack_helpers import helpers
+
+NUM, LEN, START, COPY, PRE, CH, RIP, RATE, NAME = range(9)
 
 def df(fs = ".", blocksize = 1024):
     "returns free space on a filesystem (in bytes)"
@@ -79,8 +83,8 @@ def pprint_i(num, fmt = "%i%s", scale = 2.0**10, max = 4):
 def gettoc(toc_prog):
     "Returns track list"
     if helpers[toc_prog].has_key('toc_cmd'):
-        cmd = string.replace(helpers[toc_prog]['toc_cmd'], "%d", cg['cd_device'])
-        cmd = string.replace(cmd, "%D", cg['gen_device'])
+        cmd = string.replace(helpers[toc_prog]['toc_cmd'], "%d", cf['_cd_device'])
+        cmd = string.replace(cmd, "%D", cf['_gen_device'])
         p = os.popen(cmd)
         start = 0
         erg = []
@@ -133,8 +137,8 @@ def guesstoc(names):
                 i_name])
             progr.append([num, "dae", "  *   [          simulated           ]"])
             progr.append([num, "enc", `x['bitrate']`, "[ s i m u l a t e d %3ikbit]" % (x['bitrate'] + 0.5)])
-            if cg['name'] % num != i_name:
-                progr.append([num, "ren", cg['name'] % num + "-->" + i_name])
+            if cf['_name'] % num != i_name:
+                progr.append([num, "ren", cf['_name'] % num + "-->" + i_name])
         elif i_ext == ".WAV":
             x = whathdr(i)
             if not x:
@@ -158,10 +162,10 @@ def guesstoc(names):
                 f.close()
                 blocks = blocks - extra_bytes
             blocks = blocks / CDDA_BLOCKSIZE
-            erg.append([num, blocks, start, 0, 0, 2, 1, cg['bitrate'], i_name])
+            erg.append([num, blocks, start, 0, 0, 2, 1, cf['_bitrate'], i_name])
             progr.append([num, "dae", "  =p  [  s  i  m  u  l  a  t  e  d   ]"])
-            if cg['name'] % num != i_name:
-                progr.append([num, "ren", cg['name'] % num + "-->" + i_name])
+            if cf['_name'] % num != i_name:
+                progr.append([num, "ren", cf['_name'] % num + "-->" + i_name])
         elif i_ext == ".OGG":
             print "Error: you still have to wait for ogg support for this ooperation, sorry."
             exit()
@@ -189,6 +193,7 @@ def timestrtoblocks(str):
 
 B_MM, B_SS, B_FF = 0, 1, 2
 def blockstomsf(blocks):
+    from jack_globals import CDDA_BLOCKS_PER_SECOND
     "convert blocks to mm, ss, ff"
     mm = blocks / 60 / CDDA_BLOCKS_PER_SECOND
     blocks = blocks - mm * 60 * CDDA_BLOCKS_PER_SECOND
@@ -222,9 +227,9 @@ def real_cdrdao_gettoc(tocfile):     # get toc from cdrdao-style toc-file
     actual_track.start = 0
     actual_track.length = 0
     actual_track.rip = 1
-    actual_track.bitrate = cg['bitrate']
+    actual_track.bitrate = cf['_bitrate']
     actual_track.image_name = ""
-    actual_track.rip_name = cg['name'] % 0
+    actual_track.rip_name = cf['_name'] % 0
 
 ## tocfile data is read in line by line.
 
@@ -247,7 +252,7 @@ def real_cdrdao_gettoc(tocfile):     # get toc from cdrdao-style toc-file
                 toc.append(actual_track)
             actual_track = new_track
             actual_track.rip = 1
-            actual_track.bitrate = cg['bitrate']
+            actual_track.bitrate = cf['_bitrate']
             actual_track.start = toc.end_pos
             if line == "TRACK AUDIO":
                 actual_track.type = "audio"
@@ -285,7 +290,7 @@ def real_cdrdao_gettoc(tocfile):     # get toc from cdrdao-style toc-file
 
             actual_track.length = jack_CDTime.CDTime(length).blocks
             actual_track.image_name = os.path.join(tocpath, filename)
-            actual_track.rip_name = cg['name'] % num
+            actual_track.rip_name = cf['_name'] % num
 
 ## example: START 00:01:53. This means the actual track starts 1:53s _after_
 ## the start given by the FILE statement. This so-called pregap needs to be
@@ -353,7 +358,6 @@ def cdrdao_puttoc(tocfile, tracks, cd_id):     # put toc to cdrdao toc-file
             f.write("START "+msftostr(blockstomsf(i[START]))+"\n")
         f.write("\n")
 
-ENC, WAV, BOTH, PEAK, AT, CDR, BLOCKS = 0, 1, 2, 3, 4, 5, 6
 def tracksize(list, dont_dae = [], blocksize = 1024):
     "Calculates all kind of sizes for a track or a list of tracks."
     if list and type(list[0]) == types.IntType:
@@ -398,10 +402,10 @@ def progress(track, what="error", data="error", data2 = None):
         print "Error: illegal progress entry:", track, type(track)
         exit()
     progress_changed = 1
-    f = open(cg['progress_file'], "a")
-    f.write(first + cg['progr_sep'] + what + cg['progr_sep'] + data)
+    f = open(cf['_progress_file'], "a")
+    f.write(first + cf['_progr_sep'] + what + cf['_progr_sep'] + data)
     if data2:
-        f.write(cg['progr_sep'] + data2)
+        f.write(cf['_progr_sep'] + data2)
     f.write("\n")
     f.close()
 

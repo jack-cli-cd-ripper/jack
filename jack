@@ -38,6 +38,7 @@ import jack_version
 import jack_misc
 import jack_mp3
 import jack_argv
+import jack_rc
 import jack_helpers
 import jack_targets
 import jack_freedb
@@ -48,21 +49,18 @@ import jack_tag
 import jack_workers
 import jack_utils
 import jack_ripstuff
+import jack_encstuff
 import jack_checkopts
 import jack_status
-import jack_globals
 import jack_functions
+import jack_main_loop
+import jack_progress
 
 from jack_init import ID3
 from jack_init import cdrom
 from jack_init import ogg
 from jack_config import cf
-from jack_functions import PEAK, BOTH, ENC, WAV, BLOCKS
 from jack_globals import *
-
-#XXX read system-wide config
-#XXX read user config
-
 
 ##############################################################################
 ###################### M A I N ###############################################
@@ -73,48 +71,58 @@ argv_bitrate = 0
 # say hello...
 print "This is ", jack_version.prog_name, jack_version.prog_version, "(C) 2002  Arne Zellentin <zarne@users.sf.net>"
 
-argv_cf = jack_argv.parse_argv(cf, sys.argv)
-print argv_cf
-
 ### interpret options
+global_cf = jack_rc.load(cf, cf['global_rc']['val'])
+debug("global_cf: " + `global_cf`)
+jack_checkopts.checkopts(cf, global_cf)
+cf.rupdate(global_cf, "global_rc")
+user_cf = jack_rc.load(cf, cf['user_rc']['val'])
+debug("user_cf: " + `user_cf`)
+jack_checkopts.checkopts(cf, user_cf)
+cf.rupdate(user_cf, "user_rc")
+argv_cf = jack_argv.parse_argv(cf, sys.argv)
+debug("argv_cf: " + `argv_cf`)
 jack_checkopts.checkopts(cf, argv_cf)
-# import the argv
-for i in argv_cf.keys():
-    cf[i]['val'] = argv_cf[i]['val']
+cf.rupdate(argv_cf, "argv")
 
 jack_checkopts.setup(cf)
-
 jack_checkopts.consistency_check(cf)
 
+if cf['save_args']['val'] == 1:
+    count = jack_rc.save(cf['user_rc']['val'], cf)
+    info("%d options saved in %s" % (count, cf['user_rc']['val']))
+    sys.exit()
+
 # import the options into global namespace -- for now, TODO!
-for i in cf.keys():
-    globals()[i] = cf[i]['val']
-    cg[i] = cf[i]['val']
+#for i in cf.keys():
+    #globals()[i] = cf[i]['val']
+
+ext = jack_targets.targets[jack_helpers.helpers[cf['_encoder']]['target']]['file_extension']
 
 ### (1) search for a dir containing a toc-file or do the multi-mode
 
 tries = 0
 toc_just_read = 0
-
-while (not os.path.exists(toc_file)) or multi_mode:
+debug("multi_mode:" + `cf['_multi_mode']`)
+while (not os.path.exists(cf['_toc_file'])) or cf['_multi_mode']:
     tries = tries + 1
     if tries > 2:
         break
-    if guess_mp3s:
-        jack_ripstuff.all_tracks = jack_functions.guesstoc(guess_mp3s)
+    if cf['_guess_mp3s']:
+        jack_ripstuff.all_tracks = jack_functions.guesstoc(cf['_guess_mp3s'])
     else:
-        if multi_mode:
+        if cf['_multi_mode']:
+            debug("multimode all_tracks reset")
             jack_ripstuff.all_tracks = []
         else:
-            if image_toc_file:
-                jack_ripstuff.all_tracks, dummy, dummy = jack_functions.cdrdao_gettoc(image_toc_file)
+            if cf['_image_toc_file']:
+                jack_ripstuff.all_tracks, dummy, dummy = jack_functions.cdrdao_gettoc(cf['_image_toc_file'])
             else:
-                jack_ripstuff.all_tracks = jack_functions.gettoc(toc_prog)
+                jack_ripstuff.all_tracks = jack_functions.gettoc(cf['_toc_prog'])
                 toc_just_read = 1
                 # check that the generic device is usable, too
-                if not os.access(gen_device, os.R_OK | os.W_OK):
-                    print \
-r"""Warning: could not open generic device %s for reading and writing.
+                if not os.access(cf['_gen_device'], os.R_OK | os.W_OK):
+                    warning(r"""Warning: could not open generic device %s for reading and writing.
 This may or may not be a problem. Maybe you just didn't set up gen_device
 in your .jackrc. This is fine, unless you're using a ripper which needs to
 know the generic device (cdparanoia doesn't need to know). But you have to
@@ -128,16 +136,15 @@ Count the devices, starting with 0 and stopping with the CD-ROM you're using.
 Your generic device is /dev/sg[the number you stopped at].
 So: 1. make sure the gen_device is correct
     2. make it read- and writable by you, then this message will not come back.
-Note: other errors below may result from this problem.""" % gen_device
+Note: other errors below may result from this problem.""" % cf['_gen_device'])
 
-        if scan_dirs != None:
-            recurse_dirs = scan_dirs
+        if cf['_scan_dirs']:
             dirs = [os.getcwd()]
         else:
-            dirs = searchdirs
+            dirs = cf['_searchdirs']
 
-        while recurse_dirs > 0:
-            recurse_dirs = recurse_dirs - 1
+        while cf['_scan_dirs'] > 0:
+            cf['_scan_dirs'] = cf['_scan_dirs'] - 1
             new_dirs = []
             for i in dirs:
                 if not i in new_dirs:
@@ -155,13 +162,13 @@ Note: other errors below may result from this problem.""" % gen_device
         possible_dirs = []  # dirs matching inserted CD
         jack_dirs = []      # dirs containing toc_file
         for i in dirs:
-            if os.path.exists(os.path.join(i, toc_file)):
+            if os.path.exists(os.path.join(i, cf['_toc_file'])):
                 jack_dirs.append(i)
-                file_toc, dummy, dummy = jack_functions.cdrdao_gettoc(os.path.join(i, toc_file))
+                file_toc, dummy, dummy = jack_functions.cdrdao_gettoc(os.path.join(i, cf['_toc_file']))
                 if jack_freedb.freedb_id(jack_ripstuff.all_tracks) == jack_freedb.freedb_id(file_toc):
                     possible_dirs.append(i)
 
-        if multi_mode:
+        if cf['_multi_mode']:
             unique_dirs = []
             for i in range(len(jack_dirs)):
                 found = 0
@@ -171,9 +178,9 @@ Note: other errors below may result from this problem.""" % gen_device
                 if not found:
                     unique_dirs.append(jack_dirs[i])
             for i in unique_dirs:
-                jack_ripstuff.all_tracks, dummy, track1_offset = jack_functions.cdrdao_gettoc(os.path.join(i, toc_file))
-                err, jack_tag.track_names, cd_id, revision = freedb_names(jack_freedb.freedb_id(jack_ripstuff.all_tracks), jack_ripstuff.all_tracks,  os.path.join(i, cg['freedb_form_file']), verb = 0, warn = 0)
-                if err or force:# this means freedb data is not there yet
+                jack_ripstuff.all_tracks, dummy, track1_offset = jack_functions.cdrdao_gettoc(os.path.join(i, cf['_toc_file']))
+                err, jack_tag.track_names, cd_id, revision = freedb_names(jack_freedb.freedb_id(jack_ripstuff.all_tracks), jack_ripstuff.all_tracks,  os.path.join(i, cf['_freedb_form_file']), verb = 0, warn = 0)
+                if err or cf['_force']:# this means freedb data is not there yet
                     print "Info: matching dir found:", i
                     pid = os.fork()
                     if pid == CHILD:
@@ -203,22 +210,22 @@ Note: other errors below may result from this problem.""" % gen_device
         elif len(unique_dirs) == 1:
             os.chdir(unique_dirs[0])
         else:
-            if create_dirs:
-                if not os.path.exists(base_dir):
-                    os.makedirs(base_dir)
-                os.chdir(base_dir)
+            if cf['_create_dirs']:
+                if not os.path.exists(cf['_base_dir']):
+                    os.makedirs(cf['_base_dir'])
+                os.chdir(cf['_base_dir'])
                 dir_name = jack_version.prog_name + "-" + jack_freedb.freedb_id(jack_ripstuff.all_tracks, warn=0)
                 if not os.path.exists(dir_name) and not os.path.isdir(dir_name):
                     os.mkdir(dir_name)
                 os.chdir(dir_name)
-                dir_created = dir_name
-                jack_functions.progress("all", "mkdir", dir_created)
+                jack_freedb.dir_created = dir_name
+                jack_functions.progress("all", "mkdir", jack_freedb.dir_created)
 
-    if not multi_mode:
-        if not os.path.exists(toc_file):
-            jack_functions.cdrdao_puttoc(toc_file, jack_ripstuff.all_tracks, jack_freedb.freedb_id(jack_ripstuff.all_tracks))
+    if not cf['_multi_mode']:
+        if not os.path.exists(cf['_toc_file']):
+            jack_functions.cdrdao_puttoc(cf['_toc_file'], jack_ripstuff.all_tracks, jack_freedb.freedb_id(jack_ripstuff.all_tracks))
             jack_freedb.freedb_template(jack_ripstuff.all_tracks) # generate freedb form if tocfile is created
-        if not os.path.exists(cg['freedb_form_file']):
+        if not os.path.exists(cf['_freedb_form_file']):
             jack_freedb.freedb_template(jack_ripstuff.all_tracks)
     else:
         break
@@ -227,51 +234,53 @@ Note: other errors below may result from this problem.""" % gen_device
 
 ### (2) check toc (operation mode)
 
-if check_toc:
-    cd_toc = jack_functions.gettoc(toc_prog)
-    if os.path.exists(toc_file):
-        file_toc, dummy, dummy = jack_functions.cdrdao_gettoc(toc_file)
+if cf['_check_toc']:
+    cd_toc = jack_functions.gettoc(cf['_toc_prog'])
+    if os.path.exists(cf['_toc_file']):
+        file_toc, dummy, dummy = jack_functions.cdrdao_gettoc(cf['_toc_file'])
     else:
-        print "no toc-file named " + toc_file + " found, exiting."
+        print "no toc-file named " + cf['_toc_file'] + " found, exiting."
         jack_display.exit()
     print "This is the inserted CD:"
-    ppritn.pprint(cd_toc)
+    pprint.pprint(cd_toc)
     print
     print "And This is what we expect:"
-    ppritn.pprint(file_toc)
+    pprint.pprint(file_toc)
     print
     if cmp(cd_toc, file_toc) == 0:
-        print 'Yes, toc-file ("' + toc_file + '") matches inserted CD.'
+        print 'Yes, toc-file ("' + cf['_toc_file'] + '") matches inserted CD.'
     else:
-        print 'No, toc-file ("' + toc_file + '") *DOES NOT* match inserted CD.'
+        print 'No, toc-file ("' + cf['_toc_file'] + '") *DOES NOT* match inserted CD.'
     jack_display.exit()
 
 ### (3) read and interpret toc_file
 
 is_submittable = 0
-if os.path.exists(toc_file):
-    if image_toc_file:
-        toc_file = image_toc_file
-    jack_ripstuff.all_tracks, new_image_file, track1_offset = jack_functions.cdrdao_gettoc(toc_file)
-    if not os.path.exists(def_toc):
-        jack_functions.cdrdao_puttoc(def_toc, jack_ripstuff.all_tracks, jack_freedb.freedb_id(jack_ripstuff.all_tracks))
+if os.path.exists(cf['_toc_file']):
+    if cf['_image_toc_file']:
+        cf['_toc_file'] = cf['_image_toc_file']
 
-    # if image_file is not set (-F), we can guess it from image_toc_file
-    if not image_file and not rip_from_device:
-        image_file = new_image_file
+    jack_ripstuff.all_tracks, new_image_file, track1_offset = jack_functions.cdrdao_gettoc(cf['_toc_file'])
 
-    if rip_from_device:
-        image_file = ""
+    if not os.path.exists(cf['_def_toc']):
+        jack_functions.cdrdao_puttoc(cf['_def_toc'], jack_ripstuff.all_tracks, jack_freedb.freedb_id(jack_ripstuff.all_tracks))
+
+    # if image_file is not set (-F), we can guess it from cf['_image_toc_file']
+    if not cf['_image_file'] and not cf['_rip_from_device']:
+        cf['_image_file'] = new_image_file
+
+    if cf['_rip_from_device']:
+        cf['_image_file'] = ""
 
     is_submittable = 1
 
-if not os.path.exists(cg['freedb_form_file']):
+if not os.path.exists(cf['_freedb_form_file']):
     jack_freedb.freedb_template(jack_ripstuff.all_tracks) # ... or if it has been deleted.
 
 ### (4a) filter out data tracks
 
-if toc_just_read and jack_helpers.helpers[ripper].has_key("toc_cmd") and ripper != toc_prog:
-    ripper_tracks = jack_functions.gettoc(ripper)
+if toc_just_read and jack_helpers.helpers[cf['_ripper']].has_key("toc_cmd") and cf['_ripper'] != cf['_toc_prog']:
+    ripper_tracks = jack_functions.gettoc(cf['_ripper'])
     if ripper_tracks != jack_ripstuff.all_tracks:
         for i in range(len(jack_ripstuff.all_tracks)):
             rtn = jack_utils.has_track(ripper_tracks, jack_ripstuff.all_tracks[i][NUM])
@@ -280,10 +289,10 @@ if toc_just_read and jack_helpers.helpers[ripper].has_key("toc_cmd") and ripper 
                     # "NUM LEN START COPY PRE CH" (not: "RIP RATE NAME")
                     if ripper_tracks[rtn][j] != jack_ripstuff.all_tracks[i][j]:
                         jack_functions.progress(i + 1, "patch", "%s %d -> %d" % (fields[j], jack_ripstuff.all_tracks[i][j], ripper_tracks[rtn][j]))
-                        print "Info: Track %02d %s" % (i + 1, fields[j]), jack_ripstuff.all_tracks[i][j], "!=", ripper_tracks[rtn][j], "(trusting %s; to the right)" % ripper
+                        debug("Info: Track %02d %s" % (i + 1, fields[j]) + `jack_ripstuff.all_tracks[i][j]` + " != " + `ripper_tracks[rtn][j]` + " (trusting %s; to the right)" % cf['_ripper'])
             else:
                 jack_functions.progress(i + 1, "off", "non-audio")
-                print "Info: Track %02d not found by %s. Treated as non-audio." % (i + 1, ripper)
+                print "Info: Track %02d not found by %s. Treated as non-audio." % (i + 1, cf['_ripper'])
     
 ### (4b) Parse tracks from argv, generate todo
 
@@ -291,7 +300,7 @@ tracknum = {}
 for i in jack_ripstuff.all_tracks:
     tracknum[i[NUM]] = i
 
-if not tracks:
+if not cf['_tracks']:
     todo = []
     for i in jack_ripstuff.all_tracks:
         if i[CH] == 2:
@@ -301,7 +310,7 @@ if not tracks:
 
 else:       # example: "1,2,4-8,12-" ->  [ 1,2,4,5,6,7,8,12,13,...,n ]
     tlist = []
-    tracks = string.split(tracks, ",")
+    tracks = string.split(cf['_tracks'], ",")
     for k in tracks:
         if string.find(k, '-') >= 0:
             k = string.split(k, '-')
@@ -348,9 +357,9 @@ jack_status.init(todo)
 
 ### (5) read progress info into status
 
-all_tracks_orig = []
+jack_ripstuff.all_tracks_orig = []
 for i in jack_ripstuff.all_tracks:
-    all_tracks_orig.append(i[:])
+    jack_ripstuff.all_tracks_orig.append(i[:])
 
 status = {}
 for i in jack_ripstuff.all_tracks:
@@ -375,7 +384,7 @@ status['all']['id3_year'] = ["-1",]
 
 ### (6) update progress file at user's request (operation mode)
 
-if upd_progress:
+if cf['_upd_progress']:
     for i in todo:
         num = i[NUM]
         if not status[num]['dae']:
@@ -393,14 +402,14 @@ if upd_progress:
                 else:
                     print "Error: don't know how to handle %s files." % ext
                     sys.exit(1)
-                status[num]['enc'] = `temp_rate` + progr_sep + "[simulated]"
+                status[num]['enc'] = `temp_rate` + cf['_progr_sep'] + "[simulated]"
                 jack_functions.progress(num, "enc", status[num]['enc'])
                 del x, temp_rate
 
 ### (7) now read in the progress file
 
-if os.path.exists(progress_file):
-    f = open(progress_file, "r")
+if os.path.exists(cf['_progress_file']):
+    f = open(cf['_progress_file'], "r")
     while 1:
         buf = f.readline()
         if not buf:
@@ -413,7 +422,7 @@ if os.path.exists(progress_file):
         if not buf:
             continue
 
-        buf = string.split(buf, progr_sep, 3)
+        buf = string.split(buf, cf['_progr_sep'], 3)
         try:
             num = int(buf[0])
         except ValueError:
@@ -448,7 +457,7 @@ for i in status.keys():
             tracknum[i][NAME] = status[i]['names'][-1]
     del status[i]['ren']
 
-status_all = status['all']  # status info for the whole CD is treated separately
+jack_progress.status_all = status['all']  # status info for the whole CD is treated separately
 
 del status['all']
 
@@ -462,7 +471,7 @@ for i in status.keys():
         tracknum[i][RATE] = int(float(status[i]['enc'][0]) + 0.5)
         status[i]['enc'] = status[i]['enc'][1]
     elif status[i]['enc'] and len(status[i]['enc']) == 1:
-        tracknum[i][RATE] = bitrate
+        tracknum[i][RATE] = cf['_bitrate']
     if status[i]['dae'] and len(status[i]['dae']) == 1:
         status[i]['dae'] = status[i]['dae'][0]
 
@@ -489,76 +498,76 @@ for i in status.keys():
 # extract status from read progress data
 jack_status.extract(status)
 
-dir_created = status_all['names'][-1]
+jack_freedb.dir_created = jack_progress.status_all['names'][-1]
 
-status_all['id3_genre'] = int(status_all['id3_genre'][-1])
-status_all['id3_year'] = int(status_all['id3_year'][-1])
+jack_progress.status_all['id3_genre'] = int(jack_progress.status_all['id3_genre'][-1])
+jack_progress.status_all['id3_year'] = int(jack_progress.status_all['id3_year'][-1])
 
-if id3_genre == -1:
-    id3_genre = status_all['id3_genre']
+if cf['_id3_genre'] == -1:
+    cf['_id3_genre'] = jack_progress.status_all['id3_genre']
 else:
-    if id3_genre != status_all['id3_genre']:
-        jack_functions.progress("all", "id3_genre", `id3_genre`)
+    if cf['_id3_genre'] != jack_progress.status_all['id3_genre']:
+        jack_functions.progress("all", "id3_genre", `cf['_id3_genre']`)
 
 jack_tag.genretxt = ""
-if id3_genre >= 0 and id3_genre < len(id3genres):
-    jack_tag.genretxt = id3genres[id3_genre]
+if cf['_id3_genre'] >= 0 and cf['_id3_genre'] < len(id3genres):
+    jack_tag.genretxt = id3genres[cf['_id3_genre']]
 
-if id3_year == -1:
-    id3_year = status_all['id3_year']
+if cf['_id3_year'] == -1:
+    cf['_id3_year'] = jack_progress.status_all['id3_year']
 else:
-    if id3_year != status_all['id3_year']:
-        jack_functions.progress("all", "id3_year", `id3_year`)
+    if cf['_id3_year'] != jack_progress.status_all['id3_year']:
+        jack_functions.progress("all", "id3_year", `cf['_id3_year']`)
 
 ### (8) submit freedb data on user's request
 
 if is_submittable:
-    if freedb_submit:               # freedb submit
-        err, jack_tag.track_names, cd_id, revision = freedb_names(jack_freedb.freedb_id(jack_ripstuff.all_tracks), jack_ripstuff.all_tracks, cg['freedb_form_file'])
+    if cf['_freedb_submit']:               # freedb submit
+        err, jack_tag.track_names, cd_id, revision = freedb_names(jack_freedb.freedb_id(jack_ripstuff.all_tracks), jack_ripstuff.all_tracks, cf['_freedb_form_file'])
         if not err:
-            do_freedb_submit(cg['freedb_form_file'], cd_id)
+            do_freedb_submit(cf['_freedb_form_file'], cd_id)
         else:
             print "Error: invalid freedb file."
         jack_display.exit()
-    elif freedb_mailsubmit:
-        err, jack_tag.track_names, cd_id, revision = freedb_names(jack_freedb.freedb_id(jack_ripstuff.all_tracks), jack_ripstuff.all_tracks, cg['freedb_form_file'])
+    elif cf['_freedb_mailsubmit']:
+        err, jack_tag.track_names, cd_id, revision = freedb_names(jack_freedb.freedb_id(jack_ripstuff.all_tracks), jack_ripstuff.all_tracks, cf['_freedb_form_file'])
         if not err:
-            do_freedb_mailsubmit(cg['freedb_form_file'], cd_id)
+            do_freedb_mailsubmit(cf['_freedb_form_file'], cd_id)
         else:
             print "Error: invalid freedb file."
         jack_display.exit()
 
 ### (9) do query on start
 
-if query_on_start:
+if cf['_query_on_start']:
     print "Info: Querying..."
-    if jack_freedb.freedb_query(jack_freedb.freedb_id(jack_ripstuff.all_tracks), jack_ripstuff.all_tracks, cg['freedb_form_file']):
+    if jack_freedb.freedb_query(jack_freedb.freedb_id(jack_ripstuff.all_tracks), jack_ripstuff.all_tracks, cf['_freedb_form_file']):
         if continue_failed_query:
             
             x = raw_input("\nWarning: freedb search failed, continue? ") + "x"
             if x[0] != "y":
                 jack_display.exit()
-            query_on_start = 0
+            cf['_query_on_start'] = 0
         else:
             jack_display.exit()
 
-    if edit_cddb:
-        ex_edit(cg['freedb_form_file'])
+    if cf['_edit_cddb']:
+        ex_edit(cf['_freedb_form_file'])
 
-if query_on_start:
-    err, jack_tag.track_names, freedb_rename, revision = jack_freedb.interpret_db_file(jack_ripstuff.all_tracks, cg['freedb_form_file'], verb = query_on_start, dirs = 1)
+if cf['_query_on_start']:
+    err, jack_tag.track_names, freedb_rename, revision = jack_freedb.interpret_db_file(jack_ripstuff.all_tracks, cf['_freedb_form_file'], verb = cf['_query_on_start'], dirs = 1)
     if err:
         print "Error: query on start failed to give a good freedb file, aborting."
         jack_display.exit()
 else:
-    err, jack_tag.track_names, freedb_rename, revision = jack_freedb.interpret_db_file(jack_ripstuff.all_tracks, cg['freedb_form_file'], verb = query_on_start, warn = query_on_start)
+    err, jack_tag.track_names, freedb_rename, revision = jack_freedb.interpret_db_file(jack_ripstuff.all_tracks, cf['_freedb_form_file'], verb = cf['_query_on_start'], warn = cf['_query_on_start'])
 
 
 ### (10) update freedb dbfile
 
-if update_freedb:
+if cf['_update_freedb']:
     jack_freedb.freedb_template(jack_ripstuff.all_tracks, jack_tag.track_names, revision + 1)
-    ex_edit(cg['freedb_form_file'])
+    ex_edit(cf['_freedb_form_file'])
     print "now submit your changes if you like, either via e-mail using the"
     print "option -m or, if your server supports it (freedb does now!),"
     print "with --submit via http POST."
@@ -567,20 +576,20 @@ if update_freedb:
 
 ### (11) undo renaming (operation mode)
 
-if undo_rename:
+if cf['_undo_rename']:
     maxnames = max(map(lambda x: len(x['names']), status.values()))
-    if len(status_all['names']) >= maxnames:
+    if len(jack_progress.status_all['names']) >= maxnames:
         dir_too = 1
     else:
         dir_too = 0
-    maxnames = max(maxnames, len(status_all['names']))
+    maxnames = max(maxnames, len(jack_progress.status_all['names']))
     if maxnames > 1:
 
         # undo dir renaming
 
         cwd = os.getcwd()
-        if dir_created and jack_utils.check_path(dir_created, cwd) and dir_too:
-            new_name, old_name = status_all['names'][-2:]
+        if jack_freedb.dir_created and jack_utils.check_path(jack_freedb.dir_created, cwd) and dir_too:
+            new_name, old_name = jack_progress.status_all['names'][-2:]
             jack_utils.rename_path(old_name, new_name)    # this changes cwd!
             print "Info: cwd now", os.getcwd()
             jack_functions.progress("all", "undo", "dir")
@@ -611,13 +620,13 @@ if undo_rename:
     sys.exit()
 
 #### Reorder if told so
-if reorder:
+if cf['_reorder']:
     todo.sort(cmp_toc)
     todo.reverse()
 
 #### check how much bytes we can burn
 if space_set_from_argv:
-    space = raw_space = space_from_argv
+    space = raw_space = cf['_space_from_argv']
 else:
     space = raw_space = jack_functions.df()
 
@@ -628,49 +637,47 @@ remove_q = []
 for track in todo:
     wavs_todo.append(track)
     mp3s_todo.append(track)
-wavs_ready = [] # this is not really needed
-mp3s_ready = [] # we need this later to remove the tracks from wavs_todo
-                # and to prevent re-coding
 
+jack_encstuff.mp3s_ready = []
 for track in todo:
     mp3 = track[NAME] + ext
     if os.path.exists(mp3):
-        if overwrite:
+        if cf['_overwrite']:
             space = space + jack_utils.filesize(mp3)
             remove_q.append(mp3)
             jack_status.enc_status[track[NUM]] = "will o/w file."
-        elif not force and not jack_status.enc_status[track[NUM]]:
+        elif not cf['_force'] and not jack_status.enc_status[track[NUM]]:
             space = space + jack_utils.filesize(mp3)
             remove_q.append(mp3)
             jack_status.enc_status[track[NUM]] = "no encoder run."
         # with vbr encoded files can't legally be too small
         # but to reduce confusion, the check is then removed:
-        elif not vbr and jack_utils.filesize(mp3) <= jack_functions.tracksize(track)[ENC] * 0.99: # found by trial'n'err
+        elif not cf['_vbr'] and jack_utils.filesize(mp3) <= jack_functions.tracksize(track)[ENC] * 0.99: # found by trial'n'err
             space = space + jack_utils.filesize(mp3)
             remove_q.append(mp3)
             jack_status.enc_status[track[NUM]] = "encoded file too small by " + jack_functions.pprint_i(jack_functions.tracksize(track)[ENC] - jack_utils.filesize(mp3)) + "."
-        elif not vbr and jack_utils.filesize(mp3) >= jack_functions.tracksize(track)[ENC] * 1.05: # found by trial'n'err
-            print ext
+        elif not cf['_vbr'] and jack_utils.filesize(mp3) >= jack_functions.tracksize(track)[ENC] * 1.05: # found by trial'n'err
             space = space + jack_utils.filesize(mp3)
             remove_q.append(mp3)
             jack_status.enc_status[track[NUM]] = "enc. file too large by " + jack_functions.pprint_i(jack_utils.filesize(mp3) - jack_functions.tracksize(track)[ENC]) + "."
         else:
             mp3s_todo.remove(track)
-            mp3s_ready.append(track)
+            jack_encstuff.mp3s_ready.append(track)
     else:
         if jack_status.enc_status[track[NUM]]:
             jack_status.enc_status[track[NUM]] = "[file lost-doing again]"
 
+jack_ripstuff.wavs_ready = []
 for track in todo:
     wav = track[NAME] + ".wav"
     if os.path.exists(wav):
-        if overwrite:
+        if cf['_overwrite']:
             space = space + jack_utils.filesize(wav)
             remove_q.append(wav)
             jack_status.dae_status[track[NUM]] = "Existing WAV will be overwritten."
         elif jack_utils.filesize(wav) == jack_functions.tracksize(track)[WAV] and jack_status.dae_status[track[NUM]]:
             wavs_todo.remove(track)
-            wavs_ready.append(track)
+            jack_ripstuff.wavs_ready.append(track)
         elif jack_utils.filesize(wav) == jack_functions.tracksize(track)[WAV]:
             space = space + jack_utils.filesize(wav)
             remove_q.append(wav)
@@ -688,17 +695,18 @@ for track in todo:
             if jack_status.enc_status[track[NUM]] == "[file lost-doing again]":
                 jack_status.dae_status[track[NUM]] = " ---- [    both lost, doing again    ]"
                 jack_status.enc_status[track[NUM]] = ""
-            elif keep_wavs or track not in mp3s_ready:
+            elif cf['_keep_wavs'] or track not in jack_encstuff.mp3s_ready:
                 jack_status.dae_status[track[NUM]] = " ---- [ WAV lost, doing again        ]"
 
-if only_dae: keep_wavs = 1
+if cf['_only_dae']:
+    cf['_keep_wavs'] = 1
 
-if not keep_wavs:
+if not cf['_keep_wavs']:
     for track in todo:
-        if track in mp3s_ready and track in wavs_todo:
+        if track in jack_encstuff.mp3s_ready and track in wavs_todo:
             wavs_todo.remove(track)
 
-if reorder:
+if cf['_reorder']:
     mp3s_todo.sort(cmp_toc)
 
 for track in wavs_todo:
@@ -706,7 +714,7 @@ for track in wavs_todo:
     if track in mp3s_todo:
         mp3s_todo.remove(track) # remove mp3s which are not there yet
 
-if only_dae:            # if only_dae nothing is encoded _at_all_.
+if cf['_only_dae']:            # if only_dae nothing is encoded _at_all_.
     mp3s_todo = []
 
 # now mp3s_todo contains the tracks where the wavs only need to be coded and
@@ -714,7 +722,7 @@ if only_dae:            # if only_dae nothing is encoded _at_all_.
 # has been filled from wavs_todo (todo is superflous now). The main-loop
 # will handle the tracks in mp3s_todo.
 
-if todo_exit:           # print what needs to be done, then exit
+if cf['_todo_exit']:           # print what needs to be done, then exit
     for i in jack_ripstuff.all_tracks:
         print "%02i" % i[NUM],
         if jack_utils.has_track(todo, i[NUM]) >= 0:
@@ -725,7 +733,7 @@ if todo_exit:           # print what needs to be done, then exit
             print ":DAE:",
             # FIXME!
             if jack_status.dae_status[i[NUM]] != "[simulated]": print jack_status.dae_status[i[NUM]],
-            if not only_dae:
+            if not cf['_only_dae']:
                 print ":ENC:",
                 if jack_status.enc_status[i[NUM]] != "[simulated]": print jack_status.enc_status[i[NUM]],
         if i in mp3s_todo:
@@ -737,49 +745,49 @@ if todo_exit:           # print what needs to be done, then exit
 # overwrite cached bitrates from argv
 if argv_bitrate:
     for i in wavs_todo:
-        i[RATE] = bitrate
+        i[RATE] = cf['_bitrate']
     for i in mp3s_todo:
-        i[RATE] = bitrate
+        i[RATE] = cf['_bitrate']
 
 # check free space
 will_work = 1
 freeable_space = 0
-if keep_wavs:
+if cf['_keep_wavs']:
     space_needed = jack_functions.tracksize(wavs_todo)[BOTH]
-elif otf:
+elif cf['_otf']:
     space_needed = jack_functions.tracksize(wavs_todo)[ENC]
 else:
     space_needed = jack_functions.tracksize(wavs_todo)[PEAK]
-if only_dae:
+if cf['_only_dae']:
     space_needed = jack_functions.tracksize(wavs_todo)[WAV]
 else:
     for i in mp3s_todo:
         if space + freeable_space>jack_functions.tracksize(i)[ENC]:
-            if not keep_wavs:
+            if not cf['_keep_wavs']:
                 freeable_space = freeable_space + jack_functions.tracksize(i)[WAV] - jack_functions.tracksize(i)[ENC]
         else:
             will_work = 0
             space_needed = jack_functions.tracksize(i)[ENC] - space + freeable_space # this is quite dirty
             break
 
-if (space + freeable_space<space_needed or not will_work) and not dont_work:
-    if reorder:
+if (space + freeable_space<space_needed or not will_work) and not cf['_dont_work']:
+    if cf['_reorder']:
         print "insufficient discspace (%sBytes needed), free %sBytes." % (jack_functions.pprint_i(space_needed - freeable_space, "%i %s"), jack_functions.pprint_i(space_needed - freeable_space - raw_space, "%i %s"))
     else:
         print "insufficient discspace (%sBytes needed), try --reorder or free %sBytes" % (jack_functions.pprint_i(space_needed - freeable_space, "%i %s"), jack_functions.pprint_i(space_needed - freeable_space - raw_space, "%i %s"))
     jack_display.exit()
 
-max_load = max_load + encoders
+cf['_max_load'] = cf['_max_load'] + cf['_encoders']
 
-if not dont_work and dae_queue:     # check if inserted cd matches toc.
-    if rip_from_device:
-        all_tracks_on_cd = jack_functions.gettoc(toc_prog)
-        if not force and not jack_utils.cmp_toc_cd(all_tracks_orig, all_tracks_on_cd, what=(NUM, LEN)):
+if not cf['_dont_work'] and dae_queue:     # check if inserted cd matches toc.
+    if cf['_rip_from_device']:
+        all_tracks_on_cd = jack_functions.gettoc(cf['_toc_prog'])
+        if not cf['_force'] and not jack_utils.cmp_toc_cd(jack_ripstuff.all_tracks_orig, all_tracks_on_cd, what=(NUM, LEN)):
             print "Error: you did not insert the right cd, aborting."
             sys.exit(1)
 
-if remove_q and not force and not dont_work:
-    if silent_mode:
+if remove_q and not cf['_force'] and not cf['_dont_work']:
+    if cf['_silent_mode']:
         print "remove these files before going on:"
         for i in remove_q:
             print i
@@ -791,13 +799,13 @@ if remove_q and not force and not dont_work:
     x = raw_input("These files will be deleted, continue? ") + "x"
     if x[0] != "y":
         jack_display.exit()
-if not dont_work:
+if not cf['_dont_work']:
     for i in remove_q: # remove files (delayed so we can sanity check toc)
         os.remove(i)
 
 # bail out now if told so
-if dont_work:
-    jack_display.exit()
+if cf['_dont_work']:
+    sys.exit(0)
 
 # install signal handlers
 signal.signal(signal.SIGTERM, jack_display.sig_handler)
@@ -805,461 +813,21 @@ signal.signal(signal.SIGINT, jack_display.sig_handler)
 signal.signal(signal.SIGQUIT, jack_display.sig_handler)
 signal.signal(signal.SIGHUP, jack_display.sig_handler)
 
-#XXXif wavs_todo or mp3s_todo:
 
        #\                         /#
 #########> real work starts here <#############################################
        #/                         \#
 
-def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, enc_running, dae_running):
-    global status_pad
-    global global_error, width, height
-    global usage_win
-
-    actual_load = -2    # this is always smaller than max_load
-    waiting_load = 0    # are we waiting for the load to drop?
-    waiting_space = 0   # are we waiting for disc space to be freed?
-    space_waiting = 0   # how much space _running_ subprocesses will consume
-    space_adjust = 0    # by how much space has been modified
-    blocked = 0     # we _try_ do detect deadlocks
-    cycles = 0      # it's sort of a timer
-    last_update = 0 # screen updates are done once per second
-    pause = 0       # no new encoders are started if pause==1
-    flags = "[   ]" # runtime controllable flags
-    rotate="/-\\|"
-    rotate_ball=" .o0O0o."
-    rot_cycle = len(rotate)
-    rot_ball_cycle = len(rotate_ball)
-    rot_count = 0
-    global_blocks = jack_functions.tracksize(wavs_todo)[BLOCKS] + jack_functions.tracksize(mp3s_todo)[BLOCKS]
-    global_start = time.time()
-    global_done = 0 
-    first_encoder = 1
-
-                           #####################
-                             ### MAIN LOOP ###
-                           #####################
-
-    while mp3s_todo or enc_queue or dae_queue or enc_running or dae_running:
-
-                            # feed in the WAVs which have been there from the start
-
-        if mp3s_todo and jack_functions.tracksize(mp3s_todo[0])[ENC] < space:
-            waiting_space = 0
-            enc_queue.append(mp3s_todo[0])
-            space = space - jack_functions.tracksize(mp3s_todo[0])[ENC]
-            jack_status.enc_stat_upd(mp3s_todo[0][NUM], "waiting for encoder.")
-            mp3s_todo = mp3s_todo[1:]
-
-                                                    # start new DAE subprocess
-
-        elif (len(enc_queue) + enc_running) < (read_ahead + encoders) and dae_queue and dae_running < rippers and ((jack_functions.tracksize(dae_queue[0])[BOTH] < space) or (only_dae and jack_functions.tracksize(dae_queue[0])[WAV] < space) or (otf and jack_functions.tracksize(dae_queue[0])[ENC] < space)):
-            waiting_space = 0
-            this_is_ok = 1
-            if pause:
-                this_is_ok = 0
-                jack_status.dae_stat_upd(dae_queue[0][NUM], "Paused. Press 'c' to continue.")
-            elif rip_from_device:
-                all_tracks_on_cd = jack_functions.gettoc(toc_prog)
-                if not jack_utils.cmp_toc_cd(all_tracks_orig, all_tracks_on_cd, what=(NUM, LEN)):
-                    print all_tracks_orig
-                    print all_tracks_on_cd
-                    sys.exit()
-                    while dae_queue:
-                        track = dae_queue[0]
-                        dae_queue = dae_queue[1:]
-                        jack_status.dae_stat_upd(track[NUM], "Wrong disc - aborting this track")
-                    global_error = global_error + 1
-                    this_is_ok = 0
-            if this_is_ok:
-                if only_dae:
-                    space_waiting = space_waiting + jack_functions.tracksize(dae_queue[0])[WAV]
-                    space = space - jack_functions.tracksize(dae_queue[0])[WAV]
-                elif otf:
-                    space_waiting = space_waiting + jack_functions.tracksize(dae_queue[0])[ENC]
-                    space = space - jack_functions.tracksize(dae_queue[0])[ENC]
-                else:
-                    space_waiting = space_waiting + jack_functions.tracksize(dae_queue[0])[BOTH]
-                    space = space - jack_functions.tracksize(dae_queue[0])[BOTH]
-                dae_running = dae_running + 1
-                track = dae_queue[0]
-                dae_queue = dae_queue[1:]
-                if otf:
-                    # note: image_reader can't do otf at the moment.
-                    jack_status.dae_stat_upd(track[NUM], ":DAE: waiting for status report...")
-                    if encoder in ("lame", "gogo", "flac", "mppenc"):
-                        jack_status.enc_stat_upd(track[NUM], "[no otf status for %s]" % encoder)
-                    else:
-                        jack_status.enc_stat_upd(track[NUM], "waiting for encoder.")
-                    enc_running = enc_running + 1
-                    if first_encoder:
-                        first_encoder = 0
-                        global_start = time.time()
-                    data = jack_workers.start_new_otf(track, ripper, encoder)
-                    jack_children.children.append(data['rip'])
-                    jack_children.children.append(data['enc'])
-                else:
-                    if jack_status.enc_status[track[NUM]]:
-                        jack_status.enc_cache[track[NUM]] = jack_status.enc_status[track[NUM]]
-                        jack_status.enc_stat_upd(track[NUM], "[...]")
-                    jack_status.dae_stat_upd(track[NUM], ":DAE: waiting for status report...")
-                    if rip_from_device:
-                        jack_children.children.append(jack_workers.start_new_ripper(track, ripper))
-                    elif image_file:
-                        jack_children.children.append(ripread(track, track1_offset))
-                    else:
-                        jack_status.dae_stat_upd(track[NUM], ":?AE: don't know how to rip this!")
-
-                                            # start new encoder subprocess
-
-        if enc_queue and enc_running < encoders:
-            if jack_functions.tracksize(enc_queue[0])[ENC] <= space + space_waiting:
-                waiting_space = 0
-                actual_load = eval(loadavg)
-                if actual_load < max_load:
-                    waiting_load = 0
-                    enc_running = enc_running + 1
-                    track = enc_queue[0]
-                    enc_queue = enc_queue[1:]
-                    jack_status.enc_stat_upd(track[NUM], "waiting for encoder...")
-                    jack_children.children.append(jack_workers.start_new_encoder(track, encoder))
-                    if first_encoder:
-                        first_encoder = 0
-                        global_start = time.time()
-                else:
-                    waiting_load = 1
-
-                                            # check for subprocess output
-
-        readfd=[sys.stdin.fileno()]
-        for i in jack_children.children:
-            readfd.append(i['fd'])
-        try:
-            rfd, wfd, xfd = select.select(readfd, [], [], update_interval)
-        except:
-            rfd, wfd, xfd = [], [], []
-            jack_term.tmod.sig_winch_handler(None, None)
-
-                                            # check for keyboard commands
-
-        if sys.stdin.fileno() in rfd:
-            last_update = last_update - update_interval
-            cmd = jack_term.tmod.getkey()
-            sys.stdin.flush()
-            if string.upper(cmd) == "Q":
-                jack_display.exit()
-            elif not pause and string.upper(cmd) == "P":
-                pause = 1
-                flags = flags[:1] + "P" + flags[2:]
-            elif string.upper(cmd) == "C" or pause and string.upper(cmd) == "P":
-                pause = 0
-                flags = flags[:1] + " " + flags[2:]
-            elif not flags[3] == "e" and string.upper(cmd) == "E":
-                for i in jack_children.children:
-                    if i['type'] == "encoder":
-                        os.kill(i['pid'], signal.SIGSTOP)
-                        flags = flags[:3] + "e" + flags[4:]
-            elif flags[3] == "e" and string.upper(cmd) == "E":
-                for i in jack_children.children:
-                    if i['type'] == "encoder":
-                        os.kill(i['pid'], signal.SIGCONT)
-                        flags = flags[:3] + " " + flags[4:]
-            elif not flags[2] == "r" and string.upper(cmd) == "R":
-                for i in jack_children.children:
-                    if i['type'] == "ripper":
-                        os.kill(i['pid'], signal.SIGSTOP)
-                        flags = flags[:2] + "r" + flags[3:]
-            elif flags[2] == "r" and string.upper(cmd) == "R":
-                for i in jack_children.children:
-                    if i['type'] == "ripper":
-                        os.kill(i['pid'], signal.SIGCONT)
-                        flags = flags[:2] + " " + flags[3:]
-            elif string.upper(cmd) == "U":
-                cycles = 29     # do periodic stuff _now_
-            else:
-                jack_term.tmod.move_pad(cmd)
-                if cmd == 'KEY_RESIZE':
-                    continue
-                last_update = time.time()
-
-                                            # read from file with activity
-
-        for i in jack_children.children:
-            if i['fd'] in rfd:
-                if Linux and i['type'] != "image_reader":
-                    try:
-                        x = i['file'].read()
-                    except IOError:
-                        pass
-                else:
-                    read_chars = 0
-                    x = ""
-                    while read_chars < jack_helpers.helpers[i['prog']]['status_blocksize']:
-                        try:
-                            x = x + i['file'].read(1)
-                        except IOError:
-                            break
-                        read_chars = read_chars + 1
-                        try:
-                            rfd2, wfd2, xfd2 = select.select([i['fd']], [], [], 0.0)
-                        except:
-                            rfd2, wfd2, xfd2 = [], [], []
-                            jack_term.tmod.sig_winch_handler(None, None)
-                        if i['fd'] not in rfd2:
-                            break
-                # put read data into child's buffer
-                i['buf'] = (i['buf'] + x)[-jack_helpers.helpers[i['prog']]['status_blocksize']:]
-
-                                            # check for exiting child processes
-
-        if jack_children.children:
-            respid, res = os.waitpid(-1, os.WNOHANG)
-            if respid != 0:
-                last_update = last_update - update_interval # ensure info is printed
-                new_ch = []
-                exited_proc = []
-                for i in jack_children.children:
-                    if i['pid'] == respid:
-                        if exited_proc != []:
-                            print "Error: pid " + `respid` + " found at multiple child processes."
-                            jack_display.exit()
-                        exited_proc = i
-                    else:
-                        new_ch.append(i)
-                if not exited_proc:
-                    print "Error: unknown process (" + `respid` + ") has exited."
-                    jack_display.exit()
-                jack_children.children = new_ch
-                x = ""
-                try:
-                    x = exited_proc['file'].read()
-                except IOError:
-                    pass
-                except ValueError:
-                    pass
-                exited_proc['buf'] = (exited_proc['buf'] + x)[-jack_helpers.helpers[exited_proc['prog']]['status_blocksize']:]
-                exited_proc['file'].close()
-
-                global_error = global_error + res
-                track = exited_proc['track']
-                num = track[NUM]
-                stop_time = time.time()
-                speed = ( track[LEN] / float(CDDA_BLOCKS_PER_SECOND)) / ( stop_time - exited_proc['start_time'] )
-
-                if exited_proc['type'] in ("ripper", "image_reader"):
-                    dae_running = dae_running - 1
-                    if exec_when_done and exited_proc['type'] == "ripper" and dae_running == 0 and len(dae_queue) == 0:
-                        os.system(exec_rip_done)
-                    if not res:
-                        if not exited_proc['otf']:
-                            if os.path.exists(track[NAME] + ".wav"):
-                                if jack_functions.tracksize(track)[WAV] != jack_utils.filesize(track[NAME] + ".wav"):
-                                    res = 242
-                                    jack_status.dae_stat_upd(num, string.strip(string.split(exited_proc['buf'], "\n")[-2]))
-                            else:
-                                jack_status.dae_stat_upd(num, string.strip(string.split(exited_proc['buf'], "\n")[-2]))
-                                res = 243
-                            global_error = global_error + res
-                    if res and not sloppy:
-                        if os.path.exists(track[NAME] + ".wav"):
-                            os.remove(track[NAME] + ".wav")
-                            space = space + jack_functions.tracksize(track)[WAV]
-                            if otf:
-                                os.kill(exited_proc['otf-pid'], signal.SIGTERM)
-                                if os.path.exists(track[NAME] + ext):
-                                    os.remove(track[NAME] + ext)
-                                space = space + jack_functions.tracksize(track)[ENC]
-                            if not otf and not only_dae and track not in mp3s_ready:
-                                space = space + jack_functions.tracksize(track)[ENC]
-                            jack_status.dae_stat_upd(num, 'DAE failed with status ' + `res` + ", wav removed.")
-                    else:
-                        if exited_proc['type'] == "image_reader":
-                            jack_status.dae_stat_upd(num, string.strip(string.split(exited_proc['buf'], "\n")[-2]))
-                        else:
-                            if exited_proc['otf'] and jack_helpers.helpers[exited_proc['prog']].has_key('otf-final_status_fkt'):
-                                exec(jack_helpers.helpers[exited_proc['prog']]['otf-final_status_fkt']) in globals(), locals()
-                            else:
-                                exec(jack_helpers.helpers[exited_proc['prog']]['final_status_fkt']) in globals(), locals()
-                            jack_status.dae_stat_upd(num, final_status)
-                        if jack_status.enc_cache[num]:
-                            jack_status.enc_stat_upd(num, jack_status.enc_cache[num])
-                            jack_status.enc_cache[num] = ""
-                        jack_functions.progress(num, "dae", jack_status.dae_status[num])
-                        if not otf and not only_dae and track not in mp3s_ready:
-                            if waiting_space:
-                                mp3s_todo.append(track)
-                                space = space + jack_functions.tracksize(track)[ENC]
-                            else:
-                                jack_status.enc_stat_upd(num, 'waiting for encoder.')
-                                enc_queue.append(track)
-                    space_waiting = space_waiting - jack_functions.tracksize(track)[WAV]
-
-                elif exited_proc['type'] == "encoder":
-                    enc_running = enc_running - 1
-                    # completed vbr files shouldn't be to small, but this still
-                    # caused confusion so again, vbr is an exception:
-                    if not vbr and not res and jack_functions.tracksize(track)[ENC] * 0.99 > jack_utils.filesize(track[NAME] + ext):
-                        res = 242
-                        global_error = global_error + res
-                    if res:
-                        global_blocks = global_blocks - exited_proc['track'][LEN]
-                        global_start = global_start + exited_proc['elapsed'] / (enc_running + 1)
-                        if global_start > time.time():
-                            global_start = time.time()
-                        if os.path.exists(track[NAME] + ext):
-                            # mp3enc doesn't report errors when out of discspace...
-                            os.remove(track[NAME] + ext)
-                        space = space + jack_functions.tracksize(track)[ENC]
-                        jack_status.enc_stat_upd(num, 'coding failed, err#' + `res`)
-                    else:
-                        global_done = global_done + exited_proc['track'][LEN]
-                        if vbr:
-                            jack_status.enc_stat_upd(num, "[coding @" + '%1.2f' % speed + "× done,%03.0fkbit]" % ((jack_utils.filesize(track[NAME] + ext) * 0.008) / (track[LEN] / 75.0)))
-                        else:
-                            jack_status.enc_stat_upd(num, "[coding @" + '%1.2f' % speed + "× done, mp3 OK]")
-                        if not otf and not keep_wavs:
-                            os.remove(track[NAME] + ".wav")
-                            space = space + jack_functions.tracksize(track)[WAV]
-                        jack_functions.progress(num, "enc", `track[RATE]`, jack_status.enc_status[num])
-
-                else:
-                    print "Error: child process of unknown type (" + exited_proc['type'] + ") exited."
-                    jack_display.exit()
-                if global_error:
-                    jack_display.smile = " :-["
-
-        if last_update + update_interval <= time.time():
-            last_update = time.time()
-
-                                                # interpret subprocess output
-
-            for i in jack_children.children:
-                if i['type'] == "ripper":
-                    if len(i['buf']) == jack_helpers.helpers[i['prog']]['status_blocksize']:
-                        if i['otf'] and jack_helpers.helpers[i['prog']].has_key('otf-status_fkt'):
-                            exec(jack_helpers.helpers[i['prog']]['otf-status_fkt']) in globals(), locals()
-                        else:
-                            exec(jack_helpers.helpers[i['prog']]['status_fkt']) in globals(), locals()
-                        if new_status:
-                            jack_status.dae_stat_upd(i['track'][NUM], ":DAE: " + new_status)
-        
-                elif i['type'] == "encoder":
-                    if len(i['buf']) == jack_helpers.helpers[i['prog']]['status_blocksize']:
-                        tmp_d = {'i': i, 'percent': 0}
-                        exec(jack_helpers.helpers[i['prog']]['percent_fkt']) in globals(), tmp_d
-                        i['percent'] = tmp_d['percent']
-                        if i['percent'] > 0:
-                            i['elapsed'] = time.time() - i['start_time']
-                            speed = ((i['track'][LEN] / float(CDDA_BLOCKS_PER_SECOND)) * ( i['percent'] / 100 )) / i['elapsed']
-                            eta = (100 - i['percent']) * i['elapsed'] / i['percent']
-                            eta_ms = "%02i:%02i" % (eta / 60, eta % 60)
-                            jack_status.enc_stat_upd(i['track'][NUM], '%2i%% done, ETA:%6s, %5.2fx' % (i['percent'], eta_ms, speed))
-        
-                elif i['type'] == "image_reader":
-                    line = string.split(i['buf'], "\n")
-                    if len(line) >= 2:
-                        line = string.strip(line[-2])
-                        jack_status.dae_stat_upd(i['track'][NUM], line)
-                        if line[:5] == "Error":
-                            global_error = global_error + 1
-        
-                else:
-                    print "Error: unknown subprocess type \"" + i['type'] + "\"."
-                    jack_display.exit()
-
-            cycles = cycles + 1
-            if cycles % 30 == 0:
-                if recheck_space and not space_set_from_argv:
-                    actual_space = jack_functions.df()
-                    if space_adjust:
-                        diff = actual_space - space
-                        if diff > space_adjust:
-                            space = space + space_adjust
-                            space_adjust = 0
-                            waiting_space = 0
-                        else:
-                            space = space + diff
-                            space_adjust = space_adjust - diff
-                    else:
-                        if actual_space < space:
-                            space_adjust = space - actual_space
-                            space = actual_space
-
-            if space_adjust and enc_running == 0 and dae_running == 0:
-                waiting_space = waiting_space + 1
-            if not waiting_space >= 2 and not waiting_load and enc_running == 0 and dae_running == 0:
-                blocked = blocked + 1
-            else:
-                blocked = 0
-
-            total_done = global_done
-            for i in jack_children.children: 
-                total_done = total_done + (i['percent'] / 100) * i['track'][LEN]
-            elapsed = time.time() - global_start
-            if global_blocks > 0:
-                percent = total_done / global_blocks
-            else:
-                percent = 0
-            if percent > 0 and elapsed > 40:
-                eta = ((1 - percent) * elapsed / percent)
-                eta_hms = " ETA=%i:%02i:%02i" % (eta / 3600, (eta % 3600) / 60, eta % 60)
-            else:
-                eta_hms = ""
-
-            if string.strip(flags[1:-1]):
-                print_flags = " " + flags
-            else:
-                print_flags = ""
-            if dae_running:
-                rot = rotate_ball[rot_count % rot_ball_cycle]
-            else:
-                rot = rotate[rot_count % rot_cycle]
-            rot_count = rot_count + 1
-
-                                                            # print status
-
-            if blocked > 2:
-                jack_display.special_line = " ...I feel blocked - quit with 'q' if you get bored... "
-                if blocked > 5:
-                    space = jack_functions.df() - keep_free
-            elif waiting_load and waiting_space >= 2:
-                jack_display.special_line = " ...waiting for load (" + `actual_load` + ") < " + `max_load` + " and for " + jack_functions.pprint_i(space_adjust, "%i %sBytes") + " to be freed... "
-            elif waiting_space >= 2:
-                jack_display.special_line = " ...waiting for " + jack_functions.pprint_i(space_adjust, "%i %sBytes") + " to be freed.... "
-            elif waiting_load:
-                jack_display.special_line = " ...waiting for load (" \
-                    + `actual_load` \
-                    + ") to drop below " \
-                    + `max_load`+"... "
-            else:
-                jack_display.special_line = None
-
-            jack_display.bottom_line =  "(" + rot + ") " \
-                + "SPACE:" * (space_adjust != 0) \
-                + "space:" * (space_adjust == 0) \
-                + jack_functions.pprint_i(space, "%i%sB") \
-                + (" waiting_WAVs:%02i" % len(enc_queue)) \
-                + " DAE:" + `rippers - dae_running` + "+" + `dae_running` \
-                + " ENC:" + `encoders - enc_running` + "+" + `enc_running` \
-                + eta_hms \
-                + " errors: " + `global_error` \
-                + jack_display.smile + print_flags
-            
-            jack_term.tmod.update(jack_display.special_line, jack_display.bottom_line)
-
-    # end of main loop #########################################################
-    # if we came this far, all work is done. ###################################
-
+global_error = None
 if (wavs_todo or mp3s_todo):
     jack_ripstuff.gen_printable_names(jack_tag.track_names, todo)
-    jack_term.init(cg['terminal'], cg['xtermset_enable'])
+    jack_term.init(cf['_terminal'], cf['_xtermset_enable'])
     jack_display.init()
     try:
         jack_term.enable()
-        main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, enc_running, dae_running)
+        global_error = jack_main_loop.main_loop(mp3s_todo, wavs_todo, space, space_set_from_argv, dae_queue, enc_queue, enc_running, dae_running)
     except SystemExit:
         jack_term.disable()
-        traceback.print_exc()         
         print jack_display.options_string
         print "--- Last status: ---------------------------------------------------------------"
         jack_status.print_status(form = 'short')
@@ -1269,19 +837,17 @@ if (wavs_todo or mp3s_todo):
         traceback.print_exc()         
         sys.exit(1)
 
-if query_when_ready:
+if cf['_query_when_ready']:
     print "Info: querying..."
-    if jack_freedb.freedb_query(jack_freedb.freedb_id(jack_ripstuff.all_tracks), jack_ripstuff.all_tracks, cg['freedb_form_file']):
+    if jack_freedb.freedb_query(jack_freedb.freedb_id(jack_ripstuff.all_tracks), jack_ripstuff.all_tracks, cf['_freedb_form_file']):
         jack_display.exit()
 
-if query_when_ready or read_freedb_file or query_on_start:
-    err, jack_tag.track_names, freedb_rename, revision = jack_freedb.interpret_db_file(jack_ripstuff.all_tracks, cg['freedb_form_file'], verb = 1, dirs = 1)
+if cf['_query_when_ready'] or cf['_read_freedb_file'] or cf['_query_on_start']:
+    err, jack_tag.track_names, freedb_rename, revision = jack_freedb.interpret_db_file(jack_ripstuff.all_tracks, cf['_freedb_form_file'], verb = 1, dirs = 1)
     if err:
         print "Error: could not read freedb file, aborting."
         jack_display.exit()
 
-#XXX
-print jack_term.term_type
 if jack_term.term_type == "curses":
     if jack_display.options_string:
         print jack_display.options_string
@@ -1297,34 +863,34 @@ if jack_freedb.names_available:
 
 if global_error:
     print "Error: aborting because of previous error(s) [%i]." % global_error
-    if exec_when_done:
-        os.system(exec_err)
+    if cf['_exec_when_done']:
+        os.system(cf['_exec_err'])
     jack_display.exit()
 
-if vbr and not only_dae:
+if cf['_vbr'] and not cf['_only_dae']:
     total_length = 0
     total_size = 0
     for i in jack_ripstuff.all_tracks_todo_sorted:
         total_length = total_length + i[LEN]
         total_size = total_size + jack_utils.filesize(i[NAME] + ext)
 
-if set_id3tag and not jack_targets.targets[jack_helpers.helpers[encoder]['target']]['can_posttag']:
-    set_id3tag = 0
+if cf['_set_id3tag'] and not jack_targets.targets[jack_helpers.helpers[cf['_encoder']]['target']]['can_posttag']:
+    cf['_set_id3tag'] = 0
 
-if set_id3tag or freedb_rename:
+if cf['_set_id3tag'] or freedb_rename:
     if len(jack_tag.track_names[0]) == 4:
         # use freedb year and genre data if available
-        if id3_genre == -1:
-            id3_genre = jack_tag.track_names[0][3]
-        if id3_year == -1:
-            id3_year = jack_tag.track_names[0][2]
+        if cf['_id3_genre'] == -1:
+            cf['_id3_genre'] = jack_tag.track_names[0][3]
+        if cf['_id3_year'] == -1:
+            cf['_id3_year'] = jack_tag.track_names[0][2]
     for i in jack_ripstuff.all_tracks_todo_sorted:
         mp3name = i[NAME] + ext
         wavname = i[NAME] + ".wav"
         t_artist = jack_tag.track_names[i[NUM]][0]
         t_name = jack_tag.track_names[i[NUM]][1]
         t_comm = ""
-        if not only_dae and set_id3tag:
+        if not cf['_only_dae'] and cf['_set_id3tag']:
             if len(t_name) > 30:
                 if string.find(t_name, "(") != -1 and string.find(t_name, ")") != -1:
                     # we only use the last comment
@@ -1339,8 +905,8 @@ if set_id3tag or freedb_rename:
                         t_name2 = string.replace(t_name2, "(" + t_comm + ")", "")
                     else:
                         t_comm = ""
-            if jack_helpers.helpers[encoder]['target'] in ("mp3", "flac"):
-                id3 = ID3(mp3name)
+            if jack_helpers.helpers[cf['_encoder']]['target'] in ("mp3", "flac"):
+                id3 = ID3.ID3(mp3name)
                 id3.album = a_title
                 id3.track = i[NUM] # this is ignored if we have an ID3v1.0 tag
                 if t_comm:
@@ -1352,14 +918,14 @@ if set_id3tag or freedb_rename:
                     id3.artist = t_artist
                 else:
                     id3.artist = a_artist
-                if id3_genre != -1:
-                    id3.genre = id3_genre
+                if cf['_id3_genre'] != -1:
+                    id3.genre = cf['_id3_genre']
                 elif not id3.had_tag:
                     id3.genre = 255
-                if id3_year != -1:
-                    id3.year = `id3_year`
+                if cf['_id3_year'] != -1:
+                    id3.year = `cf['_id3_year']`
                 id3.write()
-            elif jack_helpers.helpers[encoder]['target'] == "ogg":
+            elif jack_helpers.helpers[cf['_encoder']]['target'] == "ogg":
                 vf = ogg.vorbis.VorbisFile(mp3name)
                 oggi = vf.comment()
                 oggi.clear()
@@ -1374,56 +940,56 @@ if set_id3tag or freedb_rename:
                     oggi.add_tag('ARTIST', t_artist)
                 else:
                     oggi.add_tag('ARTIST', a_artist)
-                if id3_genre != -1:
-                    oggi.add_tag('GENRE', id3genres[id3_genre])
-                if id3_year != -1:
-                    oggi.add_tag('DATE', `id3_year`)
+                if cf['_id3_genre'] != -1:
+                    oggi.add_tag('GENRE', id3genres[cf['_id3_genre']])
+                if cf['_id3_year'] != -1:
+                    oggi.add_tag('DATE', `cf['_id3_year']`)
                 oggi.write_to(mp3name)
         if freedb_rename:
             if t_artist:    # 'Various Artists'
-                replacelist = (("%n", rename_num % i[NUM]), ("%a", t_artist), ("%t", t_name), ("%l", a_title), ("%y", `id3_year`), ("%g", jack_tag.genretxt))
-                newname = jack_misc.multi_replace(rename_fmt_va, replacelist)
+                replacelist = (("%n", cf['_rename_num'] % i[NUM]), ("%a", t_artist), ("%t", t_name), ("%l", a_title), ("%y", `cf['_id3_year']`), ("%g", jack_tag.genretxt))
+                newname = jack_misc.multi_replace(cf['_rename_fmt_va'], replacelist)
                 
             else:
-                replacelist = (("%n", rename_num % i[NUM]), ("%a", a_artist), ("%t", t_name), ("%l", a_title))
-                newname = jack_misc.multi_replace(rename_fmt, replacelist)
-            exec("newname = newname" + char_filter)
-            for char_i in range(len(unusable_chars)):
-                newname = string.replace(newname, unusable_chars[char_i], replacement_chars[char_i])
+                replacelist = (("%n", cf['_rename_num'] % i[NUM]), ("%a", a_artist), ("%t", t_name), ("%l", a_title))
+                newname = jack_misc.multi_replace(cf['_rename_fmt'], replacelist)
+            exec("newname = newname" + cf['_char_filter'])
+            for char_i in range(len(cf['_unusable_chars'])):
+                newname = string.replace(newname, cf['_unusable_chars'][char_i], cf['_replacement_chars'][char_i])
             if i[NAME] != newname:
                 ok = 1
                 if os.path.exists(newname + ext):
                     ok = 0
                     print 'NOT renaming "' + mp3name + '" to "' + newname + ext + '" because dest. exists.'
-                    if keep_wavs:
+                    if cf['_keep_wavs']:
                         print 'NOT renaming "' + wavname + '" to "' + newname + ".wav" + '" because dest. exists.'
-                elif keep_wavs and os.path.exists(newname + ".wav"):
+                elif cf['_keep_wavs'] and os.path.exists(newname + ".wav"):
                     ok = 0
                     print 'NOT renaming "' + wavname + '" to "' + newname + ".wav" + '" because dest. exists.'
                     print 'NOT renaming "' + mp3name + '" to "' + newname + ext + '" because WAV dest. exists.'
                 if ok:
-                    if not only_dae:
+                    if not cf['_only_dae']:
                         os.rename(mp3name, newname + ext)
-                    if keep_wavs:
+                    if cf['_keep_wavs']:
                         os.rename(wavname, newname + ".wav")
                     jack_functions.progress(i[NUM], "ren", "%s-->%s" % (i[NAME], newname))
-                elif silent_mode:
+                elif cf['_silent_mode']:
                     jack_functions.progress(i[NUM], "err", "while renaming track")
 
-if not silent_mode:
+if not cf['_silent_mode']:
     if jack_freedb.names_available:
         print "Done with \"" + a_artist+ " - " + a_title + "\"."
     else:
         print "All done.",
-    if set_id3tag and id3_year != -1:
-        print "Year: %4i" % id3_year,
-        if id3_genre == -1: print
-    if set_id3tag and id3_genre != -1:
-        if id3_genre <0 or id3_genre > len(id3genres):
+    if cf['_set_id3tag'] and cf['_id3_year'] != -1:
+        print "Year: %4i" % cf['_id3_year'],
+        if cf['_id3_genre'] == -1: print
+    if cf['_set_id3tag'] and cf['_id3_genre'] != -1:
+        if cf['_id3_genre'] <0 or cf['_id3_genre'] > len(id3genres):
             print "Genre: [unknown]"
         else:
-            print "Genre: %s" % id3genres[id3_genre]
-    if vbr and not only_dae:
+            print "Genre: %s" % id3genres[cf['_id3_genre']]
+    if cf['_vbr'] and not cf['_only_dae']:
         print "Avg. bitrate: %03.0fkbit" % ((total_size * 0.008) / (total_length / 75))
     else:
         print
@@ -1431,13 +997,13 @@ if not silent_mode:
 if progress_changed:
     jack_functions.progress("all", "done", time.strftime("%b %2d %H:%M:%S", time.localtime(time.time())))
 
-if remove_files:
-    for i in [progress_file, toc_file, def_toc, cg['freedb_form_file'], cg['freedb_form_file'] + ".bak"]:
+if cf['_remove_files']:
+    for i in [cf['_progress_file'], cf['_toc_file'], cf['_def_toc'], cf['_freedb_form_file'], cf['_freedb_form_file'] + ".bak"]:
         if os.path.exists(i):
             os.remove(i)
 
-if exec_when_done:
-    os.system(exec_no_err)
+if cf['_exec_when_done']:
+    os.system(cf['_exec_no_err'])
 
 jack_display.exit()      # call the cleanup function & exit
 

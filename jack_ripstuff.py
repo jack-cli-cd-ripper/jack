@@ -18,10 +18,14 @@
 
 import jack_freedb
 
-from jack_globals import cg, CDDA_MAXTRACKS, CDDA_BLOCKS_PER_SECOND, NUM, NAME, LEN
+from jack_globals import *
 
+all_tracks_orig = []
 all_tracks_todo_sorted = []
 all_tracks = []
+
+wavs_ready = None
+
 printable_names = None              # these are displayed for the track names
 max_name_len = None                 # max len of printable_names[]
 
@@ -33,34 +37,34 @@ def gen_printable_names(track_names, todo):
     for i in range(CDDA_MAXTRACKS):
         printable_names.append("")
 
-    if jack_freedb.names_available and cg['show_names']:
-        if cg['various']:
+    if jack_freedb.names_available and cf['_show_names']:
+        if cf['_various']:
             max_name_len = max(map(lambda x: len(track_names[x[NUM]][0] + " - " + track_names[x[NUM]][1]), todo))
         else:
             max_name_len = max(map(lambda x: len(track_names[x[NUM]][1]), todo))
         max_name_len = len("01 ") + max_name_len
-        if cg['show_time']:
+        if cf['_show_time']:
             max_name_len = max_name_len + 6
     else:
         max_name_len = max(map(lambda x: len(x[NAME]), todo))
 
     for i in todo:
-        if cg['show_time']:
+        if cf['_show_time']:
             len_tmp = i[LEN] / CDDA_BLOCKS_PER_SECOND
             len_tmp = ("%02i:%02i") % (len_tmp / 60, len_tmp % 60)
 
-        if jack_freedb.names_available and cg['show_names']:
-            if cg['show_time']:
+        if jack_freedb.names_available and cf['_show_names']:
+            if cf['_show_time']:
                 tmp = "%02i %5s " % (i[NUM], len_tmp)
             else:
                 tmp = "%02i " % i[NUM]
-            if cg['various']:
+            if cf['_various']:
                 tmp = tmp + track_names[i[NUM]][0] + " - " + track_names[i[NUM]][1]
             else:
                 tmp = tmp + track_names[i[NUM]][1]
             printable_names[i[NUM]] = tmp + "." * (max_name_len - len(tmp))
         else:
-            if cg['show_time']:
+            if cf['_show_time']:
                 printable_names[i[NUM]] = ("%02i " % i[NUM]) + len_tmp + "." * (max_name_len - len(i[NAME]) - 6)
             else:
                 printable_names[i[NUM]] = i[NAME] + "." * (max_name_len - len(i[NAME]))

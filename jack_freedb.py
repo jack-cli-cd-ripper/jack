@@ -21,6 +21,7 @@ import string
 import os
 
 import jack_functions
+import jack_progress
 import jack_utils
 
 from jack_version import prog_version, prog_name
@@ -28,6 +29,7 @@ from jack_globals import *
 
 names_available = None          # freedb info is available
 dir_created = None              # dirs are only renamed if we have created them
+NUM, LEN, START, COPY, PRE, CH, RIP, RATE, NAME = range(9)
 
 freedb_servers = {
 'freedb': {
@@ -57,13 +59,13 @@ def interpret_db_file(all_tracks, freedb_form_file, verb, dirs = 0, warn = None)
 
 # The user wants us to use the current dir, unconditionally.
 
-        if cg['claim_dir']:
+        if cf['_claim_dir']:
             dir_created = jack_utils.split_dirname(os.getcwd())[-1]
             jack_functions.progress("all", "mkdir", dir_created)
-            cg['claim_dir'] = 0
+            cf['_claim_dir'] = 0
 
-        if cg['rename_dir'] and dir_created:
-            new_dirs, new_dir = jack_utils.mkdirname(track_names, cg['dir_template'])
+        if cf['_rename_dir'] and dir_created:
+            new_dirs, new_dir = jack_utils.mkdirname(track_names, cf['_dir_template'])
             old_dir = os.getcwd()
             old_dirs = jack_utils.split_dirname(old_dir)
             dirs_created = jack_utils.split_dirname(dir_created)
@@ -122,6 +124,7 @@ def freedb_sum(n):
     return ret
 
 def freedb_id(tracks, warn=0):
+    from jack_globals import START, MSF_OFFSET, CDDA_BLOCKS_PER_SECOND
     "calculate freedb (aka CDDB) disc-id"
     cdtoc = []
     if not tracks:
@@ -149,9 +152,9 @@ def freedb_split(field, s, max = 78):
 
 def freedb_template(tracks, names = "", revision = 0):
     "generate a freedb submission template"
-    if os.path.exists(cg['freedb_form_file']):
-        os.rename(cg['freedb_form_file'], cg['freedb_form_file'] + ".bak")
-    f = open(cg['freedb_form_file'], "w")
+    if os.path.exists(cf['_freedb_form_file']):
+        os.rename(cf['_freedb_form_file'], cf['_freedb_form_file'] + ".bak")
+    f = open(cf['_freedb_form_file'], "w")
     f.write("# xmcd CD database file\n#\n# Track frame offsets:\n")
     for i in tracks:
         f.write("#       " + `i[START] + MSF_OFFSET` + "\n")
@@ -184,12 +187,12 @@ def freedb_template(tracks, names = "", revision = 0):
         else:
             f.write("TTITLE" + `i[NUM]-1` + "=\n")
     freedb_year, freedb_id3genre = -1, -1
-    if cg['id3_genre'] >= 0 and cg['id3_genre'] < len(id3genres) or cg['id3_genre'] == 255:
-        freedb_id3genre = cg['id3_genre']
+    if cf['_id3_genre'] >= 0 and cf['_id3_genre'] < len(id3genres) or cf['_id3_genre'] == 255:
+        freedb_id3genre = cf['_id3_genre']
     elif names and len(names[0]) == 4:
         freedb_id3genre = names[0][3]
-    if cg['id3_year'] >= 0:
-        freedb_year = cg['id3_year']
+    if cf['_id3_year'] >= 0:
+        freedb_year = cf['_id3_year']
     elif names and len(names[0]) == 4:
         freedb_year = names[0][2]
     if freedb_year >= 0 or freedb_id3genre >= 0:
@@ -201,7 +204,7 @@ def freedb_template(tracks, names = "", revision = 0):
     f.write("PLAYORDER=\n")
 
 def freedb_query(cd_id, tracks, file):
-    if cg['freedb_dir']:
+    if cf['_freedb_dir']:
         if local_freedb(cd_id, freedb_dir, file)==0: # use local database (if any)
             return 0
 
@@ -209,10 +212,10 @@ def freedb_query(cd_id, tracks, file):
     for i in tracks:
         qs = qs + `i[START] + MSF_OFFSET` + " "
     qs = qs + `(MSF_OFFSET + tracks[-1][START] + tracks[-1][LEN]) / CDDA_BLOCKS_PER_SECOND`
-    hello = "hello=" + cg['username'] + " " + cg['hostname'] + " " + freedb_servers[cg['freedb_server']]['id']
+    hello = "hello=" + cf['_username'] + " " + cf['_hostname'] + " " + freedb_servers[cf['_freedb_server']]['id']
     qs = urllib.quote_plus(qs + "&" + hello + "&proto=3", "=&")
-    url = "http://" + freedb_servers[cg['freedb_server']]['host'] + "/~cddb/cddb.cgi?" + qs
-    if cg['continue_failed_query']:
+    url = "http://" + freedb_servers[cf['_freedb_server']]['host'] + "/~cddb/cddb.cgi?" + qs
+    if cf['_continue_failed_query']:
         try:
             f = urllib.urlopen(url)
         except IOError:
@@ -276,7 +279,7 @@ def freedb_query(cd_id, tracks, file):
                 sys.exit()
  
         cmd = "cmd=cddb read " + freedb_cat + " " + cd_id
-        url = "http://" + freedb_servers[cg['freedb_server']]['host'] + "/~cddb/cddb.cgi?" + urllib.quote_plus(cmd + "&" + hello + "&proto=3", "=&")
+        url = "http://" + freedb_servers[cf['_freedb_server']]['host'] + "/~cddb/cddb.cgi?" + urllib.quote_plus(cmd + "&" + hello + "&proto=3", "=&")
         f = urllib.urlopen(url)
         buf = f.readline()
         if buf and buf[0:3] == "210": # entry follows
@@ -291,7 +294,7 @@ def freedb_query(cd_id, tracks, file):
                 buf = f.readline()
             of.close()
             jack_functions.progress("all", "freedb_cat", freedb_cat)
-            status_all['freedb_cat'] = freedb_cat
+            jack_progress.status_all['freedb_cat'] = freedb_cat
             err = 0
         else:
             print string.rstrip(buf)
@@ -404,14 +407,14 @@ def freedb_names(cd_id, tracks, name, verb = 0, warn = 1):
  
     if string.upper(names[0][0]) in ("VARIOUS", "VARIOUS ARTISTS", "SAMPLER", "COMPILATION", "DIVERSE"):
         #XXX
-        if not cg['various']:
-            cg['various'] = 1
-        elif cg['various'] == 2:
-            cg['various'] = 0
+        if not cf['_various']:
+            cf['_various'] = 1
+        elif cf['_various'] == 2:
+            cf['_various'] = 0
  
 # user says additional info is in the EXTT fields
  
-    if cg['various'] and cg['extt_is_artist']:
+    if cf['_various'] and cf['_extt_is_artist']:
         for i in range(tracks_on_cd):
             if freedb['EXTT'+`i`]:
                 names.append([freedb['EXTT'+`i`], freedb['TTITLE'+`i`]])
@@ -419,7 +422,7 @@ def freedb_names(cd_id, tracks, name, verb = 0, warn = 1):
                 error = 8
                 if verb: print 'Error: no EXTT info for track %02i.' % i
  
-    elif cg['various'] and cg['extt_is_title']:
+    elif cf['_various'] and cf['_extt_is_title']:
         for i in range(tracks_on_cd):
             if freedb['EXTT'+`i`]:
                 names.append([freedb['TTITLE'+`i`], freedb['EXTT'+`i`]])
@@ -429,7 +432,7 @@ def freedb_names(cd_id, tracks, name, verb = 0, warn = 1):
  
 # we'll try some magic to separate artist and title
  
-    elif cg['various']:
+    elif cf['_various']:
         found = [[], [], [], [], [], []]
         # lenght=3   2   1 , 3   2   1 (secondary)
         ignore = string.letters + string.digits
@@ -496,7 +499,7 @@ def freedb_names(cd_id, tracks, name, verb = 0, warn = 1):
                         elif matches == 1:  # found exactly once
                             pass
                         else:               # found multiple times
-                            if cg['freedb_pedantic']:
+                            if cf['_freedb_pedantic']:
                                 all_matched = 0
                                 break
                             else:
@@ -552,7 +555,7 @@ def freedb_names(cd_id, tracks, name, verb = 0, warn = 1):
                         if verb: print "Error: brace", j," does not close exactly once."
                         error = 9
                         
-                if cg['various_swap']:
+                if cf['_various_swap']:
                     buf = [buf[1], buf[0]]
                 names.append(buf)
         else:
@@ -560,14 +563,14 @@ def freedb_names(cd_id, tracks, name, verb = 0, warn = 1):
             if verb: print 'Error: could not separate artist and title in all TTITLEs.'
             if verb: print '       Try setting freedb_pedantic = 0 or use --no-various'
             if verb: print '       Maybe additional information is contained in the EXTT fields.'
-            if verb: print '       check %s and use either --extt-is-artist or --extt-is-title.' % cg['freedb_form_file']
+            if verb: print '       check %s and use either --extt-is-artist or --extt-is-title.' % cf['_freedb_form_file']
     else:
         for i in range(tracks_on_cd):
             buf = freedb['TTITLE'+`i`]
             names.append(["", buf])
  
     # append the EXTT fields to the track names
-    if cg['extt_is_comment']:
+    if cf['_extt_is_comment']:
         for i in range(len(names[1:])):
             if freedb.has_key('EXTT'+`i`) and freedb['EXTT'+`i`]:
                 names[i+1][1] = names[i+1][1] + " (%s)" % freedb['EXTT'+`i`]
@@ -594,10 +597,10 @@ def choose_cat(cat = ["blues", "classical", "country", "data", "folk", "jazz", "
 
     x = -1
     while x < 0 or x > len(cat) - 1:
-        if status_all.has_key('freedb_cat') and status_all['freedb_cat'][-1] in cat:
-            input = raw_input(" 0.) none of the above (default='%s'): " % status_all['freedb_cat'][-1])
+        if jack_progress.status_all.has_key('freedb_cat') and jack_progress.status_all['freedb_cat'][-1] in cat:
+            input = raw_input(" 0.) none of the above (default='%s'): " % jack_progress.status_all['freedb_cat'][-1])
             if not input:
-                x = cat.index(status_all['freedb_cat'][-1])
+                x = cat.index(jack_progress.status_all['freedb_cat'][-1])
                 continue
         else:
             input = raw_input(" 0.) none of the above: ")
@@ -616,7 +619,7 @@ def do_freedb_submit(file, cd_id):
     import httplib
     hello = "hello=" + username + " " + hostname + " " + prog_name + " " + prog_version
     print "Info: querying categories..."
-    url = "http://" + freedb_servers[cg['freedb_server']]['host'] + "/~cddb/cddb.cgi?" + urllib.quote_plus("cmd=cddb lscat" + "&" + hello + "&proto=3", "=&")
+    url = "http://" + freedb_servers[cf['_freedb_server']]['host'] + "/~cddb/cddb.cgi?" + urllib.quote_plus("cmd=cddb lscat" + "&" + hello + "&proto=3", "=&")
     f = urllib.urlopen(url)
     buf = f.readline()
     if buf[0:3] == "500":

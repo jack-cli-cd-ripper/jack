@@ -267,7 +267,7 @@ while l:
         l = string.split(l, '.', 1)
         num = int(l[0])
         l = string.split(l[1])
-        erg.append([num, int(l[0]), int(l[2]), l[4] == 'OK', l[5] == 'yes', int(l[6]), 1, cg['bitrate'], cg['name'] % num])
+        erg.append([num, int(l[0]), int(l[2]), l[4] == 'OK', l[5] == 'yes', int(l[6]), 1, cf['_bitrate'], cf['_name'] % num])
     l = p.readline()
 """,
     },
@@ -304,7 +304,7 @@ while 1:
             pre = pre == "pre-emphasized"
             copy = copy != "copydenied"
             ch = [ "none", "mono", "stereo", "three", "quad" ].index(ch)
-            erg.append([num, length, start, copy, pre, ch, 1, cg['bitrate'], cg['name'] % (num + 1)])
+            erg.append([num, length, start, copy, pre, ch, 1, cf['_bitrate'], cf['_name'] % (num + 1)])
 """,
         'toc_cmd_old': "cdda2wav --no-infofile -D %D -J -v 35 2>&1",
         'toc_fkt_old': r"""
@@ -368,10 +368,10 @@ while 1:
             msf = string.split(l[2], ":")
             sf = string.split(msf[1], ".")
             t_length = int(sf[1]) + int(sf[0]) * 75 + int(msf[0]) * 60 * 75
-            erg.append([num, t_length, t_start, l[5] == "copyallowed", l[4] != "linear", channels, 1, cg['bitrate'], cg['name'] % num])
+            erg.append([num, t_length, t_start, l[5] == "copyallowed", l[4] != "linear", channels, 1, cf['_bitrate'], cf['_name'] % num])
 if new_c2w and len(new_lengths) == len(new_starts) - 1:
     for i in range(min(len(new_lengths), len(new_starts))): # this provokes an error if the lists are of different length
-        erg.append([i + 1, new_lengths[i], new_starts[i], 0, 0, 2, 1, cg['bitrate'], cg['name'] % (i + 1)])
+        erg.append([i + 1, new_lengths[i], new_starts[i], 0, 0, 2, 1, cf['_bitrate'], cf['_name'] % (i + 1)])
 """,
     },
 
@@ -408,7 +408,7 @@ while l:
             pre = 0
             t_start = int(l[1]) - 150
             t_length = int(l[2])
-            erg.append([num, t_length, t_start, copy, pre, channels, 1, cg['bitrate'], cg['name'] % num])
+            erg.append([num, t_length, t_start, copy, pre, channels, 1, cf['_bitrate'], cf['_name'] % num])
     l = p.readline()
 """,
     },
@@ -436,7 +436,7 @@ while l:
     if l:
         l = string.split(l)
         num = int(l[0])
-        erg.append([num, 1 + int(l[3]) - int(l[2]), int(l[2]), 0, 0, 2, 1, cg['bitrate'], cg['name'] % num])
+        erg.append([num, 1 + int(l[3]) - int(l[2]), int(l[2]), 0, 0, 2, 1, cf['_bitrate'], cf['_name'] % num])
     l = p.readline()
 """,
     },
@@ -446,7 +446,7 @@ while l:
         'toc': 1,
         'toc_fkt': r"""
 import cdrom
-device = cdrom.open(cg['cd_device'])
+device = cdrom.open(cf['_cd_device'])
 (first, last) = cdrom.toc_header(device)
 toc = []
 for i in range(first, last + 1):
@@ -455,7 +455,7 @@ for i in range(first, last + 1):
 (min, sec, frame) = cdrom.leadout(device)
 toc.append(min * 60 * 75 + sec * 75 + frame)
 for i in range(first, last + 1):
-    erg.append([i, toc[i - first + 1] - toc[i - first], toc[i - first] - toc[0], 0, 0, 2, 1, cg['bitrate'], cg['name'] % i])
+    erg.append([i, toc[i - first + 1] - toc[i - first], toc[i - first] - toc[0], 0, 0, 2, 1, cf['_bitrate'], cf['_name'] % i])
 """,
     }
 }

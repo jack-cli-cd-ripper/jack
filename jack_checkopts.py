@@ -18,16 +18,20 @@
 
 import types
 import os
+
+import jack_utils
+
+from jack_globals import *
 from jack_freedb import freedb_servers
 from jack_helpers import helpers
 from jack_targets import targets
 
-
 # special option handling
 def checkopts(cf, cf2):
     if cf2.has_key('image_file'):
-        cf['rip_from_device']['val'] = 0
-        cf['read_ahead']['val'] = 0          # we do not want to waste discspace
+        cf.rupdate({'rip_from_device': {'val': 0}, 'read_ahead':{'val': 0}})
+        #cf['rip_from_device']['val'] = 0
+        #cf['read_ahead']['val'] = 0          # we do not want to waste discspace
 
     if cf2.has_key('image_toc_file'):
         cf['rip_from_device']['val'] = 0
@@ -80,6 +84,9 @@ def checkopts(cf, cf2):
                 print "Error: illegal genre. Try '" + prog_name + " --id3-genre help' for a list."
                 sys.exit(1)
             del temp_id3
+    for i in cf2.keys():
+        if not cf.has_key(i):
+            error("unknown config item `%s'" % i)
 
 def consistency_check(cf):
     # check for unsername
@@ -89,7 +96,7 @@ def consistency_check(cf):
         elif os.environ.has_key('LOGNAME'):
             cf['username']['val'] = os.environ['LOGNAME']
         else:
-            jack_utils.error("can't determine your username, pleas set it manually.")
+            error("can't determine your username, pleas set it manually.")
 
     # check for hostname
     if cf['hostname']['val'] == None:
@@ -98,7 +105,7 @@ def consistency_check(cf):
     # check options for consitency
     if cf.has_key('charset'):
         if not cf['char_filter']['val']:
-            print "Warning: option --charset has no effect without a char_filter"
+            warning("charset has no effect without a char_filter")
 
     if len(freedb_servers[cf['freedb_server']['val']]['my_mail']) <= 3 or freedb_servers[cf['freedb_server']['val']]['my_mail'] == "default":
         freedb_servers[cf['freedb_server']['val']]['my_mail'] = cf['username']['val'] + "@" + cf['hostname']['val']
@@ -175,8 +182,7 @@ def consistency_check(cf):
         cf['vbr']['val'] = 0
 
     if not cf['vbr']['val'] and not helpers[cf['encoder']['val']].has_key('cmd'):
-        print "Error: can't do CBR because " + cf['encoder']['val'] + " doesn't support it.\nUse -v or set vbr=1 in your .jackrc."
-        exit()
+        error("Error: can't do CBR because " + cf['encoder']['val'] + " doesn't support it. Use -v")
 
     #XXX
     #if cf['xtermset_enable']['val'] and jack_cursutils.curses_enable and not jack_cursutils.jack_curses_enable:
@@ -193,5 +199,6 @@ def consistency_check(cf):
         sys.exit()
 
 def setup(cf):
-    cf['ext'] = {'val': targets[helpers[cf['encoder']['val']]['target']]['file_extension']}
+    pass
+    #cf['ext'] = {'val': targets[helpers[cf['encoder']['val']]['target']]['file_extension']}
 
