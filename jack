@@ -22,7 +22,7 @@
 ### see CHANGELOG for recent changes in this program
 ### see TODO if you want to see what needs to be implemented
 
-prog_version = "2.99.8"
+prog_version = "2.99.9"
 prog_name = "jack"
 DEBUG = 0
 
@@ -39,8 +39,6 @@ from array import array
 from sndhdr import whathdr
 from urllib import urlopen, quote_plus
 from select import select
-from fcntl import fcntl, ioctl
-import FCNTL
 from termios import tcgetattr, tcsetattr
 import termios
 import signal
@@ -54,6 +52,17 @@ from jack_TOCentry import TOCentry
 from jack_CDTime import CDTime
 from jack_misc import multi_replace
 from jack_mp3 import mp3format
+
+from fcntl import fcntl, ioctl
+try:
+    from fcntl import F_SETFL
+except:
+    from FCNTL import F_SETFL
+
+try:
+    from os import O_NONBLOCK
+except:
+    from FCNTL import O_NONBLOCK
 
 try:
     from ID3 import ID3
@@ -1966,7 +1975,7 @@ def start_new_process(args, nice_val = 0):
     else:
         data['pid'] = pid
         if Linux:
-            fcntl(master_fd, FCNTL.F_SETFL, FCNTL.O_NONBLOCK)
+            fcntl(master_fd, F_SETFL, O_NONBLOCK)
         data['fd'] = master_fd
         data['file'] = fdopen(master_fd)
         data['cmd'] = args
@@ -2106,8 +2115,8 @@ def start_new_otf(track, ripper, encoder):
     data['rip']['otf-pid'] = data['enc']['pid']
 
     if Linux:
-        fcntl(data['rip']['fd'], FCNTL.F_SETFL, FCNTL.O_NONBLOCK)
-        fcntl(data['enc']['fd'], FCNTL.F_SETFL, FCNTL.O_NONBLOCK)
+        fcntl(data['rip']['fd'], F_SETFL, O_NONBLOCK)
+        fcntl(data['enc']['fd'], F_SETFL, O_NONBLOCK)
     data['rip']['file'] = fdopen(data['rip']['fd'])
     data['enc']['file'] = fdopen(data['enc']['fd'])
     return data
