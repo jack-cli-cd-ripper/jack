@@ -1840,8 +1840,12 @@ def start_new_encoder(track, encoder):
         elif i == "%o": args.append(track[NAME] + ext)
         else:
             if targets[helper['target']]['can_pretag']:
-                if i == "%t": args.append(track_names[track[NUM]][0])
-                elif i == "%a": args.append(track_names[track[NUM]][1])
+                if i == "%t": args.append(track_names[track[NUM]][1])
+                elif i == "%a":
+                    if track_names[NUM][0]:
+                        args.append(track_names[NUM][0])
+                    else:
+                        args.append(track_names[0][0])
                 elif i == "%n": args.append(`track[NUM]`)
                 elif i == "%l": args.append(track_names[0][1])
                 else:
@@ -2681,8 +2685,8 @@ if otf:
             exit()
 
 if vbr and not helpers[encoder].has_key('vbr-cmd'):
-    print "Error: can't do VBR because " + encoder + " doesn't support it."
-    exit()
+    print "Warning: disabling VBR because " + encoder + " doesn't support it."
+    vbr = 0
 
 if not vbr and not helpers[encoder].has_key('cmd'):
     print "Error: can't do CBR because " + encoder + " doesn't support it.\nUse -v or set vbr=1 in your .jackrc."
