@@ -187,12 +187,19 @@ append_year = " (%y)"           # append the year (if given) to dir: " (1999)"
 dir_template = "%a/%l"          # if create_dirs is set and freedb data is
                                 # available, files are put in
                                 # base_dir + "/<artist>/<albumname>".
-unusable_chars = "/\r"          # put chars which can't be used in filenames
+
+# here is a new way to do conversion to lowercase, even with non-ascii charsets.
+# Unfortunately, this needs python >= 2.2 and you have to specify the charset.
+char_filter = ""                # disabled by default
+#char_filter = ".decode(charset).lower().encode(charset)"   # uncomment to try
+charset = "latin-1"             # or "ascii", "utf-8", ... This is only the
+                                # default. override with --charset
+
+unusable_chars = "/\\r"          # put chars which can't be used in filenames
                                 # here and their
 replacement_chars = ["%", ""]   # replacements here. replacement_chars is
-                                # automagically stretched to match
-                                # unusable_chars' length using the last char
-                                # as fill
+                                # stretched to match unusable_chars' length
+                                # using the last char as fill
 
 # example 1: replace all " " by "_":
 # unusable_chars = " "
@@ -210,6 +217,7 @@ replacement_chars = ["%", ""]   # replacements here. replacement_chars is
 # because a) jack forces the locale to C and b) uppercase and lowercase
 # are not symmetric, e.g. with the de_DE locale "Ä" would become "ã".
 # Instead, add them explicitly: + "ÄÖÜ" / + "äöü" respectively.
+# The "right" way is to use char_filter above but this needs python >= 2.2.
 
 # these influence the status screen while processing tracks
 show_time = 1       # display track length instead of "track"
@@ -250,7 +258,6 @@ nice_value = 12     # what nice level (priority) encoders get
 overwrite = 0       # overwrite existing files
 remove_files = 0    # remove jack.* files when done
 silent_mode = 0     # silent-mode means: no output to screen
-edit_cddb = 0       # open an editor to edit the CDDB info
 
 ## Things to do when finished
 exec_when_done = 0  # execute commands below when finished, default: no
@@ -314,20 +321,35 @@ else:
 
 """
 
-prefs2="""
+prefs0="""
+## advanced defaults - copy what you'd like to change to your .jackrc and edit #
 force = 0           # General Override
 recheck_space = 1   # yes we want to react to disc space dropping.
-various = 0         # assume CD has various artists, 0 = auto
-various_swap = 0    # exchange artist and title for broken freedb entries
-extt_is_artist = 0  # extt contains artist
-extt_is_title = 0   # extt contains track title
-extt_is_comment = 0 # extt contains track comment
+swap_byteorder = 1      # swap byteorder when reading from image
+todo_exit = 0           # print what would be done and exit
+space_from_argv = 0     # use currently free discspace (or override via argv)
+check_toc = 0           # compare toc-file with cd-toc and exit
+undo_rename = 0         # undo file renaming and exit
+dont_work = 0           # use this to avoid actual work, good for query only
+update_freedb = 0       # update the freedb file
+tlist = []              # tracks to encode, empty = use all tracks
+name = "track_%02i"     # filename template (before renaming)
+rippers = 1             # not implemented: rip in parallel
+toc_prog = "CDDB.py"    # use which program to read cd's toc
+                        # ripper (without quotes) means same as for ripping
 
-
+## FREEDB stuff starts here ##
 # there are two ways of freedb operation:
 query_on_start = 0      # do query when starting, rename files when finished
-continue_failed_query=0 # continue without freedb data if query fails
 query_when_ready = 0    # do query when done with encoding, rename files
+
+continue_failed_query=0 # continue without freedb data if query fails
+edit_cddb = 0           # open an editor to edit the CDDB info
+various = 0             # assume CD has various artists, 0 = auto
+various_swap = 0        # exchange artist and title for broken freedb entries
+extt_is_artist = 0      # extt contains artist
+extt_is_title = 0       # extt contains track title
+extt_is_comment = 0     # extt contains track comment
 
 freedb_servers = {
 'freedb': {
@@ -344,23 +366,6 @@ freedb_servers = {
         }
     }   
 
-swap_byteorder = 1      # swap byteorder when reading from image
-todo_exit = 0           # print what would be done and exit
-space_from_argv = 0     # use currently free discspace (or override via argv)
-check_toc = 0           # compare toc-file with cd-toc and exit
-undo_rename = 0         # undo file renaming and exit
-dont_work = 0           # use this to avoid actual work, good for query only
-update_freedb = 0       # update the freedb file
-tlist = []              # tracks to encode, empty = use all tracks
-
-
-## Misc stuff ##
-name = "track_%02i" # filename template (before renaming)
-rippers = 1         # not implemented: rip in parallel
-toc_prog = "CDDB.py"# use which program to read cd's toc
-                    # ripper (without quotes) means same as for ripping
-
-## FREEDB stuff starts here ##
 freedb_submit = 0       # use this to submit freedb file (after editing)
 freedb_mailsubmit = 0   # submit entry by e-mail
 read_freedb_file = 0    # read freedb file, e.g. to
@@ -372,13 +377,17 @@ id3_genre = -1          # the default genre to set for id3 genre. Better use
 id3_year = -1           # the default year to set for id3 year info. You sure
                         # don't own only CDs released during the same year?!
 gen_freedb_form = 1     # yes, generate a freedb submission template
+
+
+## other stuff ##
 if environ.has_key('USER'):
   username = environ['USER']
 elif environ.has_key('LOGNAME'):
   username = environ['LOGNAME'] # this and
 hostname = uname()[1]           # that is required for freedb query
 
-# better not touch these: #
+
+## better not touch these: ##
 if environ.has_key("OSTYPE") and environ['OSTYPE'] in ["Linux", "linux-gnu"]:
   Linux = 1       # some things can be done faster on Linux
 else:
@@ -825,7 +834,7 @@ for i in range(first, last + 1):
 """
 
 # read the defaults
-exec(prefs2)
+exec(prefs0)
 exec(prefs)
 if path.exists(prefs_file):
     jackrc_version = "0.too old"
@@ -938,7 +947,6 @@ STDERR_FILENO = 2
 for h in helpers.keys():
     for i in helpers[h].keys():
         if i[-4:] == "_fkt":
-            #pass
             helpers[h][i] = compile(helpers[h][i], '<string>', 'exec')
 
 #################################################################### functions
@@ -2513,6 +2521,7 @@ def mkdirname(names, template):
     for i in dirs:
         replace_list = (("%a", names[0][0]), ("%l", names[0][1]), ("%y", `id3_year`), ("%g", id3_genretxt))
         x = multi_replace(i, replace_list)
+        exec("x = x" + char_filter)
         for char_i in range(len(unusable_chars)):
             x = replace(x, unusable_chars[char_i], replacement_chars[char_i])
         dirs2.append(x)
@@ -2817,7 +2826,10 @@ while i<len(argv):
     elif argv[i] == "--otf":
         otf = 1
     elif argv[i] == "--edit-cddb":
-        edit_cddb = 1;
+        edit_cddb = 1
+    elif argv[i] == "--charset":
+        charset = argv[i + 1]
+        i = i + 1
     else:
         if not argv[i] in ("-h", "-help", "--help"):
             print "unknown option", argv[i]
@@ -2873,6 +2885,7 @@ while i<len(argv):
         print "      --wait:         wait for key press before quitting"
         print "      --otf:          on-the-fly encoding *experimental* (" + yes(otf) + ")"
         print "      --edit-cddb     edit CDDB information (" + yes(edit_cddb) + ")"
+        print "      --charset      *character set freedb data is encoded in (" + charset + ")"
         print
         print "    When a freedb query is done, files are renamed and tagged accordingly."
 
@@ -4393,6 +4406,7 @@ if set_id3tag or freedb_rename:
             else:
                 replacelist = (("%n", rename_num % i[NUM]), ("%a", a_artist), ("%t", t_name), ("%l", a_title))
                 newname = multi_replace(rename_fmt, replacelist)
+            exec("newname = newname" + char_filter)
             for char_i in range(len(unusable_chars)):
                 newname = replace(newname, unusable_chars[char_i], replacement_chars[char_i])
             if i[NAME] != newname:
