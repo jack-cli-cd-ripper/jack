@@ -131,7 +131,7 @@ if cf['_upd_progress']:
     sys.exit(0)
 
 ### (7) now read in the progress file
-status = jack_prepare.read_progress(status)
+status = jack_prepare.read_progress(status, todo)
 
 ### (8) submit freedb data on user's request
 if cf['_freedb_submit'] or cf['_freedb_mailsubmit']:
@@ -145,6 +145,7 @@ if cf['_query_on_start']:
 
 ### (10) update freedb dbfile
 if cf['_update_freedb']:
+    print jack_tag.track_names
     jack_freedb.freedb_template(jack_ripstuff.all_tracks, jack_tag.track_names, revision + 1)
     jack_utils.ex_edit(cf['_freedb_form_file'])
     info("now submit your changes if you like, either via e-mail using the option -m or with --submit via http POST. Don't forget to activate your change locally with -R")
@@ -157,7 +158,7 @@ if cf['_undo_rename']:
 
 #### Reorder if told so
 if cf['_reorder']:
-    todo.sort(cmp_toc)
+    todo.sort(jack_utils.cmp_toc)
     todo.reverse()
 
 #### check how much bytes we can burn
@@ -217,7 +218,7 @@ if (wavs_todo or mp3s_todo):
     jack_display.init()
     try:
         jack_term.enable()
-        global_error = jack_main_loop.main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue)
+        global_error = jack_main_loop.main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset)
     except SystemExit:
         jack_term.disable()
         print jack_display.options_string

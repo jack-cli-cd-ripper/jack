@@ -32,18 +32,24 @@ dir_created = None              # dirs are only renamed if we have created them
 NUM, LEN, START, COPY, PRE, CH, RIP, RATE, NAME = range(9)
 
 freedb_servers = {
-'freedb': {
-    'host': "freedb.freedb.org",
-    'id': prog_name + " " + prog_version,
-    'mail': "freedb-submit@freedb.org",
-    'my_mail': "default"
+    'freedb': {
+        'host': "freedb.freedb.org",
+        'id': prog_name + " " + prog_version,
+        'mail': "freedb-submit@freedb.org",
+        'my_mail': "default"
     },
     'freedb-de': {
         'host': "de.freedb.org",
         'id': prog_name + " " + prog_version,
         'mail': "freedb-submit@freedb.org",
         'my_mail': "default"
-        }
+        },
+    'cddb': {
+        'host': "cddb.cddb.com",
+        'id': "xmcd 2.6",
+        'submit_mail': "freedb-submit@freedb.org",
+        'my_mail': "default"
+        },
     }
 
 def interpret_db_file(all_tracks, freedb_form_file, verb, dirs = 0, warn = None):
@@ -214,7 +220,7 @@ def freedb_query(cd_id, tracks, file):
     hello = "hello=" + cf['_username'] + " " + cf['_hostname'] + " " + freedb_servers[cf['_freedb_server']]['id']
     qs = urllib.quote_plus(qs + "&" + hello + "&proto=3", "=&")
     url = "http://" + freedb_servers[cf['_freedb_server']]['host'] + "/~cddb/cddb.cgi?" + qs
-    if cf['_continue_failed_query']:
+    if cf['_cont_failed_query']:
         try:
             f = urllib.urlopen(url)
         except IOError:
@@ -261,14 +267,14 @@ def freedb_query(cd_id, tracks, file):
             buf = string.split(buf)
             freedb_cat = buf[1]
         elif buf[0:3] == "202":
-            if continue_failed_query:
+            if cf['_cont_failed_query']:
                 warning(buf + f.read() + " --how about trying another --server?")
                 err = 1
                 return err
             else:
                 error(buf + f.read() + " --how about trying another --server?")
         else:
-            if continue_failed_query:
+            if cf['_cont_failed_query']:
                 warning(buf + f.read() + " --don't know what to do, aborting query.")
                 err = 1
                 return err
@@ -391,7 +397,7 @@ def freedb_names(cd_id, tracks, name, verb = 0, warn = 1):
     if not dtitle:
         dtitle = "(unknown artist)/(unknown disc title)"
     if string.find(dtitle,"/") == -1:
-        if various == 1:
+        if cf['_various'] == 1:
             dtitle = "Various/" + dtitle
             warning("bad disc title, using %s. Please fix and submit." % dtitle)
         else:
@@ -414,7 +420,7 @@ def freedb_names(cd_id, tracks, name, verb = 0, warn = 1):
             warning("the disc's title must be set to \"artist / title\" (\"DTITLE\").")
         err = 6
  
-    if string.upper(names[0][0]) in ("VARIOUS", "VARIOUS ARTISTS", "SAMPLER", "COMPILATION", "DIVERSE"):
+    if string.upper(names[0][0]) in ("VARIOUS", "VARIOUS ARTISTS", "SAMPLER", "COMPILATION", "DIVERSE", "V.A."):
         #XXX
         if not cf['_various']:
             cf['_various'] = 1

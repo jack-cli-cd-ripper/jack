@@ -19,46 +19,45 @@
 import sys
 import types
 
+import jack_utils
+import jack_generic
+
 from jack_globals import *
 from jack_misc import safe_int
 
 def show_usage(cf, long=0):
     l = []
-    x_chars = {types.StringType: "*", types.IntType: "+"}
     for i in cf.keys():
         if not long and not cf[i].has_key('help'):
             continue
         s = ""
         if cf[i].has_key('usage'):
-            if cf[i].has_key('short'):
-                s = "  -%s" % cf[i]['short']
-                if cf[i].has_key('long'):
-                    s = s + ", --%s" % cf[i]['long']
-            elif cf[i].has_key('long'):
-                    s = "  --%s" % cf[i]['long']
+            if cf[i].has_key('long'):
+                s = "  --%s" % cf[i]['long']
+                if cf[i].has_key('short'):
+                    s = s + ", -%s" % cf[i]['short']
             else:
                 print "hm?", i, cf[i]
                 sys.exit(1)
 
             x_char = " "
-            if x_chars.has_key(cf[i]['type']):
-                x_char = x_chars[cf[i]['type']]
-            l.append([s, x_char + cf[i]['usage'] + " (%s)" % `cf[i]['val']`])
+            l.append([s, cf[i]['usage'] + jack_utils.yes(cf[i])])
     max_len = 0
     for i in l:
         max_len = max(max_len, len(i[0]))
+    
+    l.sort()
     print "usage: jack [option]..."
-    print "Options marked \"*\" need a string argument; \"+\" marks integer argument."
-
     for i in l:
-        print i[0], " " * (max_len - len(i[0])), i[1]
+        jack_generic.indent(i[0] + " " * (max_len - len(i[0])), i[1])
 
     if long: 
-        print """    While Jack is running, press q or Q to quit,
-                               p or P to disable ripping (you need the CD drive)
-                               p or P (again) or c or C to resume,
-                               e or E to pause/continue all encoders and
-                               r or R to pause/continue all rippers.
+        print """
+While Jack is running, press q or Q to quit,
+    p or P to disable ripping (you need the CD drive)
+    p or P (again) or c or C to resume,
+    e or E to pause/continue all encoders and
+    r or R to pause/continue all rippers.
 """
     else:
         print "These are the most commom options. For a complete list, run jack --longhelp"

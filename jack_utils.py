@@ -127,10 +127,25 @@ def filesize(name):
     return os.stat(name)[stat.ST_SIZE]
 
 def yes(what):
-    if what:
-        return "yes"
+    if what.has_key('save') and what['save'] == 0:
+        return ""
+
+    if what['type'] == 'toggle':
+        if what['val']:
+            s = "yes"
+        else:
+            s = "no"
+    if what['type'] == types.StringType:
+        s = "'%s'" % what['val']
     else:
-        return "no"
+        s = str(what['val'])
+
+    s = " [%s]" % s
+    if what['history'][-1][0] == "global_rc":
+        s = s + "*"
+    if what.has_key('doc'):
+        s = s + " +"
+    return s
 
 def safe_float(number, message):
     try:

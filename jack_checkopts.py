@@ -55,7 +55,7 @@ def checkopts(cf, cf2):
     if cf2.has_key('query_on_start') and cf2['query_on_start']['val']:
         cf.rupdate({'set_id3tag': {'val': 1}}, "check")
 
-    if cf2.has_key('continue_failed_query') and cf2['continue_failed_query']['val']:
+    if cf2.has_key('cont_failed_query') and cf2['cont_failed_query']['val']:
         cf.rupdate({'query_on_start': {'val': 1}, 'set_id3tag':{'val': 1}}, "check")
 
     if cf2.has_key('create_dirs') and cf2['create_dirs']['val']:

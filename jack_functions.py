@@ -17,6 +17,7 @@
 ### Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 import traceback
+import sndhdr
 import types
 import string
 import sys
@@ -82,22 +83,23 @@ def gettoc(toc_prog):
     "Returns track list"
     if jack_helpers.helpers[toc_prog].has_key('toc_cmd'):
         cmd = string.replace(jack_helpers.helpers[toc_prog]['toc_cmd'], "%d", cf['_cd_device'])
-        cmd = string.replace(cmd, "%D", cf['_gen_device'])
+        if cf['_gen_device']:
+            cmd = string.replace(cmd, "%D", cf['_gen_device'])
         p = os.popen(cmd)
         start = 0
         erg = []
         l = p.readline()
         exec(jack_helpers.helpers[toc_prog]['toc_fkt'])
         if p.close():
-            if cd_device:
+            if cf['_cd_device']:
                 try:
-                    f = open(cd_device, "r")
+                    f = open(cf['_cd_device'], "r")
                 except IOError:
-                     info("could not open " + cd_device + ". Check permissions and that a disc is inserted.")
+                     info("could not open " + cf['_cd_device'] + ". Check permissions and that a disc is inserted.")
                 else:
                     info("maybe " + toc_prog + " is not installed?")
             else:
-                info("try setting cd_device to your CD device, e.g. /dev/cdrom")
+                info("try setting cf['_cd_device'] to your CD device, e.g. /dev/cdrom")
             error("could not read CD's TOC.")
         else:
             return erg
@@ -136,7 +138,7 @@ def guesstoc(names):
             if cf['_name'] % num != i_name:
                 progr.append([num, "ren", cf['_name'] % num + "-->" + i_name])
         elif i_ext == ".WAV":
-            x = whathdr(i)
+            x = sndhdr.whathdr(i)
             if not x:
                 error("this is not WAV-format: " + i)
             if x != ('wav', 44100, 2, -1, 16):
@@ -405,10 +407,16 @@ def check_genre_txt(txt):
     elif string.upper(txt) == "NONE":
         return 255 # set genre to [unknown]
     else:
-        from init import ID3
+        from jack_init import ID3
         temp_id3 = ID3("/dev/null")
         genre = temp_id3.find_genre(txt)
-        if genre == -1:
+        if not temp_id3.legal_genre(genre):
+            try:
+                genre = int(txt)
+            except ValueError:
+                pass
+        if not temp_id3.legal_genre(genre):
+            import jack_version
             error("illegal genre. Try '" + jack_version.prog_name + " --id3-genre help' for a list.")
         del temp_id3
         return genre

@@ -16,13 +16,20 @@
 ### along with this program; if not, write to the Free Software
 ### Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+import sndhdr
 import signal
 import string
+import posix
+import array
 import fcntl
+import wave
 import time
 import pty
+import sys
 import os
 
+import jack_functions
+import jack_ripstuff
 import jack_helpers
 import jack_targets
 import jack_utils
@@ -232,14 +239,19 @@ def ripread(track, offset = 0):
     start_time = time.time()
     pid, master_fd = pty.fork() # this could also be done with a pipe, anyone?
     if pid == CHILD:
+        #debug:
+        #so=open("/tmp/stdout", "w")
+        #sys.stdout = so
+        #se=open("/tmp/stderr", "w+")
+        #sys.stderr = se
         reset_signals()
 
 # FIXME: all this offset stuff has to go, track 0 support has to come.
 
         print ":fAE: waiting for status report..."
         sys.stdout.flush()
-        hdr = whathdr(image_file)
-        my_swap_byteorder = swap_byteorder
+        hdr = sndhdr.whathdr(cf['_image_file'])
+        my_swap_byteorder = cf['_swap_byteorder']
         my_offset = offset
         if hdr:
 
@@ -249,36 +261,36 @@ def ripread(track, offset = 0):
             image_offset = -offset
 
         else:
-            if upper(image_file)[-4:] == ".CDR":
+            if string.upper(cf['_image_file'])[-4:] == ".CDR":
                 hdr = ('cdr', 44100, 2, -1, 16) # Unknown header, assuming cdr
 #
 ## assume old cdrdao which started at track 1, not at block 0
                 image_offset = -offset
 
-            elif upper(image_file)[-4:] == ".BIN":
+            elif string.upper(cf['_image_file'])[-4:] == ".BIN":
                 hdr = ('bin', 44100, 2, -1, 16) # Unknown header, assuming bin
 #
 ## assume new cdrdao which starts at block 0, byteorder is reversed.
                 my_swap_byteorder = not my_swap_byteorder
                 image_offset = 0
 
-            elif upper(image_file)[-4:] == ".RAW":
+            elif string.upper(cf['_image_file'])[-4:] == ".RAW":
                 hdr = ('bin', 44100, 2, -1, 16) # Unknown header, assuming raw
                 image_offset = 0
 
             else:
-                debug("unsupported image file " + image_file)
+                debug("unsupported image file " + cf['_image_file'])
                 posix._exit(4)
         
-        expected_filesize = tracksize(all_tracks)[CDR] + CDDA_BLOCKSIZE * offset
+        expected_filesize = jack_functions.tracksize(jack_ripstuff.all_tracks)[CDR] + CDDA_BLOCKSIZE * offset
 #
 ## WAVE header is 44 Bytes for normal PCM files...
 #
         if hdr[0] == 'wav':
             expected_filesize = expected_filesize + 44
 
-        if jack_utils.filesize(image_file) != expected_filesize:
-            debug("image file size mismatch, aborted. %i != %i"% (jack_utils.filesize(image_file), expected_filesize))
+        if jack_utils.filesize(cf['_image_file']) != expected_filesize:
+            debug("image file size mismatch, aborted. %i != %i"% (jack_utils.filesize(cf['_image_file']), expected_filesize))
             posix._exit(1)
 
         elif hdr[0] == 'wav' and (hdr[1], hdr[2], hdr[4]) != (44100, 2, 16):
@@ -290,7 +302,7 @@ def ripread(track, offset = 0):
             posix._exit(3)
 
         else:
-            f = open(image_file, 'r')
+            f = open(cf['_image_file'], 'r')
 #
 ## set up output wav file:
 #
@@ -311,7 +323,7 @@ def ripread(track, offset = 0):
 ## copy / convert the stuff
 #
             for i in range(0, track[LEN]):
-                buf = array("h")
+                buf = array.array("h")
                 buf.fromfile(f, 1176) # CDDA_BLOCKSIZE / 2
                 if not my_swap_byteorder:  # this is inverted as WAVE swabs them anyway.
                     buf.byteswap()

@@ -37,7 +37,7 @@ import jack_term
 
 from jack_globals import *
 
-def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue):
+def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
     global_error = 0    # remember if something went wrong
     actual_load = -2    # this is always smaller than max_load
     waiting_load = 0    # are we waiting for the load to drop?
@@ -131,7 +131,7 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue):
                     if cf['_rip_from_device']:
                         jack_children.children.append(jack_workers.start_new_ripper(track, cf['_ripper']))
                     elif cf['_image_file']:
-                        jack_children.children.append(ripread(track, track1_offset))
+                        jack_children.children.append(jack_workers.ripread(track, track1_offset))
                     else:
                         jack_status.dae_stat_upd(track[NUM], ":?AE: don't know how to rip this!")
 
@@ -441,7 +441,7 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue):
             if blocked > 2:
                 jack_display.special_line = " ...I feel blocked - quit with 'q' if you get bored... "
                 if blocked > 5:
-                    space = jack_functions.df() - keep_free
+                    space = jack_functions.df() - cf['_keep_free']
             elif waiting_load and waiting_space >= 2:
                 jack_display.special_line = " ...waiting for load (" + `actual_load` + ") < " + `cf['_max_load']` + " and for " + jack_functions.pprint_i(space_adjust, "%i %sBytes") + " to be freed... "
             elif waiting_space >= 2:

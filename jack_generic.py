@@ -21,10 +21,10 @@ import sys
 
 DEBUG = 1
 
-def ewprint(pre, msg):
-    msg = string.split(msg)
-    pre = " *" + pre + "*"
+def indent(pre, msg):
     print pre,
+
+    msg = string.split(msg)
     p = len(pre)
     y = p
     for i in msg:
@@ -35,6 +35,10 @@ def ewprint(pre, msg):
         print i,
         y = y + len(i) + 1
     print
+
+def ewprint(pre, msg):
+    pre = " *" + pre + "*"
+    indent(pre, msg)
 
 def error(msg):
     import jack_term

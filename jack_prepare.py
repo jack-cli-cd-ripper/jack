@@ -30,6 +30,7 @@ import jack_helpers
 import jack_freedb
 import jack_status
 import jack_encstuff
+import jack_misc
 import jack_tag
 
 from jack_globals import *
@@ -58,7 +59,7 @@ def find_workdir():
                     jack_ripstuff.all_tracks = jack_functions.gettoc(cf['_toc_prog'])
                     toc_just_read = 1
                     # check that the generic device is usable, too
-                    if not os.access(cf['_gen_device'], os.R_OK | os.W_OK):
+                    if cf['_gen_device'] and not os.access(cf['_gen_device'], os.R_OK | os.W_OK):
                         warning(r"""could not open generic device %s for reading and writing.
     This may or may not be a problem. Maybe you just didn't set up gen_device
     in your .jackrc. This is fine, unless you're using a ripper which needs to
@@ -336,7 +337,7 @@ def update_progress(todo):
                     status[num]['enc'] = `temp_rate` + cf['_progr_sep'] + "[simulated]"
                     jack_functions.progress(num, "enc", status[num]['enc'])
 
-def read_progress(status):
+def read_progress(status, todo):
     "now read in the progress file"
 
     if os.path.exists(cf['_progress_file']):
@@ -466,7 +467,7 @@ def freedb_submit():
 def query_on_start():
     info("querying...")
     if jack_freedb.freedb_query(jack_freedb.freedb_id(jack_ripstuff.all_tracks), jack_ripstuff.all_tracks, cf['_freedb_form_file']):
-        if continue_failed_query:
+        if cf['_cont_failed_query']:
             
             x = raw_input("\nfreedb search failed, continue? ") + "x"
             if string.upper(x[0]) != "Y":
