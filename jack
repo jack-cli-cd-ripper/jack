@@ -100,11 +100,18 @@ py_version = split(sys.version)[0]
 desperately_seeking_curses = 0
 
 try:
-    import jack_curses
+    from jack_curses import *
     curses_enable = 1
+    jack_curses_enable = 1
 except ImportError:
-    print "jack_curses module not found, please install it (see README)"
-    curses_enable = 0
+    jack_curses_enable = 0
+    print "jack_curses module not found, trying normal curses..."
+    try:
+        from curses import *
+        curses_enable = 1
+    except ImportError:
+        print "curses module not found, please install it (see README)"
+        curses_enable = 0
 
 if DEBUG: curses_enable = 0
 
@@ -2445,7 +2452,7 @@ def sig_handler(sig, frame):
     if not curses_enable:
         tcsetattr(stdin.fileno(), termios.TCSADRAIN, old_tc)
     elif curses_init:
-        jack_curses.endwin()
+        endwin()
     if sig:
         exit_code = 2
         print "Info: signal", sig, "caught, exiting."
@@ -2498,7 +2505,8 @@ def sig_winch_handler(sig, frame):
     new_y, new_x, xpixel, ypixel = winsize.tolist()
 
     old_y, old_x = stdscr.getmaxyx()
-    jack_curses.resizeterm(new_y, new_x)
+    if jack_curses_enable:
+        resizeterm(new_y, new_x)
     #XXX
     #if sig == signal.SIGWINCH:
     #    stdscr.getkey()         # resizeterm ungetch a 'KEY_RESIZE'
@@ -2531,24 +2539,24 @@ def sig_winch_handler(sig, frame):
         scroll_keys = scroll_keys + " "
     if extra_lines < max_y:
         if global_discname:
-            stdscr.addstr(0, 0, (center_line(global_options + " [" + scroll_keys + "]", fill = " ", width = width))[:max_x], jack_curses.A_REVERSE)
-            stdscr.addstr(1, 0, center_line(global_discname, fill = "- ", fill_r = " -", width = width)[:max_x], jack_curses.A_REVERSE)
+            stdscr.addstr(0, 0, (center_line(global_options + " [" + scroll_keys + "]", fill = " ", width = width))[:max_x], A_REVERSE)
+            stdscr.addstr(1, 0, center_line(global_discname, fill = "- ", fill_r = " -", width = width)[:max_x], A_REVERSE)
 
         else:
-            stdscr.addstr(0, 0, (global_options + " " * (max_x - len(global_options) - (0 + 4)) + scroll_keys)[:max_x], jack_curses.A_REVERSE)
+            stdscr.addstr(0, 0, (global_options + " " * (max_x - len(global_options) - (0 + 4)) + scroll_keys)[:max_x], A_REVERSE)
 
         if special_line:
-            stdscr.addstr(2, 0, center_line(special_line, fill = " ", width = width)[:max_x], jack_curses.A_REVERSE)
+            stdscr.addstr(2, 0, center_line(special_line, fill = " ", width = width)[:max_x], A_REVERSE)
 
         if bottom_line:
-            stdscr.addstr(max_y - 1, 0, (bottom_line + " " * (max_x - len(bottom_line) - 1 ))[:max_x - 1], jack_curses.A_REVERSE)
+            stdscr.addstr(max_y - 1, 0, (bottom_line + " " * (max_x - len(bottom_line) - 1 ))[:max_x - 1], A_REVERSE)
 
         stdscr.refresh()
 
         usage_win_y, usage_win_x = max_y - usage_win_height - 2, (max_x - usage_win_width) / 2
         if usage_win_y > extra_lines and usage_win_x > 0 and max_y > extra_lines + 2 + usage_win_height and max_x > usage_win_width:
             del usage_win
-            usage_win = jack_curses.newwin(usage_win_height, usage_win_width, usage_win_y, usage_win_x)
+            usage_win = newwin(usage_win_height, usage_win_width, usage_win_y, usage_win_x)
             usage_win.box()
             usage_win.addstr(1, 2, "* * * " + prog_name + " " + prog_version + " (C)2002 Arne Zellentin * * *")
             usage_win.addstr(2, 2, "use cursor keys or hjkl to scroll status info")
@@ -2674,7 +2682,7 @@ def dae_stat_upd(num, string):
             pos = find(dae_status[num], ">")
             if pos < 7:
                 pos = 37
-            status_pad.addstr(dae_status[num][7:pos], jack_curses.A_REVERSE)
+            status_pad.addstr(dae_status[num][7:pos], A_REVERSE)
             status_pad.addstr(dae_status[num][pos:])
         else:
             status_pad.addstr(map_track_num[num], 0, printable_names[num] + ": " + dae_status[num] + " " + enc_status[num])
@@ -3041,6 +3049,11 @@ if vbr and not helpers[encoder].has_key('vbr-cmd'):
 if not vbr and not helpers[encoder].has_key('cmd'):
     print "Error: can't do CBR because " + encoder + " doesn't support it.\nUse -v or set vbr=1 in your .jackrc."
     exit()
+
+if xtermset_enable and curses_enable and not jack_curses_enable:
+    print "xtermset makes no sense with incomplete curses, disabling xtermset."
+    print "please resize your terminal before running jack."
+    xtermset_enable = 0
 
 if ripper == "cdparanoia" and sloppy:
     helpers['cdparanoia']['cmd'] = replace(helpers['cdparanoia']['cmd'], "--abort-on-skip", "")
@@ -3844,8 +3857,8 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, enc_running, da
 
         if curses_enable:
             pad_height, pad_width = len(all_tracks_todo_sorted), width
-            status_pad = jack_curses.newpad(pad_height, pad_width)
-            usage_win = jack_curses.newwin(usage_win_height, usage_win_width, 0, 0)
+            status_pad = newpad(pad_height, pad_width)
+            usage_win = newwin(usage_win_height, usage_win_width, 0, 0)
             map_track_num = {}
             for i in range(len(all_tracks_todo_sorted)):
                 map_track_num[all_tracks_todo_sorted[i][NUM]] = i
@@ -4309,7 +4322,7 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, enc_running, da
                     extra_lines = extra_lines - 1
                     sig_winch_handler(None, None)
                 if 1 < max_y:
-                    stdscr.addstr(max_y - 1, 0, (bottom_line + " " * (max_x - len(bottom_line)))[:max_x - 1], jack_curses.A_REVERSE)
+                    stdscr.addstr(max_y - 1, 0, (bottom_line + " " * (max_x - len(bottom_line)))[:max_x - 1], A_REVERSE)
                     # why can't I put a char in the bootom right corner?
                     #stdscr.addch(max_y, max_x, "x")
                     status_pad.refresh(pad_y, pad_x, pad_start_y, pad_start_x, pad_end_y, pad_end_x)
@@ -4330,29 +4343,29 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, enc_running, da
 try:
     if curses_enable and (wavs_todo or mp3s_todo):
         # Initialize curses
-        stdscr = jack_curses.initscr()
+        stdscr = initscr()
         curses_init = 1
         curses_sighandler = signal.signal(signal.SIGWINCH, signal.SIG_IGN)
         # Turn off echoing of keys, and enter cbreak mode,
         # where no buffering is performed on keyboard input
-        jack_curses.noecho() ; jack_curses.cbreak()
+        noecho() ; cbreak()
 
         # In keypad mode, escape sequences for special keys
         # (like the cursor keys) will be interpreted and
-        # a special value like jack_curses.KEY_LEFT will be returned
+        # a special value like KEY_LEFT will be returned
         stdscr.keypad(1)
         stdscr.leaveok(0)
     main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, enc_running, dae_running)
     if curses_init:
         # Set everything back to normal
         stdscr.keypad(0)
-        jack_curses.echo() ; jack_curses.nocbreak()
-        jack_curses.endwin()                 # Terminate curses
+        echo() ; nocbreak()
+        endwin()                 # Terminate curses
 except SystemExit:
     if curses_init:
         stdscr.keypad(0)
-        jack_curses.echo() ; jack_curses.nocbreak()
-        jack_curses.endwin()
+        echo() ; nocbreak()
+        endwin()
     print global_options
     print "--- Last status: ---------------------------------------------------------------"
     if max_x and max_x >= pad_width:
@@ -4365,8 +4378,8 @@ except:
         # In the event of an error, restore the terminal
         # to a sane state.
         stdscr.keypad(0)
-        jack_curses.echo() ; jack_curses.nocbreak()
-        jack_curses.endwin()
+        echo() ; nocbreak()
+        endwin()
     traceback.print_exc()         
     exit()
 
