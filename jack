@@ -2659,9 +2659,9 @@ def dae_stat_upd(num, string):
 def print_status(form = 'normal'):
     for i in all_tracks_todo_sorted:
         if form != 'normal':
-            print name % i[NUM] + ": " + dae_status[i[NUM]], enc_status[i[NUM]]
+            print name % i[NUM] + ":", dae_status[i[NUM]], enc_status[i[NUM]]
         else:
-            print printable_names[i[NUM]] + ": " + dae_status[i[NUM]], enc_status[i[NUM]]
+            print printable_names[i[NUM]] + ":", dae_status[i[NUM]], enc_status[i[NUM]]
 
 def ex_edit(file):
     editor = "/usr/bin/sensible-editor"
@@ -2829,6 +2829,11 @@ while i<len(argv):
     elif argv[i] in ("-D", "--create-dir"):
         create_dirs = 1
         rename_dir = 1
+    elif argv[i] == "--rename-only":
+        print "Warning: option --rename only is deprecated. use --rename"
+        sleep(3)
+        read_freedb_file = 1
+        set_id3tag = 1
     elif argv[i] in ("-R", "--rename"):
         read_freedb_file = 1
         set_id3tag = 1
