@@ -19,7 +19,7 @@
 from string import split
 from sys import version
 
-prog_version = "3.1.0"
+prog_version = "3.1.1"
 prog_name = "jack"
 prog_rcversion = 31
 prog_copyright = "(C)2004 Arne Zellentin"
