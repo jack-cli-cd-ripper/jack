@@ -76,6 +76,16 @@ except:
             sys.exit(1)
     cdrom = dummy_cdrom()
 
+try:
+    import ogg.vorbis
+    has_ogg_vorbis = 1
+    if ogg.vorbis.__version__ < "0.5":
+        has_ogg_vorbis = 0
+        if DEBUG: print "ogg.vorbis tagging disabled, version is too low."
+except:
+    has_ogg_vorbis = 0
+    if DEBUG: print "ogg.vorbis tagging disabled."
+
 py_version = split(sys.version)[0]
 
 desperately_seeking_curses = 0
@@ -239,9 +249,8 @@ exec_err = "play /usr/local/audio/error.wav"     # this is played when an
                                                  # error occured
 
 freedb_dir = ""         # change this to something like "/var/spool/cddb" and
-                        # all queries will be done in this (local) directory
-                        # later I will allow failed local queries to be
-                        # done via network
+                        # all queries will be done in this (local) directory;
+                        # failed local queries will be done via network
 freedb_pedantic = 0     # don't be pedantic when parsing freedb data, e.g.
                         # the ambigous (various artists) TTITLE
                         # "The Artist - Track a Title - Cool Remix" is split
@@ -388,9 +397,9 @@ targets = {
     'ogg': {
         'can_cbr': 0,
         'can_vbr': 1,
-        'can_id3': 0,
+        'can_id3': 1,
         'can_pretag': 1,
-        'can_posttag': 0,
+        'can_posttag': (1 & has_ogg_vorbis),
         'file_extension': ".ogg"
         }
     }
@@ -406,7 +415,8 @@ helpers = {
         'type': "encoder",
         'target': "ogg",
         'can_tag': 1,
-        'vbr-cmd': "oggenc -o %o -t %t -a %a -N %n -l %l -b %r %i",
+        #'vbr-cmd': "oggenc -o %o -t %t -a %a -N %n -l %l -b %r %i",
+        'vbr-cmd': "oggenc -q 5 -o %o -t %t -a %a -N %n -l %l %i",
         'status_blocksize': 64,
         'bitrate_factor': 1,
         'status_start': "%",
@@ -910,7 +920,7 @@ def local_freedb(cd_id, freedb_dir, outfile = "/tmp/testfilefreedb"):
     if not os.access(freedb_dir, 5):
         print "Error: freedb directory access not permitted"
         sys.exit(1)
-    cat=[] # category listing
+    cat=[freedb_dir] # category listing
     for entry in os.listdir(freedb_dir):
         if path.isdir(path.join(freedb_dir, entry)):
             cat.append(path.join(freedb_dir, entry))
@@ -931,7 +941,7 @@ def local_freedb(cd_id, freedb_dir, outfile = "/tmp/testfilefreedb"):
                 inf.close()
                 outf.close()
                 return 0
-    sys.exit("No local matching freedb entry found")
+    print "No local matching freedb entry found"
     return 1
 
 def df_statvfs(fs = "."):
@@ -1371,7 +1381,8 @@ def freedb_template(tracks, names = "", revision = 0):
 
 def freedb_query(cd_id, tracks, file):
     if freedb_dir:
-        return local_freedb(cd_id, freedb_dir, file) # use local database (if any)
+        if local_freedb(cd_id, freedb_dir, file)==0: # use local database (if any)
+            return 0
 
     qs = "cmd=cddb query " + cd_id + " " + `len(tracks)` + " " # query string
     for i in tracks:
@@ -4140,7 +4151,7 @@ if vbr and not only_dae:
         total_length = total_length + i[LEN]
         total_size = total_size + filesize(i[NAME] + ext)
 
-if set_id3tag and not targets[helpers[encoder]['target']]['can_id3']:
+if set_id3tag and not targets[helpers[encoder]['target']]['can_posttag']:
     set_id3tag = 0
 
 if set_id3tag or freedb_rename:
@@ -4171,23 +4182,44 @@ if set_id3tag or freedb_rename:
                         t_name2 = replace(t_name2, "(" + t_comm + ")", "")
                     else:
                         t_comm = ""
-            id3 = ID3(mp3name)
-            id3.album = a_title
-            id3.track = i[NUM] # this is ignored if we have an ID3v1.0 tag
-            if t_comm:
-                id3.comment = t_comm
-                id3.title = t_name2
-            else:
-                id3.title = t_name
-            if t_artist:
-                id3.artist = t_artist
-            else:
-                id3.artist = a_artist
-            if id3_genre != -1:
-                id3.genre = id3_genre
-            if id3_year != -1:
-                id3.year = `id3_year`
-            id3.write()
+            if helpers[encoder]['target'] == "mp3":
+                id3 = ID3(mp3name)
+                id3.album = a_title
+                id3.track = i[NUM] # this is ignored if we have an ID3v1.0 tag
+                if t_comm:
+                    id3.comment = t_comm
+                    id3.title = t_name2
+                else:
+                    id3.title = t_name
+                if t_artist:
+                    id3.artist = t_artist
+                else:
+                    id3.artist = a_artist
+                if id3_genre != -1:
+                    id3.genre = id3_genre
+                if id3_year != -1:
+                    id3.year = `id3_year`
+                id3.write()
+            elif helpers[encoder]['target'] == "ogg":
+                vf = ogg.vorbis.VorbisFile(mp3name)
+                oggi = vf.comment()
+                oggi.clear()
+                oggi.add_tag('ALBUM', a_title)
+                oggi.add_tag('TRACKNUMBER', `i[NUM]`)
+                if t_comm:
+                    oggi.add_tag('COMMENT' , t_comm)
+                    oggi.add_tag('TITLE', t_name2)
+                else:
+                    oggi.add_tag('TITLE', t_name)
+                if t_artist:
+                    oggi.add_tag('ARTIST', t_artist)
+                else:
+                    oggi.add_tag('ARTIST', a_artist)
+                if id3_genre != -1:
+                    oggi.add_tag('GENRE', id3_genre)
+                if id3_year != -1:
+                    oggi.add_tag('YEAR', id3_year)
+                oggi.write_to(mp3name)
         if freedb_rename:
             if t_artist:    # 'Various Artists'
                 replacelist = (("%n", rename_num % i[NUM]), ("%a", t_artist), ("%t", t_name), ("%l", a_title), ("%y", `id3_year`), ("%g", id3_genretxt))
