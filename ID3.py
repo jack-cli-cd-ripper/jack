@@ -1,4 +1,4 @@
-# ID3.py version 0.6
+# ID3.py version 0.7
 
 # Module for manipulating ID3 informational tags in MP3 audio files
 
@@ -8,6 +8,12 @@
 # Modified 10 June 1999 by Arne Zellentin <arne@unix-ag.org> to
 # fix bug with overwriting last 128 bytes of a file without an
 # ID3 tag
+
+# Modified 9 August 2000 by Arne Zellentin <arne@unix-ag.org> so that
+# it now supports ID3v1.1 tags which include the track field.
+# All fields are now padded with binary zeros instead of spaces,
+# thus complying to the standard. The default genre is now None, which
+# will be written as 0xff (Unknown) instead of 0x00 (Blues).
 
 # This is the first thing I've ever written in Python, so bear with
 # me if it looks terrible. In a few years I'll probably look back at
@@ -51,6 +57,11 @@
 #     and made a few corrections.
 #   ID3.comment
 #     Comment about the song.
+#   ID3.track
+#     The number the track had when it still was on CD, if applicable.
+#     This is only possible in ID3v1.1 tags as it uses 2 bytes of the
+#     comment field (see above). It is used by default but disabled if
+#     the existing comment has more than 28 characters.
 #
 #   ID3.genres
 #     List of all genres. ID3.genre above is used to index into this
@@ -82,7 +93,10 @@ import string
 
 def lengthen(string, num_spaces):
     string = string[:num_spaces]
-    return string + (' ' * (num_spaces - len(string)))
+    return string + ('\000' * (num_spaces - len(string)))
+
+def strip(s):
+    return string.strip(string.replace(s, "\000", " "))
 
 class InvalidTagError:
     def __init__(self, msg):
@@ -144,12 +158,19 @@ class ID3:
 	    if self.file.read(3) == 'TAG':
 		self.has_tag = 1
 		self.had_tag = 1
-		self.title = self.file.read(30)
-		self.artist = self.file.read(30)
-		self.album = self.file.read(30)
+		self.title = strip(self.file.read(30))
+		self.artist = strip(self.file.read(30))
+		self.album = strip(self.file.read(30))
 		self.year = self.file.read(4)
 		self.comment = self.file.read(30)
-		self.genre = ord(self.file.read(1))
+                if self.comment[28] == "\000":
+                    self.track = ord(self.comment[29])
+                    self.subversion = 1
+                    self.comment = self.comment[:28]
+                else:
+                    self.subversion = 0
+	            self.genre = ord(self.file.read(1))
+                self.comment = strip(self.comment)
 		self.file.close()
 	except IOError, msg:
 	    self.modified = 0
@@ -162,12 +183,14 @@ class ID3:
 	self.has_tag = 0
 
     def zero(self):
+        self.subversion = 1
 	self.title = ''
 	self.artist = ''
 	self.album = ''
 	self.year = ''
 	self.comment = ''
-	self.genre = 0
+        self.track = 0
+	self.genre = -1
 
     def find_genre(self, genre_to_find):
 	i = 0
@@ -208,7 +231,15 @@ class ID3:
 		        self.file.write(lengthen(self.artist, 30))
 		        self.file.write(lengthen(self.album, 30))
 		        self.file.write(lengthen(self.year, 4))
-		        self.file.write(lengthen(self.comment, 30))
+                        if self.subversion == 0:
+		            self.file.write(lengthen(self.comment, 30))
+                        else:
+		            self.file.write(lengthen(self.comment, 28))
+		            self.file.write('\000')
+                            if self.track != None and self.track >=0 and self.track <= 99:
+		                self.file.write(chr(self.track))
+                            else:
+		                self.file.write('\377')
 		        if self.genre < 0 or self.genre > 255:
 			    self.genre = 255
 		        self.file.write(chr(self.genre))
@@ -228,14 +259,16 @@ class ID3:
 		genre = self.genres[self.genre]
 	    else:
 		genre = 'Unknown'
-
-	    return "File   : %s\nTitle  : %-30.30s  Artist: %-30.30s\nAlbum  : %-30.30s  Year  : %-4.4s\nComment: %-30.30s  Genre : %s (%i)" % (self.filename, self.title, self.artist, self.album, self.year, self.comment, genre, self.genre)
+            if self.subversion == 0:
+	        return "File   : %s\nTitle  : %-30.30s  Artist: %-30.30s\nAlbum  : %-30.30s  Year  : %-4.4s\nComment: %-30.30s  Genre : %s (%i)" % (self.filename, self.title, self.artist, self.album, self.year, self.comment, genre, self.genre)
+            else:
+	        return "File   : %s\nTitle  : %-30.30s  Artist: %-30.30s\nAlbum  : %-30.30s  Year  : %-4.4s\nComment: %-30.30s  Genre : %s (%i), Track No. %02i" % (self.filename, self.title, self.artist, self.album, self.year, self.comment, genre, self.genre, self.track)
 	else:
 	    return "%s: No ID3 tag." % self.filename
 
     # intercept setting of attributes to set self.modified
     def __setattr__(self, name, value):
-	if name in ['title', 'artist', 'album', 'year', 'comment', 'genre']:
+	if name in ['title', 'artist', 'album', 'year', 'comment', 'track', 'genre', 'subversion']:
 	    self.__dict__['modified'] = 1
 	    self.__dict__['has_tag'] = 1
 	self.__dict__[name] = value
