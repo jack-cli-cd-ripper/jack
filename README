@@ -11,8 +11,6 @@
 ### MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ### GNU General Public License for more details.
 
-### This is jack 2.99.7
-
 Requirements:
 
     * python-1.5.2 or later - python2 is untested
