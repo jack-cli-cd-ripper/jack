@@ -1,6 +1,6 @@
 ### jack_mp3 - mp3 layer stuff for
 ### jack - extract audio from a CD and MP3ify it using 3rd party software
-### Copyright (C) 1999,2000  Arne Zellentin <arne@unix-ag.org>
+### Copyright (C) 1999-2001  Arne Zellentin <arne@unix-ag.org>
 ### Transformed from mp3info (c) Thorvald Natvig
 
 ### This program is free software; you can redistribute it and/or modify
@@ -19,13 +19,13 @@
 
 DEBUG = 0
 
-import string
+import string, types
 from os import stat
 from stat import ST_SIZE
 from StringIO import StringIO
 
 global warnings
-global f, xing, id3v2
+global F, f, xing, id3v2, start_offset
 
 # constants
 mode_names = ["stereo", "j-stereo", "dual-ch", "single-ch", "multi-ch"]
@@ -59,7 +59,7 @@ def get_l4 (s):
     return reduce(lambda a,b: ((a<<8) + b), map(long, map(ord, s)))
 
 def decode_xing():
-    global f, xing
+    global F, f, xing
     # defaults:
     frames = bytes = scale = toc = None
     where = f.tell()
@@ -115,15 +115,16 @@ def find_xing(framelen):
         f.seek(where)
 
 def reread_f(size):
-    global f
+    global F, f
     pos = f.tell()
-    f_file = f.file
-    f_len = f.len
-
-    f = open(f_file)
-    buf = f.read(f_len + size + 10)
-    f = StringIO(buf)
-    f.file = f_file
+    f.seek(F.offset)
+    if DEBUG: print "reread_f: now at", f.tell()
+    F_offset = F.offset
+    F_file = F.file
+    F = StringIO(f.read(F.len + size + 10))
+    F.file = F_file
+    F.offset = F_offset
+    f.seek(pos)
 
 def handle_id3v2(version, flags, data):
     global id3v2
@@ -135,7 +136,7 @@ def read_id3v2():
     #$49 44 33 yy yy xx zz zz zz zz ; yy < $FF; zz < $80
     # I  D  3  yy yy xx zz zz zz zz
     # 0  1  2  3  4  5  6  7  8  9
-    global f
+    global F, f
     where = f.tell()
     header = f.read(10)
     if header[:3] != "ID3":
@@ -222,7 +223,7 @@ def extend_frameinfo(x):
     elif x['version_num'] == "2":
         x['samples_per_frame'] = 576
     else:
-        print "What is the spf for %s?" % x['version_name']
+        print "What is the spf for %s?" % x['version_name'], "(%s)" % x['version_num']
 
     # calculate BPF
     x['bpf'] = (x['bitrate'] * bpf_fact[x['lay']]) / x['sfreq']
@@ -231,16 +232,17 @@ def extend_frameinfo(x):
     return x
 
 def syncronize(what = 1):
-    global f
+    global F, f
     index = f.tell()
     x = {}
     #search intelligently (i.e. fast) for any header
     fields = ["\377", "I", "X", "R"][:what]
     if not warnings: fields.remove("R")
-    while index < len(f.buf) - 4:
+    #while index < len(f.buf) - 4:
+    while index < F.len - 4 + start_offset:
         #print index
-        if f.buf[index] in fields:
-            if f.buf[index + 1] >= "\340":
+        if F.buf[index - start_offset] in fields:
+            if F.buf[index - start_offset + 1] >= "\340":
                 # a valid header must start with 11 set bits
                 f.seek(index)
                 x = decode_header(f.read(4))
@@ -264,7 +266,7 @@ def syncronize(what = 1):
                         f.seek(where)
                         index = where
                         x = None
-            elif f.buf[index:index + 3] == "ID3":
+            elif F.buf[index - start_offset:index - start_offset + 3] == "ID3":
                 if not id3v2:
                     f.seek(index)
                     read_id3v2()
@@ -275,7 +277,7 @@ def syncronize(what = 1):
                         continue
                     else:
                         f.seek(index)
-            elif f.buf[index:index + 4] == "Xing":
+            elif F.buf[index - start_offset:index - start_offset + 4] == "Xing":
                 f.seek(index + 4)
                 decode_xing()
                 if xing:
@@ -286,31 +288,40 @@ def syncronize(what = 1):
                 else:
                     f.seek(index + 4)
 
-            elif f.buf[index:index + 4] == "RIFF":
-                if warnings: print "skipping RIFF header at %i..." % f.tell()
+            elif F.buf[index - start_offset:index - start_offset + 4] == "RIFF":
+                if warnings: print "skipping RIFF header at %i..." % F.tell()
                 fields.remove("R")
         index = index + 1
     return x
 
 def mp3format(file, warn = 1, max_skip = 100000, offset = 0):
-    global f, xing, id3v2, warnings
+    global F, f, xing, id3v2, warnings, start_offset
 
     warnings = warn
+    start_offset = offset
 
     f = xing = id3v2 = None
-    if DEBUG: print "examining", file, "warnings=%i" % warnings, "offset=%i" % offset
+    if DEBUG: print "examining", file, "warnings=%i" % warnings, "offset=%i" % start_offset, "max_skip=%i" % max_skip
 
-    # we're using StringIO because it keeps track of the position by itself
-    f = open(file, "r")
-    f.seek(offset)
+    # XXX we're using StringIO because it's faster - transitionally.
+    if type(file) == types.StringType:
+        f = open(file, "r")
+    elif hasattr(file, 'seek'):
+        f = file
+    else:
+        print "unknown object:", file
+        return None
+    f.seek(start_offset)
     search_in = f.read(max_skip)
-    f = StringIO(search_in)
-    f.file = file
+    F = StringIO(search_in)
+    F.file = file
+    f.seek(start_offset)
+    F.offset = start_offset
 
     x = syncronize(what = 4)
 
     if not x:
-        if warnings: print "Warning: no MP3 header found in the first", f.tell(), "bytes of file\n       : \"" + file + "\"."
+        if warnings: print "Warning: no MP3 header found in the first", F.tell(), "bytes of file\n       : \"" + file + "\"."
         return {}
 
     # we're quite sure we have a valid header now
@@ -343,3 +354,17 @@ def mp3format(file, warn = 1, max_skip = 100000, offset = 0):
 
     if DEBUG > 1: print x
     return x
+
+class MP3:
+    def __init__(self, file, name=None):
+    
+        self.file = None
+        self.name = name
+        if type(file) == types.StringType:
+            self.file = open(file, "rb")
+            self.name = file
+        elif hasattr(file, 'seek'):
+            self.file = file
+        else:
+            print "unknown object:", file
+            return None

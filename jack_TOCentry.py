@@ -1,4 +1,4 @@
-### jack_toc - class for CDDA TOCs - part ("module") of 
+### jack_TOCentry - class for CDDA TOCs - part ("module") of 
 ### jack - extract audio from a CD and MP3ify it using 3rd party software
 ### Copyright (C) 1999,2000  Arne Zellentin <arne@unix-ag.org>
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 ### jack - extract audio from a CD and MP3ify it using 3rd party software
-### Copyright (C) 1999, 2000  Arne Zellentin <arne@unix-ag.org>
+### Copyright (C) 1999-2001  Arne Zellentin <arne@unix-ag.org>
 
 ### This program is free software; you can redistribute it and/or modify
 ### it under the terms of the GNU General Public License as published by
@@ -22,13 +22,14 @@
 ### see CHANGELOG for recent changes in this program
 ### see TODO if you want to see what needs to be implemented
 
-prog_version = "2.99.4"
+prog_version = "2.99.5"
 prog_name = "jack"
 DEBUG = 0
 
 from string import atoi, atof, split, find, rfind, replace, upper, strip, rstrip
+from string import digits, uppercase, lowercase
 from os import nice, remove, popen, fdopen, waitpid, WNOHANG, execlp, execvp
-from os import stat, environ, uname, fork, rename, system, kill, chdir, mkdir
+from os import stat, environ, uname, fork, rename, system, kill, mkdir
 from os import rmdir, path, execv
 import os, sys, posix, string
 from sys import argv, exit, stdin
@@ -64,6 +65,7 @@ try:
         print "You need the alternate (n)curses module, install the supplied one!"
         curses_enable = 0
 except ImportError:
+    print "curses module not found, strange..."
     curses_enable = 0
 
 if DEBUG: curses_enable = 0
@@ -108,10 +110,10 @@ prefs = """
 my_mail = "@"           # needed for e-mail submissions, please set
 # if environ.has_key('http_proxy'): del environ['http_proxy']
                         # uncomment above line if you don't want to use your
-                        # default proxy
+                        # default proxy for freedb queries
 ripper = "cdparanoia"   # use which program to rip: cdparanoia, tosha, cdda2wav,                        # dagrab (untested)
 cd_device = "/dev/cdrom"    # use which device for ripping
-                            # note: cdda2wav needs something like "/dev/sgb"
+gen_device = "/dev/sgXXX"   # cdda2wav needs the scsi generic device
 keep_free = 5*2**20     # suspend if less than keep_free bytes are free
                         # don't set this to zero as mp3 size prediction is
                         # always a bit below actual sizes => we might need
@@ -153,6 +155,10 @@ replacement_chars = "."         # replacements here. replacement_chars is
 # unusable_chars = "äöüÄÖÜß?*^()[]{}"
 # replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]
 
+# example 3: use only lowercase, " " --> "_": (depends on LANG env.var!)
+# unusable_chars = " " + uppercase
+# replacement_chars = "_" + lowercase
+
 recurse_dirs = 2                # search how deep for workdir
 #searchdirs = ["/opt/mp3", "."] # where to start when searching for workdir
 searchdirs = [os.curdir]        # the default is the current directory (".")
@@ -193,6 +199,7 @@ various = 0         # assume CD has various artists, 0 = auto
 various_swap = 0    # exchange artist and title for broken freedb entrys
 extt_is_artist = 0  # extt contains artist
 extt_is_title = 0   # extt contains track title
+extt_is_comment = 0 # extt contains track comment
 remove_files = 0    # remove jack.* files when done
 silent_mode = 0     # silent-mode means: no output to screen
 
@@ -211,6 +218,8 @@ freedb_submit = 0       # use this to submit freedb file (after editing)
 freedb_mailsubmit = 0   # submit entry by e-mail
 freedb_server = "freedb.freedb.org"      # which freedb server to use
 freedb_mail = "freedb-submit@freedb.org" # where to send e-mail submission to
+freedb_identify_as = prog_name + " " + prog_version     # client identity
+                        # xmcd, for example, is "xmcd 2.6".
 freedb_dir = ""         # change this to something like "/var/spool/cddb" and
                         # all queries will be done in this (local) directory
                         # later I will allow failed local queries to be
@@ -218,7 +227,7 @@ freedb_dir = ""         # change this to something like "/var/spool/cddb" and
 freedb_pedantic = 0     # don't be pedantic when parsing freedb data, e.g.
                         # the ambigous (various artists) TTITLE
                         # "The Artist - Track a Title - Cool Remix" is split
-                        # at the first possible seperator.
+                        # at the first possible separator.
 
 ###############################################################################
 ## no need to go below this line ##############################################
@@ -272,7 +281,7 @@ freedb_form_file = prog_name + ".freedb"    # name of submission template
 out_file = prog_name + ".out"   # in silent-mode, stdout goes here
 err_file = prog_name + ".err"   # in silent-mode, stderr goes here
 progress_file = prog_name + ".progress"     # subprocess output is cached here
-progr_sep = "/|\\\\"    # field seperator in progress_file
+progr_sep = "/|\\\\"    # field separator in progress_file
 
 # supported helper apps
 helpers = {
@@ -462,7 +471,7 @@ while l:
 
     'cdda2wav': {
         'type': "ripper",
-        'cmd': "cdda2wav -H -v 1 -D %d -O wav -t %n %o",
+        'cmd': "cdda2wav --no-infofile -H -v 1 -D %g -O wav -t %n %o",
         'status_blocksize': 200,
         'status_start': "percent_done:",
         'status_fkt': \"\"\"
@@ -473,13 +482,53 @@ else:
     new_status = "waiting..."
 \"\"\",
         'final_status_fkt': \"\"\"
-final_status = ("%5.1f" % speed) + "× [DAE done]"
+final_status = ("%4.1f" % speed) + "x [ DAE done with cdda2wav       ]"
 \"\"\",
         'toc': 1,
-        'toc_cmd': "cdda2wav -D %d -J -v 1 2>&1",
+        'toc_cmd': "cdda2wav --no-infofile -D %g -J -v 35 2>&1",
         'toc_fkt': \"\"\"
-while l:
+new_c2w = 0
+new_toc1 = 0
+new_toc2 = 0
+new_lengths = []
+new_starts = []
+while 1:
+    l = p.readline()
+    if not l:
+        break
     l = strip(l)
+    # new cdda2wav
+    if starts_with(l, "Table of Contents: total tracks"):
+        new_toc1 = 1
+        continue
+
+    if starts_with(l, "Table of Contents: starting sectors"):
+        new_toc2 = 1
+        new_toc1 = 0
+        new_c2w = 1
+        continue
+
+    if new_toc2 and l and l[0] in digits:
+        l = split(l, "(")[1:]
+        for i in l:
+            x = split(i, ")")[0]
+            x = strip(x)
+            try:
+                new_starts.append(atoi(x))
+            except:
+                pass
+        continue
+
+    if new_toc1 and l and l[0] in digits:
+        l = split(l, "(")[1:]
+        for i in l:
+            if find(i, ":") >= 0:
+                x = split(i, ")")[0]
+                x = replace(x, ".", ":")
+                new_lengths.append(timestrtoblocks(x))
+        continue
+
+    # old cdda2wav
     if l and l[0:11] == "Album title":
         start = 1
     elif l and start:
@@ -499,7 +548,9 @@ while l:
             sf = split(msf[1], ".")
             t_length = atoi(sf[1]) + atoi(sf[0]) * 75 + atoi(msf[0]) * 60 * 75
             erg.append([num, t_length, t_start, l[5] == "copyallowed", l[4] != "linear", channels, 1, bitrate, name % num])
-    l = p.readline()
+if new_c2w and len(new_lengths) == len(new_starts) - 1:
+    for i in range(min(len(new_lengths), len(new_starts))): # this provokes an error if the lists are of different length
+        erg.append([i + 1, new_lengths[i], new_starts[i], 0, 0, 2, 1, bitrate, name % (i + 1)])
 \"\"\"
     },
 
@@ -516,7 +567,7 @@ else:
     new_status = "waiting..."
 \"\"\",
         'final_status_fkt': \"\"\"
-final_status = ("%5.1f" % speed) + "x [DAE done]"
+final_status = ("%4.1f" % speed) + "x [ DAE done with dagrab         ]"
 \"\"\",
         'toc': 1,
         'toc_cmd': "dagrab -d %d -i 2>&1",
@@ -554,7 +605,7 @@ else:
     new_status = "waiting..."
 \"\"\",
         'final_status_fkt': \"\"\"
-final_status = ("%5.1f" % speed) + "× [DAE done]"
+final_status = ("%4.1" % speed) + "x [ DAE done with tosha          ]"
 \"\"\",
         'toc': 1,
         'toc_cmd': "tosha -d %d -iq 2>&1",
@@ -742,136 +793,6 @@ def df_df(fs = ".", blocksize = 1024):
             return atoi(s[i]) * long(blocksize) - long(keep_free)
     p.close()
 
-# the code for extracting the xing vbr header was "lent" (and modified) from
-# mp3.py 1.0 (c) Scott Hassan <hassan@dotfunk.com>
-
-#XXX KILLME
-dummy="""
-def get_l4 (s):
-    return reduce (lambda a,b: ((a<<8) + b), map (long, map (ord, s)))
-
-FRAMES, BYTES, X_TOC, SCALE, OFFSET = range(5)
-def get_xing_header (f):
-    FRAMES_FLAG =   0x0001
-    BYTES_FLAG =    0x0002
-    TOC_FLAG =      0x0004
-    VBR_SCALE_FLAG= 0x0008
-
-# defaults:
-    frames = bytes = scale = -1
-    toc = []
-    where = f.tell()
-    try:
-        b = f.read(8192)
-        i = string.find (b, 'Xing')
-        if i > 0:
-            # 32-bit fields; "Xing", flags, frames, bytes, 100 toc
-            i = i + 4
-            flags           = get_l4 (b[i:i+4]); i = i + 4
-            if flags & FRAMES_FLAG:
-                frames      = get_l4 (b[i:i+4]); i = i + 4
-            if flags & BYTES_FLAG:
-                bytes       = get_l4 (b[i:i+4]); i = i + 4
-            if flags & TOC_FLAG:
-                toc = map(lambda x: ord(x), b[i:i+100]) ; i = i + 100
-                for j in range(len(toc)):
-                    toc[j] = int(toc[j] / 256.0 * bytes)
-            if flags & VBR_SCALE_FLAG:
-                scale       = get_l4 (b[i:i+4]); i = i + 4
-            return frames, bytes, toc, scale, i
-        else:
-            return None
-    finally:
-        f.seek (where)
-
-def mp3format(file, warn = 1, max_skip = 100000):
-    "get mp3 info. Transformed from mp3info (c) Thorvald Natvig"
-    mode_names = ["stereo", "j-stereo", "dual-ch", "single-ch", "multi-ch"]
-    layer_names = ["I", "II", "III"]
-    version_names = ["MPEG-1", "MPEG-2 LSF", "MPEG-2.5"]
-    version_nums = ["1", "2", "2.5"]
-    bitrates = \
-        [[[ 0, 32, 64, 96, 128, 160, 192, 224, 256, 288, 320, 352, 384, 416, 448],\
-            [0, 32, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320, 384],\
-            [0, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320]],\
-         [[0, 32, 48, 56, 64, 80, 96, 112, 128, 144, 160, 176, 192, 224, 256],\
-            [0, 8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 112, 128, 144, 160],\
-            [0, 8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 112, 128, 144, 160]],\
-         [[0, 32, 48, 56, 64, 80, 96, 112, 128, 144, 160, 176, 192, 224, 256],\
-            [0, 8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 112, 128, 144, 160],\
-            [0, 8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 112, 128, 144, 160]]]
-    s_freq = \
-        [[44100, 48000, 32000, 0],\
-         [22050, 24000, 16000, 0],\
-         [11025, 8000, 8000, 0]]
-
-    f = open(file, "r")
-    buffer = f.read(4)
-    if len(buffer) < 4:
-        return None
-    tmp = ((ord(buffer[0]) << 4) & 0xFF0) | ((ord(buffer[1]) >> 4) & 0xE)
-    ok = 1
-    x={}
-    if tmp != 0xFFE:
-        ok = 0
-        if warn:
-            print "Warning: MP3 file \"" + file + "\""
-            print "       : doesn't start with MP3 header, skipping..."
-        for i in range(max_skip):
-             buffer = (buffer + f.read(1))[-4:]
-             if buffer == "RIFF":
-                 if warn: print "       : ... RIFF header..."
-             tmp = ((ord(buffer[0]) << 4) & 0xFF0) | ((ord(buffer[1]) >> 4) & 0xE)
-             if tmp == 0xFFE:
-                 ok = 1
-                 if warn: print "Warning: MP3 header found at offset", i
-                 break
-    if not ok:
-        if warn: print "Warning: no MP3 header found in the first", max_skip, "bytes of file\n       : \"" + file + "\"."
-    else:
-        xing = get_xing_header(f)
-        switch = (ord(buffer[1]) >> 3 & 0x3)
-        if switch == 3: version = 0
-        elif switch == 2: version = 1
-        elif switch == 0: version = 2
-        else:
-            ok = 0
-        if ok:
-            x['lay'] = 4 - ((ord(buffer[1]) >> 1) & 0x3)
-            x['error_protection'] = not (ord(buffer[1]) & 0x1)
-            x['bitrate_index'] = (ord(buffer[2]) >> 4) & 0x0F
-            x['sampling_frequency'] = (ord(buffer[2]) >> 2) & 0x3
-            x['padding'] = (ord(buffer[2]) >> 1) & 0x01
-            x['extension'] = ord(buffer[2]) & 0x01
-            x['mode'] = (ord(buffer[3]) >> 6) & 0x3
-            x['mode_ext'] = (ord(buffer[3]) >> 4) & 0x03
-            x['copyright'] = (ord(buffer[3]) >> 3) & 0x01
-            x['original'] = (ord(buffer[3]) >> 2) & 0x1
-            x['emphasis'] = (ord(buffer[3])) & 0x3
-            x['mode_name'] = mode_names[x['mode']]
-            x['layer_name'] = layer_names[x['lay'] - 1]
-            x['version_name'] = version_names[version]
-            x['version_num'] = version_nums[version]
-            x['bitrate'] = bitrates[version][x['lay'] - 1][x['bitrate_index']]
-            x['sfreq'] = s_freq[version][x['sampling_frequency']]
-            #stereo = (mode == MPG_MD_MONO) ? 1 : 2;
-            if xing:
-                x['x_frames'] = xing[FRAMES]
-                x['x_bytes'] = xing[BYTES]
-                x['x_toc'] = xing[X_TOC]
-                if version == 0:
-                    samples_per_frame = 1152
-                elif version == 1:
-                    samples_per_frame = 576
-                length_in_samples = x['x_frames'] * samples_per_frame
-                x['length'] = float(length_in_samples) / x['sfreq']
-                # should use the real file size instead of x_bytes.
-                x['bitrate'] = int((x['x_bytes'] * 8.0 / x['length']) / 1000 + 0.5)
-            else:
-                x['length'] = filesize(file) * 8.0 / (x['bitrate'] * 1000)
-    return x
-"""
-
 def get_sysload_linux_proc():
     "extract sysload from /proc/loadavg, linux only (?)"
     f = open("/proc/loadavg", "r")
@@ -961,10 +882,10 @@ def guesstoc(names):
             #   NAME
             erg.append([num, blocks, start, 0,    0,   2,  1,   x['bitrate'],
                 i_name])
-            progr.append(num, "dae", "  *   [          simulated           ]")
-            progr.append(num, "enc", `x['bitrate']`, "[ s i m u l a t e d %3ikbit]" % (x['bitrate'] + 0.5))
+            progr.append([num, "dae", "  *   [          simulated           ]"])
+            progr.append([num, "enc", `x['bitrate']`, "[ s i m u l a t e d %3ikbit]" % (x['bitrate'] + 0.5)])
             if name % num != i_name:
-                progr.append(num, "ren", name % num + "-->" + i_name)
+                progr.append([num, "ren", name % num + "-->" + i_name])
         elif i_ext == ".WAV":
             x = whathdr(i)
             if not x:
@@ -1203,10 +1124,11 @@ def freedb_sum(n):
         n = n / 10
     return ret
 
-def freedb_id(tracks):
+def freedb_id(tracks, warn=0):
     "calculate freedb (aka CDDB) disc-id"
     cdtoc = []
     if not tracks:
+        if warn: print "Error: no tracks! No disc inserted? No/wrong ripper?"
         return 0
     for i in tracks:
         cdtoc.append(blockstomsf(i[START] + MSF_OFFSET))
@@ -1289,7 +1211,7 @@ def freedb_query(cd_id, tracks, file):
     for i in tracks:
         qs = qs + `i[START] + MSF_OFFSET` + " "
     qs = qs + `(MSF_OFFSET + tracks[-1][START] + tracks[-1][LEN]) / CDDA_BLOCKS_PER_SECOND`
-    hello = "hello=" + username + " " + hostname + " " + prog_name + " " + prog_version
+    hello = "hello=" + username + " " + hostname + " " + freedb_identify_as
     qs = quote_plus(qs + "&" + hello + "&proto=3", "=&")
     url = "http://" + freedb_server + "/~cddb/cddb.cgi?" + qs
     f = urlopen(url)
@@ -1442,15 +1364,17 @@ def freedb_names(cd_id, tracks, name, various, verb = 0, warn = 1):
     if find(dtitle,"/") == -1:
         dtitle = "(unknown artist)/" + dtitle
     names = [split(dtitle,"/",1)]
-    if freedb.has_key('EXTD') and starts_with(freedb['EXTD'], "\\nYEAR:"):
-        try:
-            extd_info = freedb['EXTD'][7:]
-            extd_year, extd_id3g = split(extd_info, "ID3G:", 1)
-            extd_year, extd_id3g = atoi(extd_year), atoi(extd_id3g)
-        except:
-            print "can't handle '%s'." % freedb['EXTD']
-        names = [split(dtitle,"/",1)]
-        names[0].extend([extd_year, extd_id3g])
+    if freedb.has_key('EXTD'):
+        extra_tag_pos = find(freedb['EXTD'], "\\nYEAR:")
+        if extra_tag_pos >= 0:
+            try:
+                extd_info = freedb['EXTD'][extra_tag_pos + 7:]
+                extd_year, extd_id3g = split(extd_info, "ID3G:", 1)
+                extd_year, extd_id3g = atoi(extd_year), atoi(extd_id3g)
+            except:
+                print "can't handle '%s'." % freedb['EXTD']
+            names = [split(dtitle,"/",1)]
+            names[0].extend([extd_year, extd_id3g])
     if names[0][0] == "(unknown artist)":
         if verb: print "Error: the disc's title must be set to \"artist / title\" (\"DTITLE\")."
         error = 6
@@ -1470,6 +1394,7 @@ def freedb_names(cd_id, tracks, name, various, verb = 0, warn = 1):
             else:
                 error = 8
                 if verb: print 'Error: no EXTT info for track %02i.' % i
+
     elif various and extt_is_title:
         for i in range(tracks_on_cd):
             if freedb['EXTT'+`i`]:
@@ -1478,7 +1403,7 @@ def freedb_names(cd_id, tracks, name, various, verb = 0, warn = 1):
                 error = 8
                 if verb: print 'Error: no EXTT info for track %02i.' % i
 
-# we'll try some magic to seperate artist and title
+# we'll try some magic to separate artist and title
 
     elif various:
         found = [[], [], [], [], [], []]
@@ -1608,7 +1533,7 @@ def freedb_names(cd_id, tracks, name, various, verb = 0, warn = 1):
                 names.append(buf)
         else:
             error = 7
-            if verb: print 'Error: could not seperate artist and title in all TTITLEs.'
+            if verb: print 'Error: could not separate artist and title in all TTITLEs.'
             if verb: print '       Try setting freedb_pedantic = 0 or use --no-various'
             if verb: print '       Maybe additional information is contained in the EXTT fields.'
             if verb: print '       check %s and use either --extt-is-artist or --extt-is-title.' % freedb_form_file
@@ -1616,6 +1541,14 @@ def freedb_names(cd_id, tracks, name, various, verb = 0, warn = 1):
         for i in range(tracks_on_cd):
             buf = freedb['TTITLE'+`i`]
             names.append(["", buf])
+
+    # append the EXTT fields to the track names
+    if extt_is_comment:
+        for i in range(len(names[1:])):
+            if freedb['EXTT'+`i`]:
+                names[i+1][1] = names[i+1][1] + " (%s)" % freedb['EXTT'+`i`]
+            else:
+                print "Warning: track %i (startin at 0) has no EXTT entry." % i
 
     # clean up a bit:
     for i in names:
@@ -1757,7 +1690,7 @@ def do_freedb_mailsubmit(file, cd_id):
 def progress(track, what="error", data="error", data2 = None):
     "append a line to the progress file"
     global progress_changed
-    if type(track) == types.TupleType:
+    if type(track) in (types.TupleType, types.ListType):
         if len(track) == 3:
             track, what, data = track
         elif len(track) == 4:
@@ -1817,6 +1750,7 @@ def start_new_ripper(track, ripper):
         if i == "%n": args.append(`track[NUM]`)
         elif i == "%o": args.append(track[NAME] + ".wav")
         elif i == "%d": args.append(cd_device)
+        elif i == "%g": args.append(gen_device)
         else: args.append(i)
     data = start_new_process(args)
     data['type'] = "ripper"
@@ -1857,6 +1791,7 @@ def start_new_otf(track, ripper, encoder):
     for i in split(helpers[ripper]['otf-cmd']):
         if i == "%n": args.append(`track[NUM]`)
         elif i == "%d": args.append(cd_device)
+        elif i == "%g": args.append(gen_device)
         else: args.append(i)
     data['rip']['start_time'] = time()
     pid = os.fork()
@@ -1886,6 +1821,7 @@ def start_new_otf(track, ripper, encoder):
         if i == "%r": args.append(`track[RATE] * helpers[encoder]['bitrate_factor']`)
         elif i == "%o": args.append(track[NAME] + ".mp3")
         elif i == "%d": args.append(cd_device)
+        elif i == "%g": args.append(gen_device)
         else: args.append(i)
     data['enc']['start_time'] = time()
     pid = os.fork()
@@ -2084,12 +2020,12 @@ def rename_path(old, new):
             print "Error: invalid type for rename_path:", i
             exit()
     for i in old:
-        chdir(os.pardir)
+        os.chdir(os.pardir)
     for i in new[:-1]:
         if not path.exists(i):
             mkdir(i)
         if path.isdir(i):
-            chdir(i)
+            os.chdir(i)
         else:
             print "Error: could not create or change to " + i + " from " + os.getcwd()
             exit()
@@ -2098,7 +2034,7 @@ def rename_path(old, new):
         print "Error: destination directory already exists:", last_of_new
         exit()
     rename(cwd, last_of_new)
-    chdir(last_of_new)
+    os.chdir(last_of_new)
                                                # now remove empty "orphan" dirs
 
     old_dirs = all_paths(cwds)
@@ -2246,7 +2182,7 @@ def sig_winch_handler(sig, frame):
             del usage_win
             usage_win = curses.newwin(usage_win_height, usage_win_width, usage_win_y, usage_win_x)
             usage_win.box()
-            usage_win.addstr(1, 2, "* * * " + prog_name + " " + prog_version + " (C)2000 Arne Zellentin * * *")
+            usage_win.addstr(1, 2, "* * * " + prog_name + " " + prog_version + " (C)2001 Arne Zellentin * * *")
             usage_win.addstr(2, 2, "use cursor keys or hjkl to scroll status info")
             usage_win.addstr(3, 2, "press P to disable/continue ripping,")
             usage_win.addstr(4, 2, "      E to pause/continue all encoders or")
@@ -2276,11 +2212,6 @@ def mkdirname(names, template):
         dirs[0] = os.sep
         
     dirs2 = []
-    #XXX
-    #if len(names[0]) == 4:
-            #id3_genre = -1
-            #id3_year, id3_genre = names[0][2:]
-            #id3_year, id3_genre = names[0][2:]
     for i in dirs:
         replace_list = (("%a", names[0][0]), ("%l", names[0][1]), ("%y", `id3_year`), ("%g", id3_genretxt))
         x = multi_replace(i, replace_list)
@@ -2419,7 +2350,7 @@ tracks = ""
 guess_mp3s = []
 
 # say hello...
-print "This is ", prog_name, prog_version, "(C) 2000  Arne Zellentin <arne@unix-ag.org>"
+print "This is ", prog_name, prog_version, "(C) 2001  Arne Zellentin <arne@unix-ag.org>"
 
 while i<len(argv):
     if argv[i] in ("-t", "--tracks"):
@@ -2492,6 +2423,7 @@ while i<len(argv):
         keep_wavs = 1
     elif argv[i] in ("-O", "--only-dae"):
         only_dae = 1
+        encoders = 0
     elif argv[i] in ("-o", "--overwrite"):
         overwrite = 1
     elif argv[i] in ("-c", "--check-toc"):
@@ -2512,6 +2444,8 @@ while i<len(argv):
         extt_is_artist = 1
     elif argv[i] =="--extt-is-title":
         extt_is_title = 1
+    elif argv[i] =="--extt-is-comment":
+        extt_is_comment = 1
     elif argv[i] =="--remove":
         remove_files = 1
     elif argv[i] =="--upd-progress":
@@ -2613,6 +2547,7 @@ while i<len(argv):
         print "      --no-various:   force no various artists, override autodetection (" + yes(various == 2) + ")"
         print "      --extt-is-artist: the artist is contained in the EXTT fields"
         print "      --extt-is-title: the track title is contained in the EXTT fields"
+        print "      --extt-is-comment: a track comment is contained in the EXTT fields"
         print "      --todo:         print what would be done and exit (" + yes(todo_exit) + ")"
         print "      --otf:          on-the-fly encoding *experimental* (" + yes(otf) + ")"
         print
@@ -2683,8 +2618,6 @@ while (not path.exists(toc_file)) or multi_mode:
             all_tracks = []
         else:
             all_tracks = gettoc()
-            #XXX
-            print all_tracks
 
         if scan_dirs != None:
             recurse_dirs = scan_dirs
@@ -2726,13 +2659,14 @@ while (not path.exists(toc_file)) or multi_mode:
                 err, track_names, cd_id, revision = freedb_names(freedb_id(all_tracks), all_tracks,  path.join(i, freedb_form_file), various, verb = 0, warn = 0)
                 if err or force:# this means freedb data is not there yet
                     print "Info: matching dir found:", i
-                    chdir(i)
-                    ch_args = argv
-                    for killarg in ('--force', '--multi-mode'):
-                        if killarg in ch_args:
-                            ch_args.remove(killarg)
                     pid = os.fork()
                     if pid == CHILD:
+                        os.chdir(i)
+                        ch_args = argv
+                        for killarg in ('--force', '--multi-mode'):
+                            if killarg in ch_args:
+                                ch_args.remove(killarg)
+                        print "Info: running", ch_args
                         execvp(ch_args[0], ch_args)
                     else:
                         respid, res = waitpid(pid, 0)
@@ -2751,14 +2685,14 @@ while (not path.exists(toc_file)) or multi_mode:
             print "Error: found more than one workdir, change to the correct one."
             exit()
         elif len(unique_dirs) == 1:
-            chdir(unique_dirs[0])
+            os.chdir(unique_dirs[0])
         else:
             if create_dirs:
-                chdir(base_dir)
-                dir_name = prog_name + "-" + freedb_id(all_tracks)
+                os.chdir(base_dir)
+                dir_name = prog_name + "-" + freedb_id(all_tracks, warn=0)
                 if not path.exists(dir_name) and not path.isdir(dir_name):
                     mkdir(dir_name)
-                chdir(dir_name)
+                os.chdir(dir_name)
                 dir_created = dir_name
                 progress("all", "mkdir", dir_created)
 
@@ -2846,21 +2780,23 @@ else:       # example: "1,2,4-8,12-" ->  [ 1,2,4,5,6,7,8,12,13,...,n ]
                 tlist.append(j)
         else:
             tlist.append(atoi(k))
-    tlist.sort()
-    todo = []
-    if len(tlist) == 1:
-        if all_tracks[tlist[0] - 1][CH] == 2:
-            todo.append(all_tracks[tlist[0] - 1])
-        else:
-            print "Warning: can't handle non audio track %i" % all_tracks[tlist[0] - 1][NUM]
-    else:
-        for k in range(0, len(tlist)):
-            if tlist[k] != tlist[k - 1]:
-                if k[CH] == 2:
-                    todo.append(all_tracks[tlist[k]-1])
-                else:
-                    print "Warning: can't handle non audio track %i" % k[NUM]
 
+    # uniq the track list
+    tlist.sort()
+    k = 0
+    while k < len(tlist) - 1:
+        if tlist[k] == tlist[k+1]:
+            del tlist[k]
+        else:
+            k = k + 1
+
+    # generate todo
+    todo = []
+    for k in tlist:
+        if all_tracks[k-1][CH] == 2:
+            todo.append(all_tracks[k-1])
+        else:
+            print "Warning: can't handle non audio track %i" % k[NUM]
 
 for i in todo:
     all_tracks_todo_sorted.append(i)
@@ -2953,7 +2889,7 @@ for i in status.keys():
             tracknum[i][NAME] = status[i]['names'][-1]
     del status[i]['ren']
 
-status_all = status['all']  # status info for the whole CD is treated seperately
+status_all = status['all']  # status info for the whole CD is treated separately
 del status['all']
 
                                     # now clean up a little
@@ -3319,9 +3255,6 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, enc_running, da
             max_name_len = max_name_len + 6
     else:
         max_name_len = max(map(lambda x: len(x[NAME]), todo))
-        if show_time:
-            pass
-            #XXX            max_name_len = max_name_len + 6
 
     for i in todo:
         if show_time:
@@ -3336,7 +3269,6 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, enc_running, da
             printable_names[i[NUM]] = tmp + "." * (max_name_len - len(tmp))
         else:
             if show_time:
-                #XXX printable_names[i[NUM]] = i[NAME] + " " + len_tmp + "." * (max_name_len - len(i[NAME]) - 6)
                 printable_names[i[NUM]] = ("%02i " % i[NUM]) + len_tmp + "." * (max_name_len - len(i[NAME]) - 6)
             else:
                 printable_names[i[NUM]] = i[NAME] + "." * (max_name_len - len(i[NAME]))
@@ -3682,7 +3614,7 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, enc_running, da
                     else:
                         global_done = global_done + exited_proc['track'][LEN]
                         if vbr:
-                            enc_stat_upd(num, "[coding @" + '%1.2f' % speed + "× done,%03.0fkbit]" % ((filesize(track[NAME] + ".mp3") * 0.008) / (track[LEN] / 75)))
+                            enc_stat_upd(num, "[coding @" + '%1.2f' % speed + "× done,%03.0fkbit]" % ((filesize(track[NAME] + ".mp3") * 0.008) / (track[LEN] / 75.0)))
                         else:
                             enc_stat_upd(num, "[coding @" + '%1.2f' % speed + "× done, mp3 OK]")
                         if not otf and not keep_wavs:
@@ -3921,7 +3853,7 @@ if global_error:
         system(exec_err)
     exit()
 
-if vbr:
+if vbr and not only_dae:
     total_length = 0
     total_size = 0
     for i in all_tracks_todo_sorted:
@@ -3941,7 +3873,7 @@ if set_id3tag or freedb_rename:
         t_artist = track_names[i[NUM]][0]
         t_name = track_names[i[NUM]][1]
         t_comm = ""
-        if set_id3tag:
+        if not only_dae and set_id3tag:
             if len(t_name) > 30:
                 if find(t_name, "(") != -1 and find(t_name, ")") != -1:
                     # we only use the last comment
@@ -3995,7 +3927,8 @@ if set_id3tag or freedb_rename:
                     print 'NOT renaming "' + wavname + '" to "' + newname + ".wav" + '" because dest. exists.'
                     print 'NOT renaming "' + mp3name + '" to "' + newname + ".mp3" + '" because WAV dest. exists.'
                 if ok:
-                    rename(mp3name, newname + ".mp3")
+                    if not only_dae:
+                        rename(mp3name, newname + ".mp3")
                     if keep_wavs:
                         rename(wavname, newname + ".wav")
                     progress(i[NUM], "ren", "%s-->%s" % (i[NAME], newname))
@@ -4015,7 +3948,7 @@ if not silent_mode:
             print "Genre: [unknown]"
         else:
             print "Genre: %s" % id3genres[id3_genre]
-    if vbr:
+    if vbr and not only_dae:
         print "Avg. bitrate: %03.0fkbit" % ((total_size * 0.008) / (total_length / 75))
     else:
         print
