@@ -230,6 +230,9 @@ def real_cdrdao_gettoc(tocfile):     # get toc from cdrdao-style toc-file
     while 1:
         line = f.readline()
         if not line:
+            if actual_track.channels not in [1,2,4]:
+                debug("track %02d: unknown number of channels, assuming 2" % num)
+                actual_track.channels = 2
             toc.append(actual_track)
             break
         line = string.strip(line)
@@ -242,6 +245,9 @@ def real_cdrdao_gettoc(tocfile):     # get toc from cdrdao-style toc-file
             new_track = jack_TOCentry.TOCentry()
             new_track.number = num
             if actual_track:
+                if actual_track.channels not in [1,2,4]:
+                    debug("track %02d: unknown number of channels, assuming 2" % num)
+                    actual_track.channels = 2
                 toc.append(actual_track)
             actual_track = new_track
             actual_track.rip = 1

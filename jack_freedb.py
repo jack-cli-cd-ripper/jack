@@ -20,6 +20,7 @@ import urllib
 import string
 import os
 
+import jack_playorder
 import jack_functions
 import jack_progress
 import jack_utils
@@ -328,7 +329,7 @@ def freedb_names(cd_id, tracks, name, verb = 0, warn = 1):
         line = string.replace(line, "\r", "")  # I consider "\r"s as bugs in db info
         if jack_functions.starts_with(line, "# Revision:"):
             revision = int(line[11:])
-        for i in ["DISCID", "DTITLE", "TTITLE", "EXTD", "EXTT"]:
+        for i in ["DISCID", "DTITLE", "TTITLE", "EXTD", "EXTT", "PLAYORDER"]:
             if jack_functions.starts_with(line, i):
                 buf = line
                 if string.find(buf, "=") != -1:
@@ -341,6 +342,7 @@ def freedb_names(cd_id, tracks, name, verb = 0, warn = 1):
                                 freedb[buf[0]] = freedb[buf[0]] + buf[1]
                         else:
                             freedb[buf[0]] = buf[1]
+                continue
  
     for i in tracks:    # check that info is there for all tracks
         if not freedb.has_key("TTITLE%i" % (i[NUM] - 1)):   # -1 because freedb starts at 0
@@ -388,6 +390,9 @@ def freedb_names(cd_id, tracks, name, verb = 0, warn = 1):
                 if verb:
                     warning("the disc's id is not 8-digit hex (\"DISCID\").")
                 err = 5
+
+    if freedb.has_key('PLAYORDER'):
+        jack_playorder.order = freedb('PLAYORDER')
  
     dtitle = freedb['DTITLE']
     dtitle = string.replace(dtitle, " / ", "/")    # kill superflous slashes

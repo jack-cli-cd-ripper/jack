@@ -20,6 +20,7 @@ import string
 import types
 import os
 
+import jack_playorder
 import jack_functions
 import jack_progress
 import jack_version
@@ -239,7 +240,7 @@ def gen_todo():
     for i in jack_ripstuff.all_tracks:
         tracknum[i[NUM]] = i
 
-    if not cf['_tracks']:
+    if not cf['_tracks'] and not jack_playorder.order:
         todo = []
         for i in jack_ripstuff.all_tracks:
             if i[CH] == 2:
@@ -250,7 +251,10 @@ def gen_todo():
     else:
         # example: "1,2,4-8,12-" ->  [ 1,2,4,5,6,7,8,12,13,...,n ]
         tlist = []
-        tracks = string.split(cf['_tracks'], ",")
+        if cf['_tracks']:
+            tracks = string.split(cf['_tracks'], ",")
+        else:
+            tracks = string.split(jack_playorder.order, ",")
         for k in tracks:
             if string.find(k, '-') >= 0:
                 k = string.split(k, '-')

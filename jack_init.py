@@ -20,6 +20,7 @@ import string
 import sys
 import os
 from jack_globals import *
+from jack_generic import *
 
 try:
     from fcntl import F_SETFL

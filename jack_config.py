@@ -710,6 +710,12 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
         'usage': "create a playlist in .m3u format",
         'long': 'AUTO',
         },
+    'playorder': {
+        'type': 'toggle',
+        'val': 0,
+        'usage': "use the freedb PLAYORDER field to limit the tracks to rip (non-functional, sorry)",
+        'long': 'AUTO',
+        },
     })
 
 for i in cf.keys():
