@@ -203,9 +203,13 @@ replacement_chars = ["%", ""]   # replacements here. replacement_chars is
 # unusable_chars = "הצüִײÜß?*^()[]{}"
 # replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]
 
-# example 3: use only lowercase, " " --> "_": (depends on LANG env.var!)
+# example 3: use only lowercase, " " --> "_":
 # unusable_chars = " " + uppercase
 # replacement_chars = "_" + lowercase
+# Note: this does not include umlauts or other non-plain-ASCII characters
+# because a) jack forces the locale to C and b) uppercase and lowercase
+# are not symmetric, e.g. with the de_DE locale "ִ" would become "ד".
+# Instead, add them explicitly: + "ִײÜ" / + "הצü" respectively.
 
 # these influence the status screen while processing tracks
 show_time = 1       # display track length instead of "track"
