@@ -603,7 +603,7 @@ final_status = ("%4.1fx" % speed) + last_status[16:48] + "]"
 final_status = "[otf - done]"
 \"\"\",
         #'toc': 1,  # we can't generate correct freedb IDs with cdparanoia.
-        #'toc_cmd': "cdparanoia -d %d -Q 2>&1",
+        'toc_cmd': "cdparanoia -d %d -Q 2>&1",
         'toc_fkt': \"\"\"
 while l:
     l = rstrip(l)
@@ -3035,33 +3035,27 @@ if path.exists(toc_file):
 
     is_submittable = 1
 
-    #if freedb_submit:               # freedb submit
-        #err, track_names, cd_id, revision = freedb_names(freedb_id(all_tracks), all_tracks, freedb_form_file)
-        #if not err:
-            #do_freedb_submit(freedb_form_file, cd_id)
-        #else:
-            #print "Error: invalid freedb file."
-        #exit()
-    #elif freedb_mailsubmit:
-        #err, track_names, cd_id, revision = freedb_names(freedb_id(all_tracks), all_tracks, freedb_form_file)
-        #if not err:
-            #do_freedb_mailsubmit(freedb_form_file, cd_id)
-        #else:
-            #print "Error: invalid freedb file."
-        #exit()
-        
 if not path.exists(freedb_form_file):
     freedb_template(all_tracks) # ... or if it has been deleted.
 
-### (4) Parse tracks from argv, generate todo
+### (4a) filter out data tracks
+
+audio_tracks = all_tracks[:]
+
+if helpers[ripper].has_key("toc_cmd") and ripper != toc_prog:
+    audio_tracks = gettoc(toc_prog=ripper)
+    if len(all_tracks) != len(audio_tracks):
+        print "Info: CD has %d tracks but %s reports %d. I'll trust %s." % (len(all_tracks), ripper, len(audio_tracks), ripper)
+    
+### (4b) Parse tracks from argv, generate todo
 
 tracknum = {}
-for i in all_tracks:
+for i in audio_tracks:
     tracknum[i[NUM]] = i
 
 if not tracks:
     todo = []
-    for i in all_tracks:
+    for i in audio_tracks:
         if i[CH] == 2:
             todo.append(i)
         else:
@@ -3077,7 +3071,7 @@ else:       # example: "1,2,4-8,12-" ->  [ 1,2,4,5,6,7,8,12,13,...,n ]
             if k[1]:
                 upper_limit = safe_int(k[1], "Track '%s' is not a number." % k[1])
             else:
-                upper_limit = len(all_tracks)
+                upper_limit = len(audio_tracks)
             for j in range(lower_limit, upper_limit + 1):
                 tlist.append(j)
         else:
@@ -3096,10 +3090,10 @@ else:       # example: "1,2,4-8,12-" ->  [ 1,2,4,5,6,7,8,12,13,...,n ]
     # generate todo
     todo = []
     for k in tlist:
-        if k < 1 or k > len(all_tracks):
-            print 'This CD has tracks 1-%d.  Ignoring request for track %d.' % (len(all_tracks), k)
+        if k < 1 or k > len(audio_tracks):
+            print 'This CD has tracks 1-%d.  Ignoring request for track %d.' % (len(audio_tracks), k)
             continue
-        if all_tracks[k-1][CH] == 2:
+        if audio_tracks[k-1][CH] == 2:
             todo.append(all_tracks[k-1])
         else:
             print "Warning: can't handle non audio track %i" % k[NUM]
@@ -3446,7 +3440,7 @@ if only_dae:            # if only_dae nothing is encoded _at_all_.
 # will handle the tracks in mp3s_todo.
 
 if todo_exit:           # print what needs to be done, then exit
-    for i in all_tracks:
+    for i in audio_tracks:
         print "%02i" % i[NUM],
         if i in todo:
             print "*",
