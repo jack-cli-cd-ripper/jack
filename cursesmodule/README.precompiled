@@ -1,0 +1,13 @@
+This is Oliver Andrich's cursesmodule-1.5b2, slightly patched
+by Arne Zellentin <arne@unix-ag.org> so that it includes "termresize".
+
+The module precompiled/RedHat-6.0/cursesmodule.so has been compiled on a RedHat
+6.0 alike system on an i686 (glibc2); precompiled/Debian-Potato/cursemodule.so
+was done on a (you guessed it) Debian Potato System. If you run something else
+that is at least Linux/ix86, try if one of them works. Do that by running
+Python and entering
+from curses import *
+in interactive mode. If it fails, you will be confronted with an error message
+which may be of help.
+
+Have fun!

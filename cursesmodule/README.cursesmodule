@@ -1,0 +1,422 @@
+			    **********************
+			    * Cursesmodule 1.4b1 *
+			    **********************
+
+Please read the COPYRIGHT POLICY and the end of this document.
+
+1. General remarks
+1.1 New Features
+1.2 TO DO Lists
+2. List of Functions and Types
+3. Installation
+4. COPYRIGHT POLICY
+5. Email addresses
+
+1. General remarks
+==================
+
+This is a heavily extended version of the cursesmodule 1.2 developed by Lance
+Ellinghaus. This is the first public beta release I release under my
+copyright. I like to thank Lance Ellinghaus and all the other people
+involved in the development of the previous module. I also like to thank Ulf
+Bartelt with whom I have been discussing the future development of this module
+during the last weeks and still do. (That was back in 1996. ;-) Now Andrew
+Kuchling has taken over his part.
+
+This modules was developed using ncurses 4.0, so I can more or less guarantee,
+that the module is fully functional with this implementations. 
+
+Tested platforms at the moment:
+* Linux 2.0.28, ncurses 4.0, gcc 2.7.2.1, libc 5.3.12, python 1.4
+  (andrich@fga.de)
+* Linux 1.3.71, ncurses 1.9.8a, gcc 2.7.2, libc 5.2.18, python 1.3
+  (Oliver_Andrich@bammbamm.fido.de)
+* Linux 1.2.13, ncurses 1.9.8a, gcc 2.7.0, libc 5.0.9, python 1.3
+  (Oliver_Andrich@bammbamm.fido.de)
+
+I still think that this module is in beta stadium cause it has only been
+tested on Linux machines yet. The code is stable on these machines and there
+don't seem to exist severe memory leaks or so. (I can't make any statement
+about ncurses anyway. ;-)
+
+I would be very happy if anybody using it under an other platform successfully
+would drop me an email. And anybody, who had some problems with a different
+(n)curses version or something else, should send me an email with the
+description of the problem or with a patch, cause I like to provide a module
+that is widely usable.
+
+1.1 New Features
+================
+
+1.3b2 -> 1.4b1:
+-------------
+* removed soft labels (no slk_functions anymore)
+
+1.3b1 -> 1.3b2:
+---------------
+* fixed a little bug in slk_init and slk_label
+* added argument bound checks 
+    => More sophisticated error messages and no wrong return values.
+       No function simply returns "xyz() returns ERR" when simply an
+       argument is instatiated with a wrong value.
+  necessary: color_content, pair_content
+  optional: (can be turned of via -DNO_BOUNDS_CHECK compile option)
+  curs_set, halfdelay, init_color, init_pair, slk_init, slk_label, slk_set
+
+1.2 -> 1.3b1: (Release Date 23.03.1996)
+-------------
+* a lot more functions from the (n)curses are supported
+* full color support
+* soft labels
+* pads (There is only one WINDOW type left. No separate type for pads.)
+* flexible extension of all functions that add chars in one or another
+  way. Now you can also use 1-element strings (= chars) as parameters without
+  having to convert them with ord or so.
+* all necessary global variables of ncurses are exported
+* is fully functional with the panelmodule 1.1
+* made the whole module type safe for future changes in the (n)curses lib
+* begining support for termcap and terminfo functions
+
+1.2 TO DO Lists
+==============
+
+Things that are not yet implemented include:
+
+* implement argument range checks for more sophisticated error messages when
+  calling a method or function with an out of range parameter (high priority)
+* all addchstr functions, cause I haven't managed to develop a convenient way
+  to represent attributed strings in Python yet. (high priority)
+* mouse support (high priority)
+* demo applications (the ncurses test programm especially)
+* the SCREEN stuff, cause it seems as I haven't understood yet, how to use it.
+  (low priority)
+* curs_scr_dmp (very low priority)
+* support for curs_term{info|cap} functions (drop me an email if you need
+  that)
+
+Things that will never be support are (never is a relative term :-):
+
+* menus and forms, cause I extended the module to have a stable basis for
+  developing my own python/curses-based GUI. This thing will be done in
+  conjunction with Ulf Bartelt who has heavily supported me during development
+  of this module.
+* curs_printw and curs_scanw functions, cause I think that there is no need
+  for them. May be curs_scanw functions will implemented, but that has a
+  very low priority at the moment.
+
+2. List of Functions and Types
+==============================
+
+There is 1 basic type exported by this module:
+   window - This is the basic type. This is equivalent to "WINDOW *".
+
+Most of the routines can be looked up using the curses man page. The relevant
+page from the ncurses package is mentioned after each function. But some
+of the return values may differ from the return values of the curses 
+functions. But all the return values are listed below. 
+
+Description of the various argument types
+
+bool:   a standard Python Int with value 0 (False) or not 0 (True)
+ch:     a standard Python 1-element string (for intuitive use of the methods)
+int:    a attributed character (= a Python int) 
+        in order to get an "a" with a blink attribute you have to assign
+        ord("a") | curses.A_BLINK to the parameter
+        (more intuitive calls are also supported, look at addch("a",
+        curses.A_BLINK). That means the same as addch(ord("a") | 
+	curses.A_BLINK).
+attr:   a Python int representing attributes
+        to get a blinking reversed attribute assign 
+	curses.A_BLINK | curses.A_REVERSE to the parameter
+y,x:    Python ints representing coordinates
+str:    a standard Python string
+
+Here is a list of the currently supported methods and attributes
+in the curses module:
+
+Return Value      Func/Attr            Description/Manpage
+--------------------------------------------------------------------------
+IntObject         baudrate()           curs_termattrs
+None              beep()               curs_beep
+True/FalseObject  can_change_colors()  curs_color
+None              cbreak()             curs_inopts
+                  cbreak(bool)
+(r,g,b)           color_content(int)   curs_color
+                                       returns the RGB values of the color
+                                       int as a tuple of ints
+IntObject         COLORS               number of available colors
+                                       (only available after start_color())
+IntObject         COLOR_PAIR(int)      curs_color
+	                               returns the value of the color pair
+	                               int compiled from the values of for-
+                                       and backgroundcolor
+IntObject         COLOR_PAIRS          number of available color pairs
+                                       (only available aftert start_color())
+IntObject         curs_set(int)        curs_kernel
+                                       sets the cursor visibility to value int
+                                       allowed values 0, 1 and 2
+                                       returns old value
+None              def_prog_mode()      curs_kernel
+None              def_shell_mode()     curs_kernel
+None              doupdate()           curs_refresh
+None              echo()               curs_inopts
+                  echo(bool)            
+None              endwin()             curs_initscr
+StringObject      erasechar()          curs_termattrs
+None              filter()             curs_util
+None              flash()              curs_beep
+None              flushinp()           curs_util
+WindowObject      getwin(fileobj)      curs_util
+True/FalseObject  has_colors()         curs_color
+True/FalseObject  has_ic()             curs_termattrs
+True/FalseOBject  has_il()             curs_termattrs
+None              halfdelay(int)       curs_inopts
+None              init_color(color, r, g, b) curs_color
+None              init_pair(pair, fg, bg) curs_color
+WindowObject      initscr()            curs_initscr
+None              intrflush(bool)      curs_inopts
+True/FalseObject  isendwin()           curs_initscr
+StringObject      keyname(int)         curs_util
+                                       return the text representation
+                                       of a key_ value.
+None              meta(bool)           curs_inopts
+WindowObject      newpad(lines, cols)  curs_pad
+WindowObject      newwin(lines,cols,y,x) curs_window
+                  newwin(lines,cols)   curs_pad
+		                       newwin/2 creates a pad, so that newwin
+                                       behaves similar to newpad/2
+None              nl()                 curs_outopts
+                  nl(bool)
+None              nocbreak()           curs_inopts
+None              noecho()             curs_inopts
+None              nonl()               curs_outpots
+None              noqiflush()          curs_inopts
+None              noraw()              curs_inopts
+(fg, bg)          pair_content(int)    curs_color
+                                       returns fore- and backgroundcolor of
+                                       color pair int
+IntObject         PAIR_NUMBER(int)     curs_color
+                                       returns the number of the colorpair with
+                                       the value int
+None              putp(str)            curs_terminfo
+None              qiflush()            curs_inopts
+                  qiflush()
+None              raw()                curs_inopts
+                  raw(bool)
+None              reset_prog_mode()    curs_kernel
+None              reset_shell_mode()   curs_kernel
+None              start_color()        curs_color
+                                       initializes color support
+IntObject         termattrs()          curs_termattrs
+StringObject      termname()           curs_termattrs
+StringObject      unctrl(ch)           curs_util
+                  unctrl(int)
+None              ungetch(int)         curs_getch
+                                       Push the int back so next getch()
+                                       will return it.
+		  ungetch(ch)          Now also for chars.
+None              use_env(bool)        curs_util
+StringObject      version              A string representing the current
+                                       version of this module.
+
+Here is a list of the currently supported methods and attributes
+in the WindowObject:
+
+Return Value      Func/Attr            Description/Manpage
+--------------------------------------------------------------------------
+None              addch(y,x,int,attr)   curs_addch
+                  addch(y,x,ch,attr)
+		  addch(y,x,int)
+                  addch(y,x,ch)
+		  addch(int,attr)
+		  addch(ch,attr)
+		  addch(int)
+		  addch(ch)
+None              addnstr(y,x,str,n,attr) curs_addstr
+                  addnstr(y,x,str,n)
+		  addnstr(str,n,attr)
+		  addnstr(str,n)
+None              addstr(y,x,str,attr)  curs_addstr
+                  addstr(y,x,str)
+                  addstr(str,attr)
+                  addstr(str)
+None              attron(attr)         curs_attr
+None              attroff(attr)        curs_attr
+None              attrset(sttr)        curs_attr
+None              bkgd(int)            curs_bkgd
+                  bkgd(ch)
+                  bkgd(int, attr)
+		  bkgd(ch, attr)
+None              bkgdset(int)            curs_bkgd
+                  bkgdset(ch)
+                  bkgdset(int, attr)
+		  bkgdset(ch, attr)
+None              border(ls,rs,ts,bs,tl,tr,bl,br) curs_border
+                                       (accepts 0-8 int args)
+None              box(vertch,horch)    curs_border
+                                       vertch and horch are INTS
+                  box()
+None              clear()              curs_clear
+None              clearok(bool)        curs_outopts
+None              clrtobot()           curs_clear
+None              clrtoeol()           curs_clear
+None              cursyncup()          curs_window
+None              delch(y,x)           curs_delch
+                  delch()
+None              deleteln()           curs_deleteln
+WindowObject      derwin(nlines,ncols,begin_y,begin_x) curs_window
+                  derwin(begin_y,begin_x)
+None              echochar(ch,attr)    curs_addch
+                  echochar(int,attr)
+                  echochar(ch)
+		  echochar(int)
+None              erase()              curs_clear
+(y,x)             getbegyx()           curs_
+IntObject         getbkgd()            curs_bkgd
+IntObject         getch(y,x)           curs_getch
+                  getch()
+StringObject      getkey(y,x)          similar to getch, but returns a char
+                  getkey()             or the keyname pressed
+(y,x)             getmaxyx()           curs_getyx
+(y,x)             getparyx()           curs_getyx
+StringObject      getstr(y,x,n)        curs_getstr
+                  getstr(y,x)          
+                  getstr(n)            n is an int, max chars read
+                  getstr()
+(y,x)             getyx()              curs_getyx
+None              hline(y,x,ch,n,attr) curs_border
+                  hline(y,x,int,n,attr)
+                  hline(y,x,ch,n)
+		  hline(y,x,int,n)
+		  hline(ch,n,attr)
+		  hline(int,n,attr)
+	          hline(ch,n)
+		  hline(int,n)
+None              idlok(bool)           curs_outopts
+None              idcok(bool)           curs_outopts
+None              immedok(bool)         curs_outopts
+IntObject         inch(y,x)            curs_inch
+                  inch()
+None              insch(y,x,ch,attr)   curs_insch
+                  insch(y,x,int,attr)
+                  insch(y,x,ch)
+		  insch(y,x,int)
+                  insch(ch,attr)
+		  insch(int, attr)
+                  insch(ch)
+None              insdelln(int)        curs_deleteln
+None              insertln()           curs_deleteln
+None              insnstr(y,x,str,n,attr) curs_insstr
+                  insnstr(y,x,str,n)
+		  insnstr(str,n,attr)
+		  insnstr(str,n)
+None              insstr(y,x,str,attr) curs_insstr
+                  insstr(y,x,str)
+		  insstr(str,attr)
+		  insstr(str)
+StringObject      instr(y,x,n)         curs_instr
+                  instr(y,x)
+		  instr(n)
+		  instr()
+True/FalseObject  is_linetouched(int)  curs_touch int = line
+True/FalseObject  is_winwouched()      curs_touch
+None              keypad(bool)          curs_inopts
+None              leaveok(bool)         curs_outopts
+None              move(new_y,new_x)    curs_move
+                                       Move Cursor
+None              mvwin(new_y,new_x)   curs_move
+                                       Move Window
+None              nodelay(bool)         curs_inopts
+None              noutrefresh()       curs_refresh
+                                       Mark for refresh but wait
+None              notimeout(bool)       curs_inopts
+None              putwin(fileobject)   curs_util
+None              redrawln(beg, cnt)   curs_refresh
+None              redrawwin()          curs_refresh
+None              refresh()            curs_refresh
+None              scroll()             curs_scroll
+                  scroll(lines)        
+None              scrollok(bool)        curs_outopts
+None              setscrreg(top,bottom) curs_outopts
+None              standend()           curs_attr
+None              standout()           curs_attr    
+WindowObject      subpad(nlines,ncols,begin_y,begin_x) curs_pad
+WindowObject      subwin(nlines,ncols,begin_y,begin_x) curs_window
+None              syncup()               curs_window
+None              syncdown()             curs_window
+None              syncok(bool)          curs_window
+None              touchline(start,count) curs_touch
+                  touchline(start, count, value) (= wtouchln)
+None              touchwin()            curs_touch
+None              vline(y,x,ch,n,attr) curs_border
+                  vline(y,x,int,n,attr)
+                  vline(y,x,ch,n)
+		  vline(y,x,int,n)
+		  vline(ch,n,attr)
+		  vline(int,n,attr)
+                  vline(ch,n)
+		  vline(int,n)
+
+3. Installation
+===============
+
+- Specify -DNO_BOUNDS_CHECK on the compile command line, so that all
+  unnecassary boundary checks are left out
+
+a) The easy way:
+
+   If you have installed the Python source distribution, then replace the old
+   cursesmodule.c with the new cursesmodule.c and recompile.
+
+b) If you haven't got a source distribution installed, at hand or don't like
+   to recompile Python, then it depends how you link Python ...
+
+   1. static linking: get a source distribution and continue with step a). :-)
+
+   2. dynamic linking: use the Makefile coming along with that distribution,
+                       make the the relevant changes, type make and copy the 
+		       result to a place where python can find the module.
+
+		       WARNING! The Makefile functions very well under Linux,
+		       I don't know if it functions under a another system.
+		       Please mail me the relevant changes.
+
+4. COPYRIGHT POLICY
+===================
+/*
+ *   This is a curses implementation for Python.
+ *
+ *   Based on a prior work by Lance Ellinghaus
+ *   (version 1.2 of this module
+ *    Copyright 1994 by Lance Ellinghouse,
+ *    Cathedral City, California Republic, United States of America.)
+ *   Updated, fixed and heavily extended by Oliver Andrich
+ *
+ *   Copyright 1996, 1997 by Oliver Andrich,
+ *   Koblenz, Germany
+ *
+ *   Permission is hereby granted, free of charge, to any person obtaining
+ *   a copy of this source file to use, copy, modify, merge, or publish it
+ *   subject to the following conditions:
+ *
+ *   The above copyright notice and this permission notice shall be included
+ *   in all copies or in any new file that contains a substantial portion of
+ *   this file.
+ *
+ *   THE  AUTHOR  MAKES  NO  REPRESENTATIONS ABOUT  THE  SUITABILITY  OF
+ *   THE  SOFTWARE FOR  ANY  PURPOSE.  IT IS  PROVIDED  "AS IS"  WITHOUT
+ *   EXPRESS OR  IMPLIED WARRANTY.  THE AUTHOR DISCLAIMS  ALL WARRANTIES
+ *   WITH  REGARD TO  THIS  SOFTWARE, INCLUDING  ALL IMPLIED  WARRANTIES
+ *   OF   MERCHANTABILITY,  FITNESS   FOR  A   PARTICULAR  PURPOSE   AND
+ *   NON-INFRINGEMENT  OF THIRD  PARTY  RIGHTS. IN  NO  EVENT SHALL  THE
+ *   AUTHOR  BE LIABLE  TO  YOU  OR ANY  OTHER  PARTY  FOR ANY  SPECIAL,
+ *   INDIRECT,  OR  CONSEQUENTIAL  DAMAGES  OR  ANY  DAMAGES  WHATSOEVER
+ *   WHETHER IN AN  ACTION OF CONTRACT, NEGLIGENCE,  STRICT LIABILITY OR
+ *   ANY OTHER  ACTION ARISING OUT OF  OR IN CONNECTION WITH  THE USE OR
+ *   PERFORMANCE OF THIS SOFTWARE.
+ */
+
+5. Email addresses
+==================
+
+andrich@fga.de (Oliver Andrich)

@@ -1,0 +1,25 @@
+1i\
+# Generated automatically from Makefile.pre.in by sedscript.
+s%@VERSION[@]%1.5%
+s%@CC[@]%gcc%
+s%@RANLIB[@]%ranlib%
+s%@OPT[@]%-g -O2%
+s%@LDFLAGS[@]%%
+s%@DEFS[@]%-DHAVE_CONFIG_H%
+s%@LIBS[@]%-lieee -ldl  -lpthread%
+s%@LIBM[@]%-lm%
+s%@LIBC[@]%%
+s%@MACHDEP[@]%linux2%
+s%^prefix=.*%prefix=		/usr/local%
+s%^exec_prefix=.*%exec_prefix=	${prefix}%
+s%@SO[@]%.so%
+s%@LDSHARED[@]%gcc -shared%
+s%@CCSHARED[@]%-fpic%
+s%@LINKFORSHARED[@]%-Xlinker -export-dynamic%
+/^installdir=/s%=.*%=	/usr/local%
+/^exec_installdir=/s%=.*%=/usr/local%
+/^srcdir=/s%=.*%=		.%
+/^VPATH=/s%=.*%=		.%
+/^LINKPATH=/s%=.*%=	%
+/^BASELIB=/s%=.*%=	%
+/^BASESETUP=/s%=.*%=	%
