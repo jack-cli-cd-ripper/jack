@@ -56,6 +56,11 @@ pad_disp_start_y = pad_disp_start_x = 0
 usage_win_y = usage_win_x = 0
 usage_win_height, usage_win_width = 7, 49
 
+# reserve lines for the copyright/help box
+splash_reserve = 0
+if cf['_usage_win']:
+    splash_reserve = usage_win_height
+
 curses_sighandler = None
 map_track_num = None        # list track number -> line number
 extra_lines = None
@@ -134,9 +139,9 @@ def sig_winch_handler(sig, frame):
     resizeterm(jack_term.size_y, jack_term.size_x)
     pad_y, pad_x = pad_disp_start_y, pad_disp_start_x
     pad_start_y, pad_start_x = extra_lines - 1, 0
-    pad_end_y = min(extra_lines - 1 + pad_height, jack_term.size_y - 2)
+    pad_end_y = min(extra_lines - 1 + pad_height, jack_term.size_y - 2 - splash_reserve)
     pad_end_x = min(jack_term.size_x, pad_width) - 1
-    pad_missing_y = max(pad_height - (jack_term.size_y - extra_lines), 0)
+    pad_missing_y = max(pad_height - (jack_term.size_y - extra_lines - splash_reserve), 0)
     pad_missing_x = max(pad_width - jack_term.size_x, 0)
     if pad_missing_y >= pad_height:
         pad_start_y = 0
@@ -177,7 +182,7 @@ def sig_winch_handler(sig, frame):
 
         stdscr.refresh()
 
-        usage_win_y, usage_win_x = jack_term.size_y - usage_win_height - 2, (jack_term.size_x - usage_win_width) / 2
+        usage_win_y, usage_win_x = jack_term.size_y - usage_win_height - 1, (jack_term.size_x - usage_win_width) / 2
         if usage_win_y > extra_lines and usage_win_x > 0 and jack_term.size_y > extra_lines + 2 + usage_win_height and jack_term.size_x > usage_win_width:
             del usage_win
             usage_win = newwin(usage_win_height, usage_win_width, usage_win_y, usage_win_x)
@@ -193,12 +198,13 @@ def sig_winch_handler(sig, frame):
             dae_stat_upd(i[NUM], jack_status.dae_status[i[NUM]])
             enc_stat_upd(i[NUM], jack_status.enc_status[i[NUM]])
 
-        status_pad.refresh(pad_y, pad_x, pad_start_y, pad_start_x, pad_end_y, pad_end_x)
+        if pad_start_y < pad_end_y:
+            status_pad.refresh(pad_y, pad_x, pad_start_y, pad_start_x, pad_end_y, pad_end_x)
     signal.signal(signal.SIGWINCH, sig_winch_handler)
 #/ end of sig_winch_handler(sig, frame) /#
 
 def move_pad(cmd):
-    global pad_disp_start_y, pad_disp_start_x
+    global pad_disp_start_y, pad_disp_start_x, splash_reserve
     if cmd in ("j", 'KEY_DOWN') and pad_disp_start_y < pad_height - 1:
         pad_disp_start_y = pad_disp_start_y + 1
     elif cmd in ("k", 'KEY_UP') and pad_disp_start_y > 0:
@@ -207,11 +213,17 @@ def move_pad(cmd):
         pad_disp_start_x = pad_disp_start_x + 1
     elif cmd in ("h", 'KEY_LEFT') and pad_disp_start_x > 0:
         pad_disp_start_x = pad_disp_start_x - 1
+    elif cmd in ("?"):
+        if splash_reserve:
+            splash_reserve = 0
+        else:
+            splash_reserve = usage_win_height
     sig_winch_handler(None, None)
 
 def disp_bottom_line(bottom_line):
     stdscr.addstr(jack_term.size_y - 1, 0, (bottom_line + " " * (jack_term.size_x - len(bottom_line)))[:jack_term.size_x - 1], A_REVERSE)
-    status_pad.refresh(pad_y, pad_x, pad_start_y, pad_start_x, pad_end_y, pad_end_x)
+    if pad_start_y < pad_end_y:
+        status_pad.refresh(pad_y, pad_x, pad_start_y, pad_start_x, pad_end_y, pad_end_x)
     stdscr.refresh()
 
 def getkey():
@@ -236,9 +248,19 @@ def enc_stat_upd(num, string):
     status_pad.addstr(map_track_num[num], jack_ripstuff.max_name_len + 40, " " + jack_status.enc_status[num])
     status_pad.clrtoeol()
 
-def dae_stat_upd(num, string):
+def dae_stat_upd(num, string, reverse=-1):
     track = jack_ripstuff.all_tracks[num-1]
-    status_pad.addstr(map_track_num[num], 0, (jack_ripstuff.printable_names[num] + ": " + jack_status.dae_status[num] + " " + jack_status.enc_status[num]))
+    if reverse >= 0:
+        split_point = int(6.5 + reverse / 100.0 * 32)
+        front = jack_ripstuff.printable_names[num] + ": " + jack_status.dae_status[num][:6]
+        middle = jack_status.dae_status[num][6:split_point]
+        end = jack_status.dae_status[num][split_point:] + " " + jack_status.enc_status[num]
+        status_pad.addstr(map_track_num[num], 0, front)
+        status_pad.addstr(map_track_num[num], len(front), middle, A_REVERSE)
+        status_pad.addstr(map_track_num[num], len(front + middle), end)
+    else:
+        status_pad.addstr(map_track_num[num], 0, (jack_ripstuff.printable_names[num] + ": " + jack_status.dae_status[num] + " " + jack_status.enc_status[num]))
+
     dummy = """
     if ripper == "cdparanoia" and track in dae_tracks or (track in enc_queue and track not in mp3s_done):
         status_pad.addstr(map_track_num[num], 0, jack_ripstuff.printable_names[num] + ": " + jack_status.dae_status[num][:7])
@@ -250,4 +272,5 @@ def dae_stat_upd(num, string):
     else:
         status_pad.addstr(map_track_num[num], 0, jack_ripstuff.printable_names[num] + ": " + jack_status.dae_status[num] + " " + jack_status.enc_status[num])
 """
+
     status_pad.clrtoeol()

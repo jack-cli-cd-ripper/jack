@@ -80,6 +80,30 @@ def pprint_i(num, fmt = "%i%s", scale = 2.0**10, max = 4):
     else:
         return fmt % (num, c)
 
+def pprint_speed(s, len=4):
+    if len >= 4:
+        if s < 10:
+            return "%4.2f" % s
+        if s < 100:
+            return "%4.1f" % s
+        if s < 1000:
+            return "%4.0f" % s
+        if s < 10000:
+            return "%4d" % s + 0.5
+        else:
+            return "9999"
+    elif len == 3:
+        if s < 10:
+            return "%3.1f" % s
+        if s < 100:
+            return "%3.0f" % s
+        if s < 1000:
+            return "%3d" % s + 0.5
+        else:
+            return "999"
+    else:
+        return "X" * len
+
 def gettoc(toc_prog):
     "Returns track list"
     if jack_helpers.helpers[toc_prog].has_key('toc_cmd'):

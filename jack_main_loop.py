@@ -345,9 +345,9 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
                     else:
                         global_done = global_done + exited_proc['track'][LEN]
                         if cf['_vbr']:
-                            jack_status.enc_stat_upd(num, "[coding @" + '%1.2f' % speed + "x done,%03.0fkbit]" % ((jack_utils.filesize(track[NAME] + ext) * 0.008) / (track[LEN] / 75.0)))
+                            jack_status.enc_stat_upd(num, "[coding @" + '%s' % jack_functions.pprint_speed(speed) + "x done, %03.0fkbit]" % ((jack_utils.filesize(track[NAME] + ext) * 0.008) / (track[LEN] / 75.0)))
                         else:
-                            jack_status.enc_stat_upd(num, "[coding @" + '%1.2f' % speed + "x done, mp3 OK]")
+                            jack_status.enc_stat_upd(num, "[coding @" + '%s' % jack_functions.pprint_speed(speed) + "x done, mp3 OK]")
                         if not cf['_otf'] and not cf['_keep_wavs']:
                             os.remove(track[NAME] + ".wav")
                             space = space + jack_functions.tracksize(track)[WAV]
@@ -375,15 +375,20 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
         
                 elif i['type'] == "encoder":
                     if len(i['buf']) == jack_helpers.helpers[i['prog']]['status_blocksize']:
-                        tmp_d = {'i': i, 'percent': 0}
-                        exec(jack_helpers.helpers[i['prog']]['percent_fkt']) in globals(), tmp_d
+                        tmp_d = {'i': i.copy(), 'percent': 0}
+                        try:
+                            exec(jack_helpers.helpers[i['prog']]['percent_fkt']) in globals(), tmp_d
+                        except:
+                            tmp_d['percent'] = 0
+                            debug("error in percent_fkt of %s." % `i`)
                         i['percent'] = tmp_d['percent']
                         if i['percent'] > 0:
                             i['elapsed'] = time.time() - i['start_time']
                             speed = ((i['track'][LEN] / float(CDDA_BLOCKS_PER_SECOND)) * ( i['percent'] / 100 )) / i['elapsed']
                             eta = (100 - i['percent']) * i['elapsed'] / i['percent']
                             eta_ms = "%02i:%02i" % (eta / 60, eta % 60)
-                            jack_status.enc_stat_upd(i['track'][NUM], '%2i%% done, ETA:%6s, %5.2fx' % (i['percent'], eta_ms, speed))
+                            jack_status.enc_stat_upd(i['track'][NUM], '%2i%% done, ETA:%6s, %sx' % (i['percent'], eta_ms, jack_functions.pprint_speed(speed)))
+                            #jack_term.tmod.dae_stat_upd(i['track'][NUM], None, i['percent'])
         
                 elif i['type'] == "image_reader":
                     line = string.split(i['buf'], "\n")

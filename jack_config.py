@@ -277,6 +277,12 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
         'val': 24,
         'doc': "XXX unused! your xterm's height (autodetected with curses)",
         },
+    'usage_win': {
+        'type': 'toggle',
+        'val': 1,
+        'usage': "show the help screen while running",
+        'long': "AUTO",
+        },
     'keep_free': {
         'type': types.IntType,
         'val': 5*2**20,

@@ -281,7 +281,7 @@ for tmp in tmps:
     if string.find(tmp, "PROGRESS") != -1:
         last_status = tmp
         break
-final_status = ("%4.1fx" % speed) + last_status[16:48] + "]"
+final_status = ("%sx" % jack_functions.pprint_speed(speed)) + last_status[16:48] + "]"
 """,
         'otf-final_status_fkt': r"""
 final_status = "[otf - done]"
@@ -317,7 +317,7 @@ else:
     new_status = "waiting..."
 """,
         'final_status_fkt': r"""
-final_status = ("%4.1f" % speed) + "x [ DAE done with cdda2wav       ]"
+final_status = ("%s" % jack_functions.pprint_speed(speed)) + "x [ DAE done with cdda2wav       ]"
 """,
         'toc': 1,
         'toc_cmd': "cdda2wav --no-infofile -D %d -J -v toc --gui 2>&1",
@@ -420,7 +420,7 @@ else:
     new_status = "waiting..."
 """,
         'final_status_fkt': r"""
-final_status = ("%4.1f" % speed) + "x [ DAE done with dagrab         ]"
+final_status = ("%s" % jack_functions.pprint_speed(speed)) + "x [ DAE done with dagrab         ]"
 """,
         'toc': 1,
         'toc_cmd': "dagrab -d %d -i 2>&1",
@@ -458,7 +458,7 @@ else:
     new_status = "waiting..."
 """,
         'final_status_fkt': r"""
-final_status = ("%4.1" % speed) + "x [ DAE done with tosha          ]"
+final_status = ("%s" % jack_functions.pprint_speed(speed)) + "x [ DAE done with tosha          ]"
 """,
         'toc': 1,
         'toc_cmd': "tosha -d %d -iq 2>&1",

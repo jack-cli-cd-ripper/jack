@@ -71,6 +71,9 @@ pause/continue all encoders
 .TP
 .BR r " or " R
 pause/continue all rippers.
+.TP
+.BR ?
+toggle the copyright/help box
 .RE
 .SH OPTIONS
 Different options need different data-types as arguments:
@@ -382,6 +385,9 @@ too early.
 .TP
 .B \-\-update-freedb, -U
 update the freedb info and exit.
+.TP
+.B \-\-usage\-win=bool
+show the help screen while running.
 .TP
 .B \-v, \-\-vbr=bool
 Generate variable bitrate files, only on encoders which support
