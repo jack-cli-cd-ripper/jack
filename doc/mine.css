@@ -1,0 +1,96 @@
+BODY {
+	background: #072387;
+        background-repeat: repeat-y;
+	margin-left: 0;
+	margin-top: 0
+}
+BODY, P, DL, UL {
+	color: #d0d840
+	font-style: normal;
+	font-weight: normal;
+	font-variant: normal;
+	font-size: normal;
+	line-height: normal;
+	font-family: Helvetica, Arial, Verdana, sans-serif
+}
+IMG {
+	border: 0
+}
+P.info {
+	color: #666666;
+	font-style: normal;
+	font-weight: normal;
+	font-variant: normal;
+	font-size: normal;
+	line-height: normal;
+	font-family: Helvetica, Arial, Verdana, sans-serif
+}
+#header {
+	font-style: normal;
+	font-weight: normal;
+	font-variant: normal;
+	font-size: small;
+	font-family: Helvetica, Arial, Verdana, sans-serif;
+	text-align: right
+}
+#footer {
+	font-style: normal;
+	font-weight: normal;
+	font-variant: normal;
+	font-size: small;
+	font-family: Helvetica, Arial, Verdana, sans-serif;
+	text-align: right
+}
+#menu {
+	color: #FFFFFF;
+	font-style: normal;
+	font-weight: bold;
+	font-variant: normal;
+	font-size: 12pt;
+	font-family: Helvetica, Arial, Verdana, sans-serif;
+	text-align: left
+}
+H1 {
+	color: #d0d840
+	font-style: normal;
+	font-weight: bold;
+	font-variant: normal;
+	font-size: large;
+	font-family: Helvetica, Arial, Verdana, sans-serif
+}
+H2 {
+	color: #d0d840
+	font-style: normal;
+	font-weight: normal;
+	font-variant: normal;
+	font-size: large;
+	font-family: Helvetica, Arial, Verdana, sans-serif
+}
+H3 {
+	color: #d0d840
+	font-style: normal;
+	font-weight: bold;
+	font-variant: normal;
+	font-size: medium;
+	font-family: Helvetica, Arial, Verdana, sans-serif
+}
+H4 {
+	color: #d0d840
+	font-style: normal;
+	font-weight: normal;
+	font-variant: normal;
+	font-size: medium;
+	font-family: Helvetica, Arial, Verdana, sans-serif
+}
+A:link {
+	#text-decoration: none;
+	color: #f0a840
+}
+A:active {
+	#text-decoration: none;
+	color: #006699
+}
+A:visited {
+	#text-decoration: none;
+	color: #a06820
+}

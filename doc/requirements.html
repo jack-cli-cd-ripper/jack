@@ -1,0 +1,72 @@
+<!--#include virtual="/include/head.html" -->
+<HEAD>
+<TITLE>Jack's system requirements</TITLE>
+<LINK REV=MADE href=mailto:arne@unix-ag.org>
+</HEAD>
+<BODY BGCOLOR=#072387 TEXT=#d0d840 LINK=#f0a840 VLINK=a06820>
+<CENTER>
+    <A href=index.html><IMG src="main.gif" height=32></A>
+    <A href=download.html><IMG src="download.gif" height=32></A>
+    <A href=screen.html><IMG src="screen.gif" height=32></A>
+    <A href=requirements.html><IMG src="requirements.gif" height=32></A>
+    <A href=install.html><IMG src="install.gif" height=32></A>
+    <A href=usage.html><IMG src="usage.gif" height=32></A>
+    <A href=links.html><IMG src="links.gif" height=32></A>
+</CENTER>
+
+<TABLE width=100%><TR><TD valign=bottom>
+<H3><U>System requirements for Jack</U></H3>
+<TD valign=bottom>
+<IMG SRC="jack-logo.jpg" align=right alt="Jack" height=50 width=101></TR>
+</TABLE>
+
+Jack has been developed using Linux, but I think it should work with other unices, too, as long as it resembles posix (has ptys, ...). If it doesn't work, tell me!
+<P>
+In order to run Jack, you <B>must</B> have the following installed:
+<UL>
+<LI>python 1.5.2: with earlier versions freedb query and ripping-from-image
+will not work. You also need the following modules (they are all part of the
+python source distribution but some may not be installed by default, since
+Version 2 Jack no longer needs threads; it's now a lot easier to get is to
+work.):
+ <UL><LI><B>termios</B>
+     <LI>sndhdr
+     <LI>urllib
+     <LI>pty
+     <LI>wav
+ </UL>
+ If it doesn't run, check these first!
+<LI>Ben Gertzfield's <A href=http://csl.cse.ucsc.edu/~ben/python/>ID3 module</A> WARNING: version 0.5 is buggy, use at least 0.6. No need to download it, I packaged it with jack.
+<LI><A href=http://www.xiph.org/paranoia/>cdparanoia</A> or <A href=http://dorifer.heim3.tu-clausthal.de/~olli/tosha/>tosha</A> for audio extraction
+<LI>df (comes with any unix)
+</UL>
+You will also have to install at least one of these MP3 encoders:
+<UL>
+<LI><A href=http://home8.swipnet.se/~w-82625/encoder/>bladeenc</A>
+<LI><A href=http://www.sulaco.org/mp3/>lame</A>
+<LI>mp3enc
+<LI>l3enc
+</UL>
+
+Optional:
+<UL>
+<LI>a patched <A href=cursesmodule-with-resizeterm-1.5b2.tar.gz>cursesmodule</A>,
+if you want to use the new curses pseudographical mode
+<LI><A href=http://www.cs.vu.nl/~bernsti/xtermset/>xtermset</A>
+<LI><A href=http://www.ping.de/sites/daneb/cdrdao.html>cdrdao</A>
+</UL>
+Wanna go <A href=index.html>home</A>?
+
+<HR>
+<HRULE>
+<A NAME="BOTTOM"></A>
+<ADDRESS><SMALL>
+"All trademarks are owned by their owners" or whatever I have to state.</BR>
+&#169; Arne Zellentin,
+<A HREF="mailto:arne@unix-ag.org">arne@unix-ag.org</A>
+</SMALL></ADDRESS>
+<SMALL>(changed: 19-Aug-99)</SMALL>
+</body>
+</html>
+
+

@@ -1,0 +1,111 @@
+##### This is jack 2.2.0 ...
+ ### changes from version 2.1.1 (internal) include:
+  # added curses frontend
+  # added support for variable bitrate MP3s (currently only for lame)
+  # bugfix: cddb query disc length was 2 seconds too short (thanks to
+            Martin Suess for the hint). I still don't understand where and
+            why I need the MSF OFFSET of 150 blocks, can anyone explain?
+  # bugfix: freedb files with more than one line of ids confused jack,
+            thanks to "casret" for the patch
+ ### changes from version 2.1.0 include:
+  # moved the toc_proc variable a bit lower in the .jackrc 'coz it's confusing
+  # change: in the jack.progress file, track numbers are now %02i
+  # bugfix: sometimes the :-) was not updated in case of an error, now it is
+  # bugfix: pause works now...
+  # bugfix: update interval no longer effects speed on non-Linux (i hope!)
+ ### changes from version 2.0.1 include:
+  # bugfix: the NameError: cd_device bug is gone (I never saw this as I
+            didn't change _my_ .jackrc... sorry)
+  # bugfix: same for "... maybe ... is not installed"
+  # added on-the-fly operation for cdparanoia, lame, mp3enc
+  # added 40 second pause before displaying global ETA so it can stabilize
+  # added option to execute user-defined commands - when done without errors
+                                                  - when done with    errors
+                                                  - when ripping is finished
+  # added version check for .jackrc
+  # change: "Various" in freedb data is now treated like "Various Artists"
+  # added check for bogous DAE run without reported error (by checking filesize)
+  # bugfix: ZeroDivisionError when a lonely encoder was killed
+  # added better source code formatting :)
+ ### changes from version 2.0.0 include:
+  # bugfix: jack tried to chdir into newly created dirs twice
+  # bugfix: subdirs were created in the wrong sequence
+ ### changes from version 1.3.5 include:
+  # MANY changes and improvements, let's see if i can remember all:
+  # removed all thread and Queue stuff, much less trouble now
+  # removed resource control (ulimit), jack now quits gracefully
+  # added run-time commands, run jack -h to see details
+  # added directory creation and naming
+  # added directory auto-search magic, if jack doesn't find a toc-file,
+          it scans sub-directories (where and how deep is configurable) for
+          a matching toc-file and continues work
+  # added base_dir option, controls where new dirs are created. If you set
+          your prefs the right way, you only have to change CDs and type
+          "jack" from time to time.
+  # added no-various option to prevent "Various Artists" auto-detection
+  # added option to re-create progress file
+  # added update_interval, status is now updated regularily and no longer
+          in reaction to sub-process output
+  # added total ETA (only for encoders)
+  # changed jack so that it should (finally!) run on FreeBSD and most
+            other unices
+  # performance enhancements, jack only wastes < 0.1 % of _my_ CPU time
+ ### changes from version 1.3.4 include:
+  # added support for tosha(gettoc&DAE) PLEASE help me get jack to work on
+          FreeBSD. Something's wrong with threading I fear.
+  # bugfix: jack reported "WAV lost" when the wav was removed on purpose
+  # bugfix: jack encoded WAVs when resuming even if only_dae was set
+ ### changes from version 1.3.3 include:
+  # bugfix: jack reported "wrong disc" in error
+  # change: track 1 pregap is now stored in "SILENCE" in tocfile. Re-generate
+            your jack.toc files!
+ ### changes from version 1.3.2b include:
+  # better version of cdrdao_gettoc
+  # added resource module auto-detection
+  # added cheesy pause function: touch or rm "jack.pause".
+  # added disc recheck before each DAE is started
+  # added --todo: print what is to be done and exit
+  # bugfix: MP3s are now also checked for not being too large
+  # bugfix: MP3s bitrate is now remembered, too
+  # change: --force now disables check for correct CD inserted
+  # change: --force now disables check for previous encoder run (like when
+            manually encoding)
+  # added support for MP3s not starting at file's start (like RIFFs) (guess_toc)
+  # bugfix: freedb file: DISCID can now be comma-sep. list
+ ### changes from version 1.3.2a include:
+  # rewrote freedb_names
+  # removed sanity_check_freedb_file, freedb_names does the job now
+  # tried to make error messages uniform
+ ### changes from version 1.3.2 include:
+  # added rename_fmt option to .jackrc (use this to change renaming layout)
+  # added rename_underscore option to .jackrc (use this to change " " to "_")
+ ### changes from version 1.3.1 include:
+  # added dae_prog option to .jackrc
+  # added cd_device option to .jackrc (point it to your CD-ROM device)
+ ### changes from version 1.3 include:
+  # announced on freshmeat (famous last words...)
+  # now using Ben Gertzfield's ID3 module for id3tag info setting
+  # added guess mode
+  # added sysload reaction
+  # added (buggy) free space rechecking
+  # added dont-work switch
+ ### changes from version 1.2 include:
+  # public release under GPL
+  # added encoder support: lame, l3enc, mp3enc
+  # rewrote todo detection
+  # added only_dae flag
+  # added dialog which asks before deleting anything
+  # bugfixes
+ ### changes from version 1.1 include:
+  # added stupid function to "rip" from image
+  # added cool function to "rip" from cdrdao toc-file
+  # added toc-file writing
+  # added freedb lookup + renaming + id3tag setting
+  # handles multiple/nonexact freedb matches
+  # added freedb submissions
+  # added xtermset support
+ ### changes from version 1.0 include:
+  # stupid semaphore initialization bug fixed
+  # free space check is no longer braindead
+  # we don't try to remove() nonexistent files anymore
+

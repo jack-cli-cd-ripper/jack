@@ -1,0 +1,62 @@
+<!--#include virtual="/include/head.html" -->
+<HEAD>
+<TITLE>Jack's status screen</TITLE>
+<LINK REV=MADE href=mailto:arne@unix-ag.org>
+</HEAD>
+<BODY BGCOLOR=#072387 TEXT=#d0d840 LINK=#f0a840 VLINK=a06820>
+<CENTER>
+    <A href=index.html><IMG src="main.gif" height=32></A>
+    <A href=download.html><IMG src="download.gif" height=32></A>
+    <A href=screen.html><IMG src="screen.gif" height=32></A>
+    <A href=requirements.html><IMG src="requirements.gif" height=32></A>
+    <A href=install.html><IMG src="install.gif" height=32></A>
+    <A href=usage.html><IMG src="usage.gif" height=32></A>
+    <A href=links.html><IMG src="links.gif" height=32></A>
+</CENTER>
+
+<TABLE width=100%><TR><TD valign=bottom>
+<H3><U>A screenshot of Jack working (with comments)</U></H3>
+<TD valign=bottom>
+<IMG SRC="jack-logo.jpg" align=right alt="Jack" height=50 width=101></TR>
+</TABLE>
+
+<BR><BR>
+<CENTER><IMG src=jack-screen.gif alt="screenshot with comments"></CENTER>
+<BR><BR>
+
+(This shows the old 1.3.x version of Jack, 2.x.x look a bit different but nothing major)
+<P>
+Note that the xterm is automatically resized to fit all the tracks of the CD if you have xtermset installed (and enabled).
+<P>
+Jack is a console tool, somewhat in the great tradition of command-line oriented software. When using XTerm and xtermset the xterm's size is automagically changed to match the number of tracks.
+
+This is the meaning of the marked elements:
+<UL>
+<LI>1: the options line: list general options like MP3 bitrate, the WAV read-ahead,...
+<LI>2: the DAE speed: how much faster than real-time the audio data has been extracted
+<LI>3: the DAE status: actually, this is the output of cdparanoia, check cdparanoia -h for details on the used characters, e.g. a "+" means "Unreported loss of streaming/other error in read".
+<LI>4: the encoder status: while encoding, the percentage along with the ETA is displayed, afterwards the speed-factor is given, how much faster (or, like in the exaple, slower) than real-time the encoding was
+<LI>5: DAE in progress: the greater-sign indicates how far the extraction of this track has come, again, this is cdparanoia output.
+<LI>6: the status line: how much disc-space is left, how many WAVs are waiting to be encoded, how many subprocesses are idle, and, finally, the error status.
+</UL>
+
+<H3>Update</H3>
+I made another screenshot of the more current version 2.2.0, using curses.
+You will be able to understand it if you read above descriptions.
+
+<BR><BR>
+<CENTER><IMG src=jack-curses-screen.gif alt="screenshot using curses"></CENTER>
+<BR><BR>
+
+Wanna go <A href=index.html>home</A>?
+
+<HR>
+<HRULE>
+<A NAME="BOTTOM"></A>
+<ADDRESS><SMALL>
+&#169; Arne Zellentin,
+<A HREF="mailto:arne@unix-ag.org">arne@unix-ag.org</A>
+</SMALL></ADDRESS>
+<SMALL>(changed: 19-Aug-99)</SMALL>
+</body>
+</html>

@@ -1,0 +1,66 @@
+<!--#include virtual="/include/head.html" -->
+<HEAD>
+<TITLE>FAQ for Jack</TITLE>
+<LINK REV=MADE href=mailto:arne@unix-ag.org>
+</HEAD>
+<BODY BGCOLOR=#072387 TEXT=#d0d840 LINK=#f0a840 VLINK=a06820>
+<CENTER>
+    <A href=index.html><IMG src="main.gif" height=32></A>
+    <A href=download.html><IMG src="download.gif" height=32></A>
+    <A href=screen.html><IMG src="screen.gif" height=32></A>
+    <A href=requirements.html><IMG src="requirements.gif" height=32></A>
+    <A href=install.html><IMG src="install.gif" height=32></A>
+    <A href=usage.html><IMG src="usage.gif" height=32></A>
+    <A href=links.html><IMG src="links.gif" height=32></A>
+</CENTER>
+
+<TABLE width=100%><TR><TD valign=bottom>
+<H3><U>Frequently Asked Questions</U></H3>
+<TD valign=bottom>
+<IMG SRC="jack-logo.jpg" align=right alt="Jack" height=50 width=101></TR>
+</TABLE>
+
+<UL>
+<LI>    <B>Q:</B>  I'm compiling python 1.5.2 from source. What modules/options do I
+    need to use?
+<P>
+<B>A:</B>  Use the '--with-threads' flag to configure, and make sure you include
+    the termios module (which is disabled by default) by uncommenting
+    the line:<BR><TT>
+
+    #termios termios.c       # Steen Lumholt's termios module
+</TT><BR>
+    in Modules/Setup. Jack 2.x doesn't need the threads any more, but they
+are still good to have. Only leave them out if they cause trouble. In general, I recommend activating as many modules as possible so you don't have to
+recompile every time a newly installed programm need another non-default module.
+<SMALL>(from Jason Lunz)</SMALL>
+<P>
+<LI><B>Q:</B> I can't / don't want to install python-1.5.2. Isn't there a
+             way to have jack work with an older version of python?
+<P>
+    <B>A:</B> There are bugs in the python-1.5.1 modules that prevent jack
+             from working flawlessly. From memory, the urllib contained a bug
+             which prevented freedb queries from working from behind a proxy.
+             The wave module did something stupid, too (it is needed for
+             ripping from an image.) If you need neither, try it out and tell
+             me what works. Otherwise you may try to replace these modules
+             by the ones from the python-1.5.2 version. Again, please tell me
+             your experiences.
+<P>
+<LI><B>Q:</B> Jack is encoding with a different bitrate than specified in .jackrc. Why?
+<P>
+<B>A:</B>    The bitrate is cached in jack.progress. So if you encode track n with bitrate x1, delete the MP3 and call jack without specifying a bitrate, bitrate x1 is used, regardless what the default in your .jackrc is. Specify the wanted bitrate with -b.
+<P>
+</UL>
+Wanna go <A href=index.html>home</A>?
+
+<HR>
+<HRULE>
+<A NAME="BOTTOM"></A>
+<ADDRESS><SMALL>
+&#169; Arne Zellentin,
+<A HREF="mailto:arne@unix-ag.org">arne@unix-ag.org</A>
+</SMALL></ADDRESS>
+<SMALL>(changed: 19-Jul-99)</SMALL>
+</body>
+</html>

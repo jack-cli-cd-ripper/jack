@@ -1,0 +1,177 @@
+<!--#include virtual="/include/head.html" -->
+<HEAD>
+<TITLE>Homepage of Jack</TITLE>
+<LINK REV=MADE href=mailto:arne@unix-ag.org>
+<LINK REL=STYLESHEET HREF="mine.css">
+</HEAD>
+<BODY BGCOLOR=#072387 TEXT=#d0d840 LINK=#f0a840 VLINK=#a06820>
+<CENTER>
+    <A href=index.html><IMG src="main.gif" height=32></A>
+    <A href=download.html><IMG src="download.gif" height=32></A>
+    <A href=screen.html><IMG src="screen.gif" height=32></A>
+    <A href=requirements.html><IMG src="requirements.gif" height=32></A>
+    <A href=install.html><IMG src="install.gif" height=32></A>
+    <A href=usage.html><IMG src="usage.gif" height=32></A>
+    <A href=links.html><IMG src="links.gif" height=32></A>
+</CENTER>
+<HR>
+<CENTER><IMG SRC="jack-logo.jpg" height=172 width=347 alt="Jack Logo"></CENTER>
+<H3>"Why would anyone need <I>another</I> CD ripper / MP3 encoder frontend?"</H3>
+If you just need everything that is new, download it <A href="download.html">here</A>. Be sure to read the <A href=requirements.html>system requirements</A>. It's quite likely that you do not have the correct python version.
+<P>
+<B>News:</B>
+<TABLE cellpadding=3>
+<TR><TD valign=top>10-Jan-2000
+    <TD>New Version (2.99.0-pre) "ain't it dead yet". I'm about to do some major
+    restructuring on jack, i.e. breaking it up into modules, so the
+    installation has changes slightly. Read INSTALL. Cdparanoia 9.7 is now
+    supported, so is xingmp3enc (the latter being untested). You can now use
+    a local freedb dir. Yes, all bugs fixed, especially those concerning
+    the image-reader. TOC file reading has been completely rewritten, it
+    is now 100% bug-free (as if). Please, everybody try this version and
+    gimme some feedback.
+<TR><TD valign=top>05-Nov-1999
+    <TD>New Version (2.2.5-pre). Still no documentation updates. Fixes
+	2.2.4's renaming bug. Doh.
+<TR><TD valign=top>04-Nov-1999
+    <TD>New Version (2.2.4-pre). No documentation updates (again). Two bugs
+	fixed, one newly introduced. "desperate" mode for those who can't get curses mode to work.
+	Jack now has 3333 lines of code.
+<TR><TD valign=top>04-Nov-1999
+    <TD>New Version (2.2.3-pre). No documentation updates (again). Reintroduced
+	free space checking by calling df for all those (RedHat?) users who
+	had an error with statvfs. Whoever built those rpms should be punished.
+	rename_underscore has been replaced by something more flexible, now you
+	can replace characters by multiple characters (like "&auml;" to "ae"),
+	kill characters from the filename to be used and, of course, replace
+	those spaces by underlines.
+	New DAE tools: cdda2wav (finally!) and dagrab (untested as it doesn't
+	like my Plextor). All bug fixed, of course.
+<TR><TD valign=top>22-Oct-1999
+    <TD>New Version (2.2.2-pre). If you get an error like
+        "AttributeError: TIOCWINSZ", try this version. It is shipped
+        with 2.2.0 documentation as I didn't have time to update it yet.
+        Changes: all bugs fixed :), new features. Wait for the final version
+        for details.
+<TR><TD valign=top>19-Aug-1999
+    <TD>New Version (2.2.0). New curses mode, looks much better, scroll
+        through the status screen if it doesn't fit in your terminal.
+        I recommend not to use XTermset any longer as it is no longer needed.
+        The usual bugfixes are there, too, check the
+        <A href="CHANGELOG">changelog</A>.
+<TR><TD valign=top>18-Aug-1999
+    <TD>I really want to add support for the Xing encoder. Does anyone want to pay the registration fee for me? It's only $19 I think.
+<TR><TD valign=top>09-Aug-1999
+    <TD>New Version (2.1.0), all bugs fixed (of course!), new features like
+        on-the-fly operation.
+<TR><TD valign=top>19-Jul-1999
+    <TD>Big OOPS. Version 2.0.0 contained (at least) two "brown paper bag" bugs:
+        first, jack tried to chdir into newly created dirs twice (one time too
+        much), this gets you the "could not create or change to..." error.
+        Second, the dirs were created in the wrong sequence, so instead
+        of "artist/album" you get "album/artist". Upgrade to 2.0.1, get it
+        from the <A href="download.html">download page</A>.
+<TR><TD valign=top>16-Jul-1999
+    <TD>None of the beta testers complained, so I released version 2.0.0.
+        Much has changed, most notably I restructured the beast a bit so that
+        Jack no longer needs threads. It's now much easier to get it to work.
+        Jack should (finally!) run on FreeBSD and most other unices.
+        Jack can now create (and name according to freedb data) directories.
+<TR><TD valign=top>01-Jul-1999
+    <TD>Released version 1.3.5. Support for tosha(gettoc&DAE) has been added,
+        a few non-critical bugs have been fixed.
+<TR><TD valign=top>29-Jun-1999
+    <TD>Released version 1.3.4. Version 1.3.3 contained a bug where it could
+        wrongly claim that you inserted the wrong CD if track 01 doesn't start
+        at block 0. The TOC file format changed, too, so better have them
+        re-generated.
+</TR>
+<TR><TD valign=top>27-Jun-1999
+    <TD>Released version 1.3.3. see the <A href="CHANGELOG">changelog</A> for details
+</TR>
+<TR><TD>
+    <TD>rearranged the pages a bit. I know the layout still sux, if <B>you</B> have time to waste, let me know.
+</TR>
+</TABLE>
+<H3>What's it all about?</H3>
+Jack has been developed with one main goal: making MP3s<I> without having to
+worry</I>. There is nearly no way that an incomplete rip goes unnotices, e.g. jack
+compares WAV and MP3 filesizes when continuing from a previous run. Jack also
+checks your HD space before doing anything (even keeps some MB free).
+<P>
+You can take a <A href=screen.html>look</A> at jack working, there are even some explanations.
+<P>
+Jack is different from other such tools in a number of ways:
+<UL>
+<LI>it is written in <A href=http://www.python.org>python</A>
+
+<LI>it is <I>very</I> configurable, maybe too much :)
+
+<LI>it doesn't need X (but is better with it)
+
+<LI>it can "rip" virtual CD images like the ones created by <A
+href=http://www.ping.de/sites/daneb/cdrdao.html>cdrdao</A>
+
+<LI>when using cdparanoia, cdparanoia's status information is displayed for all
+tracks, so you can see if something went wrong (I consider this very important
+- no one wants uncorrected errors or skips to go into one's MP3s. 'Tis the main
+  reason why I don't use something beautiful like <A
+href=http://www.ling.ed.ac.uk/~oliphant/grip/>grip</A>)
+
+<LI>it allows for overlapping ripping / encoding: when the first track has been
+ripped, it's encoder is started as well as the second track's ripping process,
+this "read-ahead" is of course configurable, you can have it read the whole CD
+and start with the next one as the first one is beeing encoded
+
+<LI>in on-the-fly mode, no WAVs have to be created, less space is wasted. I only recommend this if your encoder is nearly as fast as your ripper.
+
+<LI>it uses sophisticated disk space management, i.e. it schedules it's ripping
+/ encoding processes depending on available space. Jack tells you if the batch
+will not fit on your HD. If you want, you can have it choose the optimal
+sequence of tracks - great if you're low on HD space
+
+<LI>freedb query, file renaming and id3 tagging - I know that this alone is not
+special, but jack tries hard to recognize artist and title when working on a
+"Various Artists"-CD, so that the ID3 tag can be set correctly.
+
+<LI>it can resume work after it has been interrupted. If all tracks have been
+ripped, it doesn't even need the CD anymore, even if you want to do a freedb
+query. In practice, this means that you can change the CD and start another
+instance of jack.
+
+<LI>it can do a freedb query based on MP3s alone, like if you don't remember
+from which CD those MP3s came from.
+
+</UL>
+
+Of course, all other "obvious" features are included, too:
+<UL>
+<LI>being <A href=gpl.txt>GPL</A>'ed
+
+<LI>different rippers and encoders are supported
+
+<LI>freedb submissions
+
+<LI>proxy support via http_proxy environment variable (e.g. export http_proxy=http://cache.sld.tld:3128/)
+
+</UL>
+
+You may want to read more on <A href=install.html>intallation</A> and <A href=usage.html>usage</A>.
+<BR>Because it is not just "point-and-click" I put up some <A href=examples.html>examples</A>.
+<BR>Perhaps you want to know what Jack has <A href=TODO>todo</A>.
+<BR>For your amusement, read the <A href=faq.html>FAQ</A>!
+<P>
+Please send feedback to the address below. Yes I wanna hear about all the typos I've made.
+<P>
+<IMG src="anim.written.in.vi.gif" align=right>
+<HR>
+<A NAME="BOTTOM"></A>
+<ADDRESS><SMALL>
+"All trademarks are owned by their owners" or whatever I have to state.<BR>
+&#169; Arne Zellentin,
+<A HREF="mailto:arne@unix-ag.org">arne@unix-ag.org</A>
+</SMALL></ADDRESS>
+<SMALL>(changed: 10-Jan-2000)</SMALL>
+
+</body>
+</html>

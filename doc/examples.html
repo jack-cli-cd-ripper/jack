@@ -1,0 +1,92 @@
+<!--#include virtual="/include/head.html" -->
+<HEAD>
+<TITLE>Jack application examples</TITLE>
+<LINK REV=MADE href=mailto:arne@unix-ag.org>
+</HEAD>
+<BODY BGCOLOR=#072387 TEXT=#d0d840 LINK=#f0a840 VLINK=a06820>
+<CENTER>
+    <A href=index.html><IMG src="main.gif" height=32></A>
+    <A href=download.html><IMG src="download.gif" height=32></A>
+    <A href=screen.html><IMG src="screen.gif" height=32></A>
+    <A href=requirements.html><IMG src="requirements.gif" height=32></A>
+    <A href=install.html><IMG src="install.gif" height=32></A>
+    <A href=usage.html><IMG src="usage.gif" height=32></A>
+    <A href=links.html><IMG src="links.gif" height=32></A>
+</CENTER>
+
+<TABLE width=100%><TR><TD valign=bottom>
+<H3><U>Application examples</U></H3>
+<TD valign=bottom>
+<IMG SRC="jack-logo.jpg" align=right alt="Jack" height=50 width=101></TR>
+</TABLE>
+
+<UL>
+<LI>Insert a CD, fire up jack:<PRE>
+$ jack
+</PRE>
+Now watch it work. It's fun for a while. After having finished, you have
+the follwing files on your HD: track_01.mp3, track_02.mp3, ..., track_nn.mp3
+<I> plus </I>jack.toc, jack.freedb, jack.progress. The last three are used to
+store the state jack is in so it can resume work when interrupted.
+<LI>Jack will create a directory called jack-xxxxxxxx for you, there it
+stores all the file for the CD whose id is xxxxxxxx. After a freedb query this
+directory is renamed to something human readable, like "Artist - Title".
+<LI>When jack is interrupted, call it again using the same commandline as before to resume work, in this case:
+<PRE>$ jack</PRE>
+<LI>The WAV files have been deleted. If you want jack to keep them, try
+<PRE>$ jack -k</PRE>
+<LI>Now let's try a freedb query:
+<PRE>$ jack -q</PRE>
+when succesful the files are now renamed to something more readable and have been ID3 tagged accordingly. jack.freedb contains the queried freedb entry, the original file has been backed up to jack.freedb.bak.
+<LI>The query failed? Ok, contribute! edit the freedb template:
+<PRE>$ vi jack.freedb</PRE>
+Note: the DTITLE should be set to
+<PRE>Artist / Name Of Album</PRE>
+or
+<PRE>Various Artist / Name Of Compilation</PRE>
+when adding a compilation, use
+<PRE>Artist - Title Of Track</PRE>
+for the track titles. Do not delete any lines from the template. Do not change the numbers. Yes the TTITLEs start at 0 and end one track too early. Read the freedb documentation.
+<LI>now activate the entries:
+<PRE>$ jack -R</PRE>
+now the files have been renamed and tagged. Check the names two or three times.
+Typo made? No problem, you can alway undo the file renaming with
+<PRE> $ jack -u</PRE>
+Note that the ID3 tags are not undone. Fix the freedb file and again, use
+<PRE>$ jack -R</PRE>
+to activate your changes.
+When you are sure the freedb file is suitable for submission, submit it (via
+eMail as freedb does not support http submissions as of now. Sendmail must be
+working on your machine!):
+<PRE>$ jack -m</PRE>
+</UL>
+Those were the basics. Now some more advanced examples:
+<UL>
+<LI>All in one: query, rip, encode, cleanup:
+<PRE>$ jack -Q --remove</PRE>
+<LI>query any time while working:
+<PRE>$ jack</PRE>
+and, from another shell:
+<PRE>$ jack -d -Q</PRE>
+<LI>query for unknown MP3s:
+<PRE>$ jack -q -g track_*.mp3</PRE>
+<LI>rip from image, first, create the image:
+<PRE>$ cdrdao read-cd --datafile data.cdr data.toc</PRE>
+then make MP3s from the image:
+<PRE>$ jack -f data.toc</PRE>
+</UL>
+more to follow.
+<P>
+Wanna go <A href=index.html>home</A>?
+
+<HR>
+<HRULE>
+<A NAME="BOTTOM"></A>
+<ADDRESS><SMALL>
+"All trademarks are owned by their owners" or whatever I have to state.<BR>
+&#169; Arne Zellentin,
+<A HREF="mailto:arne@unix-ag.org">arne@unix-ag.org</A>
+</SMALL></ADDRESS>
+<SMALL>(changed: 19-Aug-99)</SMALL>
+</body>
+</html>

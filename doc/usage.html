@@ -1,0 +1,329 @@
+<!--#include virtual="/include/head.html" -->
+<HEAD>
+<TITLE>Jack Usage</TITLE>
+<LINK REV=MADE href=mailto:arne@unix-ag.org>
+</HEAD>
+<BODY BGCOLOR=#072387 TEXT=#d0d840 LINK=#f0a840 VLINK=a06820>
+<CENTER>
+    <A href=index.html><IMG src="main.gif" height=32></A>
+    <A href=download.html><IMG src="download.gif" height=32></A>
+    <A href=screen.html><IMG src="screen.gif" height=32></A>
+    <A href=requirements.html><IMG src="requirements.gif" height=32></A>
+    <A href=install.html><IMG src="install.gif" height=32></A>
+    <A href=usage.html><IMG src="usage.gif" height=32></A>
+    <A href=links.html><IMG src="links.gif" height=32></A>
+</CENTER>
+
+<TABLE width=100%><TR><TD valign=bottom>
+<H3><U>Usage information for Jack</U></H3>
+<TD valign=bottom>
+<IMG SRC="jack-logo.jpg" align=right alt="Jack" height=50 width=101></TR>
+</TABLE>
+
+Jack is mostly command line-driven, but there are some options which can only
+be set by editing the preferences file, typically named $HOME/.jackrc. This
+file is python code executed at startup so be careful. Invoke Jack with -h for
+a short description of the command line options.
+<P>
+If you get bored reading documentation, check out the <A href=examples.html>application examples</A>!
+
+<P>
+<H4>Important things to configure in this file:</H4>
+<TABLE border cellpadding=3>
+<TR><TD>rename_fmt
+<TD>with this variable you can determine how jack will rename your MP3s after a
+freedb query. Use "%02i" for track number, "%a" for artist, "%l" for album name
+and "%t" for track title. Example: "%02i.%a (%l) - %t" which would result in
+"01.Artist (Album) - Track title.mp3"
+</TR>
+
+<TR><TD>rename_fmt_va
+<TD>same as above for "various artists" CDs. For normal CDs I use "%02i.%t.mp3" while I use ""%02i.%a - %t" for VA CDs.
+</TR>
+
+<TR><TD>dir_template
+<TD>if rename_dir is set, use this format for naming directories. Again, %a is substituted by the artist, %l is the album's name. I use "%a - %l" but "%a/%l"
+is also common, every artist then has his own subdir.
+</TR>
+
+<TR><TD>my_mail<TD>be sure to set your e-mail address if you are planning to submit
+<A href=http://www.freedb.org>freedb</A> entries. Otherwise you won't get
+feedback.
+</TR>
+<TR><TD>xtermset_enable
+<TD>I no longer use this since there is now a curses mode. Only set this if you have <A
+href=http://www.cs.vu.nl/~bernsti/xtermset/>xtermset</A> installed.
+When enabled, Jack can - when running in an xterm - adjust the
+size so all track information is visible. In addition, the xterm is deiconified
+when all is done.
+</TR>
+</TABLE>
+<P>
+
+Everything else is controlled by the command line, try jack --help for a quick summary. You can still change the defaults by editing your .jackrc!
+
+<H4>Command line options:</H4>
+<TABLE table border cellpadding=3>
+<TR><TD>-t, --tracks &lt;tracks&gt;
+<TD>limit ripping and encoding to the specified
+tracks, use comma to seperate track. Ranges are also possible; 5-9 is
+equivalent to 5,6,7,8,9; 12- is like specifying track 12,...,last_track. The
+default is to process the whole CD, I do not know why you would want an
+incomplete rip, but be my guest.
+</TR>
+
+<TR><TD>-b, --bitrate &lt;bitrate&gt;
+<TD>bitrate of the resulting MP3 in kbit/s, default is 160.
+</TR>
+
+<TR><TD>-v, --vbr
+<TD>Generate variable bitrate MP3s, only on encoders which support this. Default is no.
+</TR>
+
+<TR><TD>-e, --encoders &lt;num_encoders&gt;
+<TD>encode how many MP3s in parallel. If
+you have a SMP machine or simply want to stress your system, you can have Jack
+encode several MP3s at once. Default is the number of CPUs I have, which is
+one.
+</TR>
+
+<TR><TD>--otf
+<TD>On-the-fly operation. Only on some encoders/rippers. Do not create WAVs, pipe ripper output through the encoder. Default is no as it's a torture for the CDROM drive (IMHO).
+</TR>
+
+<TR><TD>-E, --encoder-name &lt;encoder_name&gt;
+<TD>choose which MP3 encoder to use,
+valid choices are: blade, lame, l3enc, mp3enc. Note that you may have to install
+the encoder.
+</TR>
+
+<TR><TD>-n, --nice &lt;nice_lvl&gt;
+<TD>nice-level with which the encoders are
+started. Default is 12 which shouldn't hurt your system much.
+</TR>
+
+<TR><TD>-l, --max-load &lt;max_load&gt;
+<TD>only start new encoders if your system's load is below (max_load + num_encoders). If the load is too high, encoding operation is suspended until above criterium is satisfied.
+</TR>
+
+<TR><TD>-a, --read-ahead &lt;read_ahead&gt;
+<TD>read how many WAVs in advance. At most read_ahead +
+num_encoders WAVs are ripped before a track has completely been encoded. Default is 99 which will
+read the whole CD, provided there is enough disk space.
+</TR>
+
+<TR><TD>-r, --reorder
+<TD>optimize track-order for disk space. This can save you some
+peak disk space during the encoding process; this may make it possible to do a
+CD which would otherwise fail to be encoded.
+</TR>
+
+<TR><TD>-s, --space &lt;free_space&gt;
+<TD>forcably set usable diskspace, in bytes. This option lets you
+limit the disk space Jack uses, maybe you need it for something else? Be
+careful: if set too high, ripping and encoding will probably fail. The default
+is to look how much is free and to use this value.
+</TR>
+
+<TR><TD>-o, --overwrite
+<TD>overwrite existing WAVs and MP3s, i.e. do not check if
+already ripped WAVs or an already encoded MP3s seem to be ok. Use this if you
+<I>know</I> something went wrong last time. This is off by default.
+</TR>
+
+<TR><TD>-O, --only-dae
+<TD>only produce WAVs, implies --keep-wavs. This is off by default.
+</TR>
+
+<TR><TD>-k, --keep-wavs
+<TD>do not delete WAVs after encoding them. Maybe you still
+need them.
+</TR>
+
+<TR><TD>-f, --from-tocfile &lt;toc_file&gt;
+<TD>rip from CD image on hd. This option is a
+somewhat special option. There are two reasons for it's existance:
+<UL>
+<LI>When I copy a CD for my car stereo, most of the time I also want to
+have it as MP3s. To copy a CD, I use the exellent tool <A href=http://www.ping.de/sites/daneb/cdrdao.html>cdrdao</A>. This works best
+when having the whole CD in a single WAV file, which I call the image. It also
+needs a so-called toc-file containing the track, pregap, index, CD-TEXT, ...
+information. If I use this image as the source, I do not have to rip the CD a
+second time. My cdrom probably likes that.
+
+<LI>same cdrdao has a great way of doing a bit-wise exact copy of the CD using
+special Plextor-commands. This is superiour to cdparanoia as "bad" samples can
+be detected and - hopefully - repaired.
+</UL>
+The specified toc-file contains the name of the image file.
+</TR>
+
+<TR><TD>-F, --from-image &lt;image_file&gt;
+<TD>read audio data from image file. Like --from-tocfile, but
+the image itself is specified instead of the tocfile. Use this if you do not
+have a toc-file; the TOC is the read from the CD itself.
+</TR>
+
+<TR><TD>-S, --swab
+<TD>swap byteorder from image file. As cdrdao momentarily only
+outputs "raw" .cdr files, you quite likely want to swap the byteorder. Try this
+option if your WAVs and MP3s contain only noise (no, not the noise I call
+music, the pseudo-random one). This is on by default as cdrdao currently
+generates .cdr files that are "wrong".
+</TR>
+
+<TR><TD>-c, --check-toc
+<TD>compare toc-file and cd-toc, then exit. Jack caches the
+TOC of a CD in a file ("jack.toc"). If you want to know if the inserted CD
+matches the toc-file in the current directory, use this option.
+</TR>
+
+<TR><TD>-g, --guess-toc &lt;mp3_files&gt;
+<TD>make up a TOC from the MP3 file given in mp3_files. Format is:
+<PRE>track_01.mp3 ... track_nn.mp3 ;</PRE>
+Note that the trailing ";" is only necessary if you want to append more options
+to your command line. This option makes me especially proud. You can use it to
+do a freedb query based on MP3s alone - no need for the CD. Very useful if you
+have no idea which CD the MP3s are from. The MP3s must be given in the same
+order as they were on their CD. The generated TOC file is similar, but not
+identical to the TOC of the CD - do not
+submit these!
+</TR>
+
+<TR><TD>--various
+<TD>when parsing freedb data, jack assumes that if the disc's
+artist is set to "Various Artists" the track titles have the format "[artist] -
+[title]". If the disc title is set to something else and you still want above
+behaviour, use --various.
+</TR>
+
+<TR><TD>--no-various
+<TD>use this if freedb data says it't "Various Artists" but you want the normal
+renaming scheme, e.g. if Jack can't seperate artist and track title.
+</TR>
+
+<TR><TD>--remove
+<TD>have jack remove it's temp files. See below for details on these
+files. Be careful - don't delete them too early!
+</TR>
+
+<TR><TD>--upd-progress
+<TD>have jack re-create it's temp files. Use this if you deleted them too early.
+</TR>
+
+<TR><TD>-d, --dont-work
+<TD>don't do DAE or encoding. This may be useful if you only want to
+do a freedb query.
+</TR>
+
+<TR><TD>-D, --create-dirs
+<TD>tells Jack to create sub-directories in which Jack puts all the files
+for the current CD. If no freedb data is available, i.e. when not using -Q,
+these directorys will be named "jack-xxxxxxxx" where "xxxxxxxx" stands for the
+CD's freedb-id. Otherwise dir_template (see above) will be used.
+</TR>
+
+<TR><TD>--todo
+<TD>print what would be done and exit.
+</TR>
+
+</TABLE>
+<P>
+<H4>The following options are needed for <A href=www.freedb.org>freedb</A> queries:</H4>
+<TABLE border cellpadding=3>
+<TR><TD>-q, --query
+<TD>do freedb query when all is done. This is useful if Jack was prior run
+without a freedb query. If all tracks are done you don't even have to have a CD
+inserted as the TOC is cached by Jack. After having finished ripping and
+encoding, Jack will rename the MP3s and tag them using Ben Gertzfield's ID3.py
+module
+
+</TR>
+
+<TR><TD>-Q, --query-now
+<TD>do freedb query when starting. Use this if you are
+connected to the internet when starting jack. Know that the query may need
+user-interaction. After having finished ripping and encoding, Jack will rename
+the MP3s and tag them using Ben Gertzfield's ID3.py module
+</TR>
+
+<TR><TD>-R, --rename-only
+<TD>rename and tag files according to freedb file. On startup, Jack
+creates a blank freedb entry file (except if --query-now is used, then the file
+is queried from your freedb server). If you have changed it's contents (e.g.
+because the CD was unknown to freedb) and want to rename and tag your MP3s
+accordingly, use this option.
+</TR>
+
+<TR><TD>-u, --undo-rename
+<TD>undo file renaming and exit. If you don't like how jack renamed your files, use this option to restore the previous state. Note that ID3 tags are not restored.
+</TR>
+
+<TR><TD>-m, --mail-submit
+<TD>submit freedb entry via e-mail. HTTP submission is
+preferred but while freedb only supports submission by e-mail you have to use
+this. You will have to enter the category of the CD.
+</TR>
+
+<TR><TD>-M, --mail-address &lt;submit_addr&gt;
+<TD>when submitting a database entry via e-mail, use this
+option to specify the address the entry is mailed to. Default is
+freedb-submit@freedb.org.
+</TR>
+
+<TR><TD>--my-email &lt;your_mail&gt;
+<TD>use this to specify which e-mail address submission results are
+mailed to. Please use your real e-mail address.
+</TR>
+
+<TR><TD>--submit
+<TD>submit freedb entry via HTTP. You will have to enter the category
+of the CD. At the moment, this does not work with freedb. Or with a buggy
+urllib.
+</TR>
+
+<TR><TD>--server &lt;freedb_server&gt;
+<TD>which freedb server to use. Don't forget to set your proxy.
+Default server is freedb.freedb.org.
+</TR>
+
+<TR><TD>--force
+<TD>do not ask. Like when deleting incomplete (?!) files.
+</TR>
+
+</TABLE>
+<P>
+Jack creates a couple of files when running:
+<TABLE cellpadding=3>
+<TR><TD><LI>jack.toc
+<TD>The CD TOC (Table Of Contents) is cached here. Will be re-created
+if deleted but be careful to insert the matching CD!
+</TR>
+<TR><TD><LI>jack.freedb
+<TD>when you are not telling jack to do a freedb query, this file
+is created as a freedb template file which you can fill out yourself. When
+using --query or --query-now it is filled with the query-result. Existing files
+are backed up as jack.freedb.bak.
+</TR>
+<TR><TD><LI>jack.progress
+<TD>Status (main) screen output is cached here. When resuming
+work, previously finished processes' output is still displayed. Jack also uses
+this file to mark ripping/encoding steps as done, so if you delete this file,
+everything is done again!
+</TR>
+</TABLE>
+Do not delete these files too early, this may case frustration!
+<P>
+Wanna go <A href=index.html>home</A> or do you wanna know <A href=install.html>how to install Jack</A>?
+
+<HR>
+<SMALL>"All trademarks are owned by their owners" or whatever I have to state.</SMALL>
+<A NAME="BOTTOM"></A>
+<ADDRESS><SMALL>
+&#169; Arne Zellentin,
+<A HREF="mailto:arne@unix-ag.org">arne@unix-ag.org</A>
+</SMALL></ADDRESS>
+<SMALL>(changed: 19-Aug-99)</SMALL>
+
+</body>
+</html>

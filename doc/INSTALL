@@ -1,0 +1,46 @@
+### This is jack 2.99.0 (c) 1999,2000 Arne Zellentin
+### free to use, no warranties, no nothing
+### see COPYING
+
+uncompress it:
+# gunzip jack-*.gz
+untar it:
+# tar xvf jack-*.tar
+change dir:
+# cd jack-*
+[You are here :] Copy it somewhere in your $PATH, e.g.:
+# cp jack* $HOME/bin
+or (you may have to be root)
+# cp jack* /usr/local/bin
+
+install the ID3 module as it is not yet part of python:
+as root:
+# cp ID3.py /usr/lib/python1.5
+or
+# cp ID3.py /usr/local/lib/python1.5
+
+as a normal user:
+# cp ID3.py $HOME/bin
+# PATH=$PATH:$HOME/bin
+# export PATH
+
+If you want to use the curses mode (belive me, you want to), you have to
+install a special cursesmodule. The one which comes with python has no support
+for pads.  The improved version from Oliver Andrich is missing the function
+resizeterm which I patched in. I mailed the patch to the author so it may be
+included in a future version. Get my version on the download page or download
+the original cursesmodule from
+http://andrich.net/python/selfmade.html#ncursesmodule
+and use the patch in this directory (cursesmodule-1.5b2.patch). You can either
+compile the module yourself or use the precompiled version which is in my
+package. I compiled it on a RedHat 6.0 alike system on an i686. If you want to
+(or have to) compile it yourself, try the following if you can't get the
+Makefile to work:
+
+# gcc  -g -O2 -I/usr/local/include/python1.5 -I/usr/local/lib/python1.5/config \
+# -DHAVE_CONFIG_H -c ./cursesmodule.c
+# gcc -shared  cursesmodule.o  -lncurses -ltermcap -o cursesmodule.so
+
+Install the cursesmodule.so like you installed the ID3.py module above.
+
+That's it!

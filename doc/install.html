@@ -1,0 +1,53 @@
+<!--#include virtual="/include/head.html" -->
+<HEAD>
+<TITLE>Jack installation instructions</TITLE>
+<LINK REV=MADE href=mailto:arne@unix-ag.org>
+</HEAD>
+<BODY BGCOLOR=#072387 TEXT=#d0d840 LINK=#f0a840 VLINK=a06820>
+
+<CENTER>
+    <A href=index.html><IMG src="main.gif" height=32></A>
+    <A href=download.html><IMG src="download.gif" height=32></A>
+    <A href=screen.html><IMG src="screen.gif" height=32></A>
+    <A href=requirements.html><IMG src="requirements.gif" height=32></A>
+    <A href=install.html><IMG src="install.gif" height=32></A>
+    <A href=usage.html><IMG src="usage.gif" height=32></A>
+    <A href=links.html><IMG src="links.gif" height=32></A>
+</CENTER>
+
+<TABLE width=100%><TR><TD valign=bottom>
+<H3><U>Installation instructions for Jack</U></H3>
+<TD valign=bottom>
+<IMG SRC="jack-logo.jpg" align=right alt="Jack" height=50 width=101></TR>
+</TABLE>
+
+<UL>
+<LI><A href=download.html>download jack</A>.
+<LI>uncompress it: <PRE>$ gunzip jack-*.tar.gz</PRE>
+<LI>untar it: <PRE>$ tar xvf jack-*.tar</PRE>
+<LI>change directory: <PRE>$ cd jack-*</PRE>
+<LI>follow instructions from file "<A href=INSTALL>INSTALL</A>"
+<LI>if this is your first installation of jack, run it once, it will create a new personal preferences file in your homedir
+<LI>customize it using your favorite editor:
+<PRE>$ vi $HOME/.jackrc</PRE>
+<LI>you may want to enable proxy support via the http_proxy environment
+variable
+<PRE>$ http_proxy=http://cache.sld.tld:3128/
+$ export http_proxy</PRE>
+This is a great addition to your .bashrc or whatever you are using!
+</UL>
+Wanna go <A href=index.html>home</A> or on to the <A href=usage.html>usage information</A>?
+
+<HR>
+<HRULE>
+<A NAME="BOTTOM"></A>
+<ADDRESS><SMALL>
+&#169; Arne Zellentin,
+<A HREF="mailto:arne@unix-ag.org">arne@unix-ag.org</A>
+</SMALL></ADDRESS>
+<SMALL>(changed: 19-Aug-99)</SMALL>
+
+</body>
+</html>
+
+
