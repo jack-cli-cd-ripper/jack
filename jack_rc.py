@@ -132,6 +132,8 @@ def convert(cf):
     for i in cf.keys():
         if cf[i]['type'] == types.StringType:
             rc.append([i, cf[i]['val'], None])
+        elif cf[i]['type'] == types.FloatType:
+            rc.append([i, `cf[i]['val']`, None])
         elif cf[i]['type'] == types.IntType:
             rc.append([i, `cf[i]['val']`, None])
         elif cf[i]['type'] == 'toggle':

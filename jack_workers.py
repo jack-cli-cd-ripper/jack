@@ -99,7 +99,11 @@ def start_new_encoder(track, encoder):
         if i == "%r":
             args.append(`track[RATE] * helper['bitrate_factor']`)
         elif i == "%q":
-            args.append(`cf['_vbr_quality']`)
+            if helper.has_key('inverse-quality') and helper['inverse-quality']:
+                quality = min(9, 10 - cf['_vbr_quality'])
+            else:
+                quality = cf['_vbr_quality']
+            args.append("%.3f" % quality)
         elif i == "%i":
             args.append(track[NAME] + ".wav")
         elif i == "%o":
@@ -192,7 +196,11 @@ def start_new_otf(track, ripper, encoder):
         if i == "%r":
             args.append(`track[RATE] * helpers[cf['_encoder']]['bitrate_factor']`)
         elif i == "%q":
-            args.append(`cf['_vbr_quality']`)
+            if helper.has_key('inverse-quality') and helper['inverse-quality']:
+                quality = min(9, 10 - cf['_vbr_quality'])
+            else:
+                quality = cf['_vbr_quality']
+            args.append("%.3f" % quality)
         elif i == "%o":
             args.append(track[NAME] + jack_targets.targets[jack_helpers.helpers[cf['_encoder']]['target']]['file_extension'])
         elif i == "%d":

@@ -46,7 +46,7 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
     global_error = 0    # remember if something went wrong
     actual_load = -2    # this is always smaller than max_load
     waiting_load = 0    # are we waiting for the load to drop?
-    waiting_space = 0   # are we waiting for disc space to be freed?
+    waiting_space = 0   # are we waiting for disk space to be freed?
     space_waiting = 0   # how much space _running_ subprocesses will consume
     space_adjust = 0    # by how much space has been modified
     blocked = 0         # we _try_ do detect deadlocks
@@ -338,7 +338,7 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
                         if global_start > time.time():
                             global_start = time.time()
                         if os.path.exists(track[NAME] + ext):
-                            # mp3enc doesn't report errors when out of discspace...
+                            # mp3enc doesn't report errors when out of disk space...
                             os.remove(track[NAME] + ext)
                         space = space + jack_functions.tracksize(track)[ENC]
                         jack_status.enc_stat_upd(num, 'coding failed, err#' + `res`)

@@ -18,6 +18,7 @@
 
 import string
 import types
+import pprint
 import os, sys
 
 import jack_playorder
@@ -692,7 +693,7 @@ def check_space(space, wavs_todo, mp3s_todo):
                 break
 
     if (space + freeable_space < space_needed or not will_work) and not cf['_dont_work']:
-        error(("insufficient discspace (%sBytes needed), " + "try reorder or " * (not cf['_reorder']) + "free %sBytes.") % (jack_functions.pprint_i(space_needed - freeable_space, "%i %s"), jack_functions.pprint_i(space_needed - freeable_space - jack_ripstuff.raw_space, "%i %s")))
+        error(("insufficient disk space (%sBytes needed), " + "try reorder or " * (not cf['_reorder']) + "free %sBytes.") % (jack_functions.pprint_i(space_needed - freeable_space, "%i %s"), jack_functions.pprint_i(space_needed - freeable_space - jack_ripstuff.raw_space, "%i %s")))
 
 
 def check_cd():

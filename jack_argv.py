@@ -84,6 +84,18 @@ def parse_option(cf, argv, i, option, alt_arg, origin="argv"):
             return i, istrue(alt_arg)
         else:
             return i, not cf[option]['val']
+
+    if ty == types.FloatType:
+        i, data = get_next(argv, i, alt_arg)
+        if data != None:
+            try:
+                data = float(data)
+                return i, data
+            except:
+                return None, "option `%s' needs a float argument" % option
+            error("huh?")
+        else:
+            return None, "Option `%s' needs exactly one argument" % option
     if ty == types.IntType:
         i, data = get_next(argv, i, alt_arg)
         if data != None:

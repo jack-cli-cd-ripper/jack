@@ -108,7 +108,7 @@ else:
         'vbr-cmd': "lame --preset standard --vbr-new --nohist --strictly-enforce-ISO %i %o",
         'otf-cmd': "lame --preset cbr %r --strictly-enforce-ISO - %o",
         'vbr-otf-cmd': "lame --preset standard --vbr-new --nohist --strictly-enforce-ISO - %o",
-        'status_blocksize': 160,
+        'status_blocksize': 200,
         'bitrate_factor': 1,
         'status_start': "%",
         'percent_fkt': r"""

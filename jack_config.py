@@ -84,7 +84,7 @@ cf = jack_misc.dict2({
         'long': 'AUTO',
         },
     'vbr_quality': {
-        'type': types.IntType,
+        'type': types.FloatType,
         'val': 6,
         'usage': "vbr encoding quality. -1 is lowest, 10 highest.",
         'long': 'quality',
@@ -385,7 +385,7 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
     'recheck_space': {
         'type': 'toggle',
         'val': 1,
-        'doc': "yes we want to react to disc space dropping.",
+        'doc': "yes we want to react to disk space dropping.",
         },
     'swap_byteorder': {
         'type': 'toggle',
@@ -403,7 +403,7 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
     'space_from_argv': {
         'type': types.IntType,
         'val': 0,
-        'usage': "force usable discspace, in bytes",
+        'usage': "force usable disk space, in bytes",
         'long': 'space',
         'short': 's',
         },

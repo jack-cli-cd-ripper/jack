@@ -152,12 +152,6 @@ def consistency_check(cf):
     if (cf['vbr_quality']['val'] > 10) or (cf['vbr_quality']['val'] < -1):
         error("invalid vbr quality, must be between -1 and 10")
 
-    if helpers[cf['_encoder']].has_key('inverse-quality') and helpers[cf['_encoder']]['inverse-quality']:
-        # this is a bit ugly but works for
-        # oggenc: -1 ... 10
-        # lame:    0 ...  9
-        cf.rupdate({'vbr_quality': {'val': min(9, 10 - cf['vbr_quality']['val'])}}, "check")
-
     # check for option conflicts:
     if cf['_otf'] and cf['_only_dae']:
         warning("disabling on-the-fly operation because we're doing DAE only")
