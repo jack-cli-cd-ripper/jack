@@ -234,7 +234,7 @@ def freedb_query(cd_id, tracks, file):
     buf = f.readline()
     if buf and buf[0:1] == "2":
         if buf[0:3] == "211": # Found inexact matches, list follows
-            print "Found inexact matches choose one:"
+            print "Found inexact matches. Choose one:"
             num = 1
             matches = []
             while 1:

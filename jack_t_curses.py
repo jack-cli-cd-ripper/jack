@@ -135,7 +135,8 @@ def sig_winch_handler(sig, frame):
     resizeterm(jack_term.size_y, jack_term.size_x)
     pad_y, pad_x = pad_disp_start_y, pad_disp_start_x
     pad_start_y, pad_start_x = extra_lines - 1, 0
-    pad_end_y, pad_end_x = min(extra_lines - 1 + pad_height, jack_term.size_x - 2), min(jack_term.size_x, pad_width) - 1
+    pad_end_y = min(extra_lines - 1 + pad_height, jack_term.size_y - 2)
+    pad_end_x = min(jack_term.size_x, pad_width) - 1
     pad_missing_y = max(pad_height - (jack_term.size_y - extra_lines), 0)
     pad_missing_x = max(pad_width - jack_term.size_x, 0)
     if pad_missing_y >= pad_height:

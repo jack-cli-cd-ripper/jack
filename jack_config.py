@@ -38,6 +38,12 @@ cf = jack_misc.dict2({
         'usage': "show debug information",
         'long': 'AUTO',
         },
+    'debug_write': {
+        'type': 'toggle',
+        'val': 0,
+        #'usage': "write debug information to a file",
+        'long': 'AUTO',
+        },
     'ripper': {
         'type': types.StringType,
         'val': "cdparanoia",

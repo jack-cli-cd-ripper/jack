@@ -1,3 +1,186 @@
+2004-11-23 01:06  zarne
+
+	* jack_helpers.py: 
+	- remove debug stuff
+
+2004-11-23 00:45  zarne
+
+	* jack.man, jack_argv.py, jack_checkopts.py, jack_config.py,
+	jack_freedb.py, jack_workers.py: 
+	- manpage updates
+	
+	- removed --no-various because
+	
+	- --various=no now actually works
+	
+	- block more options from being written to jackrc
+	
+	- --otf works again (but isn't displayed right all the time)
+
+2004-11-22 19:59  zarne
+
+	* jack_helpers.py, jack_main_loop.py, jack_rc.py: 
+	- more fixes to cdparanoia status decoding
+	
+	- jack_rcversion is written to newly created rc-files
+
+2004-11-22 00:34  zarne
+
+	* jack.man, jack_helpers.py, jack_rc.py: 
+	- fix creation of ~/.jack3rc
+	
+	- take all debian updates for the manpage (thank you Michael!)
+
+2004-11-22 00:07  zarne
+
+	* jack_helpers.py, jack_version.py, setup.py, doc/INSTALL: 
+	- begin jack 3.1 release cycle
+	
+	- modest update to INSTALL doc
+
+2004-11-21 23:42  zarne
+
+	* jack_argv.py, jack_checkopts.py, jack_config.py, jack_helpers.py,
+	jack_main_loop.py, jack_prepare.py, jack_rc.py, jack_version.py,
+	jack_workers.py: 
+	- update copyright year(s)
+	
+	- remove "charset has no effect without a char_filter" warning,
+	charset is used by the ogg tagger
+	
+	- disallow saving of the --dont-work option
+	
+	- add version-string (and checking) to the rc-files.
+
+2004-11-21 22:44  zarne
+
+	* jack_argv.py, jack_checkopts.py, jack_config.py, jack_helpers.py,
+	jack_main_loop.py, jack_prepare.py, jack_rc.py, jack_workers.py: 
+	- allow the argument to --quality to be a float. oggenc is fine
+	with that, lame seems to truncate the float but works.
+	
+	- fixed some typos
+	
+	- fixed --check-toc
+
+2004-11-21 21:33  zarne
+
+	* jack_argv.py, jack_config.py, jack_helpers.py, jack_main_loop.py,
+	jack_rc.py: 
+	- allow for lists (like --unusable-chars) to be --save'd to
+	.jack3rc
+	
+	- lame encoder now uses --vbr-new
+	
+	- lame encoder now uses --preset instead of --alt-preset
+	
+	- fixed the "error decoding status" issue, which I think is
+	actually a bug in cdparanoia which outputs lots of invisible junk
+	after ripping. The fix may break other helpers, I only tested lame,
+	oggenc, cdparanoia and cdda2wav
+	
+	- added lame-user which uses -V and uses the quality specified with
+	--quality
+	
+	- changed LAME default quality to 6, which will result in 4 being
+	used when using --encoder-name lame-user (ignored otherwise)
+	
+	- cdda2wav now uses the --device, not the --raw-device. Seems to
+	work fine.
+	
+	- cdda2wav now uses -v toc instead of -v 35 (the latter being
+	obsolete soon)
+
+2004-11-18 03:08  zarne
+
+	* jack, jack_config.py, jack_helpers.py: 
+	- added the option "--query-if-needed" which only queries freedb if
+	there is no file called "jack.freed.bak" (which is, among other
+	things, the result of a successful freedb-query).
+
+2004-11-17 22:55  zarne
+
+	* jack_argv.py, jack_rc.py: 
+	- changed the UI a bit. Options can now be set with --option=value.
+	Use "yes" or "no" for booleans. --option alone still toggles the
+	current value. Toggeling sounded like a nice idea in the early days
+	of jack but now, with 2 rc-files and the command-line things have
+	gotten out of hand.
+	
+	- Booleans are now saved (--save) as option:value in the rc-files.
+	Please use that syntax in /etc/jackrc, too. This will hopefully
+	bring order to the chaos.
+
+2004-11-17 21:26  zarne
+
+	* jack_ripstuff.py, jack_t_curses.py: 
+	- fixed the infamous curses addstr bug. Why did it ever work?
+
+2004-11-10 00:42  zarne
+
+	* jack, jack_CDTime.py, jack_TOC.py, jack_TOCentry.py,
+	jack_freedb.py, jack_functions.py, jack_mp3.py, jack_version.py: 
+	- re-added those files (I'm running out of brown paper bags)
+	
+	- cosmetic stuff
+	
+	- one little bug fixed
+
+2004-08-25 04:36  zarne
+
+	* jack_freedb.py: 
+	- fixed http_proxy for --submit
+
+2004-08-25 00:53  zarne
+
+	* jack_CDTime.py, jack_TOC.py, jack_TOCentry.py, jack_checkopts.py,
+	jack_display.py, jack_freedb.py, jack_globals.py, jack_mp3.py,
+	jack_prepare.py, jack_t_dumb.py, jack_term.py, jack_workers.py: 
+	- removed some unused files
+	
+	- --submit works again
+	
+	- --mail-submit works again (but use --submit if possible)
+	
+	- --silent mode works again
+
+2004-03-25 03:55  zarne
+
+	* jack_freedb.py: - "VA" is now recognized as various
+	
+	- fixed another forgotten cf[] (thanks to Stephan Helma for the
+	patch)
+
+2003-12-02 02:49  zarne
+
+	* jack, jack_checkopts.py, jack_config.py, jack_generic.py,
+	jack_globals.py, jack_helpers.py: - fixed cdparanoia status decode
+	bug (I hope)
+	
+	- new option --debug, obsoletes DEBUG in jack_generic
+	
+	- make --my-mail actually work, better sanity check of the address
+
+2003-12-02 01:51  zarne
+
+	* jack, jack_prepare.py, jack_t_curses.py, jack_version.py: - fix a
+	free diskspace-related bug
+	
+	- we're in 2003 now :]
+	
+	- expand ~ in base_dir so it can be relative to the user's homedir
+
+2003-11-26 19:16  zarne
+
+	* jack_prepare.py, jack_ripstuff.py: - raw_space was moved but I
+	forgot that in jack_prepare. fixed.
+
+2003-11-26 19:02  zarne
+
+	* setup-cursesmodule.py, setup-jack.py, setup.py, doc/ChangeLog: -
+	new setup.py for jack's modules and the cursesmodule. jack itself
+	still has to be manually installed.
+
 2003-10-12 03:54  zarne
 
 	* README, jack, jack_config.py, jack_freedb.py, jack_functions.py,
@@ -562,10 +745,6 @@
 
 2001-11-07 18:08  zarne
 
-	* README: removed version, I keep to forget to update it
-
-2001-11-07 18:08  zarne
-
 	* jack: - version is now 2.99.7
 	
 	- use termios instead of TERMIOS to make python2 happy
@@ -594,6 +773,10 @@
 	doesn't exist
 	
 	- we're close to 3.0
+
+2001-11-07 18:08  zarne
+
+	* README: removed version, I keep to forget to update it
 
 2001-10-11 00:38  zarne
 
@@ -885,7 +1068,7 @@
 	doc/screen.gif, doc/usage.gif, doc/install.gif, doc/links.gif,
 	doc/links.html, doc/CHANGELOG, doc/anim.written.in.vi.gif,
 	doc/mine.css, doc/INSTALL, doc/jack-curses-screen.gif, doc/TODO,
-	doc/todo.html: Initial revision
+	doc/todo.html: initial import of jack-2.99.0-pre
 
 2000-05-11 16:32  zarne
 
@@ -898,5 +1081,5 @@
 	doc/screen.gif, doc/usage.gif, doc/install.gif, doc/links.gif,
 	doc/links.html, doc/CHANGELOG, doc/anim.written.in.vi.gif,
 	doc/mine.css, doc/INSTALL, doc/jack-curses-screen.gif, doc/TODO,
-	doc/todo.html: initial import of jack-2.99.0-pre
+	doc/todo.html: Initial revision
 
