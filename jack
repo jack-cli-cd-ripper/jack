@@ -4370,7 +4370,7 @@ if set_id3tag or freedb_rename:
                 if id3_genre != -1:
                     oggi.add_tag('GENRE', id3genres[id3_genre])
                 if id3_year != -1:
-                    oggi.add_tag('YEAR', `id3_year`)
+                    oggi.add_tag('DATE', `id3_year`)
                 oggi.write_to(mp3name)
         if freedb_rename:
             if t_artist:    # 'Various Artists'
