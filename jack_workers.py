@@ -39,12 +39,12 @@ from jack_globals import *
 from jack_helpers import helpers
 from jack_init import F_SETFL, O_NONBLOCK
 
-def reset_signals():
-    signal.signal(signal.SIGTERM, signal.SIG_IGN)
-    signal.signal(signal.SIGINT, signal.SIG_IGN)
-    signal.signal(signal.SIGQUIT, signal.SIG_IGN)
-    signal.signal(signal.SIGHUP, signal.SIG_IGN)
-    signal.signal(signal.SIGWINCH, signal.SIG_IGN)
+def default_signals():
+    signal.signal(signal.SIGTERM, signal.SIG_DFL)
+    signal.signal(signal.SIGINT, signal.SIG_DFL)
+    signal.signal(signal.SIGQUIT, signal.SIG_DFL)
+    signal.signal(signal.SIGHUP, signal.SIG_DFL)
+    signal.signal(signal.SIGWINCH, signal.SIG_DFL)
 
 def start_new_process(args, nice_value = 0):
     "start a new process in a pty and renice it"
@@ -52,7 +52,7 @@ def start_new_process(args, nice_value = 0):
     data['start_time'] = time.time()
     pid, master_fd = pty.fork()
     if pid == CHILD:
-        reset_signals()
+        default_signals()
         if nice_value:
             os.nice(nice_value)
         os.execvp(args[0], args)
@@ -166,7 +166,7 @@ def start_new_otf(track, ripper, encoder):
     data['rip']['start_time'] = time.time()
     pid = os.fork()
     if pid == CHILD:
-        reset_signals()
+        default_signals()
         os.dup2(rip_out, STDOUT_FILENO)
         os.dup2(rip_err, STDERR_FILENO)
         os.close(rip_out)
@@ -204,7 +204,7 @@ def start_new_otf(track, ripper, encoder):
     data['enc']['start_time'] = time.time()
     pid = os.fork()
     if pid == CHILD:
-        reset_signals()
+        default_signals()
         if cf['_nice_value']:
             os.nice(cf['_nice_value'])
         os.dup2(enc_in, STDIN_FILENO)
@@ -244,7 +244,7 @@ def ripread(track, offset = 0):
         #sys.stdout = so
         #se=open("/tmp/stderr", "w+")
         #sys.stderr = se
-        reset_signals()
+        default_signals()
 
 # FIXME: all this offset stuff has to go, track 0 support has to come.
 
