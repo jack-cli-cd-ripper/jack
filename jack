@@ -159,6 +159,7 @@ encoder = "oggenc"          # use which encoder (bladeenc, lame, gogo, l3enc,
 
 bitrate = 160               # default bitrate
 vbr = 1                     # use variable bitrate for encoders which support it
+vbr_quality = 3	            # the vbr quality - 0 is worst, 10 is best
 
 # set up freedb (if needed):
 freedb_server = "freedb"    # your freedb server, see freedb_servers below
@@ -288,10 +289,11 @@ freedb_servers['freedb-user'] = {
 helpers['lame-user'] = {
     'type': "encoder",
     'target': "mp3",
-    'cmd': "lame -h -b %r %i %o",
-    'vbr-cmd': "lame --r3mix --nohist %i %o",
-    'otf-cmd': "lame -h -b %r - %o",
-    'vbr-otf-cmd': "lame --r3mix --nohist - %o",
+    'inverse-quality': 1,
+    'cmd': "lame --alt-preset cbr %r %i %o",
+    'vbr-cmd': "lame -h -v -V %q --nohist %i %o",
+    'otf-cmd': "lame --alt-preset cbr %r - %o",
+    'vbr-otf-cmd': "lame -h -v -V %q --nohist - %o",
 
 # from lame:     -V n    quality setting for VBR.  default n=4
 #                        0=high quality,bigger files. 9=smaller files
@@ -447,7 +449,7 @@ helpers = {
         'target': "ogg",
         'can_tag': 1,
         #'vbr-cmd': "oggenc -o %o -t %t -a %a -N %n -l %l -G %g -d %y -b %r %i",
-        'vbr-cmd': "oggenc -o %o -t %t -a %a -N %n -l %l -G %g -d %y %i",
+        'vbr-cmd': "oggenc -o %o -t %t -a %a -N %n -l %l -G %g -d %y -q %q %i",
         'status_blocksize': 64,
         'bitrate_factor': 1,
         'status_start': "%",
@@ -508,10 +510,11 @@ else:
     'lame': {
         'type': "encoder",
         'target': "mp3",
+        'inverse-quality': 1,
         'cmd': "lame -h -b %r %i %o",
         'vbr-cmd': "lame --r3mix --nohist %i %o",
         'otf-cmd': "lame -h -b %r - %o",
-        'vbr-otf-cmd': "lame --r3mix --nohist - %o",
+        'vbr-otf-cmd': "lame --r3mix -V %q --nohist - %o",
 
 # from lame:     -V n    quality setting for VBR.  default n=4
 #                        0=high quality,bigger files. 9=smaller files
@@ -540,8 +543,9 @@ else:
     'gogo': { # Thanks to José Antonio Pérez Sánchez for the vbr and otf presets
         'type': "encoder",
         'target': "mp3",
+        'inverse-quality': 1,
         'cmd': "gogo %i %o -b %r",
-        'vbr-cmd': "gogo %i %o -v 4",
+        'vbr-cmd': "gogo %i %o -v %q",
         'otf-cmd': "gogo stdin %o -b %r",
         'vbr-otf-cmd': "gogo stdin %o -v 4",
         'status_blocksize': 160,
@@ -2056,6 +2060,7 @@ def start_new_encoder(track, encoder):
     args = []
     for i in cmd:
         if i == "%r": args.append(`track[RATE] * helper['bitrate_factor']`)
+        elif i == "%q": args.append(`vbr_quality`)
         elif i == "%i": args.append(track[NAME] + ".wav")
         elif i == "%o": args.append(track[NAME] + ext)
         else:
@@ -2129,6 +2134,7 @@ def start_new_otf(track, ripper, encoder):
     args = []
     for i in cmd:
         if i == "%r": args.append(`track[RATE] * helpers[encoder]['bitrate_factor']`)
+        elif i == "%q": args.append(`vbr_quality`)
         elif i == "%o": args.append(track[NAME] + ext)
         elif i == "%d": args.append(cd_device)
         elif i == "%D": args.append(gen_device)
@@ -2779,6 +2785,9 @@ while i<len(argv):
         check_toc = 1
     elif argv[i] in ("-v", "--vbr"):
         vbr = 1
+    elif argv[i] =="--quality":
+        vbr_quality = safe_int(argv[i + 1], "--quality needs a number.")
+        i = i + 1
     elif argv[i] =="--silent-mode":
         silent_mode = 1
     elif argv[i] =="--force":
@@ -2918,6 +2927,7 @@ while i<len(argv):
         print "      --wait:         wait for key press before quitting"
         print "      --otf:          on-the-fly encoding *experimental* (" + yes(otf) + ")"
         print "      --edit-cddb     edit CDDB information (" + yes(edit_cddb) + ")"
+        print "      --quality      +vbr encoding quality (0 is lowest, 10 highest) (" + `vbr_quality` + ")"
         if char_filter:
             print "      --charset      *character set freedb data is encoded in (" + charset + ")"
         print
@@ -2965,6 +2975,13 @@ if not helpers.has_key(ripper) or helpers[ripper]['type'] != "ripper":
             print dummy,
     print ")"
     sys.exit(1)
+
+if (vbr_quality > 10) or (vbr_quality < 0):
+    print "Invalid vbr quality, must be between 0 and 10"
+    sys.exit(1)
+
+if helpers[encoder].has_key('inverse-quality') and helpers[encoder]['inverse-quality']:
+    vbr_quality = min(9, 10 - vbr_quality)
 
 # check for option conflicts:
 if otf and only_dae:
