@@ -1,3 +1,18 @@
+2001-11-07 18:52  zarne
+
+	* doc/: ChangeLog, index.html:
+	- index.html points to ChageLog instead of CHANGELOG now
+	- ChangeLog will contain the more recent changes now, CHANGELOG the
+	very old ones. ChangeLog will NOT be up-to date in cvs BUT in
+        releases.
+
+2001-11-07 18:43  zarne
+
+	* doc/CHANGELOG: - prepared it for automatic actualization,
+	released versions contain the CVS log from now on. CHANGELOG is now
+	a template from which ChangeLog is generated when releasing, CVS
+        will contain both in a undefined state.
+
 2001-11-07 18:08  zarne
 
 	* README: removed version, I keep to forget to update it

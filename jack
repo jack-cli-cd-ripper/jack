@@ -1011,7 +1011,18 @@ def gettoc():
             return erg
     else:
         erg = []
-        exec(helpers[toc_prog]['toc_fkt'])
+        try:
+            exec(helpers[toc_prog]['toc_fkt'])
+        except:
+            traceback.print_exc()
+            print "Trouble reading the disk's TOC. If you already ripped the CD, you'll have to"
+            print "cd into the created directory which is either named after the CD's title"
+            print "or still called jack-xxxxxxxx (xxxxxxxx is a hex number)."
+            sys.exit(1)
+
+
+
+
         return erg
 
 def guesstoc(names):

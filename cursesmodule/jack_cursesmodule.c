@@ -2100,6 +2100,8 @@ static PyMethodDef PyCurses_methods[] = {
   {"raw",                 (PyCFunction)PyCurses_raw},
   {"reset_prog_mode",     (PyCFunction)PyCurses_reset_prog_mode},
   {"reset_shell_mode",    (PyCFunction)PyCurses_reset_shell_mode},
+  {"resetty",             (PyCFunction)PyCurses_resetty},
+  {"savetty",             (PyCFunction)PyCurses_savetty},
   {"resizeterm",          (PyCFunction)PyCurses_resizeterm},
   {"setsyx",              (PyCFunction)PyCurses_setsyx},
   {"start_color",         (PyCFunction)PyCurses_Start_Color},

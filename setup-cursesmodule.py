@@ -13,5 +13,5 @@ setup (# Distribution meta-data
        url = "http://www.home.unix-ag.org/arne/jack/",
 
        # Description of the modules and packages in the distribution
-       ext_modules = [ Extension('jack_cursesmodule', ['cursesmodule/jack_cursesmodule.c'], libraries=["ncurses"]) ]
+       ext_modules = [ Extension('jack_cursesmodule', ['cursesmodule/jack_cursesmodule.c'], libraries=["ncurses"], extra_compile_args=["-Wno-strict-prototypes"]) ]
       )

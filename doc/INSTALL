@@ -10,7 +10,7 @@ install the ID3.py and CDDB.py module:
 * grab them from http://cddb-py.sourceforge.net
   and            http://id3-py.sourceforge.net
 
-Too ease up the installations, install the Python Distutils-SIG
+Too ease up the installations, install the Python Distutils
 from
 
     http://www.python.org/sigs/distutils-sig/
