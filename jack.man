@@ -205,7 +205,7 @@ optimize track-order for disk space. This can save you some peak
 disk space during the encoding process; this may make it possible
 to do a CD which would otherwise fail to be encoded.
 .TP
-.B \-R, \-\-rename-only
+.B \-R, \-\-rename
 rename and tag files according to freedb file. On startup, Jack
 creates a blank freedb entry file (except if 
 .B \-\-query-now
