@@ -525,7 +525,7 @@ cf = jack_misc.dict2({
     'no_various': {
         'type': 'toggle',
         'val': 0,
-        'usage': "XXX force no various artists, override autodetection",
+        'usage': "force no various artists, override autodetection",
         'long': 'AUTO',
         },
     'various_swap': {

@@ -31,6 +31,7 @@ import jack_version
 from jack_globals import *
 
 had_special = None
+enabled = None
 
 try:
     from jack_curses import endwin, resizeterm, A_REVERSE, newwin, newpad, initscr, noecho, cbreak, echo, nocbreak
@@ -60,7 +61,6 @@ pad_disp_start_y = pad_disp_start_x = 0
 usage_win_y = usage_win_x = 0
 usage_win_height, usage_win_width = 7, 49
 
-curses_init = 0             # initscr has been called
 curses_sighandler = None
 map_track_num = None        # list track number -> line number
 extra_lines = None
@@ -73,17 +73,20 @@ def enable():
     global usage_win
     global curses_sighandler
     global map_track_num
-    global curses_init
+    global enabled
     global pad_height, pad_width
     global had_special
     global extra_lines
+
+    if enabled:
+        return
 
     had_special = 0
     extra_lines = 2
     if jack_display.discname:
         extra_lines = extra_lines + 1
     stdscr = initscr()
-    curses_init = 1
+    enabled = 1
     curses_sighandler = signal.signal(signal.SIGWINCH, signal.SIG_IGN)
     # Turn off echoing of keys, and enter cbreak mode,
     # where no buffering is performed on keyboard input
@@ -106,28 +109,31 @@ def enable():
     sig_winch_handler(None, None)
 
 def disable():
-    if curses_init:
+    if initialized and enabled:
         # Set everything back to normal
         stdscr.keypad(0)
         echo() ; nocbreak()
-        endwin()                 # Terminate curses
+        # Terminate curses, back to normal screen
+        endwin()
+        # re-install previous sighandler
+        signal.signal(signal.SIGWINCH, curses_sighandler)
 
 def sig_winch_handler(sig, frame):
     global staus_pad, stdscr, usage_win
     global pad_y, pad_x, pad_start_y, pad_start_x, pad_end_y, pad_end_x
     global usage_win_y, usage_win_x
 
+    if not enabled:
+        return
+
     signal.signal(signal.SIGWINCH, signal.SIG_IGN)
     if type(curses_sighandler) == types.FunctionType:
         curses_sighandler(sig, frame)
 
-    data = jack_term.getsize()
-    if data:
-        new_x, new_y = data
-    del data
+    jack_term.resize()
 
     old_y, old_x = stdscr.getmaxyx()
-    resizeterm(new_y, new_x)
+    resizeterm(jack_term.size_y, jack_term.size_x)
     pad_y, pad_x = pad_disp_start_y, pad_disp_start_x
     pad_start_y, pad_start_x = extra_lines - 1, 0
     pad_end_y, pad_end_x = min(extra_lines - 1 + pad_height, jack_term.size_x - 2), min(jack_term.size_x, pad_width) - 1
@@ -225,18 +231,12 @@ def update(special_line, bottom_line):
         disp_bottom_line(bottom_line)
 
 def enc_stat_upd(num, string):
-    #XXX
-    #print(map_track_num[num], jack_ripstuff.max_name_len + 40, " " + jack_status.enc_status[num])
     status_pad.addstr(map_track_num[num], jack_ripstuff.max_name_len + 40, " " + jack_status.enc_status[num])
-    #status_pad.addstr(map_track_num[num], 0, " test")
     status_pad.clrtoeol()
 
 def dae_stat_upd(num, string):
     track = jack_ripstuff.all_tracks[num-1]
-    #XXX
-    #print(map_track_num[num], 0, (jack_ripstuff.printable_names[num] + ": " + jack_status.dae_status[num] + " " + jack_status.enc_status[num])[:jack_term.size_x - 1])
     status_pad.addstr(map_track_num[num], 0, (jack_ripstuff.printable_names[num] + ": " + jack_status.dae_status[num] + " " + jack_status.enc_status[num])[:jack_term.size_x - 1])
-    #status_pad.addstr(map_track_num[num], 0, " test2")
     dummy = """
     if ripper == "cdparanoia" and track in dae_tracks or (track in enc_queue and track not in mp3s_done):
         status_pad.addstr(map_track_num[num], 0, jack_ripstuff.printable_names[num] + ": " + jack_status.dae_status[num][:7])

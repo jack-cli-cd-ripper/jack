@@ -894,7 +894,7 @@ if cf['_set_id3tag'] or freedb_rename:
                     else:
                         t_comm = ""
             if jack_helpers.helpers[cf['_encoder']]['target'] in ("mp3", "flac"):
-                id3 = ID3.ID3(mp3name)
+                id3 = ID3(mp3name)
                 id3.album = a_title
                 id3.track = i[NUM] # this is ignored if we have an ID3v1.0 tag
                 if t_comm:

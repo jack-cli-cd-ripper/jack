@@ -352,7 +352,8 @@ def freedb_names(cd_id, tracks, name, verb = 0, warn = 1):
  
     if not freedb.has_key("DTITLE"):
         error = 3
-        if verb: print "Error: freedb entry doesn't contain disc title info (\"DTITLE\")."
+        if verb:
+            warning("freedb entry doesn't contain disc title info (\"DTITLE\").")
         freedb['DTITLE'] = "[not set]"
  
     if not freedb.has_key("DISCID"):

@@ -48,8 +48,8 @@ term_type = None
 # variables
 xtermset = None
 can_getsize = None
-xtermset = None
 geom_changed = None
+
 
 def init(arg_type="auto", arg_xtermset = 0):
     global initialized
@@ -80,7 +80,7 @@ def init(arg_type="auto", arg_xtermset = 0):
         term_type = "curses"
 
     if not tmod:
-        error("invalid terminal type `%s'" % type)
+        error("invalid terminal type `%s'" % term_type)
 
     xtermset = arg_xtermset
 
@@ -88,17 +88,47 @@ def init(arg_type="auto", arg_xtermset = 0):
     geom_changed = 0
     size_x, size_y = 80, 24     # fallback value
 
-    oldsize_x, ldsize_y = None, None
     oldsize = getsize()
     if oldsize:
         orig_size_x, orig_size_y = oldsize
         size_x, size_y = oldsize
     del oldsize
 
+def xtermset_enable():
+    global xtermset
+    global geom_changed
+    if xtermset:
+        import os
+        want_x = 80 - len("track_00") + jack_ripstuff.max_name_len
+        want_y = len(jack_ripstuff.all_tracks_todo_sorted) + 3
+        if term_type == "XXXcurses":
+            want_y = want_y - 1
+        if jack_freedb.names_available:
+            want_y = want_y + 1
+        if (size_x, size_y) != (want_x, want_y):
+            try:
+                os.system("xtermset -geom %dx%d" % (want_x, want_y))
+                geom_changed = 1
+                resize()
+            except:
+                warning("failed to call xtermset, is it really installed?")
+                xtermset = 0
+        del want_x, want_y
+
+def xtermset_disable():
+    import os
+    global geom_changed
+    if xtermset and geom_changed:
+        try:
+            os.system("xtermset -restore -geom %dx%d" % (orig_size_x, orig_size_y))
+            geom_changed = 0
+        except:
+            pass
+
 def getsize():
     global can_getsize
     if can_getsize == 0:
-        return None
+        return None, None
 
     if can_getsize == None:
         try:
@@ -113,7 +143,7 @@ def getsize():
 TIOCGWINSZ.  This means I can't determine your terminal's geometry, so please
 don't resize it. Use Tools/scripts/h2py.py from the Python source distribution
 to convert /usr/include/asm/ioctls.h to IOCTLS.py and install it.""")
-                return None
+                return None, None
     try:
         # to get the size, we will have to do an ioctl which will return a
         # struct winsize {
@@ -132,35 +162,27 @@ to convert /usr/include/asm/ioctls.h to IOCTLS.py and install it.""")
         new_y, new_x, xpixel, ypixel = winsize.tolist()
     except:
         can_getsize = 0
-        return None
+        return None, None
     return new_x, new_y
 
-def enable(want_x = None, want_y = None):
-    global xtermset
-    global geom_changed
+def resize():
+    global size_x, size_y
+    x, y = getsize()
+    if (x, y) != (None, None):
+        size_x, size_y = x, y
+
+def enable():
     global enabled
+
+    if not initialized:
+        return
 
     if enabled:
         return
 
-    if xtermset:
-        import os
-        if want_x == None and want_y == None:
-            want_x = 80 - len("track_00") + jack_ripstuff.max_name_len
-            want_y = len(jack_ripstuff.all_tracks_todo_sorted) + 3
-        if type == "curses":
-            want_y = want_y - 1
-        if jack_freedb.names_available:
-            want_y = want_y + 1
-        if (self.size_x, self.size_y) != (want_x, want_y):
-            try:
-                os.system("xtermset -geom %dx%d" % (want_x, want_y))
-                geom_changed = 1
-            except:
-                warning("failed to call xtermset, is it really installed?")
-                xtermset = 0
-    enabled = 1
+    xtermset_enable()
     tmod.enable()
+    enabled = 1
 
 def disable():
     global enabled
@@ -168,7 +190,7 @@ def disable():
 
     if not enabled:
         return
-    tmod.disable()
-    if geom_changed:
-        os.system("xtermset -restore -geom %dx%d" % (oldsize_x, oldsize_y))
 
+    tmod.disable()
+    xtermset_disable()
+    enabled = 0

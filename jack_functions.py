@@ -397,3 +397,20 @@ def progress(track, what="error", data="error", data2 = None):
     f.write("\n")
     f.close()
 
+def check_genre_txt(txt):
+    if string.upper(txt) == "HELP":
+        from jack_globals import info, id3genres
+        info("available genres: " + `id3genres`)
+        sys.exit(0)
+
+    elif string.upper(txt) == "NONE":
+        return 255 # set genre to [unknown]
+    else:
+        import ID3
+        temp_id3 = ID3.ID3("/dev/null")
+        genre = temp_id3.find_genre(txt)
+        if genre == -1:
+            error("illegal genre. Try '" + jack_version.prog_name + " --id3-genre help' for a list.")
+        del temp_id3
+        return genre
+
