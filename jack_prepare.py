@@ -38,6 +38,7 @@ import jack_tag
 from jack_globals import *
 
 tracknum = None
+datatracks = []
 
 def find_workdir():
     "search for a dir containing a toc-file or do the multi-mode"
@@ -218,6 +219,7 @@ def filter_tracks(toc_just_read):
                             debug("Track %02d %s" % (i + 1, fields[j]) + `jack_ripstuff.all_tracks[i][j]` + " != " + `ripper_tracks[rtn][j]` + " (trusting %s; to the right)" % cf['_ripper'])
                 else:
                     jack_functions.progress(i + 1, "off", "non-audio")
+                    datatracks.append(i + 1)
                     info("Track %02d not found by %s. Treated as non-audio." % (i + 1, cf['_ripper']))
         
 
@@ -269,10 +271,27 @@ def gen_todo():
 
         # generate todo
         todo = []
-        for k in tlist:
-            if k < 1 or k > len(jack_ripstuff.all_tracks):
-                print 'This CD has tracks 1-%d.  Ignoring request for track %d.' % (len(jack_ripstuff.all_tracks), k)
+        audiotracks = []
+        for i in jack_ripstuff.all_tracks:
+            if i[NUM] in datatracks:
                 continue
+            audiotracks.append(i[NUM])
+
+        if audiotracks != range(1, audiotracks[-1] + 1):
+            info("strange audio track layout " + `audiotracks`)
+            continuous = 0
+        else:
+            continuous = 1
+            
+        for k in tlist:
+            if continuous:
+                if k < 1 or k > len(audiotracks):
+                    warning('This CD has audio tracks 1-%d.  Ignoring request for track %d.' % (len(audiotracks), k))
+                    continue
+            else:
+                if k < 1 or k > len(jack_ripstuff.all_tracks):
+                    warning('This CD has tracks 1-%d.  Ignoring request for track %d.' % (len(jack_ripstuff.all_tracks), k))
+                    continue
             if jack_ripstuff.all_tracks[k-1][CH] == 2:
                 todo.append(jack_ripstuff.all_tracks[k-1])
             else:
