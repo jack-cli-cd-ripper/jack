@@ -2114,12 +2114,12 @@ static PyMethodDef PyCurses_methods[] = {
 /* Initialization function for the module */
 
 void
-initcurses()
+initjack_curses()
 {
 	PyObject *m, *d, *v;
 
 	/* Create the module and add the functions */
-	m = Py_InitModule("curses", PyCurses_methods);
+	m = Py_InitModule("jack_curses", PyCurses_methods);
 
 	/* Add some symbolic constants to the module */
 	d = PyModule_GetDict(m);
