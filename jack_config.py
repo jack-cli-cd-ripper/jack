@@ -31,6 +31,13 @@ from jack_globals import *
 
 cf = jack_misc.dict2({
     ### prefs ###
+    'debug': {
+        'type': 'toggle',
+        'val': 0,
+        'help': 1,
+        'usage': "show debug information",
+        'long': 'AUTO',
+        },
     'ripper': {
         'type': types.StringType,
         'val': "cdparanoia",

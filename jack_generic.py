@@ -18,8 +18,7 @@
 
 import string
 import sys
-
-DEBUG = 1
+from jack_config import cf
 
 def indent(pre, msg):
     print pre,
@@ -54,6 +53,6 @@ def info(msg):
     ewprint("info", msg)
 
 def debug(msg):
-    if DEBUG:
+    if cf['_debug']:
         ewprint("debug", msg)
 

@@ -21,7 +21,7 @@ from jack_constants import *
 from jack_config import cf
 from jack_init import ID3
 
-from jack_generic import info, warning, debug, DEBUG, error
+from jack_generic import info, warning, debug, error
 #import jack_generic
 #error = jack_generic.error
 

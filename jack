@@ -69,17 +69,17 @@ print "This is ", jack_version.prog_name, jack_version.prog_version, "(C) 2003  
 
 ### interpret options
 global_cf = jack_rc.load(cf, cf['global_rc']['val'])
-debug("global_cf: " + `global_cf`)
 jack_checkopts.checkopts(cf, global_cf)
 cf.rupdate(global_cf, "global_rc")
 user_cf = jack_rc.load(cf, cf['user_rc']['val'])
-debug("user_cf: " + `user_cf`)
 jack_checkopts.checkopts(cf, user_cf)
 cf.rupdate(user_cf, "user_rc")
 argv_cf = jack_argv.parse_argv(cf, sys.argv)
-debug("argv_cf: " + `argv_cf`)
 jack_checkopts.checkopts(cf, argv_cf)
 cf.rupdate(argv_cf, "argv")
+debug("global_cf: " + `global_cf`)
+debug("user_cf: " + `user_cf`)
+debug("argv_cf: " + `argv_cf`)
 
 jack_checkopts.consistency_check(cf)
 

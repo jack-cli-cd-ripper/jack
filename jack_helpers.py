@@ -245,8 +245,9 @@ if len(s) >= 3:
         'status_blocksize': 600,
         'status_start': "%",
         'status_fkt': r"""
-#  (== PROGRESS == [                       >      .| 011923 00 ] == :-) . ==)
-tmp = string.split(i['buf'], '\r')[-2]
+# (== PROGRESS == [                              | 013124 00 ] == :^D * ==)
+# (== PROGRESS == [                       >      .| 011923 00 ] == :-) . ==)
+tmp = string.split(i['buf'], '\r')[-2] + " "
 new_status = tmp[17:48] + tmp[49:69] # 68->69 because of newer version
 #new_status = string.split(i['buf'], '\r')[-2][17:69] # 68->69 because of newer version
 """,
