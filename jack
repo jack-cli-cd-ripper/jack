@@ -366,8 +366,8 @@ elif environ.has_key('LOGNAME'):
 hostname = uname()[1]           # that is required for freedb query
 
 # better not touch these: #
-if environ.has_key("OSTYPE"):   # some things can be done faster on Linux
-  Linux = environ['OSTYPE'] == "Linux"
+if environ.has_key("OSTYPE") and environ['OSTYPE'] in ["Linux", "linux-gnu"]:
+  Linux = 1       # some things can be done faster on Linux
 else:
   Linux = 0
 if Linux:
