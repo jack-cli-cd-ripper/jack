@@ -27,7 +27,7 @@ prog_name = "jack"
 DEBUG = 0
 
 import os, sys, posix, string
-from string import atoi, atof, split, find, rfind, replace, upper, strip, rstrip
+from string import split, find, rfind, replace, upper, strip, rstrip
 from string import digits, uppercase, lowercase
 from os import nice, remove, popen, fdopen, waitpid, WNOHANG, execlp, execvp
 from os import stat, environ, uname, fork, rename, system, kill, mkdir
@@ -274,12 +274,12 @@ if len(s) == 1: s=s[0]
 if find(s, "%") >= 0:       # status reporting starts here
     y = split(s, "/")
     y1 = split(y[1], "(")[0]
-    percent = atof(y[0]) / atof(y1) * 100.0
+    percent = float(y[0]) / float(y1) * 100.0
 elif find(s, "Frame:") >= 0:    # older versions, like 3.13
     y = split(s, "/")
     y0 = split(y[0], "[")[-1]
     y1 = split(y[1], "]")[0]
-    percent = atof(y0) / atof(y1) * 100.0
+    percent = float(y0) / float(y1) * 100.0
 else:
     percent = 0
 
@@ -413,7 +413,7 @@ if len(s) == 1: s = s[0]
 y0 = find(s, "[")
 y1 = find(s, "%]")
 if y0 != -1 and y1 != -1:
-    percent = atof(s[y0 + 1:y1])
+    percent = float(s[y0 + 1:y1])
 else:
     percent = 0
 \"\"\",
@@ -433,7 +433,7 @@ if len(s) >= 4:
     s = s[-2]
     if find(s, "%") >= 0:
         y = split(s, " ", 3)
-        percent = atof(y[0]) / (i['track'][LEN] * CDDA_BLOCKSIZE / 2) * 100.0
+        percent = float(y[0]) / (i['track'][LEN] * CDDA_BLOCKSIZE / 2) * 100.0
     else:
         percent = 0
 \"\"\"
@@ -454,7 +454,7 @@ if find(s, "%") >= 0:
     y = split(s, " / ")
     y0 = split(y[0])[-1]
     y1 = split(y[1])[0]
-    percent=atof(y0) / atof(y1) * 100.0
+    percent=float(y0) / float(y1) * 100.0
 else:
     percent = 0
 \"\"\"
@@ -481,12 +481,12 @@ if len(s) == 1: s=s[0]
 if find(s, "%") >= 0:       # status reporting starts here
     y = split(s, "/")
     y1 = split(y[1], "(")[0]
-    percent = atof(y[0]) / atof(y1) * 100.0
+    percent = float(y[0]) / float(y1) * 100.0
 elif find(s, "Frame:") >= 0:    # older versions, like 3.13
     y = split(s, "/")
     y0 = split(y[0], "[")[-1]
     y1 = split(y[1], "]")[0]
-    percent = atof(y0) / atof(y1) * 100.0
+    percent = float(y0) / float(y1) * 100.0
 else:
     percent = 0
 \"\"\"
@@ -511,7 +511,7 @@ if find(s, "%") >= 0: # status reporting starts here
     y = split(s, "/")
     y0 = split(y[0], "{")[-1]
     y1 = split(y[1], "}")[0]
-    percent = atof(y0) / atof(y1) * 100.0
+    percent = float(y0) / float(y1) * 100.0
 else:
     percent = 0
 \"\"\"
@@ -529,7 +529,7 @@ s = split(i['buf'], '\\\\015')
 if len(s) >= 2: s=s[-2]
 if find(s, "Status:") != -1:
     y = split(s[8:])
-    percent = atof(split(y[0], '%')[0])
+    percent = float(split(y[0], '%')[0])
 else:
     percent = 0
 \"\"\"
@@ -554,7 +554,7 @@ if find(s, "ETA:") != -1:
     if len(y) == 0:
         percent = 0
     else:
-        percent = atof(y)
+        percent = float(y)
 else:
     percent = 0
 \"\"\"
@@ -576,7 +576,7 @@ new_status = ""
 if len(tmp) >= 2:
     tmp = split(tmp[-2], " @ ")
     if tmp[0] == "##: -2 [wrote]":
-        percent = (atof(tmp[1]) - (i['track'][START] * CDDA_BLOCKSIZE / 2.0)) / (i['track'][LEN] * CDDA_BLOCKSIZE / 2.0) * 100.0
+        percent = (float(tmp[1]) - (i['track'][START] * CDDA_BLOCKSIZE / 2.0)) / (i['track'][LEN] * CDDA_BLOCKSIZE / 2.0) * 100.0
         new_status = "[otf - reading, %2i%%]" % percent
 \"\"\",
         'final_status_fkt': \"\"\"
@@ -599,11 +599,11 @@ while l:
         start = 1
     elif l and start:
         l = split(l, '.', 1)
-        num = atoi(l[0])
+        num = int(l[0])
         l = split(l[1])
         if len(erg) == 0 and num != 1:
-            erg.append([1, atoi(l[2]), 0, 0, 0, 0, 0, 0, name % 1])
-        erg.append([num, atoi(l[0]), atoi(l[2]), l[4] == 'OK', l[5] == 'yes', atoi(l[6]), 1, bitrate, name % num])
+            erg.append([1, int(l[2]), 0, 0, 0, 0, 0, 0, name % 1])
+        erg.append([num, int(l[0]), int(l[2]), l[4] == 'OK', l[5] == 'yes', int(l[6]), 1, bitrate, name % num])
     l = p.readline()
 \"\"\"
     },
@@ -653,7 +653,7 @@ while 1:
             x = split(i, ")")[0]
             x = strip(x)
             try:
-                new_starts.append(atoi(x))
+                new_starts.append(int(x))
             except:
                 pass
         continue
@@ -675,17 +675,17 @@ while 1:
         if l[0] == "Leadout:":
             start = 0
         else:
-            num = atoi(l[0][1:3])
+            num = int(l[0][1:3])
             if l[6] == "stereo":
                 channels = 2
             elif l[6] == "mono":
                 channels = 1
             else:
                 channels = 0
-            t_start = atoi(l[1])
+            t_start = int(l[1])
             msf = split(l[2], ":")
             sf = split(msf[1], ".")
-            t_length = atoi(sf[1]) + atoi(sf[0]) * 75 + atoi(msf[0]) * 60 * 75
+            t_length = int(sf[1]) + int(sf[0]) * 75 + int(msf[0]) * 60 * 75
             erg.append([num, t_length, t_start, l[5] == "copyallowed", l[4] != "linear", channels, 1, bitrate, name % num])
 if new_c2w and len(new_lengths) == len(new_starts) - 1:
     for i in range(min(len(new_lengths), len(new_starts))): # this provokes an error if the lists are of different length
@@ -720,12 +720,12 @@ while l:
         if l[3] == "leadout":
             start = 0
         else:
-            num = atoi(l[0])
+            num = int(l[0])
             channels = 2
             copy = 0
             pre = 0
-            t_start = atoi(l[1]) - 150
-            t_length = atoi(l[2])
+            t_start = int(l[1]) - 150
+            t_length = int(l[2])
             erg.append([num, t_length, t_start, copy, pre, channels, 1, bitrate, name % num])
     l = p.readline()
 \"\"\"
@@ -753,8 +753,8 @@ while l:
     l = rstrip(l)
     if l:
         l = split(l)
-        num = atoi(l[0])
-        erg.append([num, 1 + atoi(l[3]) - atoi(l[2]), atoi(l[2]), 0, 0, 2, 1, bitrate, name % num])
+        num = int(l[0])
+        erg.append([num, 1 + int(l[3]) - int(l[2]), int(l[2]), 0, 0, 2, 1, bitrate, name % num])
     l = p.readline()
 \"\"\"
     },
@@ -941,13 +941,13 @@ def df_df(fs = ".", blocksize = 1024):
     for i in range(len(s)):
         if s[i] == "Available":
             s = split(rstrip(p.readline()))
-            return atoi(s[i]) * long(blocksize) - long(keep_free)
+            return int(s[i]) * long(blocksize) - long(keep_free)
     p.close()
 
 def get_sysload_linux_proc():
     "extract sysload from /proc/loadavg, linux only (?)"
     f = open("/proc/loadavg", "r")
-    loadavg = atof(split(f.readline())[0])
+    loadavg = float(split(f.readline())[0])
     return loadavg
 
 def center_line(str, fill = " ", fill_sep = " ", fill_r = "", width = 80):
@@ -1019,10 +1019,6 @@ def gettoc():
             print "cd into the created directory which is either named after the CD's title"
             print "or still called jack-xxxxxxxx (xxxxxxxx is a hex number)."
             sys.exit(1)
-
-
-
-
         return erg
 
 def guesstoc(names):
@@ -1083,9 +1079,9 @@ def guesstoc(names):
 def timestrtoblocks(str):
     "convert mm:ss:ff to blocks"
     str = split(str, ":")
-    blocks = atoi(str[2])
-    blocks = blocks + atoi(str[1]) * CDDA_BLOCKS_PER_SECOND
-    blocks = blocks + atoi(str[0]) * 60 * CDDA_BLOCKS_PER_SECOND
+    blocks = int(str[2])
+    blocks = blocks + int(str[1]) * CDDA_BLOCKS_PER_SECOND
+    blocks = blocks + int(str[0]) * 60 * CDDA_BLOCKS_PER_SECOND
     return blocks
 
 B_MM, B_SS, B_FF = 0, 1, 2
@@ -1396,10 +1392,14 @@ def freedb_query(cd_id, tracks, file):
                 buf = f.readline()
             x = -1
             while x < 0 or x > num - 1:
-                x = atoi(raw_input(" 0.) none of the above: "))
-            if not x:
-                print "ok, aborting."
-                exit()
+                input = raw_input(" 0.) none of the above: ")
+                if not input:
+                    print "ok, aborting."
+                    exit()
+                try:
+                    x = int(input)
+                except ValueError:
+                    x = -1    # start the loop again
 
             buf = matches[x-1]
             buf = split(buf, " ", 2)
@@ -1463,7 +1463,7 @@ def freedb_names(cd_id, tracks, name, various, verb = 0, warn = 1):
                                         # spaces
         line = replace(line, "\r", "")  # I consider "\r"s as bugs in db info
         if starts_with(line, "# Revision:"):
-            revision = atoi(line[11:])
+            revision = int(line[11:])
         for i in ["DISCID", "DTITLE", "TTITLE", "EXTD", "EXTT"]:
             if starts_with(line, i):
                 buf = line
@@ -1486,9 +1486,9 @@ def freedb_names(cd_id, tracks, name, various, verb = 0, warn = 1):
 
     for i in freedb.keys():# check that there is no extra info
         if i[0:6] == "TTITLE":
-            if atoi(i[6:]) > tracks_on_cd - 1:
+            if int(i[6:]) > tracks_on_cd - 1:
                 error = 2
-                if verb: print "Error: extra freedb info for track %02i (\"%s\"), cd has only %02i tracks." % (atoi(i[6:]) + 1, i, tracks_on_cd)
+                if verb: print "Error: extra freedb info for track %02i (\"%s\"), cd has only %02i tracks." % (int(i[6:]) + 1, i, tracks_on_cd)
 
     if not freedb.has_key("DTITLE"):
         error = 3
@@ -1535,7 +1535,7 @@ def freedb_names(cd_id, tracks, name, various, verb = 0, warn = 1):
             try:
                 extd_info = freedb['EXTD'][extra_tag_pos + 7:]
                 extd_year, extd_id3g = split(extd_info, "ID3G:", 1)
-                extd_year, extd_id3g = atoi(extd_year), atoi(extd_id3g)
+                extd_year, extd_id3g = int(extd_year), int(extd_id3g)
             except:
                 print "can't handle '%s'." % freedb['EXTD']
             names = [split(dtitle,"/",1)]
@@ -1763,10 +1763,15 @@ def do_freedb_submit(file, cd_id):
         exit()
     x = -1
     while x < 0 or x > num - 1:
-        x = atoi(raw_input(" 0.) none of the above: "))
-    if not x:
-        print "ok, aborting."
-        exit()
+        input = raw_input(" 0.) none of the above: ")
+        if not input:
+            print "ok, aborting."
+            exit()
+        try:
+            x = int(input)
+        except ValueError:
+            x = -1    # start the loop again
+
     cat = cat[x - 1]
     print "OK, using `" + cat + "'."
     email = freedb_servers[freedb_server]['my_mail']
@@ -1841,10 +1846,15 @@ def do_freedb_mailsubmit(file, cd_id):
         num = num + 1
     x = -1
     while x < 0 or x > num - 1:
-        x = atoi(raw_input(" 0.) none of the above: "))
-    if not x:
-        print "ok, aborting."
-        exit()
+        input = raw_input(" 0.) none of the above: ")
+        if not input:
+            print "ok, aborting."
+            exit()
+        try:
+            x = int(input)
+        except ValueError:
+            x = -1    # start the loop again
+
     cat = cat[x - 1]
     print "OK, using `" + cat + "'."
     if find(freedb_servers[freedb_server]['my_mail'], "@") >= 1 and len(freedb_servers[freedb_server]['my_mail']) > 3:
@@ -2261,6 +2271,20 @@ def yes(what):
     else:
         return "no"
 
+def safe_int(number, message):
+    try:
+        return int(number)
+    except ValueError:
+        print message
+        exit(1)
+
+def safe_float(number, message):
+    try:
+        return float(number)
+    except ValueError:
+        print message
+        exit(1)
+
 def sig_handler(sig, frame):
     "signal handler and general cleanup procedure"
     if frame < 0:
@@ -2547,7 +2571,7 @@ while i<len(argv):
         i = i + 1
     elif argv[i] in ("-b", "--bitrate"):
         argv_bitrate = 1
-        bitrate = atoi(argv[i + 1])
+        bitrate = safe_int(argv[i + 1], "-b/--bitrate has to be a number.")
         i = i + 1
     elif argv[i] in ("-F", "--from-image"):
         image_file = argv[i + 1]
@@ -2558,16 +2582,16 @@ while i<len(argv):
         read_ahead = 0          # we do not want to waste discspace
         i = i + 1
     elif argv[i] in ("-e", "--encoders"):
-        encoders = atoi(argv[i + 1])
+        encoders = safe_int(argv[i + 1], "-e/--encoders has to be a number.")
         i = i + 1
     elif argv[i] in ("-E", "--encoder-name"):
         encoder = argv[i + 1]
         i = i + 1
     elif argv[i] in ("-n", "--nice"):
-        nice_value = atoi(argv[i + 1])
+        nice_value = safe_int(argv[i + 1], "-n/--nice has to be a number.")
         i = i + 1
     elif argv[i] in ("-l", "--max-load"):
-        max_load = atof(argv[i + 1])
+        max_load = safe_float(argv[i + 1], "-l/--max-load has to be a number.")
         i = i + 1
     elif argv[i] in ("-g", "--guess-toc"):
         i = i + 1
@@ -2582,11 +2606,11 @@ while i<len(argv):
     elif argv[i] in ("-U", "--update-freedb"):
         update_freedb = 1
     elif argv[i] in ("-s", "--space"):  # in bytes, overrides autodetection
-        space_from_argv = atoi(argv[i + 1])
+        space_from_argv = safe_int(argv[i + 1], "-s/--space has to be a number.")
         space_set_from_argv = 1
         i = i + 1
     elif argv[i] in ("-a", "--read-ahead"):
-        read_ahead = atoi(argv[i + 1])
+        read_ahead = safe_int(argv[i + 1], "-a/--read-ahead has to be a number.")
         i = i + 1
     elif argv[i] == "--server":
         freedb_server = argv[i + 1]
@@ -2647,7 +2671,7 @@ while i<len(argv):
     elif argv[i] in ("", "--multi-mode"):
         multi_mode = 1
     elif argv[i] in ("", "--scan-dirs"):
-        scan_dirs = atoi(argv[i + 1])
+        scan_dirs = safe_int(argv[i + 1], "--scan-dirs has to be a number.")
         i = i + 1
     elif argv[i] in ("-d", "--dont-work"):
         dont_work = 1
@@ -2678,7 +2702,7 @@ while i<len(argv):
             del id3temp
         i = i + 1
     elif argv[i] in ("-Y", "--id3-year"):
-        id3_year = atoi(argv[i + 1])
+        id3_year = safe_int(argv[i + 1], "-Y/--id3-year has to be a number.")
         i = i + 1
     elif argv[i] == "--todo":
         todo_exit = 1
@@ -2984,14 +3008,16 @@ else:       # example: "1,2,4-8,12-" ->  [ 1,2,4,5,6,7,8,12,13,...,n ]
     for k in tracks:
         if find(k, '-') >= 0:
             k = split(k, '-')
+            lower_limit = safe_int(k[0], "Track '%s' is not a number." % k[0])
             if k[1]:
-                upper_limit = atoi(k[1])
+                upper_limit = safe_int(k[1], "Track '%s' is not a number." % k[1])
             else:
                 upper_limit = len(all_tracks)
-            for j in range(atoi(k[0]), upper_limit + 1):
+            for j in range(lower_limit, upper_limit + 1):
                 tlist.append(j)
         else:
-            tlist.append(atoi(k))
+            track = safe_int(k, "Track '%s' is not a number." % k)
+            tlist.append(track)
 
     # uniq the track list
     tlist.sort()
@@ -3005,6 +3031,9 @@ else:       # example: "1,2,4-8,12-" ->  [ 1,2,4,5,6,7,8,12,13,...,n ]
     # generate todo
     todo = []
     for k in tlist:
+        if k < 1 or k > len(all_tracks):
+            print 'This CD has tracks 1-%d.  Ignoring request for track %d.' % (len(all_tracks), k)
+            continue
         if all_tracks[k-1][CH] == 2:
             todo.append(all_tracks[k-1])
         else:
@@ -3068,7 +3097,7 @@ if path.exists(progress_file):
 
         buf = split(buf, progr_sep, 3)
         try:
-            num = atoi(buf[0])
+            num = int(buf[0])
         except ValueError:
             num = buf[0]
         if buf[1] == 'undo':        # this needs special treatment as
@@ -3111,7 +3140,7 @@ for i in status.keys():
         print "Error: malformed progress file, exit."
         sys.exit()
     if len(status[i]['enc']) == 2:
-        tracknum[i][RATE] = int(atof(status[i]['enc'][0]) + 0.5)
+        tracknum[i][RATE] = int(float(status[i]['enc'][0]) + 0.5)
         status[i]['enc'] = status[i]['enc'][1]
     elif status[i]['enc'] and len(status[i]['enc']) == 1:
         tracknum[i][RATE] = bitrate
@@ -3128,8 +3157,8 @@ for i in status.keys():
 
 dir_created = status_all['names'][-1]
 
-status_all['id3_genre'] = atoi(status_all['id3_genre'][-1])
-status_all['id3_year'] = atoi(status_all['id3_year'][-1])
+status_all['id3_genre'] = int(status_all['id3_genre'][-1])
+status_all['id3_year'] = int(status_all['id3_year'][-1])
 
 if id3_genre == -1:
     id3_genre = status_all['id3_genre']
