@@ -22,7 +22,7 @@
 ### see CHANGELOG for recent changes in this program
 ### see TODO if you want to see what needs to be implemented
 
-prog_version = "2.99.3"
+prog_version = "2.99.4"
 prog_name = "jack"
 DEBUG = 0
 
@@ -313,9 +313,9 @@ else:
 helpers['lame'] = {}
 helpers['lame']['type'] = "encoder"
 helpers['lame']['cmd'] = "lame -h -b %r %i %o"
-helpers['lame']['vbr-cmd'] = "lame -v -V 4 --nohist -h %i %o"
+helpers['lame']['vbr-cmd'] = "lame -V1 -q1 -mj -k -b112 -h --nohist %i %o"
 helpers['lame']['otf-cmd'] = "lame -h -b %r - %o"
-helpers['lame']['vbr-otf-cmd'] = "lame -v -V 4 --nohist -h - %o"
+helpers['lame']['vbr-otf-cmd'] = "lame -V1 -q1 -mj -k -b112 -h --nohist - %o"
 
 # from lame:     -V n    quality setting for VBR.  default n=4
 #                        0=high quality,bigger files. 9=smaller files
@@ -378,8 +378,8 @@ else:
 
 helpers['cdparanoia'] = {}
 helpers['cdparanoia']['type'] = "ripper"
-helpers['cdparanoia']['cmd'] = "cdparanoia -d %d %n %o"
-helpers['cdparanoia']['otf-cmd'] = "cdparanoia -e -d %d %n -R -"
+helpers['cdparanoia']['cmd'] = "cdparanoia --abort-on-skip -d %d %n %o"
+helpers['cdparanoia']['otf-cmd'] = "cdparanoia --abort-on-skip -e -d %d %n -R -"
 helpers['cdparanoia']['status_blocksize'] = 500
 helpers['cdparanoia']['status_start'] = "%"
 helpers['cdparanoia']['status_fkt'] = \"\"\"
@@ -417,6 +417,8 @@ while l:
     l = split(l, '.', 1)
     num = atoi(l[0])
     l = split(l[1])
+    if len(erg) == 0 and num != 1:
+        erg.append([1, atoi(l[2]), 0, 0, 0, 0, 0, 0, name % 1])
     erg.append([num, atoi(l[0]), atoi(l[2]), l[4] == 'OK', l[5] == 'yes', atoi(l[6]), 1, bitrate, name % num])
   l = p.readline()
 \"\"\"
@@ -608,6 +610,7 @@ special_line = None # a status line
 bottom_line = None  # a status line
 extra_lines = None  # number of status lines actually displayed
 printable_names = None  # these are displayed for the track names
+max_name_len = None     # max len of printable_names[]
 names_available = 0 # freedb info is available
 all_tracks_todo_sorted = [] # well...
 xterm_geom_changed = 0      # only restore xterm size if it was changed
@@ -657,7 +660,7 @@ STDERR_FILENO = 2
 #################################################################### functions
 
 
-def local_freedb(id, freedb_dir, outfile = "/tmp/testfilefreedb"):
+def local_freedb(cd_id, freedb_dir, outfile = "/tmp/testfilefreedb"):
     "Use file from local freedb directory"
     # Moritz Moeller-Herrmann kindly provided this functionality.
     if not path.isdir(freedb_dir):
@@ -673,8 +676,8 @@ def local_freedb(id, freedb_dir, outfile = "/tmp/testfilefreedb"):
     if DEBUG: print cat
     for musicdir in cat:
         for m in os.listdir(musicdir):
-            if m == id:
-                idfile = path.join(musicdir, id)
+            if m == cd_id:
+                idfile = path.join(musicdir, cd_id)
                 inf = open (idfile, "r")
                 outf = open (outfile, "w")
                 buf = inf.readline()
@@ -1023,6 +1026,9 @@ def real_cdrdao_gettoc(tocfile):     # get toc from cdrdao-style toc-file
                 actual_track.type = "audio"
             else:
                 actual_track.type = "other" # we don't care
+                actual_track.channels = 0
+                actual_track.rip = 0
+                actual_track.bitrate = 0
 
 ## check the various track flags.
 ## FOUR_CHANNEL_AUDIO is not supported.
@@ -1083,14 +1089,17 @@ def msftostr(msf):
     "convert msf format to readable string"
     return "%02i" % msf[B_MM]+":"+"%02i" % msf[B_SS]+":"+"%02i" % msf[B_FF]
 
-def cdrdao_puttoc(tocfile, tracks, id):     # put toc to cdrdao toc-file
+def cdrdao_puttoc(tocfile, tracks, cd_id):     # put toc to cdrdao toc-file
     "writes toc-file from tracks"
     f = open(tocfile, "w")
     f.write("CD_DA\n\n")
-    f.write("// DB-ID=" + id + "\n\n")
+    f.write("// DB-ID=" + cd_id + "\n\n")
     for i in tracks:
         f.write("// Track " + `i[NUM]` + "\n")      # comments are cool
-        f.write("TRACK AUDIO\n")
+        if i[CH] in (2, 4):
+            f.write("TRACK AUDIO\n")
+        if i[CH] == 0:
+            f.write("TRACK MODE1\n")
         if i[COPY]:
             f.write("COPY\n")
         else:
@@ -1103,8 +1112,10 @@ def cdrdao_puttoc(tocfile, tracks, id):     # put toc to cdrdao toc-file
             f.write("TWO_CHANNEL_AUDIO\n")
         elif i[CH] == 4:
             f.write("FOUR_CHANNEL_AUDIO\n")
+        elif i[CH] == 0:
+            f.write("// not supported by jack!\n")
         else:
-            print "Error: illegal TOC: channels=" + i[CH] + ", aborting."
+            print "Error: illegal TOC: channels=%i, aborting." % i[CH]
             exit()
         f.write('FILE "' + i[NAME] + '.wav" 0 ')
         x = i[LEN]
@@ -1215,11 +1226,11 @@ def freedb_template(tracks, names = "", revision = 0):
         f.write("EXTT" + `i[NUM]-1` + "=\n")
     f.write("PLAYORDER=\n")
 
-def freedb_query(id, tracks, file):
+def freedb_query(cd_id, tracks, file):
     if freedb_dir:
-        return local_freedb(id, freedb_dir, file) # use local database (if any)
+        return local_freedb(cd_id, freedb_dir, file) # use local database (if any)
 
-    qs = "cmd=cddb query " + id + " " + `len(tracks)` + " " # query string
+    qs = "cmd=cddb query " + cd_id + " " + `len(tracks)` + " " # query string
     for i in tracks:
         qs = qs + `i[START] + MSF_OFFSET` + " "
     qs = qs + `(MSF_OFFSET + tracks[-1][START] + tracks[-1][LEN]) / CDDA_BLOCKS_PER_SECOND`
@@ -1251,7 +1262,7 @@ def freedb_query(id, tracks, file):
             buf = matches[x-1]
             buf = split(buf, " ", 2)
             freedb_cat = buf[0]
-            id = buf[1]
+            cd_id = buf[1]
             err = 0
 
         elif buf[0:3] == "200":
@@ -1266,7 +1277,7 @@ def freedb_query(id, tracks, file):
             print "     : don't know what to do, aborting."
             exit()
 
-        cmd = "cmd=cddb read " + freedb_cat + " " + id
+        cmd = "cmd=cddb read " + freedb_cat + " " + cd_id
         url = "http://" + freedb_server + "/~cddb/cddb.cgi?" + quote_plus(cmd + "&" + hello + "&proto=3", "=&")
         f = urlopen(url)
         buf = f.readline()
@@ -1296,8 +1307,8 @@ def freedb_query(id, tracks, file):
     f.close()
     return err
 
-def freedb_names(id, tracks, name, various, verb = 0, warn = 1):
-    "returns error, [(artist, albumname), (track_01-artist, track_01-name), ...], id, revision"
+def freedb_names(cd_id, tracks, name, various, verb = 0, warn = 1):
+    "returns error, [(artist, albumname), (track_01-artist, track_01-name), ...], cd_id, revision"
     error = 0
     tracks_on_cd = tracks[-1][NUM]
     freedb = {}
@@ -1350,10 +1361,10 @@ def freedb_names(id, tracks, name, various, verb = 0, warn = 1):
         read_ids = split(freedb['DISCID'], ",")
         id_matched = 0
         for i in read_ids:
-            if i == id:
+            if i == cd_id:
                 id_matched = 1
         if not id_matched and warn:
-            print "Warning: calculated id (" + id + ") and id from freedb file"
+            print "Warning: calculated id (" + cd_id + ") and id from freedb file"
             print "       : (", read_ids, ")"
             print "       : do not match, hopefully due to inexact match."
         for i in read_ids:
@@ -1535,7 +1546,7 @@ def freedb_names(id, tracks, name, various, verb = 0, warn = 1):
                     i[j] = replace(i[j][1:], '"', '', 1)
     return error, names, read_id, revision
 
-def do_freedb_submit(file, id):
+def do_freedb_submit(file, cd_id):
     from httplib import *
     hello = "hello=" + username + " " + hostname + " " + prog_name + " " + prog_version
     print "Info: querying categories..."
@@ -1609,7 +1620,7 @@ def do_freedb_submit(file, id):
         h = HTTP(freedb_server)
         h.putrequest('POST', '/~cddb/submit.cgi')
     h.putheader('Category', cat)
-    h.putheader('Discid', id)
+    h.putheader('Discid', cd_id)
     h.putheader('User-Email', email)
     h.putheader('Submit-Mode', 'test')
     h.putheader('Charset', 'ISO-8859-1')
@@ -1638,7 +1649,7 @@ def do_freedb_submit(file, id):
     print err, msg
     #print f.read()
 
-def do_freedb_mailsubmit(file, id):
+def do_freedb_mailsubmit(file, cd_id):
     cat = ["blues", "classical", "country", "data", "folk", "jazz", "misc", "newage", "reggae", "rock", "soundtrack"]
     num = 1
     
@@ -1655,7 +1666,7 @@ def do_freedb_mailsubmit(file, id):
     cat = cat[x - 1]
     print "OK, using `" + cat + "'."
     if find(my_mail, "@") >= 1 and len(my_mail) > 3:
-        return system("( echo 'To: " + freedb_mail + "'; echo From: '" + my_mail + "'; echo 'Subject: cddb " + cat + " " + id + "' ; cat '" + file + "' ) | sendmail -t")
+        return system("( echo 'To: " + freedb_mail + "'; echo From: '" + my_mail + "'; echo 'Subject: cddb " + cat + " " + cd_id + "' ; cat '" + file + "' ) | sendmail -t")
     else:
         print "please set your e-mail address. aborting..."
 
@@ -2159,7 +2170,8 @@ def sig_winch_handler(sig, frame):
             usage_win.refresh()
 
         for i in all_tracks_todo_sorted:
-            status_pad.addstr(map_track_num[i[NUM]], 0, printable_names[i[NUM]] + ": " + dae_status[i[NUM]] + " " + enc_status[i[NUM]])
+            dae_stat_upd(i[NUM], dae_status[i[NUM]])
+            enc_stat_upd(i[NUM], enc_status[i[NUM]])
 
         status_pad.refresh(pad_y, pad_x, pad_start_y, pad_start_x, pad_end_y, pad_end_x)
     signal.signal(signal.SIGWINCH, sig_winch_handler)
@@ -2220,9 +2232,9 @@ def interpret_db_file(all_tracks, freedb_form_file, various, verb, dirs = 0, war
     global names_available, claim_dir, dir_created
     freedb_rename = 0
     if warn == None:
-        err, track_names, id, revision = freedb_names(freedb_id(all_tracks), all_tracks, freedb_form_file, various, verb = verb)
+        err, track_names, cd_id, revision = freedb_names(freedb_id(all_tracks), all_tracks, freedb_form_file, various, verb = verb)
     else:
-        err, track_names, id, revision = freedb_names(freedb_id(all_tracks), all_tracks, freedb_form_file, various, verb = verb, warn = warn)
+        err, track_names, cd_id, revision = freedb_names(freedb_id(all_tracks), all_tracks, freedb_form_file, various, verb = verb, warn = warn)
     if (not err) and dirs:
         freedb_rename = 1
 
@@ -2256,13 +2268,25 @@ def interpret_db_file(all_tracks, freedb_form_file, various, verb, dirs = 0, war
 def enc_stat_upd(num, string):
     enc_status[num] = string
     if curses_enable:
-        status_pad.addstr(map_track_num[num], 0, printable_names[num] + ": " + dae_status[num] + " " + enc_status[num])
+        status_pad.addstr(map_track_num[num], max_name_len + 40, " " + enc_status[num])
         status_pad.clrtoeol()
 
 def dae_stat_upd(num, string):
     dae_status[num] = string
     if curses_enable:
+        track = all_tracks[num-1]
         status_pad.addstr(map_track_num[num], 0, printable_names[num] + ": " + dae_status[num] + " " + enc_status[num])
+        dummy = """
+        if ripper == "cdparanoia" and track in dae_tracks or (track in enc_queue and track not in mp3s_done):
+            status_pad.addstr(map_track_num[num], 0, printable_names[num] + ": " + dae_status[num][:7])
+            pos = find(dae_status[num], ">")
+            if pos < 7:
+                pos = 37
+            status_pad.addstr(dae_status[num][7:pos], curses.A_REVERSE)
+            status_pad.addstr(dae_status[num][pos:])
+        else:
+            status_pad.addstr(map_track_num[num], 0, printable_names[num] + ": " + dae_status[num] + " " + enc_status[num])
+"""
         status_pad.clrtoeol()
 
 def print_status(form = 'normal'):
@@ -2595,7 +2619,7 @@ while (not path.exists(toc_file)) or multi_mode:
                     unique_dirs.append(jack_dirs[i])
             for i in unique_dirs:
                 all_tracks, new_image_file, multi_file_mode, track1_offset = cdrdao_gettoc(path.join(i, toc_file))
-                err, track_names, id, revision = freedb_names(freedb_id(all_tracks), all_tracks,  path.join(i, freedb_form_file), various, verb = 0, warn = 0)
+                err, track_names, cd_id, revision = freedb_names(freedb_id(all_tracks), all_tracks,  path.join(i, freedb_form_file), various, verb = 0, warn = 0)
                 if err or force:# this means freedb data is not there yet
                     print "Info: matching dir found:", i
                     chdir(i)
@@ -2654,6 +2678,8 @@ if check_toc:
     else:
         print "no toc-file named " + toc_file + " found, exiting."
         exit()
+    print cd_toc
+    print file_toc
     if cmp(cd_toc, file_toc) == 0:
         print 'Yes, toc-file ("' + toc_file + '") matches inserted CD.'
     else:
@@ -2671,16 +2697,16 @@ if path.exists(toc_file):
     if multi_file_mode:
         image_file = ""
     if freedb_submit:               # freedb submit
-        err, track_names, id, revision = freedb_names(freedb_id(all_tracks), all_tracks, freedb_form_file, various)
+        err, track_names, cd_id, revision = freedb_names(freedb_id(all_tracks), all_tracks, freedb_form_file, various)
         if not err:
-            do_freedb_submit(freedb_form_file, id)
+            do_freedb_submit(freedb_form_file, cd_id)
         else:
             print "Error: invalid freedb file."
         exit()
     elif freedb_mailsubmit:
-        err, track_names, id, revision = freedb_names(freedb_id(all_tracks), all_tracks, freedb_form_file, various)
+        err, track_names, cd_id, revision = freedb_names(freedb_id(all_tracks), all_tracks, freedb_form_file, various)
         if not err:
-            do_freedb_mailsubmit(freedb_form_file, id)
+            do_freedb_mailsubmit(freedb_form_file, cd_id)
         else:
             print "Error: invalid freedb file."
         exit()
@@ -2697,7 +2723,10 @@ for i in all_tracks:
 if not tracks:
     todo = []
     for i in all_tracks:
-        todo.append(i)
+        if i[CH] == 2:
+            todo.append(i)
+        else:
+            print "Warning: can't handle non audio track %i" % i[NUM]
 
 else:       # example: "1,2,4-8,12-" ->  [ 1,2,4,5,6,7,8,12,13,...,n ]
     tlist = []
@@ -2716,14 +2745,26 @@ else:       # example: "1,2,4-8,12-" ->  [ 1,2,4,5,6,7,8,12,13,...,n ]
     tlist.sort()
     todo = []
     if len(tlist) == 1:
-        todo.append(all_tracks[tlist[0] - 1])
+        if all_tracks[tlist[0] - 1][CH] == 2:
+            todo.append(all_tracks[tlist[0] - 1])
+        else:
+            print "Warning: can't handle non audio track %i" % all_tracks[tlist[0] - 1][NUM]
     else:
         for k in range(0, len(tlist)):
             if tlist[k] != tlist[k - 1]:
-                todo.append(all_tracks[tlist[k]-1])
+                if k[CH] == 2:
+                    todo.append(all_tracks[tlist[k]-1])
+                else:
+                    print "Warning: can't handle non audio track %i" % k[NUM]
+
 
 for i in todo:
     all_tracks_todo_sorted.append(i)
+
+if len(todo) == 0:
+    print "Error: nothing to do. bye."
+    exit()
+
 
 ### init status
 for i in todo:
@@ -2991,16 +3032,16 @@ for track in todo:
         else:
             space = space + filesize(wav)
             remove_q.append(wav)
-            dae_status[track[NUM]] = "Existing WAV was not complete."
+            dae_status[track[NUM]] =     " ---- [Existing WAV was not complete.]"
             if enc_status[track[NUM]] == "[MP3 lost, doing again]":
                 enc_status[track[NUM]] = ""
     else:
         if dae_status[track[NUM]]:
             if enc_status[track[NUM]] == "[MP3 lost, doing again]":
-                dae_status[track[NUM]] = "[WAV+MP3 lost, doing again]"
+                dae_status[track[NUM]] = " ---- [ WAV+MP3 lost, doing again    ]"
                 enc_status[track[NUM]] = ""
             elif keep_wavs or track not in mp3s_ready:
-                dae_status[track[NUM]] = "[WAV lost, doing again]"
+                dae_status[track[NUM]] = " ---- [ WAV lost, doing again        ]"
 
 if only_dae: keep_wavs = 1
 
@@ -3132,7 +3173,7 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, enc_running, da
     global max_y, max_x, extra_lines, pad_disp_start_y, pad_disp_start_x
     global default_height, default_width, xterm_geom_changed
     global children, global_error, bottom_line, width, height, helpers
-    global usage_win
+    global usage_win, max_name_len
 
     actual_load = -2    # this is always smaller than max_load
     waiting_load = 0    # are we waiting for the load to drop?
@@ -3150,6 +3191,7 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, enc_running, da
     rot_ball_cycle = len(rotate_ball)
     rot_count = 0
     global_blocks = tracksize(wavs_todo)[BLOCKS] + tracksize(mp3s_todo)[BLOCKS]
+    global_total = tracksize(all_tracks_todo_sorted)[BLOCKS]
     global_start = time()
     global_done = 0 
     first_encoder = 1
@@ -3162,10 +3204,13 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, enc_running, da
     if names_available and show_names:
         max_name_len = max(map(lambda x: len(track_names[x[NUM]][1]), todo))
         max_name_len = len("01 ") + max_name_len
+        if show_time:
+            max_name_len = max_name_len + 6
     else:
         max_name_len = max(map(lambda x: len(x[NAME]), todo))
-    if show_time:
-        max_name_len = max_name_len + 6
+        if show_time:
+            pass
+            #XXX            max_name_len = max_name_len + 6
 
     for i in todo:
         if show_time:
@@ -3180,7 +3225,8 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, enc_running, da
             printable_names[i[NUM]] = tmp + "." * (max_name_len - len(tmp))
         else:
             if show_time:
-                printable_names[i[NUM]] = i[NAME] + " " + len_tmp + "." * (max_name_len - len(i[NAME]) - 6)
+                #XXX printable_names[i[NUM]] = i[NAME] + " " + len_tmp + "." * (max_name_len - len(i[NAME]) - 6)
+                printable_names[i[NUM]] = ("%02i " % i[NUM]) + len_tmp + "." * (max_name_len - len(i[NAME]) - 6)
             else:
                 printable_names[i[NUM]] = i[NAME] + "." * (max_name_len - len(i[NAME]))
 
@@ -3210,7 +3256,8 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, enc_running, da
         if curses_enable:
             max_y, max_x = stdscr.getmaxyx()
 
-        global_options = "Options:" + (" bitrate=%i" % bitrate) * (not vbr) + " vbr" * vbr + " reorder" * reorder + " read-ahead=" + `read_ahead` + " keep-wavs" * keep_wavs + " -+- press Q to quit"
+        global_options = "Options:" + (" bitrate=%i" % bitrate) * (not vbr) + " vbr" * vbr + " reorder" * reorder + " read-ahead=" + `read_ahead` + " keep-wavs" * keep_wavs + " id=" + freedb_id(all_tracks) + (" len=%02i:%02i" % (global_total / CDDA_BLOCKS_PER_SECOND / 60, global_total / CDDA_BLOCKS_PER_SECOND % 60)) + " | press Q to quit"
+            #eta_hms = eta_hms + "/%02i:%02i" % (global_total / CDDA_BLOCKS_PER_SECOND / 60, global_total / CDDA_BLOCKS_PER_SECOND % 60)
         extra_lines = 2
         if names_available:
             extra_lines = extra_lines + 1
@@ -3268,6 +3315,7 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, enc_running, da
                 dae_running = dae_running + 1
                 track = dae_queue[0]
                 dae_queue = dae_queue[1:]
+                #YYY dae_tracks.append(track)
                 if otf and not image_file:
                     #XXX image_reader can't do otf at the moment.
                     dae_stat_upd(track[NUM], ":DAE: waiting for status report...")
@@ -3305,7 +3353,7 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, enc_running, da
                     enc_running = enc_running + 1
                     track = enc_queue[0]
                     enc_queue = enc_queue[1:]
-                    enc_stat_upd(track[NUM], 'waiting for encoder status...')
+                    enc_stat_upd(track[NUM], "waiting for encoder...")
                     children.append(start_new_encoder(track, encoder))
                     if first_encoder:
                         first_encoder = 0
@@ -3448,6 +3496,7 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, enc_running, da
 
                 if exited_proc['type'] in ("ripper", "image_reader"):
                     dae_running = dae_running - 1
+                    #YYY dae_tracks.remove(exited_proc['track'])
                     if exec_when_done and exited_proc['type'] == "ripper" and dae_running == 0 and len(dae_queue) == 0:
                         system(exec_rip_done)
                     if not res:
@@ -3496,6 +3545,7 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, enc_running, da
 
                 elif exited_proc['type'] == "encoder":
                     enc_running = enc_running - 1
+                    #YYY mp3s_done.append(exited_proc['track'])
                     # completed vbr MP3s shouldn't be to small, but this still
                     # caused confusion so again, vbr is an exception:
                     if not vbr and not res and tracksize(track)[MP3] * 0.99 > filesize(track[NAME] + ".mp3"):
@@ -3553,6 +3603,8 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, enc_running, da
                             eta = (100 - i['percent']) * i['elapsed'] / i['percent']
                             eta_ms = "%02i:%02i" % (eta / 60, eta % 60)
                             enc_stat_upd(i['track'][NUM], '%2i%% done, ETA:%6s, %5.2fx' % (i['percent'], eta_ms, speed))
+                            #YYY if curses_enable:
+                                #YYY status_pad.addstr(map_track_num[i['track'][NUM]], max_name_len + 9, dae_status[i['track'][NUM]][7:8+int(30 * percent / 100)], curses.A_NORMAL)
         
                 elif i['type'] == "image_reader":
                     line = split(i['buf'], "\n")
@@ -3630,7 +3682,7 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, enc_running, da
             else:
                 special_line = None
 
-            bottom_line =  "(" + rot + ") " + "SPACE:" * (space_adjust != 0) + "space:" * (space_adjust == 0) + pprint_i(space, "%i%sB") + " waiting_WAVs:" + `len(enc_queue)` + " DAE:" + `rippers - dae_running` + "+" + `dae_running` + " ENC:" + `encoders - enc_running` + "+" + `enc_running` + eta_hms + " errors: " + `global_error` + smile + print_flags
+            bottom_line =  "(" + rot + ") " + "SPACE:" * (space_adjust != 0) + "space:" * (space_adjust == 0) + pprint_i(space, "%i%sB") + (" waiting_WAVs:%02i" % len(enc_queue)) + " DAE:" + `rippers - dae_running` + "+" + `dae_running` + " ENC:" + `encoders - enc_running` + "+" + `enc_running` + eta_hms + " errors: " + `global_error` + smile + print_flags
 
             if curses_enable:
                 if special_line and not had_special:
@@ -3688,6 +3740,7 @@ except SystemExit:
         #XXX stdscr.move(max_y - 1, 0)
         curses.echo() ; curses.nocbreak()
         curses.endwin()
+    print global_options
     print "--- Last status: ---------------------------------------------------------------"
     if max_x and max_x >= pad_width:
         print_status()
@@ -3723,6 +3776,8 @@ if query_when_ready or read_freedb_file or query_on_start:
         exit()
 
 if curses_enable:
+    if global_options:
+        print global_options
     print "The final status was:"
     if max_x and max_x >= pad_width:
         print_status()
