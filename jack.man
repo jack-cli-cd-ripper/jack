@@ -93,6 +93,10 @@ by default.
 The device-name of your cdrom-drive. The default is 
 .B /dev/cdrom
 .TP
+.B \-\-edit-cddb
+open an editor to change the CDDB information which has been obtained
+previously (only useful with -Q).
+.TP
 .B \-e, \-\-encoders <num_encoders>
 encode how many files in parallel. If you have a SMP machine or
 simply want to stress your system, you can have Jack encode

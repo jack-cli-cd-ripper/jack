@@ -237,6 +237,7 @@ nice_value = 12     # what nice level (priority) encoders get
 overwrite = 0       # overwrite existing files
 remove_files = 0    # remove jack.* files when done
 silent_mode = 0     # silent-mode means: no output to screen
+edit_cddb = 0       # open an editor to edit the CDDB info
 
 ## Things to do when finished
 exec_when_done = 0  # execute commands below when finished, default: no
@@ -2568,6 +2569,13 @@ def print_status(form = 'normal'):
         else:
             print printable_names[i[NUM]] + ": " + dae_status[i[NUM]], enc_status[i[NUM]]
 
+def ex_edit(file):
+    editor = "/usr/bin/sensible-editor"
+    if os.environ.has_key("EDITOR"):
+        editor = os.environ['EDITOR']
+    print "invoking your editor,", editor, "..."
+    os.system(string.split(editor)[0] + " " + file)
+
 ##############################################################################
 ###################### M A I N ###############################################
 ##############################################################################
@@ -2754,6 +2762,8 @@ while i<len(argv):
         todo_exit = 1
     elif argv[i] == "--otf":
         otf = 1
+    elif argv[i] == "--edit-cddb":
+        edit_cddb = 1;
     else:
         if not argv[i] in ("-h", "-help", "--help"):
             print "unknown option", argv[i]
@@ -2808,6 +2818,7 @@ while i<len(argv):
         print "      --todo:         print what would be done and exit (" + yes(todo_exit) + ")"
         print "      --wait:         wait for key press before quitting"
         print "      --otf:          on-the-fly encoding *experimental* (" + yes(otf) + ")"
+        print "      --edit-cddb     edit CDDB information (" + yes(edit_cddb) + ")"
         print
         print "    When a freedb query is done, files are renamed and tagged accordingly."
 
@@ -3267,6 +3278,9 @@ if query_on_start:
         else:
             exit()
 
+    if edit_cddb:
+        ex_edit(freedb_form_file)
+
 if query_on_start:
     err, track_names, freedb_rename, revision = interpret_db_file(all_tracks, freedb_form_file, verb = query_on_start, dirs = 1)
     if err:
@@ -3280,11 +3294,7 @@ else:
 
 if update_freedb:
     freedb_template(all_tracks, track_names, revision + 1)
-    editor = "vi"
-    if os.environ.has_key("EDITOR"):
-        editor = os.environ['EDITOR']
-    print "invoking your editor,", editor, "..."
-    os.system(editor + " " + freedb_form_file)
+    ex_edit(freedb_form_file)
     print "now submit your changes if you like, either via e-mail using the"
     print "option -m or, if your server supports it (freedb does now!),"
     print "with --submit via http POST."
