@@ -238,7 +238,7 @@ def enc_stat_upd(num, string):
 
 def dae_stat_upd(num, string):
     track = jack_ripstuff.all_tracks[num-1]
-    status_pad.addstr(map_track_num[num], 0, (jack_ripstuff.printable_names[num] + ": " + jack_status.dae_status[num] + " " + jack_status.enc_status[num])[:jack_term.size_x - 1])
+    status_pad.addstr(map_track_num[num], 0, (jack_ripstuff.printable_names[num] + ": " + jack_status.dae_status[num] + " " + jack_status.enc_status[num]))
     dummy = """
     if ripper == "cdparanoia" and track in dae_tracks or (track in enc_queue and track not in mp3s_done):
         status_pad.addstr(map_track_num[num], 0, jack_ripstuff.printable_names[num] + ": " + jack_status.dae_status[num][:7])

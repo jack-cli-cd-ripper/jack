@@ -20,7 +20,10 @@ import string, types
 import sys
 import os
 
-def multi_replace(s, rules):
+def id(x):
+    return x
+
+def multi_replace(s, rules, filter = id):
     "like string.replace but take list (('from0', 'to0'), ('from1', 'to1'))..."
     # currently all from must be like %x (a percent sign follow by single char.
     res = ""
@@ -31,7 +34,7 @@ def multi_replace(s, rules):
             found = 0
             for j in rules:
                 if ("%" + i) == j[0]:
-                    res = res[:-1] + j[1]
+                    res = res[:-1] + filter(j[1])
                     found = 1
             if found:
                 continue

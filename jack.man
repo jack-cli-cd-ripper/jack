@@ -140,8 +140,8 @@ The device-name of your cdrom-drive. The default is
 if directories are renamed, this is the format used (default "%a/%l")
 .TP
 .B \-d, \-\-dont-work
-don't do DAE or encoding. This may be useful if you only want to
-do a freedb query.
+don't do DAE, encoding, tagging or renaming. This may be useful if you only
+want to do a freedb query, e.g. while another jack is running.
 .TP
 .B \-\-edit-cddb
 open an editor to change the CDDB information which has been obtained
@@ -217,7 +217,7 @@ do not delete WAVs after encoding them.
 submit freedb entry via e-mail. HTTP submission is preferred. 
 You will have to enter the category of the CD.
 .TP
-.B \-l, \-\-max-load int
+.B \-l, \-\-max-load float
 only start new encoders if your system's load is below the specified value.
 /proc/loadavg must be readable by you for this to work.
 .TP
@@ -231,11 +231,6 @@ your e-mail address, needed for freedb submissions.
 .B \-n, \-\-nice int
 nice-level with which the encoders are started. Default is 12
 which shouldn't hurt your system much.
-.TP
-.B \-\-no-various
-use this if freedb data says it's "Various Artists" but you want
-the normal renaming scheme, e.g. if Jack can't separate artist
-and track title.
 .TP
 .B \-o, \-\-overwrite
 overwrite existing files, i.e. do not check if already
@@ -279,8 +274,7 @@ queried before.
 do freedb query when starting. Use this if you are connected to
 the Internet when starting Jack. Know that the query may need
 user-interaction. After having finished ripping and encoding, Jack
-will rename the files and tag them using Ben Gertzfield's ID3.py
-module.
+will rename the files and tag them.
 .TP
 .B \-a, \-\-read-ahead int
 read how many WAVs in advance. At most read_ahead + num_encoders

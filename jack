@@ -258,30 +258,12 @@ if global_error:
     error("aborting because of previous error(s) [%i]." % global_error)
 
 jack_tag.tag(freedb_rename)
-sys.exit(0)
-
-if not cf['_silent_mode']:
-    if jack_freedb.names_available:
-        print "Done with \"" + jack_tag.a_artist+ " - " + jack_tag.a_title + "\"."
-    else:
-        print "All done.",
-    if cf['_set_id3tag'] and cf['_id3_year'] != -1:
-        print "Year: %4i" % cf['_id3_year'],
-        if cf['_id3_genre'] == -1: print
-    if cf['_set_id3tag'] and cf['_id3_genre'] != -1:
-        if cf['_id3_genre'] <0 or cf['_id3_genre'] > len(id3genres):
-            print "Genre: [unknown]"
-        else:
-            print "Genre: %s" % id3genres[cf['_id3_genre']]
-    if cf['_vbr'] and not cf['_only_dae']:
-        print "Avg. bitrate: %03.0fkbit" % ((total_size * 0.008) / (total_length / 75))
-    else:
-        print
 
 if jack_functions.progress_changed:
     jack_functions.progress("all", "done", time.strftime("%b %2d %H:%M:%S", time.localtime(time.time())))
 
 if cf['_remove_files']:
+    print "cleaning up in", os.getcwd()
     for i in [cf['_progress_file'], cf['_toc_file'], cf['_def_toc'], cf['_freedb_form_file'], cf['_freedb_form_file'] + ".bak"]:
         if os.path.exists(i):
             os.remove(i)

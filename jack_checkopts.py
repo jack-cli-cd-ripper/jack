@@ -80,6 +80,11 @@ def consistency_check(cf):
         if not jack_freedb.freedb_servers.has_key(cf['freedb_server']['val']):
             error("unknown server, choose one: " + `jack_freedb.freedb_servers.keys()`)
 
+    # check dir_template and scan_dirs
+    if len(cf['_dir_template'].split(os.path.sep)) > cf['_scan_dirs']:
+        cf.rupdate({'scan_dirs': {'val': len(cf['_dir_template'].split(os.path.sep))}}, "check")
+        warning("dir-template consists of more sub-paths (%i) than scan-dirs (%i). Jack may not find the workdir next time he is run. (Auto-raised)" % (len(cf['_dir_template'].split(os.path.sep)), cf['_scan_dirs']))
+
     # check for unsername
     if cf['username']['val'] == None:
         if os.environ.has_key('USER') and os.environ['USER'] != "":

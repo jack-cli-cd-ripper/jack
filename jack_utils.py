@@ -154,17 +154,20 @@ def safe_float(number, message):
         print message
         sys.exit(1)
 
+def unusable_charmap(x):
+    for i in range(len(cf['_unusable_chars'])):
+        x = string.replace(x, cf['_unusable_chars'][i], cf['_replacement_chars'][i])
+    return x
+    
 def mkdirname(names, template):
     "generate mkdir-able directory name(s)"
-    dirs = list(os.path.split(template))
+    dirs = template.split(os.path.sep)
         
     dirs2 = []
     for i in dirs:
         replace_list = (("%a", names[0][0]), ("%l", names[0][1]), ("%y", `cf['_id3_year']`), ("%g", cf['_id3_genre_txt']))
-        x = jack_misc.multi_replace(i, replace_list)
+        x = jack_misc.multi_replace(i, replace_list, unusable_charmap)
         exec("x = x" + cf['_char_filter'])
-        for char_i in range(len(cf['_unusable_chars'])):
-            x = string.replace(x, cf['_unusable_chars'][char_i], cf['_replacement_chars'][char_i])
         dirs2.append(x)
     if cf['_append_year'] and len(`cf['_id3_year']`) == 4:  # Y10K bug!
         dirs2[-1] = dirs2[-1] + jack_misc.multi_replace(cf['_append_year'], replace_list)
