@@ -105,6 +105,9 @@ prefs_file = environ['HOME'] + "/.jackrc"
 prefs = """
 ## edit these defaults ##
 my_mail = "@"           # needed for e-mail submissions, please set
+# if environ.has_key('http_proxy'): del environ['http_proxy']
+                        # uncomment above line if you don't want to use your
+                        # default proxy
 ripper = "cdparanoia"   # use which program to rip: cdparanoia, tosha, cdda2wav,                        # dagrab (untested)
 cd_device = "/dev/cdrom"    # use which device for ripping
                             # note: cdda2wav needs something like "/dev/sgb"
@@ -467,7 +470,7 @@ else:
     new_status = "waiting..."
 \"\"\",
         'final_status_fkt': \"\"\"
-final_status = ("%5.1f" % speed) + "x [DAE done]"
+final_status = ("%5.1f" % speed) + "× [DAE done]"
 \"\"\",
         'toc': 1,
         'toc_cmd': "cdda2wav -D %d -J -v 1 2>&1",
@@ -548,7 +551,7 @@ else:
     new_status = "waiting..."
 \"\"\",
         'final_status_fkt': \"\"\"
-final_status = ("%5.1f" % speed) + "x [DAE done]"
+final_status = ("%5.1f" % speed) + "× [DAE done]"
 \"\"\",
         'toc': 1,
         'toc_cmd': "tosha -d %d -iq 2>&1",
@@ -574,18 +577,16 @@ if path.exists(prefs_file):
             print "Warning: Your " + path.basename(prefs_file) + "'s version (" + jackrc_version + ") doesn't match this version"
             print "       : of jack (" + prog_version + ")."
             print "       : make sure that nothing important is missing! (sleeping 5s)"
-            bla, bla, bla = select([sys.stdin], [], [], 5)
-            sys.stdin.flush()
+            sleep(5)
     except NameError:
         print "Warning: Your " + path.basename(prefs_file) + "'s version (unknown, too old) doesn't match"
         print "       : this version of jack (" + prog_version + ")."
         print "       : make sure that nothing important is missing! (sleeping 5s)"
-        bla, bla, bla = select([sys.stdin], [], [], 5)
-    sys.stdin.flush()
+        sleep(5)
 
 else:
     if not environ.has_key('http_proxy'):
-        print "Warning: http_proxy is not set, you probably want to set it."
+        print "Warning: http_proxy is not set, you may want to set it."
     print 'Info: no preferences "' + prefs_file + '" found, creating a new one...'
     f = open(prefs_file, "w")
     f.write("# preferences for " + prog_name + "-" + prog_version + "\n")
@@ -1204,7 +1205,7 @@ def freedb_template(tracks, names = "", revision = 0):
     f = open(freedb_form_file, "w")
     f.write("# xmcd CD database file\n#\n# Track frame offsets:\n")
     for i in tracks:
-        f.write("# " + `i[START] + MSF_OFFSET` + "\n")
+        f.write("#       " + `i[START] + MSF_OFFSET` + "\n")
     f.write("#\n# Disc length: " + `(MSF_OFFSET + tracks[-1][START] + tracks[-1][LEN]) / CDDA_BLOCKS_PER_SECOND`)
     f.write(" seconds\n#\n# Revision: %i\n" % revision)
     f.write("# Submitted via: " + prog_name + " " + prog_version + "\n#\n")
@@ -3268,8 +3269,15 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, enc_running, da
         if curses_enable:
             max_y, max_x = stdscr.getmaxyx()
 
-        global_options = "Options:" + (" bitrate=%i" % bitrate) * (not vbr) + " vbr" * vbr + " reorder" * reorder + " read-ahead=" + `read_ahead` + " keep-wavs" * keep_wavs + " id=" + freedb_id(all_tracks) + (" len=%02i:%02i" % (global_total / CDDA_BLOCKS_PER_SECOND / 60, global_total / CDDA_BLOCKS_PER_SECOND % 60)) + " | press Q to quit"
-            #eta_hms = eta_hms + "/%02i:%02i" % (global_total / CDDA_BLOCKS_PER_SECOND / 60, global_total / CDDA_BLOCKS_PER_SECOND % 60)
+        global_options = "Options:" \
+            + (" bitrate=%i" % bitrate) * (not vbr) + " vbr" * vbr \
+            + " reorder" * reorder \
+            + " read-ahead=" + `read_ahead` \
+            + " keep-wavs" * keep_wavs \
+            + " id=" + freedb_id(all_tracks) \
+            + (" len=%02i:%02i" % (global_total / CDDA_BLOCKS_PER_SECOND \
+                / 60, global_total / CDDA_BLOCKS_PER_SECOND % 60)) \
+            + " | press Q to quit"
         extra_lines = 2
         if names_available:
             extra_lines = extra_lines + 1
@@ -3576,9 +3584,9 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, enc_running, da
                     else:
                         global_done = global_done + exited_proc['track'][LEN]
                         if vbr:
-                            enc_stat_upd(num, "[coding @" + '%1.2f' % speed + "x done,%03.0fkbit]" % ((filesize(track[NAME] + ".mp3") * 0.008) / (track[LEN] / 75)))
+                            enc_stat_upd(num, "[coding @" + '%1.2f' % speed + "× done,%03.0fkbit]" % ((filesize(track[NAME] + ".mp3") * 0.008) / (track[LEN] / 75)))
                         else:
-                            enc_stat_upd(num, "[coding @" + '%1.2f' % speed + "x done, mp3 OK]")
+                            enc_stat_upd(num, "[coding @" + '%1.2f' % speed + "× done, mp3 OK]")
                         if not otf and not keep_wavs:
                             remove(track[NAME] + ".wav")
                             space = space + tracksize(track)[WAV]
@@ -3690,11 +3698,23 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, enc_running, da
             elif waiting_space >= 2:
                 special_line = " ...waiting for " + pprint_i(space_adjust, "%i %sBytes") + " to be freed.... "
             elif waiting_load:
-                special_line = " ...waiting for load (" + `actual_load` + ") to drop below " + `max_load`+"... "
+                special_line = " ...waiting for load (" \
+                    + `actual_load` \
+                    + ") to drop below " \
+                    + `max_load`+"... "
             else:
                 special_line = None
 
-            bottom_line =  "(" + rot + ") " + "SPACE:" * (space_adjust != 0) + "space:" * (space_adjust == 0) + pprint_i(space, "%i%sB") + (" waiting_WAVs:%02i" % len(enc_queue)) + " DAE:" + `rippers - dae_running` + "+" + `dae_running` + " ENC:" + `encoders - enc_running` + "+" + `enc_running` + eta_hms + " errors: " + `global_error` + smile + print_flags
+            bottom_line =  "(" + rot + ") " \
+                + "SPACE:" * (space_adjust != 0) \
+                + "space:" * (space_adjust == 0) \
+                + pprint_i(space, "%i%sB") \
+                + (" waiting_WAVs:%02i" % len(enc_queue)) \
+                + " DAE:" + `rippers - dae_running` + "+" + `dae_running` \
+                + " ENC:" + `encoders - enc_running` + "+" + `enc_running` \
+                + eta_hms \
+                + " errors: " + `global_error` \
+                + smile + print_flags
 
             if curses_enable:
                 if special_line and not had_special:
@@ -3743,13 +3763,11 @@ try:
     if curses_init:
         # Set everything back to normal
         stdscr.keypad(0)
-        #XXX stdscr.move(max_y - 1, 0)
         curses.echo() ; curses.nocbreak()
         curses.endwin()                 # Terminate curses
 except SystemExit:
     if curses_init:
         stdscr.keypad(0)
-        #XXX stdscr.move(max_y - 1, 0)
         curses.echo() ; curses.nocbreak()
         curses.endwin()
     print global_options
@@ -3764,7 +3782,6 @@ except:
         # In the event of an error, restore the terminal
         # to a sane state.
         stdscr.keypad(0)
-        #XXX stdscr.move(max_y - 1, 0)
         curses.echo() ; curses.nocbreak()
         curses.endwin()
     traceback.print_exc()         
@@ -3837,7 +3854,7 @@ if set_id3tag or freedb_rename:
                         t_comm = ""
             id3 = ID3(mp3name)
             id3.album = a_title
-            id3.track = i[NUM] # this is ignored if we have a ID3v1.0 tag
+            id3.track = i[NUM] # this is ignored if we have an ID3v1.0 tag
             if t_comm:
                 id3.comment = t_comm
                 id3.title = t_name2
