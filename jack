@@ -2300,7 +2300,7 @@ while i<len(argv):
             i = i + 1
     elif argv[i] in ("-x", "--exec"):
         exec_when_done = 1
-    elif argv[i] in ("-u", "--update-freedb"):
+    elif argv[i] in ("-U", "--update-freedb"):
         update_freedb = 1
     elif argv[i] in ("-s", "--space"):  # in bytes, overrides autodetection
         space_from_argv = atoi(argv[i + 1])
@@ -2429,7 +2429,7 @@ while i<len(argv):
         print "  -u, --undo-rename:  undo file renaming and exit (" + yes(undo_rename) + ")"
         print "  -g, --guess-toc:   *guess TOC from files (until terminating \";\") (" + yes(guess_mp3s) + ")"
         print "  -x, --exec:         run predefined command when finished (" + yes(exec_when_done) + ")"
-        print "  -u, --update-freedb:update the freedb info and quit (" + yes(update_freedb) + ")"
+        print "  -U, --update-freedb:update the freedb info and quit (" + yes(update_freedb) + ")"
         print '  -m, --mail-submit:  submit by e-mail - needs sendmail! (' + yes(freedb_mailsubmit) + ")"
         print "  -M, --mail-address:*submit database entry by e-mail (" + freedb_mail + ")"
         print "      --my-email:    *submission report is sent here (" + my_mail + ")"
