@@ -169,7 +169,9 @@ show_names = 0      # set this to 1 to display freedb track names instead
 
 ## more defaults, these can be changed via argv ##
 encoder = "lame"    # use which encoder (bladeenc, lame, gogo, l3enc, mp3enc)
-                    # NEW: xing - completely untested
+                    # NEW: xing - completely untested - this a symbolic name
+                    # which is defined later in this file, NOT the executable's
+                    # name
 bitrate = 160       # default bitrate
 encoders = 1        # encode how many mp3s in parallel
 vbr = 0             # use variable bitrate for encoders which support it
@@ -1788,10 +1790,14 @@ def ripread(track, offset = 0):
 
             stop_time = time()
             read_speed = track[LEN] / CDDA_BLOCKS_PER_SECOND / ( stop_time - start_time )
-            if hdr[0] in ('bin', 'wav'):
-                print "[" + "%.0fx" % read_speed + "] [      - read from image -     ]"
+            if read_speed < 100:
+                print "[%2.0fx]" % read_speed,
             else:
-                print "[" + "%.0fx" % read_speed + "] [cdr-WARNING, check byteorder !]"
+                print "[99x]",
+            if hdr[0] in ('bin', 'wav'):
+                print "[      - read from image -     ]"
+            else:
+                print "[cdr-WARNING, check byteorder !]"
             sys.stdout.flush()
             posix._exit(0)
     else: # we are not the child
