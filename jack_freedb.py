@@ -680,7 +680,7 @@ def do_freedb_submit(file, cd_id):
         proxy = os.environ['http_proxy']
         def splittype(url):
             import re
-            _typeprog = re.compile('^([^/:] + ):')
+            _typeprog = re.compile('^([^/:]+):')
             match = _typeprog.match(url)
             if match:
                     scheme = match.group(1)
