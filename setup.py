@@ -2,11 +2,6 @@
 
 """Setup script for the jack module distribution."""
 
-# this is work in progress
-#print "This is work in progress, install manually. Read doc/INSTALL."
-#from sys import exit
-#exit(1)
-
 from distutils.core import setup, Extension
 
 setup( # Distribution meta-data
@@ -22,15 +17,14 @@ setup( # Distribution meta-data
     ['cursesmodule/jack_cursesmodule.c'], libraries=["ncurses"],
     extra_compile_args=["-Wno-strict-prototypes"]) ],
 
-    py_modules = ['jack_CDTime', 'jack_constants', 'jack_helpers',
-        'jack_prepare', 'jack_tag', 'jack_TOC', 'jack_display', 'jack_init',
-        'jack_progress', 'jack_targets', 'jack_TOCentry', 'jack_encstuff',
-        'jack_m3u', 'jack_rc', 'jack_term', 'jack_argv', 'jack_freedb',
-        'jack_main_loop', 'jack_ripstuff', 'jack_utils', 'jack_checkopts',
-        'jack_functions', 'jack_misc', 'jack_status', 'jack_version',
-        'jack_children', 'jack_generic', 'jack_mp3', 'jack_t_curses',
-        'jack_workers', 'jack_config', 'jack_globals', 'jack_playorder',
-        'jack_t_dumb']
+    py_modules = [ 'jack_CDTime', 'jack_TOC', 'jack_TOCentry', 'jack_argv',
+    'jack_checkopts', 'jack_children', 'jack_config', 'jack_constants',
+    'jack_display', 'jack_encstuff', 'jack_freedb', 'jack_functions',
+    'jack_generic', 'jack_globals', 'jack_helpers', 'jack_init', 'jack_m3u',
+    'jack_main_loop', 'jack_misc', 'jack_mp3', 'jack_playorder',
+    'jack_plugins', 'jack_prepare', 'jack_progress', 'jack_rc',
+    'jack_ripstuff', 'jack_status', 'jack_t_curses', 'jack_t_dumb', 'jack_tag',
+    'jack_targets', 'jack_term', 'jack_utils', 'jack_version', 'jack_workers']
 )
 
 print "If you have installed the modules, copy jack to some place in your $PATH,"
