@@ -314,6 +314,7 @@ extt_is_comment = 0 # extt contains track comment
 
 # there are two ways of freedb operation:
 query_on_start = 0      # do query when starting, rename files when finished
+continue_failed_query=0 # continue without freedb data if query fails
 query_when_ready = 0    # do query when done with encoding, rename files
 
 freedb_servers = {
@@ -1392,7 +1393,15 @@ def freedb_query(cd_id, tracks, file):
     hello = "hello=" + username + " " + hostname + " " + freedb_servers[freedb_server]['id']
     qs = quote_plus(qs + "&" + hello + "&proto=3", "=&")
     url = "http://" + freedb_servers[freedb_server]['host'] + "/~cddb/cddb.cgi?" + qs
-    f = urlopen(url)
+    if continue_failed_query:
+        try:
+            f = urlopen(url)
+        except IOError:
+            traceback.print_exc()
+            err = 1
+            return err
+    else:
+        f = urlopen(url)
     buf = f.readline()
     if buf and buf[0:1] == "2":
         if buf[0:3] == "211": # Found inexact matches, list follows
@@ -1433,11 +1442,19 @@ def freedb_query(cd_id, tracks, file):
         elif buf[0:3] == "202":
             print "Error: ", buf, f.read()
             print "how about trying another --server?"
-            exit()
+            if continue_failed_query:
+                err = 1
+                return err
+            else:
+                exit()
         else:
             print "Error: ", buf, f.read()
-            print "     : don't know what to do, aborting."
-            exit()
+            print "     : don't know what to do, aborting query."
+            if continue_failed_query:
+                err = 1
+                return err
+            else:
+                exit()
 
         cmd = "cmd=cddb read " + freedb_cat + " " + cd_id
         url = "http://" + freedb_servers[freedb_server]['host'] + "/~cddb/cddb.cgi?" + quote_plus(cmd + "&" + hello + "&proto=3", "=&")
@@ -2688,6 +2705,10 @@ while i<len(argv):
     elif argv[i] in ("-Q", "--query-now"):
         query_on_start = 1
         set_id3tag = 1
+    elif argv[i] == "-QQ":
+        query_on_start = 1
+        continue_failed_query = 1
+        set_id3tag = 1
     elif argv[i] in ("", "--multi-mode"):
         multi_mode = 1
     elif argv[i] in ("", "--scan-dirs"):
@@ -3244,7 +3265,16 @@ if is_submittable:
 if query_on_start:
     print "Info: Querying..."
     if freedb_query(freedb_id(all_tracks), all_tracks, freedb_form_file):
-        exit()
+        if continue_failed_query:
+            
+            x = raw_input("\nWarning: freedb search failed, continue? ") + "x"
+            if x[0] != "y":
+                exit()
+            query_on_start = 0
+        else:
+            exit()
+
+if query_on_start:
     err, track_names, freedb_rename, revision = interpret_db_file(all_tracks, freedb_form_file, various, verb = query_on_start, dirs = 1)
     if err:
         print "Error: query on start failed to give a good freedb file, aborting."
