@@ -11,7 +11,7 @@ from distutils.core import setup, Extension
 
 setup( # Distribution meta-data
     name = "jack",
-    version = "3.0.0",
+    version = "3.1.0",
     description = "A frontend for several cd-rippers and mp3 encoders",
     author = "Arne Zellentin",
     author_email = "zarne@users.sf.net",

@@ -1,4 +1,4 @@
-### This is jack  (c) 1999-2003 Arne Zellentin
+### This is jack  (c) 1999-2004 Arne Zellentin
 ### free to use, no warranties, no nothing
 ### see COPYING
 
@@ -26,26 +26,23 @@ if you don't already have them. (If you don't have them you'll get errors like
 * if not, follow the instructions
 
 
---- Step 2 - install my curses module ----------------------------------------
+--- Step 2 - install the jack_* modules and my curses module -----------------
 
 * see the end of this file for tips on installing it without distutils!
 
 * if you have the python distutils installed, run (as root if needed)
 
-    # python setup-cursesmodule.py install
+    # python setup.py install
 
---- Step 3 - install jack and it's modules -----------------------------------
+--- Step 3 - install jack ----------------------------------------------------
 
 Copy it somewhere in your $PATH, e.g.:
 
-    # cp jack* $HOME/bin
+    # cp jack $HOME/bin
 
 or (you may have to be root)
 
     # cp jack /usr/local/bin/
-    # cp jack_*py /usr/local/lib/pythonM.m/site-packages/
-
-(replace M.m by the version of your python-installation)
 
 --- That's it -- you're done! Congratulations!
 
