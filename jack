@@ -3233,9 +3233,18 @@ if upd_progress:
                 progress(num, "dae", status[num]['dae'])
         if not status[num]['enc']:
             if path.exists(i[NAME] + ext):
-                x = mp3format(i[NAME] + ext)
-                status[num]['enc'] = `x['bitrate']` + progr_sep + "[simulated]"
+                if ext == ".mp3":
+                    x = mp3format(i[NAME] + ext)
+                    temp_rate = x['bitrate']
+                elif ext == ".ogg":
+                    x = ogg.vorbis.VorbisFile(i[NAME] + ext)
+                    temp_rate = int(x.raw_total(0) * 8 / x.time_total(0) / 1000 + 0.5)
+                else:
+                    print "Error: don't know how to handle %s files." % ext
+                    sys.exit(1)
+                status[num]['enc'] = `temp_rate` + progr_sep + "[simulated]"
                 progress(num, "enc", status[num]['enc'])
+                del x, temp_rate
 
 ### (7) now read in the progress file
 
