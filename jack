@@ -26,7 +26,7 @@ prog_version = "2.99.4"
 prog_name = "jack"
 DEBUG = 0
 
-from string import atoi, atof, split, find, replace, upper, strip, rstrip
+from string import atoi, atof, split, find, rfind, replace, upper, strip, rstrip
 from os import nice, remove, popen, fdopen, waitpid, WNOHANG, execlp, execvp
 from os import stat, environ, uname, fork, rename, system, kill, chdir, mkdir
 from os import rmdir, path, execv
@@ -53,6 +53,7 @@ from jack_TOC import TOC
 from jack_TOCentry import TOCentry
 from jack_CDTime import CDTime
 from jack_misc import multi_replace
+from jack_mp3 import mp3format
 
 desperately_seeking_curses = 0
 
@@ -190,6 +191,8 @@ recheck_space = 1   # yes we want to react to disc space dropping.
 overwrite = 0       # overwrite existing mp3s
 various = 0         # assume CD has various artists, 0 = auto
 various_swap = 0    # exchange artist and title for broken freedb entrys
+extt_is_artist = 0  # extt contains artist
+extt_is_title = 0   # extt contains track title
 remove_files = 0    # remove jack.* files when done
 silent_mode = 0     # silent-mode means: no output to screen
 
@@ -232,8 +235,8 @@ tlist = []          # tracks to encode, empty = use all tracks
 ## Misc stuff ##
 name = "track_%02i" # filename template (before renaming)
 rippers = 1         # not implemented: rip in parallel
-toc_prog = ripper   # use which program to read cd's toc
-                    # ripper means same as for ripping
+toc_prog = "CDDB.py"# use which program to read cd's toc
+                    # ripper (without quotes) means same as for ripping
 
 ## FREEDB stuff starts here: ##
 
@@ -243,7 +246,7 @@ set_id3tag = 0          #                    and to set id3 tag info
 id3_genre = -1          # the default genre to set for id3 genre. Better use
                         # the command-line option (-G) except you only own
                         # only CDs from one genre, e.g. jazz.
-id3_year = -1            # the default year to set for id3 year info. You sure
+id3_year = -1           # the default year to set for id3 year info. You sure
                         # don't own only CDs released during the same year?!
 gen_freedb_form = 1     # yes, generate a freedb submission template
 if environ.has_key('USER'):
@@ -437,8 +440,8 @@ final_status = ("%4.1fx" % speed) + last_status[16:48] + "]"
         'otf-final_status_fkt': \"\"\"
 final_status = "[otf - done]"
 \"\"\",
-        'toc': 1,
-        'toc_cmd': "cdparanoia -d %d -Q 2>&1",
+        #'toc': 1,  # we can't generate correct freedb IDs with cdparanoia.
+        #'toc_cmd': "cdparanoia -d %d -Q 2>&1",
         'toc_fkt': \"\"\"
 while l:
     l = rstrip(l)
@@ -563,6 +566,24 @@ while l:
         num = atoi(l[0])
         erg.append([num, 1 + atoi(l[3]) - atoi(l[2]), atoi(l[2]), 0, 0, 2, 1, bitrate, name % num])
     l = p.readline()
+\"\"\"
+    },
+
+    'CDDB.py': {
+        'type': "toc-reader",
+        'toc': 1,
+        'toc_fkt': \"\"\"
+import cdrom
+device = cdrom.open(cd_device)
+(first, last) = cdrom.toc_header(device)
+toc = []
+for i in range(first, last + 1):
+    (min, sec, frame) = cdrom.toc_entry(device, i)
+    toc.append(min * 60 * 75 + sec * 75 + frame)
+(min, sec, frame) = cdrom.leadout(device)
+toc.append(min * 60 * 75 + sec * 75 + frame)
+for i in range(first, last + 1):
+    erg.append([i, toc[i] - toc[i - 1], toc[i - 1] - toc[0], 0, 0, 2, 1, bitrate, name % i])
 \"\"\"
     }
 }
@@ -724,6 +745,8 @@ def df_df(fs = ".", blocksize = 1024):
 # the code for extracting the xing vbr header was "lent" (and modified) from
 # mp3.py 1.0 (c) Scott Hassan <hassan@dotfunk.com>
 
+#XXX KILLME
+dummy="""
 def get_l4 (s):
     return reduce (lambda a,b: ((a<<8) + b), map (long, map (ord, s)))
 
@@ -847,6 +870,7 @@ def mp3format(file, warn = 1, max_skip = 100000):
             else:
                 x['length'] = filesize(file) * 8.0 / (x['bitrate'] * 1000)
     return x
+"""
 
 def get_sysload_linux_proc():
     "extract sysload from /proc/loadavg, linux only (?)"
@@ -893,24 +917,29 @@ def pprint_i(num, fmt = "%i%s", scale = 2.0**10, max = 4):
 
 def gettoc():
     "Returns track list"
-    p = popen(replace(helpers[toc_prog]['toc_cmd'], "%d", cd_device))
-    start = 0
-    erg = []
-    l = p.readline()
-    exec(helpers[toc_prog]['toc_fkt'])
-    if p.close():
-        print "Error: could not read CD's TOC."
-        if cd_device:
-            try:
-                f = open(cd_device, "r")
-            except IOError:
-                print "     : could not open " + cd_device + ". Check permissions and that a disc is inserted."
+    if helpers[toc_prog].has_key('toc_cmd'):
+        p = popen(replace(helpers[toc_prog]['toc_cmd'], "%d", cd_device))
+        start = 0
+        erg = []
+        l = p.readline()
+        exec(helpers[toc_prog]['toc_fkt'])
+        if p.close():
+            print "Error: could not read CD's TOC."
+            if cd_device:
+                try:
+                    f = open(cd_device, "r")
+                except IOError:
+                    print "     : could not open " + cd_device + ". Check permissions and that a disc is inserted."
+                else:
+                    print "     : maybe " + ripper + " is not installed?"
             else:
-                print "     : maybe " + ripper + " is not installed?"
+                print "      : try setting cd_device to your CD device, e.g. /dev/cdrom"
+            exit()
         else:
-            print "      : try setting cd_device to your CD device, e.g. /dev/cdrom"
-        exit()
+            return erg
     else:
+        erg = []
+        exec(helpers[toc_prog]['toc_fkt'])
         return erg
 
 def guesstoc(names):
@@ -925,7 +954,7 @@ def guesstoc(names):
         if i_ext == ".MP3":
             x = mp3format(i) 
             if not x:
-                print "Error: could not get MP3 info for file \"", i
+                print "Error: could not get MP3 info for file \"%x\"" % i
                 exit()
             blocks = int(x['length'] * CDDA_BLOCKS_PER_SECOND + 0.5)
             #           NUM, LEN,    START, COPY, PRE, CH, RIP, RATE,
@@ -933,7 +962,7 @@ def guesstoc(names):
             erg.append([num, blocks, start, 0,    0,   2,  1,   x['bitrate'],
                 i_name])
             progr.append(num, "dae", "  *   [          simulated           ]")
-            progr.append(num, "enc", `x['bitrate']`, "[ s i m u l a t e d        ]")
+            progr.append(num, "enc", `x['bitrate']`, "[ s i m u l a t e d %3ikbit]" % (x['bitrate'] + 0.5))
             if name % num != i_name:
                 progr.append(num, "ren", name % num + "-->" + i_name)
         elif i_ext == ".WAV":
@@ -1063,8 +1092,9 @@ def real_cdrdao_gettoc(tocfile):     # get toc from cdrdao-style toc-file
 ## example: FILE "data.wav" 08:54:22 04:45:53
 
         elif starts_with(line, "FILE "):
-            dummy, filename, offsets = split(line[5:], "\"", 2)
-            dummy, start, length = split(offsets, " ", 2)
+            filename = line[find(line, "\"") + 1:rfind(line, "\"")]
+            offsets = strip(line[rfind(line, "\"") + 1:])
+            start, length = split(offsets)[:2]
 
 ## convert time string to blocks(int), update info.
 
@@ -1234,7 +1264,19 @@ def freedb_template(tracks, names = "", revision = 0):
                 f.write(freedb_split("TTITLE" + `i[NUM]-1`, names[i[NUM]][1]))
         else:
             f.write("TTITLE" + `i[NUM]-1` + "=\n")
-    f.write("EXTD=\n")
+    freedb_year, freedb_id3genre = -1, -1
+    if id3_genre >= 0 and id3_genre < len(id3genres) or id3_genre == 255:
+        freedb_id3genre = id3_genre
+    elif names and len(names[0]) == 4:
+        freedb_id3genre = names[0][3]
+    if id3_year >= 0:
+        freedb_year = id3_year
+    elif names and len(names[0]) == 4:
+        freedb_year = names[0][2]
+    if freedb_year >= 0 or freedb_id3genre >= 0:
+        f.write("EXTD=\\nYEAR: %4s  ID3G: %3s\n" % (freedb_year, freedb_id3genre))
+    else:
+        f.write("EXTD=\n")
     for i in tracks:
         f.write("EXTT" + `i[NUM]-1` + "=\n")
     f.write("PLAYORDER=\n")
@@ -1332,9 +1374,10 @@ def freedb_names(cd_id, tracks, name, various, verb = 0, warn = 1):
             break
         line = replace(line, "\n", "")  # cannot use rstrip, we need trailing
                                         # spaces
+        line = replace(line, "\r", "")  # I consider "\r"s as bugs in db info
         if starts_with(line, "# Revision:"):
             revision = atoi(line[11:])
-        for i in ["DISCID", "DTITLE", "TTITLE"]:
+        for i in ["DISCID", "DTITLE", "TTITLE", "EXTD", "EXTT"]:
             if starts_with(line, i):
                 buf = line
                 if find(buf, "=") != -1:
@@ -1378,7 +1421,7 @@ def freedb_names(cd_id, tracks, name, various, verb = 0, warn = 1):
                 id_matched = 1
         if not id_matched and warn:
             print "Warning: calculated id (" + cd_id + ") and id from freedb file"
-            print "       : (", read_ids, ")"
+            print "       :", read_ids
             print "       : do not match, hopefully due to inexact match."
         for i in read_ids:
             for j in i:
@@ -1399,19 +1442,45 @@ def freedb_names(cd_id, tracks, name, various, verb = 0, warn = 1):
     if find(dtitle,"/") == -1:
         dtitle = "(unknown artist)/" + dtitle
     names = [split(dtitle,"/",1)]
+    if freedb.has_key('EXTD') and starts_with(freedb['EXTD'], "\\nYEAR:"):
+        try:
+            extd_info = freedb['EXTD'][7:]
+            extd_year, extd_id3g = split(extd_info, "ID3G:", 1)
+            extd_year, extd_id3g = atoi(extd_year), atoi(extd_id3g)
+        except:
+            print "can't handle '%s'." % freedb['EXTD']
+        names = [split(dtitle,"/",1)]
+        names[0].extend([extd_year, extd_id3g])
     if names[0][0] == "(unknown artist)":
         if verb: print "Error: the disc's title must be set to \"artist / title\" (\"DTITLE\")."
         error = 6
 
-    if upper(names[0][0]) in ("VARIOUS", "VARIOUS ARTISTS", "SAMPLER"):
+    if upper(names[0][0]) in ("VARIOUS", "VARIOUS ARTISTS", "SAMPLER", "DIVERSE"):
         if not various:
             various = 1
         elif various == 2:
             various = 0
 
+# user says additional info is in the EXTT fields
+
+    if various and extt_is_artist:
+        for i in range(tracks_on_cd):
+            if freedb['EXTT'+`i`]:
+                names.append([freedb['EXTT'+`i`], freedb['TTITLE'+`i`]])
+            else:
+                error = 8
+                if verb: print 'Error: no EXTT info for track %02i.' % i
+    elif various and extt_is_title:
+        for i in range(tracks_on_cd):
+            if freedb['EXTT'+`i`]:
+                names.append([freedb['TTITLE'+`i`], freedb['EXTT'+`i`]])
+            else:
+                error = 8
+                if verb: print 'Error: no EXTT info for track %02i.' % i
+
 # we'll try some magic to seperate artist and title
 
-    if various:
+    elif various:
         found = [[], [], [], [], [], []]
         # lenght=3   2   1 , 3   2   1 (secondary)
         ignore = string.letters + string.digits
@@ -1540,7 +1609,9 @@ def freedb_names(cd_id, tracks, name, various, verb = 0, warn = 1):
         else:
             error = 7
             if verb: print 'Error: could not seperate artist and title in all TTITLEs.'
-            if verb: print '       Try setting freedb_pedantic = 0'
+            if verb: print '       Try setting freedb_pedantic = 0 or use --no-various'
+            if verb: print '       Maybe additional information is contained in the EXTT fields.'
+            if verb: print '       check %s and use either --extt-is-artist or --extt-is-title.' % freedb_form_file
     else:
         for i in range(tracks_on_cd):
             buf = freedb['TTITLE'+`i`]
@@ -2041,9 +2112,9 @@ def rename_path(old, new):
 def cmp_toc(x, y):
     "compare two track's length"
     x, y = x[LEN], y[LEN]
-    if x>y: return 1
+    if x > y: return 1
     elif x == y: return 0
-    elif x<y: return -1
+    elif x < y: return -1
 
 def cmp_toc_cd(x, y):
     "compare the relevant parts of two TOCs"
@@ -2199,11 +2270,17 @@ def exit(why = 0):
 
 def mkdirname(names, template):
     "generate mkdir-able directory name(s)"
+    global id3_genre, id3_year
     dirs = split(template, os.sep)  # this is not really clean
     if dirs[0] == "":
         dirs[0] = os.sep
         
     dirs2 = []
+    #XXX
+    #if len(names[0]) == 4:
+            #id3_genre = -1
+            #id3_year, id3_genre = names[0][2:]
+            #id3_year, id3_genre = names[0][2:]
     for i in dirs:
         replace_list = (("%a", names[0][0]), ("%l", names[0][1]), ("%y", `id3_year`), ("%g", id3_genretxt))
         x = multi_replace(i, replace_list)
@@ -2288,7 +2365,9 @@ def dae_stat_upd(num, string):
     dae_status[num] = string
     if curses_enable:
         track = all_tracks[num-1]
-        status_pad.addstr(map_track_num[num], 0, printable_names[num] + ": " + dae_status[num] + " " + enc_status[num])
+        #yyy
+        #progress_error(`map_track_num[num]`+","+`0`+","+ printable_names[num] + ": " + dae_status[num] + " " + enc_status[num])
+        status_pad.addstr(map_track_num[num], 0, (printable_names[num] + ": " + dae_status[num] + " " + enc_status[num])[:width-1])
         dummy = """
         if ripper == "cdparanoia" and track in dae_tracks or (track in enc_queue and track not in mp3s_done):
             status_pad.addstr(map_track_num[num], 0, printable_names[num] + ": " + dae_status[num][:7])
@@ -2429,6 +2508,10 @@ while i<len(argv):
         various_swap = 1
     elif argv[i] =="--no-various":
         various = 2
+    elif argv[i] =="--extt-is-artist":
+        extt_is_artist = 1
+    elif argv[i] =="--extt-is-title":
+        extt_is_title = 1
     elif argv[i] =="--remove":
         remove_files = 1
     elif argv[i] =="--upd-progress":
@@ -2457,10 +2540,14 @@ while i<len(argv):
         claim_dir = 1
     elif argv[i] in ("-u", "--undo-rename"):
         undo_rename = 1
+    elif argv[i] in ("-X1", "--bl-a"):
+        dir_template = "%a - %l"
     elif argv[i] in ("-G", "--id3-genre"):
         id3_genre = argv[i + 1]
         if upper(id3_genre) == "HELP":
             id3_genre = -2  # print genre list later
+        elif upper(id3_genre) == "NONE":
+            id3_genre = 255 # set genre to [unknown]
         else:
             id3temp = ID3("/dev/null")
             id3_genre = id3temp.find_genre(id3_genre)
@@ -2524,6 +2611,8 @@ while i<len(argv):
         print "      --various:      assume CD has various artists (" + "auto" * (various == 0) + "yes" * (various == 1) + ")"
         print "      --various-swap: exchange artist and title (" + yes(various_swap) + ")"
         print "      --no-various:   force no various artists, override autodetection (" + yes(various == 2) + ")"
+        print "      --extt-is-artist: the artist is contained in the EXTT fields"
+        print "      --extt-is-title: the track title is contained in the EXTT fields"
         print "      --todo:         print what would be done and exit (" + yes(todo_exit) + ")"
         print "      --otf:          on-the-fly encoding *experimental* (" + yes(otf) + ")"
         print
@@ -2594,6 +2683,8 @@ while (not path.exists(toc_file)) or multi_mode:
             all_tracks = []
         else:
             all_tracks = gettoc()
+            #XXX
+            print all_tracks
 
         if scan_dirs != None:
             recurse_dirs = scan_dirs
@@ -2807,7 +2898,7 @@ if upd_progress:
         num = i[NUM]
         if not status[num]['dae']:
             if path.exists(i[NAME] + ".wav"):
-                status[num]['dae'] = "[simulated]"
+                status[num]['dae'] = "  *   [          simulated           ]"
                 progress(num, "dae", status[num]['dae'])
         if not status[num]['enc']:
             if path.exists(i[NAME] + ".mp3"):
@@ -2872,7 +2963,7 @@ for i in status.keys():
         print "Error: malformed progress file, exit."
         sys.exit()
     if len(status[i]['enc']) == 2:
-        tracknum[i][RATE] = atoi(status[i]['enc'][0])
+        tracknum[i][RATE] = int(atof(status[i]['enc'][0]) + 0.5)
         status[i]['enc'] = status[i]['enc'][1]
     elif status[i]['enc'] and len(status[i]['enc']) == 1:
         tracknum[i][RATE] = bitrate
@@ -2899,7 +2990,7 @@ else:
         progress("all", "id3_genre", `id3_genre`)
 
 id3_genretxt = ""
-if id3_genre != -1:
+if id3_genre > 0 and id3_genre < len(id3genres):
     id3_genretxt = id3genres[id3_genre]
 
 if id3_year == -1:
@@ -3042,6 +3133,12 @@ for track in todo:
         elif filesize(wav) == tracksize(track)[WAV] and dae_status[track[NUM]]:
             wavs_todo.remove(track)
             wavs_ready.append(track)
+        elif filesize(wav) == tracksize(track)[WAV]:
+            space = space + filesize(wav)
+            remove_q.append(wav)
+            dae_status[track[NUM]] =     " ---- [Existing WAV not done by jack.]"
+            if enc_status[track[NUM]] == "[MP3 lost, doing again]":
+                enc_status[track[NUM]] = ""
         else:
             space = space + filesize(wav)
             remove_q.append(wav)
@@ -3088,6 +3185,7 @@ if todo_exit:           # print what needs to be done, then exit
             print "-",
         if i in wavs_todo:
             print ":DAE:",
+            # FIXME!
             if dae_status[i[NUM]] != "[simulated]": print dae_status[i[NUM]],
             if not only_dae:
                 print ":ENC:",
@@ -3831,6 +3929,12 @@ if vbr:
         total_size = total_size + filesize(i[NAME] + ".mp3")
 
 if set_id3tag or freedb_rename:
+    if len(track_names[0]) == 4:
+        # use freedb year and genre data if available
+        if id3_genre == -1:
+            id3_genre = track_names[0][3]
+        if id3_year == -1:
+            id3_year = track_names[0][2]
     for i in all_tracks_todo_sorted:
         mp3name = i[NAME] + ".mp3"
         wavname = i[NAME] + ".wav"
@@ -3900,9 +4004,17 @@ if set_id3tag or freedb_rename:
 
 if not silent_mode:
     if names_available:
-        print "Done with \"" + a_artist+ " - " + a_title + "\".",
+        print "Done with \"" + a_artist+ " - " + a_title + "\"."
     else:
         print "All done.",
+    if set_id3tag and id3_year != -1:
+        print "Year: %4i" % id3_year,
+        if id3_genre == -1: print
+    if set_id3tag and id3_genre != -1:
+        if id3_genre <0 or id3_genre > len(id3genres):
+            print "Genre: [unknown]"
+        else:
+            print "Genre: %s" % id3genres[id3_genre]
     if vbr:
         print "Avg. bitrate: %03.0fkbit" % ((total_size * 0.008) / (total_length / 75))
     else:

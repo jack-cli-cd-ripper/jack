@@ -1,4 +1,4 @@
-### This is jack 2.99.0 (c) 1999,2000 Arne Zellentin
+### This is jack 2.99.4 (c) 1999,2000 Arne Zellentin
 ### free to use, no warranties, no nothing
 ### see COPYING
 
@@ -42,5 +42,18 @@ Makefile to work:
 # gcc -shared  cursesmodule.o  -lncurses -ltermcap -o cursesmodule.so
 
 Install the cursesmodule.so like you installed the ID3.py module above.
+
+If you can't get the precompiled cursesmodule to run, make sure that all
+needed libraries are installed on you system. Check this with
+# ldd cursesmodule.so
+which should produce output similar to
+        libncurses.so.4 => /usr/lib/libncurses.so.4 (0x40018000)
+        libtermcap.so.2 => /lib/libtermcap.so.2 (0x4005a000)
+        libc.so.6 => /lib/libc.so.6 (0x4005e000)
+        /lib/ld-linux.so.2 => /lib/ld-linux.so.2 (0x80000000).
+All links must be satisfied; if a library cannot be found, ldd will tell you.
+In this case install all missing libraries. Some Linux systems don't install
+termcap libraries, fix this; e.g. on RedHat systems, you need
+libtermcap-*.rpm.
 
 That's it!

@@ -17,13 +17,13 @@
 # This work is released under the GNU GPL, version 2 or later.
 ###
 
-### This is jack 2.99.3
+### This is jack 2.99.4
 
 ### Be warned: you will need python-1.5.2 (or later)!
 
 Please note that jack is a python script. No compilation is needed.
 Copy it somewhere in your $PATH.
-Read INSTALL for further installation details.
+Read doc/INSTALL for further installation details.
 First time users: run jack once to create your .jackrc
 Edit your .jackrc! Some prefs are important!
 run jack -h for quick help or read the doc/(umentation).
