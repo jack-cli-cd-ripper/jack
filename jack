@@ -1091,12 +1091,21 @@ def guesstoc(names):
                 exit()
             blocks = filesize(i)
             blocks = blocks - 44    # substract WAV header
-            if not blocks % CDDA_BLOCKSIZE == 0:
-                print "Error: this is not CDDA block-aligned:", i
-                exit()
+            extra_bytes = blocks % CDDA_BLOCKSIZE
+            if not extra_bytes == 0:
+                print "Warning: this is not CDDA block-aligned:", i
+                yes = raw_input("May I strip %d bytes (= %.4fseconds) off the end? " % (extra_bytes, extra_bytes / 2352.0 / 75.0))
+                if not (yes + "x")[0] == "y":
+                    print "Sorry, I can't process non-aligned files (yet). Bye!"
+                    exit()
+                f = open(i, "r+")
+                f.seek(-extra_bytes, 2)
+                f.truncate()
+                f.close()
+                blocks = blocks - extra_bytes
             blocks = blocks / CDDA_BLOCKSIZE
             erg.append([num, blocks, start, 0, 0, 2, 1, bitrate, i_name])
-            progr.append(num, "dae", "  =p  [  s  i  m  u  l  a  t  e  d   ]")
+            progr.append([num, "dae", "  =p  [  s  i  m  u  l  a  t  e  d   ]"])
             if name % num != i_name:
                 progr.append(num, "ren", name % num + "-->" + i_name)
         elif i_ext == ".OGG":
@@ -2007,9 +2016,15 @@ def start_new_encoder(track, encoder):
                         args.append(track_names[0][0])
                 elif i == "%n": args.append(`track[NUM]`)
                 elif i == "%l": args.append(track_names[0][1])
-                elif i == "%G" and id3_genre >= 0: args.append(id3_genre)
-                elif i == "%g" and id3_genre >= 0: args.append(id3_genretxt)
-                elif i == "%y" and id3_year > 0: args.append(`id3_year`)
+                elif i == "%G":
+                    if id3_genre >= 0: args.append(id3_genre)
+                    else: args.append('255')
+                elif i == "%g":
+                    if id3_genre >= 0: args.append(id3_genretxt)
+                    else: args.append('Unknown')
+                elif i == "%y":
+                    if id3_year > 0: args.append(`id3_year`)
+                    else: args.append('0')
                 else:
                     args.append(i)
             else:
