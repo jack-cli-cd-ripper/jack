@@ -21,6 +21,7 @@ from sys import version
 
 prog_version = "3.0.0"
 prog_name = "jack"
+prog_copyright = "(C)2003 Arne Zellentin"
 py_version = split(version)[0]
 
 

@@ -149,6 +149,7 @@ def find_workdir():
                 os.chdir(unique_dirs[0])
             else:
                 if cf['_create_dirs']:
+                    cf['_base_dir'] = os.path.expanduser(cf['_base_dir'])
                     if not os.path.exists(cf['_base_dir']):
                         os.makedirs(cf['_base_dir'])
                     os.chdir(cf['_base_dir'])

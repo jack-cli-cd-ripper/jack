@@ -179,7 +179,7 @@ def sig_winch_handler(sig, frame):
             del usage_win
             usage_win = newwin(usage_win_height, usage_win_width, usage_win_y, usage_win_x)
             usage_win.box()
-            usage_win.addstr(1, 2, "* * * " + jack_version.prog_name + " " + jack_version.prog_version + " (C)2002 Arne Zellentin * * *")
+            usage_win.addstr(1, 2, "* * * " + jack_version.prog_name + " " + jack_version.prog_version + " " + jack_version.prog_copyright + " * * *")
             usage_win.addstr(2, 2, "use cursor keys or hjkl to scroll status info")
             usage_win.addstr(3, 2, "press P to disable/continue ripping,")
             usage_win.addstr(4, 2, "      E to pause/continue all encoders or")

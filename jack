@@ -164,9 +164,9 @@ if cf['_reorder']:
 
 #### check how much bytes we can burn
 if cf['space_from_argv']['history'][-1][0] == "argv":
-    space = raw_space = cf['_space_from_argv']
+    space = jack_ripstuff.raw_space = cf['_space_from_argv']
 else:
-    space = raw_space = jack_functions.df()
+    space = jack_ripstuff.raw_space = jack_functions.df()
 
 #### check what is already there
 space, remove_q, wavs_todo, mp3s_todo, dae_queue, enc_queue = jack_prepare.what_todo(space, todo)
