@@ -312,7 +312,7 @@ targets = {
         'can_cbr': 0,
         'can_vbr': 1,
         'can_id3': 0,
-        'can_pretag': 0,
+        'can_pretag': 1,
         'can_posttag': 0,
         'file_extension': ".ogg"
         }
@@ -1830,18 +1830,22 @@ def start_new_encoder(track, encoder):
         cmd = split(helper['vbr-cmd'])
     else:
         cmd = split(helper['cmd'])
-    args = []
 
+    args = []
     for i in cmd:
         if i == "%r": args.append(`track[RATE] * helper['bitrate_factor']`)
         elif i == "%i": args.append(track[NAME] + ".wav")
         elif i == "%o": args.append(track[NAME] + ext)
-        elif targets[helper['target']].has_key('can_pretag') and targets[helper['target']]['can_pretag'] and names_available:
-            if i == "%t": args.append(track_names[track[NUM]][0])
-            elif i == "%a": args.append(track_names[track[NUM]][1])
-            elif i == "%n": args.append(`track[NUM]`)
-            elif i == "%l": args.append(track_names[0][1])
-        else: args.append(i)
+        else:
+            if targets[helper['target']]['can_pretag']:
+                if i == "%t": args.append(track_names[track[NUM]][0])
+                elif i == "%a": args.append(track_names[track[NUM]][1])
+                elif i == "%n": args.append(`track[NUM]`)
+                elif i == "%l": args.append(track_names[0][1])
+                else:
+                    args.append(i)
+            else:
+                args.append(i)
     data = start_new_process(args, nice_value)
     data['type'] = "encoder"
     data['prog'] = encoder
