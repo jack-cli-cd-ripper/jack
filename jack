@@ -1999,6 +1999,9 @@ def rename_path(old, new):
             print "Error: could not create or change to " + i + " from " + os.getcwd()
             exit()
     last_of_new = new[-1]
+    if path.exists(last_of_new):
+        print "Error: destination directory already exists:", last_of_new
+        exit()
     rename(cwd, last_of_new)
     chdir(last_of_new)
                                                # now remove empty "orphan" dirs
