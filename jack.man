@@ -313,5 +313,3 @@ jack -Q --remove
 .br
 .SH AUTHOR
 Arne Zellentin <arne@unix-ag.org> is the author of Jack.
-.br
-This manual page was written by Michael Banck <mbanck@gmx.net>.
