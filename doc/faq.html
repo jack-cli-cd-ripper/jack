@@ -32,7 +32,7 @@
 </TT><BR>
     in Modules/Setup. Jack 2.x doesn't need the threads any more, but they
 are still good to have. Only leave them out if they cause trouble. In general, I recommend activating as many modules as possible so you don't have to
-recompile every time a newly installed programm need another non-default module.
+recompile every time a newly installed programm needs another non-default module.
 <SMALL>(from Jason Lunz)</SMALL>
 <P>
 <LI><B>Q:</B> I can't / don't want to install python-1.5.2. Isn't there a
@@ -50,6 +50,15 @@ recompile every time a newly installed programm need another non-default module.
 <LI><B>Q:</B> Jack is encoding with a different bitrate than specified in .jackrc. Why?
 <P>
 <B>A:</B>    The bitrate is cached in jack.progress. So if you encode track n with bitrate x1, delete the MP3 and call jack without specifying a bitrate, bitrate x1 is used, regardless what the default in your .jackrc is. Specify the wanted bitrate with -b.
+<P>
+<LI><B>Q:</B> I want to use a flat local cddb directory. Jack wants me to use subfolders like rock, blues, ... . Can you help?
+<P>
+<B>A:</B>    As long as nobody complains, use this workaround (sh style):<BR>
+cd [your_cddb_dir]<BR>
+for i in  blues classical country data folk \<BR>
+jazz misc newage reggae rock  soundtrack ; do<BR>
+    ln -s . "$i"<BR>
+done
 <P>
 </UL>
 Wanna go <A href=index.html>home</A>?
