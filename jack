@@ -22,7 +22,7 @@
 ### see CHANGELOG for recent changes in this program
 ### see TODO if you want to see what needs to be implemented
 
-prog_version = "2.99.7"
+prog_version = "2.99.8"
 prog_name = "jack"
 DEBUG = 0
 
