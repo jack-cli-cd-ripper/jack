@@ -22,8 +22,8 @@ Jack \- rip and encode CDs with one command
 .B jack
 .RI [ options ]
 .SH DESCRIPTION
-.B jack 
-transforms your audio-CDs to MP3s. It uses several helper programs
+.B Jack 
+transforms your audio-CDs to MP3 or Ogg Vorbis files. It uses several helper programs
 in order to achieve things like ripping, encoding and ID3-tagging. 
 Ripping is either done via
 .B cdparanoia
@@ -47,7 +47,7 @@ representing the CDs ID. This directory is renamed by Jack when the
 appropriate information is known.
 .br 
 Most options like ripper, encoder, preferred freedb-Server, directory
-and MP3-filename format, etc can be user defined by changing the
+and MP3-filename format, etc. can be user defined by changing the
 defaults in 
 .B ~/.jackrc.
 .PP
@@ -107,7 +107,7 @@ read audio data from image file. Like
 .B \-\-from-tocfile
 , but the
 image itself is specified instead of the tocfile. Use this if you
-do not have a toc-file; the TOC is the read from the CD itself.
+do not have a toc-file; the TOC is then read from the CD itself.
 .TP
 .B \-\-force
 do not ask. Like when deleting incomplete files.
@@ -118,7 +118,7 @@ make up a TOC from the MP3 file given in mp3_files. Format is
 Note that the trailing "
 .B ;
 " is only necessary if you want to
-append more options to your command line. This option makes me
+append more options to your command line.
 You can use it to do a freedb query based on
 MP3s alone - no need for the CD. Very useful if you have no idea
 which CD the MP3s are from. The MP3s must be given in the same
@@ -141,16 +141,15 @@ only start new encoders if your system's load is below (max_load
 suspended until above criterium is satisfied.
 .TP
 .B \-m, \-\-mail-submit
-submit freedb entry via e-mail. HTTP submission is preferred but
-while freedb only supports submission by e-mail you have to use
-this. You will have to enter the category of the CD.
+submit freedb entry via e-mail. HTTP submission is preferred. 
+You will have to enter the category of the CD.
 .TP
 .B \-n, \-\-nice <nice_lvl>
 nice-level with which the encoders are started. Default is 12
 which shouldn't hurt your system much.
 .TP
 .B \-\-no-various
-use this if freedb data says it't "Various Artists" but you want
+use this if freedb data says it's "Various Artists" but you want
 the normal renaming scheme, e.g. if Jack can't seperate artist
 and track title.
 .TP
@@ -216,7 +215,7 @@ outputs "raw" .cdr files, you quite likely want to swap the
 byteorder. Try this option if your WAVs and encoded files contain 
 only noise.
 This is on by default as cdrdao currently generates .cdr files
-thAt are "wrong".
+that are "wrong".
 .TP
 .B \-\-scan-dirs <recurse_dirs>
 Scan 
@@ -232,12 +231,11 @@ be quiet (no screen output).
 .TP
 .B \-\-submit
 submit freedb entry via HTTP. You will have to enter the category
-of the CD. At the moment, this does not work with freedb. Or with
-a buggy urllib.
+of the CD.
 .TP
 .B \-t, \-\-tracks <tracks>
 limit ripping and encoding to the specified tracks, use comma to
-seperate track. Ranges are also possible; 5-9 is equivalent to
+seperate tracks. Ranges are also possible; 5-9 is equivalent to
 5,6,7,8,9; 12- is like specifying track 12,...,last_track. The
 default is to process the whole CD.
 .TP
@@ -246,7 +244,8 @@ print what would be done and exit.
 .TP
 .B \-u, \-\-undo-rename
 undo file renaming and exit. If you don't like how Jack renamed
-your files, use this option to restore the previous state. Note
+your files, use this option to restore the previous state.
+Several levels of undo are possible. Note
 that ID3 tags are not restored.
 .TP
 .B \-\-upd-progress
@@ -258,14 +257,14 @@ Generate variable bitrate files, only on encoders which support
 this. Default is no.
 .TP
 .B \-\-various
-when parsing freedb data, Jack assumes that if the disc's artist
-s set to "Various Artists" the track titles have the format
+when parsing freedb data, Jack assumes that if the disc\'s artist
+is set to "Various Artists" the track titles have the format
 "[artist] - [title]". If the disc title is set to something else
 and you still want above behaviour, use 
 .B \-\-various.
 .TP.
 .B \-\-various-swap
-exchange artist and title
+exchange artist and title, many freedb entries have them wrong.
 .TP
 .B \-x, \-\-exec
 run predefined command when finished.
@@ -315,5 +314,4 @@ jack -Q --remove
 .SH AUTHOR
 Arne Zellentin <arne@unix-ag.org> is the author of Jack.
 .br
-This manual page was written by Michael Banck <mbanck@gmx.net>
-for the Debian GNU/Linux system (but may be used by others).
+This manual page was written by Michael Banck <mbanck@gmx.net>.
