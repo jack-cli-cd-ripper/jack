@@ -22,6 +22,7 @@ import time
 import pty
 import os
 
+import jack_helpers
 import jack_targets
 import jack_utils
 import jack_tag
@@ -79,10 +80,14 @@ def start_new_encoder(track, encoder):
 
     args = []
     for i in cmd:
-        if i == "%r": args.append(`track[RATE] * helper['bitrate_factor']`)
-        elif i == "%q": args.append(`cf['_vbr_quality']`)
-        elif i == "%i": args.append(track[NAME] + ".wav")
-        elif i == "%o": args.append(track[NAME] + cf['_ext'])
+        if i == "%r":
+            args.append(`track[RATE] * helper['bitrate_factor']`)
+        elif i == "%q":
+            args.append(`cf['_vbr_quality']`)
+        elif i == "%i":
+            args.append(track[NAME] + ".wav")
+        elif i == "%o":
+            args.append(track[NAME] + jack_targets.targets[jack_helpers.helpers[cf['_encoder']]['target']]['file_extension'])
         else:
             if jack_targets.targets[helper['target']]['can_pretag']:
                 if i == "%t": args.append(jack_tag.track_names[track[NUM]][1])
@@ -153,12 +158,18 @@ def start_new_otf(track, ripper, encoder):
         cmd = string.split(helpers[cf['_encoder']]['otf-cmd'])
     args = []
     for i in cmd:
-        if i == "%r": args.append(`track[RATE] * helpers[cf['_encoder']]['bitrate_factor']`)
-        elif i == "%q": args.append(`cf['_vbr_quality']`)
-        elif i == "%o": args.append(track[NAME] + cf['_ext'])
-        elif i == "%d": args.append(cf['_cd_device'])
-        elif i == "%D": args.append(cf['_gen_device'])
-        else: args.append(i)
+        if i == "%r":
+            args.append(`track[RATE] * helpers[cf['_encoder']]['bitrate_factor']`)
+        elif i == "%q":
+            args.append(`cf['_vbr_quality']`)
+        elif i == "%o":
+            args.append(track[NAME] + jack_targets.targets[jack_helpers.helpers[cf['_encoder']]['target']]['file_extension'])
+        elif i == "%d":
+            args.append(cf['_cd_device'])
+        elif i == "%D":
+            args.append(cf['_gen_device'])
+        else:
+            args.append(i)
     data['enc']['start_time'] = time.time()
     pid = os.fork()
     if pid == CHILD:

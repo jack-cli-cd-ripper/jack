@@ -246,13 +246,13 @@ def main_loop(mp3s_todo, wavs_todo, space, space_set_from_argv, dae_queue, enc_q
                 for i in jack_children.children:
                     if i['pid'] == respid:
                         if exited_proc != []:
-                            print "Error: pid " + `respid` + " found at multiple child processes."
+                            error("pid " + `respid` + " found at multiple child processes")
                             jack_display.exit()
                         exited_proc = i
                     else:
                         new_ch.append(i)
                 if not exited_proc:
-                    print "Error: unknown process (" + `respid` + ") has exited."
+                    error("unknown process (" + `respid` + ") has exited")
                     jack_display.exit()
                 jack_children.children = new_ch
                 x = ""
@@ -348,7 +348,7 @@ def main_loop(mp3s_todo, wavs_todo, space, space_set_from_argv, dae_queue, enc_q
                         jack_functions.progress(num, "enc", `track[RATE]`, jack_status.enc_status[num])
 
                 else:
-                    print "Error: child process of unknown type (" + exited_proc['type'] + ") exited."
+                    error("child process of unknown type (" + exited_proc['type'] + ") exited")
                     jack_display.exit()
                 if global_error:
                     jack_display.smile = " :-["
@@ -389,8 +389,7 @@ def main_loop(mp3s_todo, wavs_todo, space, space_set_from_argv, dae_queue, enc_q
                             global_error = global_error + 1
         
                 else:
-                    print "Error: unknown subprocess type \"" + i['type'] + "\"."
-                    jack_display.exit()
+                    error("unknown subprocess type \"" + i['type'] + "\".")
 
             cycles = cycles + 1
             if cycles % 30 == 0:

@@ -49,8 +49,7 @@ def check_path(p1, p2):
         p2 = split_dirname(p2)
     for i in p1, p2:
         if type(i) != types.ListType:
-            print "Error: invalid type for check_path", i
-            sys.exit(1)
+            error("invalid type for check_path" + `i`)
     if len(p1) > len(p2):   # make sure p1 is shorter or as long as p2
         p1, p2 = p2, p1
     ok = 1
@@ -70,8 +69,7 @@ def rename_path(old, new):
         new = split_dirname(new)
     for i in old, new, cwds:
         if type(i) != types.ListType:
-            print "Error: invalid type for rename_path:", i
-            sys.exit(1)
+            error("invalid type for rename_path: " + `i`)
 
     # weed out empty dirs (which are technically illegal on freedb but exist)
     tmp = []
@@ -89,12 +87,11 @@ def rename_path(old, new):
         if os.path.isdir(i):
             os.chdir(i)
         else:
-            print "Error: could not create or change to " + i + " from " + os.getcwd()
-            sys.exit(1)
+            error("could not create or change to " + i + " from " + os.getcwd())
+
     last_of_new = new[-1]
     if os.path.exists(last_of_new):
-        print "Error: destination directory already exists:", last_of_new
-        sys.exit(1)
+        error("destination directory already exists: " + last_of_new)
     os.rename(cwd, last_of_new)
     os.chdir(last_of_new)
                                                # now remove empty "orphan" dirs

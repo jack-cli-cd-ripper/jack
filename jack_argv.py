@@ -68,7 +68,7 @@ def get_next(argv, i):
     if len(argv) > i:
         return i, argv[i]
     else:
-        return None, None
+        return i, None
 
 def parse_option(cf, argv, i, option):
     ty = cf[option]['type']
@@ -76,7 +76,7 @@ def parse_option(cf, argv, i, option):
         return i, not cf[option]['val']
     if ty == types.IntType:
         i, data = get_next(argv, i)
-        if i:
+        if data != None:
             try:
                 data = int(data)
                 return i, data
@@ -88,7 +88,7 @@ def parse_option(cf, argv, i, option):
             return None, "Option `%s' needs exactly one argument" % option
     if ty == types.StringType:
         i, data = get_next(argv, i)
-        if i:
+        if data != None:
             return i, data
         else:
             return None, "Option `%s' needs exactly one string argument" % option
@@ -96,7 +96,7 @@ def parse_option(cf, argv, i, option):
         l = []
         while 1:
             i, data = get_next(argv, i)
-            if i:
+            if data != None:
                 if data == ";":
                     break
                 l.append(data)
@@ -105,7 +105,7 @@ def parse_option(cf, argv, i, option):
         if l:
             return i, l
         else:
-            return None, "option `%s' takes a non-empty list (which may be terminated by \";\")" % option
+            return None, "option `%s' takes a non-empty list (which may be terminated by \";\")" % `option`
     # default
     return None, "unknown argument type for option `%s'." % option
             
@@ -145,7 +145,7 @@ def parse_argv(cf, argv):
 
         elif argv[i] == "--override":
             i, option = get_next(argv, i)
-            if not i:
+            if option == None:
                 print "--override takes two arguments: <VARIABLE> <VALUE>"
                 sys.exit(1)
 

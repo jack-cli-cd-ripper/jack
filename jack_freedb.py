@@ -88,11 +88,9 @@ def local_freedb(cd_id, freedb_dir, outfile = "/tmp/testfilefreedb"):
     "Use file from local freedb directory"
     # Moritz Moeller-Herrmann kindly provided this functionality.
     if not os.path.isdir(freedb_dir):
-        print "Error: freedb directory not found"
-        sys.exit(1)
+        error("freedb directory not found")
     if not os.access(freedb_dir, 5):
-        print "Error: freedb directory access not permitted"
-        sys.exit(1)
+        error("freedb directory access not permitted")
     cat=[freedb_dir] # category listing
     for entry in os.listdir(freedb_dir):
         if os.path.isdir(os.path.join(freedb_dir, entry)):
@@ -128,7 +126,8 @@ def freedb_id(tracks, warn=0):
     "calculate freedb (aka CDDB) disc-id"
     cdtoc = []
     if not tracks:
-        if warn: print "Error: no tracks! No disc inserted? No/wrong ripper?"
+        if warn:
+            warning("no tracks! No disc inserted? No/wrong ripper?")
         return 0
     for i in tracks:
         cdtoc.append(jack_functions.blockstomsf(i[START] + MSF_OFFSET))
@@ -262,21 +261,19 @@ def freedb_query(cd_id, tracks, file):
             buf = string.split(buf)
             freedb_cat = buf[1]
         elif buf[0:3] == "202":
-            print "Error: ", buf, f.read()
-            print "how about trying another --server?"
             if continue_failed_query:
+                warning(buf + f.read() + " --how about trying another --server?")
                 err = 1
                 return err
             else:
-                sys.exit()
+                error(buf + f.read() + " --how about trying another --server?")
         else:
-            print "Error: ", buf, f.read()
-            print "     : don't know what to do, aborting query."
             if continue_failed_query:
+                warning(buf + f.read() + " --don't know what to do, aborting query.")
                 err = 1
                 return err
             else:
-                sys.exit()
+                error(buf + f.read() + " --don't know what to do, aborting query.")
  
         cmd = "cmd=cddb read " + freedb_cat + " " + cd_id
         url = "http://" + freedb_servers[cf['_freedb_server']]['host'] + "/~cddb/cddb.cgi?" + urllib.quote_plus(cmd + "&" + hello + "&proto=3", "=&")
@@ -299,13 +296,13 @@ def freedb_query(cd_id, tracks, file):
         else:
             print string.rstrip(buf)
             print f.read()
-            print "Error: could not query freedb entry."
+            warning("could not query freedb entry")
             err = 1
         f.close()
     else:
         print string.rstrip(buf)
         print f.read()
-        print "Error: could not check freedb category."
+        warning("could not check freedb category")
         err = 2
     f.close()
     return err
@@ -342,14 +339,16 @@ def freedb_names(cd_id, tracks, name, verb = 0, warn = 1):
     for i in tracks:    # check that info is there for all tracks
         if not freedb.has_key("TTITLE%i" % (i[NUM] - 1)):   # -1 because freedb starts at 0
             error = 1
-            if verb: print "Error: No freedb info for track %02i (\"TTITLE%i\")" % (i[NUM], i[NUM] - 1)
+            if verb:
+                warning("no freedb info for track %02i (\"TTITLE%i\")" % (i[NUM], i[NUM] - 1))
             freedb["TTITLE%i" % (i[NUM] - 1)] = "[not set]"
  
     for i in freedb.keys():# check that there is no extra info
         if i[0:6] == "TTITLE":
             if int(i[6:]) > tracks_on_cd - 1:
                 error = 2
-                if verb: print "Error: extra freedb info for track %02i (\"%s\"), cd has only %02i tracks." % (int(i[6:]) + 1, i, tracks_on_cd)
+                if verb:
+                    warning("extra freedb info for track %02i (\"%s\"), cd has only %02i tracks." % (int(i[6:]) + 1, i, tracks_on_cd))
  
     if not freedb.has_key("DTITLE"):
         error = 3
@@ -358,7 +357,8 @@ def freedb_names(cd_id, tracks, name, verb = 0, warn = 1):
  
     if not freedb.has_key("DISCID"):
         error = 4
-        if verb: print "Error: freedb entry doesn't contain disc id info (\"DISCID\")."
+        if verb:
+            warning("freedb entry doesn't contain disc id info (\"DISCID\").")
         read_id = "00000000"
     else:
         read_id = freedb['DISCID']
@@ -374,10 +374,12 @@ def freedb_names(cd_id, tracks, name, verb = 0, warn = 1):
         for i in read_ids:
             for j in i:
                 if j not in "0123456789abcdef":
-                    if verb: print "Error: the disc's id is not 8-digit hex (\"DISCID\")."
+                    if verb:
+                        warning("the disc's id is not 8-digit hex (\"DISCID\").")
                     error = 5
             if len(i) != 8:
-                if verb: print "Error: the disc's id is not 8-digit hex (\"DISCID\")."
+                if verb:
+                    warning("the disc's id is not 8-digit hex (\"DISCID\").")
                 error = 5
  
     dtitle = freedb['DTITLE']
@@ -402,7 +404,8 @@ def freedb_names(cd_id, tracks, name, verb = 0, warn = 1):
             names = [string.split(dtitle,"/",1)]
             names[0].extend([extd_year, extd_id3g])
     if names[0][0] == "(unknown artist)":
-        if verb: print "Error: the disc's title must be set to \"artist / title\" (\"DTITLE\")."
+        if verb:
+            warning("the disc's title must be set to \"artist / title\" (\"DTITLE\").")
         error = 6
  
     if string.upper(names[0][0]) in ("VARIOUS", "VARIOUS ARTISTS", "SAMPLER", "COMPILATION", "DIVERSE"):
@@ -420,7 +423,8 @@ def freedb_names(cd_id, tracks, name, verb = 0, warn = 1):
                 names.append([freedb['EXTT'+`i`], freedb['TTITLE'+`i`]])
             else:
                 error = 8
-                if verb: print 'Error: no EXTT info for track %02i.' % i
+                if verb:
+                    warning("no EXTT info for track %02i." % i)
  
     elif cf['_various'] and cf['_extt_is_title']:
         for i in range(tracks_on_cd):
@@ -428,7 +432,8 @@ def freedb_names(cd_id, tracks, name, verb = 0, warn = 1):
                 names.append([freedb['TTITLE'+`i`], freedb['EXTT'+`i`]])
             else:
                 error = 8
-                if verb: print 'Error: no EXTT info for track %02i.' % i
+                if verb:
+                    warning("no EXTT info for track %02i." % i)
  
 # we'll try some magic to separate artist and title
  
@@ -552,7 +557,8 @@ def freedb_names(cd_id, tracks, name, verb = 0, warn = 1):
                     buf[1] = string.replace(buf[1], closing_brace, "")
                     lenafter = len(buf[0] + buf[1])
                     if lenafter != lenbefore - len(closing_brace):
-                        if verb: print "Error: brace", j," does not close exactly once."
+                        if verb:
+                            warning("brace" + `j` + " does not close exactly once.")
                         error = 9
                         
                 if cf['_various_swap']:
@@ -560,10 +566,8 @@ def freedb_names(cd_id, tracks, name, verb = 0, warn = 1):
                 names.append(buf)
         else:
             error = 7
-            if verb: print 'Error: could not separate artist and title in all TTITLEs.'
-            if verb: print '       Try setting freedb_pedantic = 0 or use --no-various'
-            if verb: print '       Maybe additional information is contained in the EXTT fields.'
-            if verb: print '       check %s and use either --extt-is-artist or --extt-is-title.' % cf['_freedb_form_file']
+            if verb:
+                warning("could not separate artist and title in all TTITLEs. Try setting freedb_pedantic = 0 or use --no-various Maybe additional information is contained in the EXTT fields. check %s and use either --extt-is-artist or --extt-is-title." % cf['_freedb_form_file'])
     else:
         for i in range(tracks_on_cd):
             buf = freedb['TTITLE'+`i`]
@@ -640,9 +644,7 @@ def do_freedb_submit(file, cd_id):
         cat = choose_cat(cat)
 
     else:
-        print "Error: LSCAT failed: " + string.rstrip(buf)
-        print f.read()
-        sys.exit(1)
+        error("LSCAT failed: " + string.rstrip(buf) + f.read())
 
     print "OK, using `" + cat + "'."
     email = freedb_servers[freedb_server]['my_mail']
@@ -693,9 +695,7 @@ def do_freedb_submit(file, cd_id):
     f = h.getfile()
     if proxy:
         if err != 200:
-            print "Error: proxy: " + `err` + " " + msg 
-            print f.read()
-            sys.exit(1)
+            error("proxy: " + `err` + " " + msg + f.read())
         else:
             buf = f.readline()
             err, msg = buf[0:3], buf[4:]
@@ -705,7 +705,6 @@ def do_freedb_submit(file, cd_id):
         print "This server doesn't seem to support database submission via http."
         print "consider submitting via mail (" + progname + " -m). full error:\n"
     print err, msg
-    #print f.read()
 
 def do_freedb_mailsubmit(file, cd_id):
     cat = choose_cat()

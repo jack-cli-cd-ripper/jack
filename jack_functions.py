@@ -31,8 +31,6 @@ import jack_mp3
 from jack_globals import *
 from jack_helpers import helpers
 
-NUM, LEN, START, COPY, PRE, CH, RIP, RATE, NAME = range(9)
-
 def df(fs = ".", blocksize = 1024):
     "returns free space on a filesystem (in bytes)"
     try:
@@ -91,17 +89,16 @@ def gettoc(toc_prog):
         l = p.readline()
         exec(helpers[toc_prog]['toc_fkt'])
         if p.close():
-            print "Error: could not read CD's TOC."
             if cd_device:
                 try:
                     f = open(cd_device, "r")
                 except IOError:
-                    print "     : could not open " + cd_device + ". Check permissions and that a disc is inserted."
+                     info("could not open " + cd_device + ". Check permissions and that a disc is inserted.")
                 else:
-                    print "     : maybe " + toc_prog + " is not installed?"
+                    info("maybe " + toc_prog + " is not installed?")
             else:
-                print "      : try setting cd_device to your CD device, e.g. /dev/cdrom"
-            exit()
+                info("try setting cd_device to your CD device, e.g. /dev/cdrom")
+            error("could not read CD's TOC.")
         else:
             return erg
     else:
@@ -128,8 +125,7 @@ def guesstoc(names):
         if i_ext == ".MP3":
             x = jack_mp3.mp3format(i) 
             if not x:
-                print "Error: could not get MP3 info for file \"%x\"" % i
-                exit()
+                error("could not get MP3 info for file \"%x\"" % i)
             blocks = int(x['length'] * CDDA_BLOCKS_PER_SECOND + 0.5)
             #           NUM, LEN,    START, COPY, PRE, CH, RIP, RATE,
             #   NAME
@@ -142,16 +138,14 @@ def guesstoc(names):
         elif i_ext == ".WAV":
             x = whathdr(i)
             if not x:
-                print "Error: this is not WAV-format:", i
-                exit()
+                error("this is not WAV-format: " + i)
             if x != ('wav', 44100, 2, -1, 16):
-                print "Error: unsupportet format", x, "in", i
-                exit()
+                error("unsupportet format " + `x` +  " in " + i)
             blocks = jack_utils.filesize(i)
             blocks = blocks - 44    # substract WAV header
             extra_bytes = blocks % CDDA_BLOCKSIZE
             if not extra_bytes == 0:
-                print "Warning: this is not CDDA block-aligned:", i
+                warning("this is not CDDA block-aligned: " + `i`)
                 yes = raw_input("May I strip %d bytes (= %.4fseconds) off the end? " % (extra_bytes, extra_bytes / 2352.0 / 75.0))
                 if not (yes + "x")[0] == "y":
                     print "Sorry, I can't process non-aligned files (yet). Bye!"
@@ -167,14 +161,11 @@ def guesstoc(names):
             if cf['_name'] % num != i_name:
                 progr.append([num, "ren", cf['_name'] % num + "-->" + i_name])
         elif i_ext == ".OGG":
-            print "Error: you still have to wait for ogg support for this ooperation, sorry."
-            exit()
+            error("you still have to wait for ogg support for this ooperation, sorry.")
         elif i_ext == ".FLAC":
-            print "Error: you still have to wait for FLAC support for this ooperation, sorry."
-            exit()
+            error("you still have to wait for FLAC support for this ooperation, sorry.")
         else:
-            print "Error: this is neither .mp3 nor .ogg nor .wav nor .flac:", i
-            exit()
+            error("this is neither .mp3 nor .ogg nor .wav nor .flac:", i)
         num = num + 1
         start = start + blocks
     for i in progr:     # this is deferred so that it is only written if no
@@ -346,8 +337,7 @@ def cdrdao_puttoc(tocfile, tracks, cd_id):     # put toc to cdrdao toc-file
         elif i[CH] == 0:
             f.write("// not supported by jack!\n")
         else:
-            print "Error: illegal TOC: channels=%i, aborting." % i[CH]
-            exit()
+            error("illegal TOC: channels=%i, aborting." % i[CH])
         f.write('FILE "' + i[NAME] + '.wav" 0 ')
         x = i[LEN]
         if i[NUM] == 1:         # add pregap to track, virtually
@@ -391,16 +381,14 @@ def progress(track, what="error", data="error", data2 = None):
         elif len(track) == 4:
             track, what, data, data2 = track
         else:
-            print "Error: illegal progress entry:", track, type(track)
-            exit()
+            error("illegal progress entry:" + `track` + " (" + `type(track)` + ")")
 
     if type(track) == types.IntType:
         first = "%02i" % track
     elif type(track) == types.StringType:
         first = track
     else:
-        print "Error: illegal progress entry:", track, type(track)
-        exit()
+        error("illegal progress entry:" + `track` + " (" + `type(track)` + ")")
     progress_changed = 1
     f = open(cf['_progress_file'], "a")
     f.write(first + cf['_progr_sep'] + what + cf['_progr_sep'] + data)
@@ -408,7 +396,4 @@ def progress(track, what="error", data="error", data2 = None):
         f.write(cf['_progr_sep'] + data2)
     f.write("\n")
     f.close()
-
-def progress_error(s):
-    progress("all", "error", s)
 

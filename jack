@@ -122,7 +122,7 @@ while (not os.path.exists(cf['_toc_file'])) or cf['_multi_mode']:
                 toc_just_read = 1
                 # check that the generic device is usable, too
                 if not os.access(cf['_gen_device'], os.R_OK | os.W_OK):
-                    warning(r"""Warning: could not open generic device %s for reading and writing.
+                    warning(r"""could not open generic device %s for reading and writing.
 This may or may not be a problem. Maybe you just didn't set up gen_device
 in your .jackrc. This is fine, unless you're using a ripper which needs to
 know the generic device (cdparanoia doesn't need to know). But you have to
@@ -181,7 +181,7 @@ Note: other errors below may result from this problem.""" % cf['_gen_device'])
                 jack_ripstuff.all_tracks, dummy, track1_offset = jack_functions.cdrdao_gettoc(os.path.join(i, cf['_toc_file']))
                 err, jack_tag.track_names, cd_id, revision = freedb_names(jack_freedb.freedb_id(jack_ripstuff.all_tracks), jack_ripstuff.all_tracks,  os.path.join(i, cf['_freedb_form_file']), verb = 0, warn = 0)
                 if err or cf['_force']:# this means freedb data is not there yet
-                    print "Info: matching dir found:", i
+                    info("matching dir found: %d" % i)
                     pid = os.fork()
                     if pid == CHILD:
                         os.chdir(i)
@@ -189,7 +189,7 @@ Note: other errors below may result from this problem.""" % cf['_gen_device'])
                         for killarg in ('--force', '--multi-mode'):
                             if killarg in ch_args:
                                 ch_args.remove(killarg)
-                        print "Info: running", ch_args
+                        info("running" + `ch_args`)
                         os.execvp(ch_args[0], ch_args)
                     else:
                         respid, res = os.waitpid(pid, 0)
@@ -203,10 +203,9 @@ Note: other errors below may result from this problem.""" % cf['_gen_device'])
                     found = 1
             if not found:
                 unique_dirs.append(possible_dirs[i])
-                print "Info: matching dir found:", possible_dirs[i]
+                info("matching dir found: " + possible_dirs[i])
         if len(unique_dirs) > 1:
-            print "Error: found more than one workdir, change to the correct one."
-            jack_display.exit()
+            error("found more than one workdir, change to the correct one.")
         elif len(unique_dirs) == 1:
             os.chdir(unique_dirs[0])
         else:
@@ -289,10 +288,10 @@ if toc_just_read and jack_helpers.helpers[cf['_ripper']].has_key("toc_cmd") and 
                     # "NUM LEN START COPY PRE CH" (not: "RIP RATE NAME")
                     if ripper_tracks[rtn][j] != jack_ripstuff.all_tracks[i][j]:
                         jack_functions.progress(i + 1, "patch", "%s %d -> %d" % (fields[j], jack_ripstuff.all_tracks[i][j], ripper_tracks[rtn][j]))
-                        debug("Info: Track %02d %s" % (i + 1, fields[j]) + `jack_ripstuff.all_tracks[i][j]` + " != " + `ripper_tracks[rtn][j]` + " (trusting %s; to the right)" % cf['_ripper'])
+                        debug("Track %02d %s" % (i + 1, fields[j]) + `jack_ripstuff.all_tracks[i][j]` + " != " + `ripper_tracks[rtn][j]` + " (trusting %s; to the right)" % cf['_ripper'])
             else:
                 jack_functions.progress(i + 1, "off", "non-audio")
-                print "Info: Track %02d not found by %s. Treated as non-audio." % (i + 1, cf['_ripper'])
+                info("Track %02d not found by %s. Treated as non-audio." % (i + 1, cf['_ripper']))
     
 ### (4b) Parse tracks from argv, generate todo
 
@@ -306,7 +305,7 @@ if not cf['_tracks']:
         if i[CH] == 2:
             todo.append(i)
         else:
-            print "Info: can't handle non audio track %i" % i[NUM]
+            info("can't handle non audio track %i" % i[NUM])
 
 else:       # example: "1,2,4-8,12-" ->  [ 1,2,4,5,6,7,8,12,13,...,n ]
     tlist = []
@@ -343,14 +342,13 @@ else:       # example: "1,2,4-8,12-" ->  [ 1,2,4,5,6,7,8,12,13,...,n ]
         if jack_ripstuff.all_tracks[k-1][CH] == 2:
             todo.append(jack_ripstuff.all_tracks[k-1])
         else:
-            print "Warning: can't handle non audio track %i" % k[NUM]
+            warning("can't handle non audio track %i" % k[NUM])
 
 for i in todo:
     jack_ripstuff.all_tracks_todo_sorted.append(i)
 
 if len(todo) == 0:
-    print "Error: nothing to do. bye."
-    jack_display.exit()
+    error("nothing to do. bye.")
 
 ### init status
 jack_status.init(todo)
@@ -400,8 +398,7 @@ if cf['_upd_progress']:
                     x = ogg.vorbis.VorbisFile(i[NAME] + ext)
                     temp_rate = int(x.raw_total(0) * 8 / x.time_total(0) / 1000 + 0.5)
                 else:
-                    print "Error: don't know how to handle %s files." % ext
-                    sys.exit(1)
+                    error("don't know how to handle %s files." % ext)
                 status[num]['enc'] = `temp_rate` + cf['_progr_sep'] + "[simulated]"
                 jack_functions.progress(num, "enc", status[num]['enc'])
                 del x, temp_rate
@@ -447,8 +444,7 @@ for i in status.keys():
             if len(status[i]['names']) > 1:
                 del status[i]['names'][-1]
             else:
-                print "Error: more undos than renames, exit."
-                sys.exit()
+                error("more undos than renames, exit.")
         else:
             names = string.split(j[0], '-->', 1)
             if status[i]['names'][-1] == names[0]:
@@ -465,7 +461,7 @@ del status['all']
 
 for i in status.keys():
     if len(status[i]['dae']) > 1 or len(status[i]['enc']) > 2:
-        print "Error: malformed progress file, exit."
+        error("malformed progress file")
         sys.exit()
     if len(status[i]['enc']) == 2:
         tracknum[i][RATE] = int(float(status[i]['enc'][0]) + 0.5)
@@ -483,11 +479,7 @@ for i in status.keys():
             if tracknum[i][fields.index(p_what)] == p_from:
                 tracknum[i][fields.index(p_what)] = p_to
             else:
-                #print "Error: illegal patch", j , todo[jack_utils.has_track(todo, i)][fields.index(p_what)], p_from
-                print "Error: illegal patch %s." % j,
-                print "Track %02d: %s is %d" % (i, p_what, todo[jack_utils.has_track(todo, i)][fields.index(p_what)])
-
-                jack_display.exit(1)
+                error("illegal patch %s. " % j, + "Track %02d: %s is %d" % (i, p_what, todo[jack_utils.has_track(todo, i)][fields.index(p_what)]))
 
     if status[i]['off']:
         if jack_utils.has_track(todo, i) >= 0:
@@ -527,24 +519,24 @@ if is_submittable:
         if not err:
             do_freedb_submit(cf['_freedb_form_file'], cd_id)
         else:
-            print "Error: invalid freedb file."
-        jack_display.exit()
+            error("invalid freedb file")
+        sys.exit(0)
     elif cf['_freedb_mailsubmit']:
         err, jack_tag.track_names, cd_id, revision = freedb_names(jack_freedb.freedb_id(jack_ripstuff.all_tracks), jack_ripstuff.all_tracks, cf['_freedb_form_file'])
         if not err:
             do_freedb_mailsubmit(cf['_freedb_form_file'], cd_id)
         else:
-            print "Error: invalid freedb file."
-        jack_display.exit()
+            error("invalid freedb file.")
+        sys.exit(0)
 
 ### (9) do query on start
 
 if cf['_query_on_start']:
-    print "Info: Querying..."
+    info("Querying...")
     if jack_freedb.freedb_query(jack_freedb.freedb_id(jack_ripstuff.all_tracks), jack_ripstuff.all_tracks, cf['_freedb_form_file']):
         if continue_failed_query:
             
-            x = raw_input("\nWarning: freedb search failed, continue? ") + "x"
+            x = raw_input("\nfreedb search failed, continue? ") + "x"
             if x[0] != "y":
                 jack_display.exit()
             cf['_query_on_start'] = 0
@@ -557,8 +549,7 @@ if cf['_query_on_start']:
 if cf['_query_on_start']:
     err, jack_tag.track_names, freedb_rename, revision = jack_freedb.interpret_db_file(jack_ripstuff.all_tracks, cf['_freedb_form_file'], verb = cf['_query_on_start'], dirs = 1)
     if err:
-        print "Error: query on start failed to give a good freedb file, aborting."
-        jack_display.exit()
+        error("query on start failed to give a good freedb file, aborting.")
 else:
     err, jack_tag.track_names, freedb_rename, revision = jack_freedb.interpret_db_file(jack_ripstuff.all_tracks, cf['_freedb_form_file'], verb = cf['_query_on_start'], warn = cf['_query_on_start'])
 
@@ -591,7 +582,7 @@ if cf['_undo_rename']:
         if jack_freedb.dir_created and jack_utils.check_path(jack_freedb.dir_created, cwd) and dir_too:
             new_name, old_name = jack_progress.status_all['names'][-2:]
             jack_utils.rename_path(old_name, new_name)    # this changes cwd!
-            print "Info: cwd now", os.getcwd()
+            info("cwd now " + os.getcwd())
             jack_functions.progress("all", "undo", "dir")
 
         else:
@@ -616,7 +607,7 @@ if cf['_undo_rename']:
                             jack_functions.progress(i[NUM], "undo", "-")
                             os.rename(old_name, new_name)
     else:
-        print "Info: nothing to do."
+        info("nothing to do.")
     sys.exit()
 
 #### Reorder if told so
@@ -783,8 +774,7 @@ if not cf['_dont_work'] and dae_queue:     # check if inserted cd matches toc.
     if cf['_rip_from_device']:
         all_tracks_on_cd = jack_functions.gettoc(cf['_toc_prog'])
         if not cf['_force'] and not jack_utils.cmp_toc_cd(jack_ripstuff.all_tracks_orig, all_tracks_on_cd, what=(NUM, LEN)):
-            print "Error: you did not insert the right cd, aborting."
-            sys.exit(1)
+            error("you did not insert the right cd")
 
 if remove_q and not cf['_force'] and not cf['_dont_work']:
     if cf['_silent_mode']:
@@ -838,15 +828,14 @@ if (wavs_todo or mp3s_todo):
         sys.exit(1)
 
 if cf['_query_when_ready']:
-    print "Info: querying..."
+    info("querying...")
     if jack_freedb.freedb_query(jack_freedb.freedb_id(jack_ripstuff.all_tracks), jack_ripstuff.all_tracks, cf['_freedb_form_file']):
         jack_display.exit()
 
 if cf['_query_when_ready'] or cf['_read_freedb_file'] or cf['_query_on_start']:
     err, jack_tag.track_names, freedb_rename, revision = jack_freedb.interpret_db_file(jack_ripstuff.all_tracks, cf['_freedb_form_file'], verb = 1, dirs = 1)
     if err:
-        print "Error: could not read freedb file, aborting."
-        jack_display.exit()
+        error("could not read freedb file")
 
 if jack_term.term_type == "curses":
     if jack_display.options_string:
@@ -862,10 +851,9 @@ if jack_freedb.names_available:
     a_title = jack_tag.track_names[0][1]
 
 if global_error:
-    print "Error: aborting because of previous error(s) [%i]." % global_error
     if cf['_exec_when_done']:
         os.system(cf['_exec_err'])
-    jack_display.exit()
+    error("aborting because of previous error(s) [%i]." % global_error)
 
 if cf['_vbr'] and not cf['_only_dae']:
     total_length = 0
