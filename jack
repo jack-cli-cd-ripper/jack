@@ -416,7 +416,7 @@ helpers = {
         'target': "ogg",
         'can_tag': 1,
         #'vbr-cmd': "oggenc -o %o -t %t -a %a -N %n -l %l -G %g -d %y -b %r %i",
-        'vbr-cmd': "oggenc -q 5 -o %o -t %t -a %a -N %n -l %l -G %g -d %y %i",
+        'vbr-cmd': "oggenc -o %o -t %t -a %a -N %n -l %l -G %g -d %y %i",
         'status_blocksize': 64,
         'bitrate_factor': 1,
         'status_start': "%",
