@@ -434,6 +434,14 @@ targets = {
         'can_pretag': 0,
         'can_posttag': 1,
         'file_extension': ".flac"
+        },
+    'mpc': {
+        'can_cbr': 0,
+        'can_vbr': 1,
+        'can_id3': 0,
+        'can_pretag': 0,
+        'can_posttag': 0,
+        'file_extension': ".mpc"
         }
     }
 
@@ -514,11 +522,7 @@ else:
         'cmd': "lame -h -b %r %i %o",
         'vbr-cmd': "lame --r3mix --nohist %i %o",
         'otf-cmd': "lame -h -b %r - %o",
-        'vbr-otf-cmd': "lame --r3mix -V %q --nohist - %o",
-
-# from lame:     -V n    quality setting for VBR.  default n=4
-#                        0=high quality,bigger files. 9=smaller files
-
+        'vbr-otf-cmd': "lame --r3mix --nohist - %o",
         'status_blocksize': 160,
         'bitrate_factor': 1,
         'status_start': "%",
@@ -628,7 +632,27 @@ else:
     percent = 0         
 \"\"\"
     },
-    
+
+    'mppenc': {
+        'type': "encoder",
+        'target': "mpc",
+        'can_tag': 0,
+        'vbr-cmd': "mppenc --standard %i %o",
+        #'vbr-otf-cmd': "mppenc --standard - %o", # doesn't work, needs WAVE
+        'status_blocksize': 160,
+        'status_start': "-.-",
+        'percent_fkt': \"\"\"
+s = split(i['buf'], '\\\\015')
+if len(s) >= 3:
+    s = s[-3]
+    s = split(strip(s))
+    if len(s) >= 3 and s[2] == "kbps" and s[0] != "-.-":
+        percent = float(s[0])
+    else:
+        percent = 0
+\"\"\",
+    },
+
     'cdparanoia': {
         'type': "ripper",
         'cmd': "cdparanoia --abort-on-skip -d %d %n %o",
@@ -2154,7 +2178,7 @@ def start_new_otf(track, ripper, encoder):
     os.close(enc_err)
     data['enc']['pid'] = pid
     data['enc']['otf-pid'] = data['rip']['pid']
-    data['enc']['cmd'] = helpers[encoder]['otf-cmd']
+    data['enc']['cmd'] = cmd
     data['enc']['buf'] = ""
     data['enc']['percent'] = 0
     data['enc']['elapsed'] = 0
@@ -3003,7 +3027,7 @@ if otf and image_file:
 
 if otf:
     for i in (ripper, encoder):
-        if not helpers[i].has_key('otf-cmd'):
+        if not helpers[i].has_key(('vbr-' * vbr * (i == encoder)) + 'otf-cmd'):
             print "Error: can't do on-the-fly because " + helpers[i]['type'] + " " + i + " doesn't support it."
             exit()
 
@@ -3897,7 +3921,7 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, enc_running, da
                 if otf and not image_file:
                     #XXX image_reader can't do otf at the moment.
                     dae_stat_upd(track[NUM], ":DAE: waiting for status report...")
-                    if encoder in ("lame", "gogo", "flac"):
+                    if encoder in ("lame", "gogo", "flac", "mppenc"):
                         enc_stat_upd(track[NUM], "[no otf status for %s]" % encoder)
                     else:
                         enc_stat_upd(track[NUM], "waiting for encoder.")
