@@ -1,6 +1,6 @@
 ### jack_freedb: freedb server for use in
 ### jack - extract audio from a CD and encode it using 3rd party software
-### Copyright (C) 2002  Arne Zellentin <zarne@users.sf.net>
+### Copyright (C) 1999-2003  Arne Zellentin <zarne@users.sf.net>
 
 ### This program is free software; you can redistribute it and/or modify
 ### it under the terms of the GNU General Public License as published by
@@ -16,8 +16,9 @@
 ### along with this program; if not, write to the Free Software
 ### Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-import urllib
+import urllib2, urllib
 import string
+import sys
 import os
 
 import jack_playorder
@@ -145,7 +146,7 @@ def freedb_id(tracks, warn=0):
         n = n + freedb_sum((i[START] + MSF_OFFSET) / CDDA_BLOCKS_PER_SECOND)
     t = (tracks[-1][START] + tracks[-1][LEN]) / CDDA_BLOCKS_PER_SECOND - tracks[0][START] / CDDA_BLOCKS_PER_SECOND
 
-    return "%08x" % ((n % 0xff) << 24 | (t << 8) | (len(tracks)))
+    return "%08x" % ((n % 0xff << long(24)) | (t << 8) | (len(tracks)))
 
 def freedb_split(field, s, max = 78):
     "split a field into multiple lines of 78 char max."
@@ -223,13 +224,13 @@ def freedb_query(cd_id, tracks, file):
     url = "http://" + freedb_servers[cf['_freedb_server']]['host'] + "/~cddb/cddb.cgi?" + qs
     if cf['_cont_failed_query']:
         try:
-            f = urllib.urlopen(url)
+            f = urllib2.urlopen(url)
         except IOError:
             traceback.print_exc()
             err = 1
             return err
     else:
-        f = urllib.urlopen(url)
+        f = urllib2.urlopen(url)
     buf = f.readline()
     if buf and buf[0:1] == "2":
         if buf[0:3] == "211": # Found inexact matches, list follows
@@ -284,7 +285,7 @@ def freedb_query(cd_id, tracks, file):
  
         cmd = "cmd=cddb read " + freedb_cat + " " + cd_id
         url = "http://" + freedb_servers[cf['_freedb_server']]['host'] + "/~cddb/cddb.cgi?" + urllib.quote_plus(cmd + "&" + hello + "&proto=3", "=&")
-        f = urllib.urlopen(url)
+        f = urllib2.urlopen(url)
         buf = f.readline()
         if buf and buf[0:3] == "210": # entry follows
             if os.path.exists(file):
@@ -418,8 +419,9 @@ def freedb_names(cd_id, tracks, name, verb = 0, warn = 1):
                 extd_year, extd_id3g = int(extd_year), int(extd_id3g)
             except:
                 print "can't handle '%s'." % freedb['EXTD']
-            names = [string.split(dtitle,"/",1)]
-            names[0].extend([extd_year, extd_id3g])
+            else:
+                names = [string.split(dtitle, "/", 1)]
+                names[0].extend([extd_year, extd_id3g])
     if names[0][0] == "(unknown artist)":
         if verb:
             warning("the disc's title must be set to \"artist / title\" (\"DTITLE\").")
@@ -641,7 +643,7 @@ def do_freedb_submit(file, cd_id):
     hello = "hello=" + username + " " + hostname + " " + prog_name + " " + prog_version
     print "Info: querying categories..."
     url = "http://" + freedb_servers[cf['_freedb_server']]['host'] + "/~cddb/cddb.cgi?" + urllib.quote_plus("cmd=cddb lscat" + "&" + hello + "&proto=3", "=&")
-    f = urllib.urlopen(url)
+    f = urllib2.urlopen(url)
     buf = f.readline()
     if buf[0:3] == "500":
         print "Info: LSCAT failed, using builtin categories..."

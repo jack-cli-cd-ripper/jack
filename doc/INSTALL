@@ -1,4 +1,4 @@
-### This is jack  (c) 1999-2001 Arne Zellentin
+### This is jack  (c) 1999-2003 Arne Zellentin
 ### free to use, no warranties, no nothing
 ### see COPYING
 
@@ -43,7 +43,9 @@ Copy it somewhere in your $PATH, e.g.:
 or (you may have to be root)
 
     # cp jack /usr/local/bin/
-    # cp jack_*py /usr/local/lib/python1.5/site-packages/
+    # cp jack_*py /usr/local/lib/pythonM.m/site-packages/
+
+(replace M.m by the version of your python-installation)
 
 --- That's it -- you're done! Congratulations!
 

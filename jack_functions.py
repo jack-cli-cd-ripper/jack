@@ -1,6 +1,7 @@
+# -*- coding: iso-8859-15 -*-
 ### jack_functions: functions for
 ### jack - extract audio from a CD and encode it using 3rd party software
-### Copyright (C) 1999-2002  Arne Zellentin <zarne@users.sf.net>
+### Copyright (C) 1999-2003  Arne Zellentin <zarne@users.sf.net>
 
 ### This program is free software; you can redistribute it and/or modify
 ### it under the terms of the GNU General Public License as published by
@@ -167,7 +168,7 @@ def guesstoc(names):
         elif i_ext == ".FLAC":
             error("you still have to wait for FLAC support for this ooperation, sorry.")
         else:
-            error("this is neither .mp3 nor .ogg nor .wav nor .flac:", i)
+            error("this is neither .mp3 nor .ogg nor .wav nor .flac: %s" % i)
         num = num + 1
         start = start + blocks
     for i in progr:     # this is deferred so that it is only written if no

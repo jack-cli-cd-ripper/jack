@@ -18,7 +18,7 @@
 
 import string
 import types
-import os
+import os, sys
 
 import jack_playorder
 import jack_functions

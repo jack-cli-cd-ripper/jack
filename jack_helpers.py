@@ -1,6 +1,7 @@
+# -*- coding: iso-8859-15 -*-
 ### jack_helpers: helper applications for
 ### jack - extract audio from a CD and encode it using 3rd party software
-### Copyright (C) 2002  Arne Zellentin <zarne@users.sf.net>
+### Copyright (C) 1999-2003  Arne Zellentin <zarne@users.sf.net>
 
 ### This program is free software; you can redistribute it and/or modify
 ### it under the terms of the GNU General Public License as published by
@@ -44,7 +45,7 @@ helpers = {
         'bitrate_factor': 1,
         'status_start': "%",
         'percent_fkt': r"""
-s = string.split(i['buf'], '\015')
+s = string.split(i['buf'], '\r')
 if len(s) >= 2:
     s = s[-2]
 if len(s) == 1:
@@ -67,7 +68,7 @@ else:
         'bitrate_factor': 1000,
         'status_start': "%",
         'percent_fkt': r"""
-s = string.split(i['buf'], '\015')
+s = string.split(i['buf'], '\r')
 if len(s) >= 4:
     s = s[-2]
     if string.find(s, "%") >= 0:
@@ -86,7 +87,7 @@ if len(s) >= 4:
         'bitrate_factor': 1000,
         'status_start': "%",
         'percent_fkt': r"""
-s = string.split(i['buf'], '\015')
+s = string.split(i['buf'], '\r')
 if len(s) >= 2: s = s[-2]
 if len(s) == 1: s = s[0]
 if string.find(s, "%") >= 0:
@@ -103,15 +104,15 @@ else:
         'type': "encoder",
         'target': "mp3",
         'inverse-quality': 1,
-        'cmd': "lame --alt-preset cbr %r %i %o",
-        'vbr-cmd': "lame --alt-preset standard --nohist %i %o",
-        'otf-cmd': "lame --alt-preset cbr %r - %o",
-        'vbr-otf-cmd': "lame --alt-preset standard --nohist - %o",
+        'cmd': "lame --alt-preset cbr %r --strictly-enforce-ISO %i %o",
+        'vbr-cmd': "lame --alt-preset standard --nohist --strictly-enforce-ISO %i %o",
+        'otf-cmd': "lame --alt-preset cbr %r --strictly-enforce-ISO - %o",
+        'vbr-otf-cmd': "lame --alt-preset standard --nohist --strictly-enforce-ISO - %o",
         'status_blocksize': 160,
         'bitrate_factor': 1,
         'status_start': "%",
         'percent_fkt': r"""
-s = string.split(i['buf'], '\015')
+s = string.split(i['buf'], '\r')
 if len(s) >= 2: s=s[-2]
 if len(s) == 1: s=s[0]
 if string.find(s, "%") >= 0:       # status reporting starts here
@@ -140,7 +141,7 @@ else:
         'bitrate_factor': 1,
         'status_start': "%",
         'percent_fkt': r"""
-s = string.split(i['buf'], '\015')
+s = string.split(i['buf'], '\r')
 if len(s) >= 2: s=s[-2]
 if len(s) == 1: s=s[0]
 if string.find(s, "%") >= 0: # status reporting starts here
@@ -162,7 +163,7 @@ else:
         'bitrate_factor': 1000,
         'status_start': "%",
         'percent_fkt': r"""
-s = string.split(i['buf'], '\015')
+s = string.split(i['buf'], '\r')
 if len(s) >= 2: s=s[-2]
 if string.find(s, "Status:") != -1:
     y = string.split(s[8:])
@@ -184,7 +185,7 @@ else:
         'bitrate_factor': 1,
         'status_start': "%",
         'percent_fkt': r"""
-s = string.split(i['buf'], '\015')
+s = string.split(i['buf'], '\r')
 if len(s) >= 2: s = s[-2]
 if string.find(s, "ETA:") != -1:
     y = string.strip(string.split(s, '%')[0])
@@ -205,7 +206,7 @@ else:
         'status_blocksize': 160,
         'status_start': "%", 
         'percent_fkt': r"""
-s = string.split(i['buf'], '\015')    
+s = string.split(i['buf'], '\r')    
 if len (s) >= 2: s = s[-2]
 if len (s) == 1: s = s[0]       
 y0 = string.find(s, ": ")             
@@ -226,7 +227,7 @@ else:
         'status_blocksize': 160,
         'status_start': "-.-",
         'percent_fkt': r"""
-s = string.split(i['buf'], '\015')
+s = string.split(i['buf'], '\r')
 if len(s) >= 3:
     s = s[-3]
     s = string.split(string.strip(s))
@@ -241,14 +242,17 @@ if len(s) >= 3:
         'type': "ripper",
         'cmd': "cdparanoia --abort-on-skip -d %d %n %o",
         'otf-cmd': "cdparanoia --abort-on-skip -e -d %d %n -R -",
-        'status_blocksize': 500,
+        'status_blocksize': 600,
         'status_start': "%",
         'status_fkt': r"""
-new_status = string.split(i['buf'], '\015')[-2][17:68]
+#  (== PROGRESS == [                       >      .| 011923 00 ] == :-) . ==)
+tmp = string.split(i['buf'], '\r')[-2]
+new_status = tmp[17:48] + tmp[49:69] # 68->69 because of newer version
+#new_status = string.split(i['buf'], '\r')[-2][17:69] # 68->69 because of newer version
 """,
         'otf-status_fkt': r"""
 buf = i['buf']
-tmp = string.split(buf, "\012")
+tmp = string.split(buf, "\n")
 new_status = ""
 if len(tmp) >= 2:
     tmp = string.split(tmp[-2], " @ ")
@@ -257,7 +261,8 @@ if len(tmp) >= 2:
         new_status = "[otf - reading, %2i%%]" % percent
 """,
         'final_status_fkt': r"""
-for tmp in string.split(exited_proc['buf'], '\015'):
+last_status="0123456789012345 [ -- error decoding status --  ]" # fallback
+for tmp in string.split(exited_proc['buf'], '\r'):
     if string.find(tmp, "PROGRESS") != -1:
         last_status = tmp
 final_status = ("%4.1fx" % speed) + last_status[16:48] + "]"
@@ -289,9 +294,9 @@ while l:
         'status_blocksize': 200,
         'status_start': "percent_done:",
         'status_fkt': r"""
-x = string.split(i['buf'], '\015')[-2]
+x = string.split(i['buf'], '\r')[-2]
 if string.find(x, '%') != -1:
-    new_status = "ripping: " + string.strip(string.split(i['buf'], '\015')[-2])
+    new_status = "ripping: " + string.strip(string.split(i['buf'], '\r')[-2])
 else:
     new_status = "waiting..."
 """,
@@ -392,9 +397,9 @@ if new_c2w and len(new_lengths) == len(new_starts) - 1:
         'status_blocksize': 100,
         'status_start': "total:",
         'status_fkt': r"""
-x = string.split(i['buf'], '\015')[-2]
+x = string.split(i['buf'], '\r')[-2]
 if string.find(x, 'total:') != -1:
-    new_status = string.strip(string.split(i['buf'], '\015')[-2])
+    new_status = string.strip(string.split(i['buf'], '\r')[-2])
 else:
     new_status = "waiting..."
 """,
@@ -430,9 +435,9 @@ while l:
         'status_blocksize': 100,
         'status_start': "total:",
         'status_fkt': r"""
-x = string.split(i['buf'], '\015')[-2]
+x = string.split(i['buf'], '\r')[-2]
 if string.find(x, 'total:') != -1:
-    new_status = string.strip(string.split(i['buf'], '\015')[-2])
+    new_status = string.strip(string.split(i['buf'], '\r')[-2])
 else:
     new_status = "waiting..."
 """,

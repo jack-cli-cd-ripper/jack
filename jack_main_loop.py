@@ -1,6 +1,7 @@
+# -*- coding: iso-8859-15 -*-
 ### jack_main_loop: the main encoding loop for
 ### jack - extract audio from a CD and encode it using 3rd party software
-### Copyright (C) 1999-2002  Arne Zellentin <zarne@users.sf.net>
+### Copyright (C) 1999-2003  Arne Zellentin <zarne@users.sf.net>
 
 ### This program is free software; you can redistribute it and/or modify
 ### it under the terms of the GNU General Public License as published by

@@ -17,7 +17,7 @@
 ### Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 import string
-import os
+import os, sys
 
 import jack_functions
 import jack_ripstuff
@@ -67,7 +67,9 @@ def tag(freedb_rename):
             if cf['_id3_year'] == -1:
                 cf['_id3_year'] = track_names[0][2]
 
+        print "Tagging",
         for i in jack_ripstuff.all_tracks_todo_sorted:
+            sys.stdout.write(".") ; sys.stdout.flush()
             mp3name = i[NAME] + ext
             wavname = i[NAME] + ".wav"
             t_artist = track_names[i[NUM]][0]
@@ -169,7 +171,10 @@ def tag(freedb_rename):
                         print 'NOT renaming "' + mp3name + '" to "' + newname + ext + '" because WAV dest. exists.'
                     if ok:
                         if not cf['_only_dae']:
-                            os.rename(mp3name, newname + ext)
+                            try:
+                                os.rename(mp3name, newname + ext)
+                            except OSError:
+                                error('Cannot rename "%s" (Filename too long?)' % mp3name)
                             jack_m3u.add(newname + ext)
                         if cf['_keep_wavs']:
                             os.rename(wavname, newname + ".wav")
@@ -177,6 +182,7 @@ def tag(freedb_rename):
                         jack_functions.progress(i[NUM], "ren", "%s-->%s" % (i[NAME], newname))
                     elif cf['_silent_mode']:
                         jack_functions.progress(i[NUM], "err", "while renaming track")
+        print
 
     if not cf['_silent_mode']:
         if jack_freedb.names_available:
