@@ -100,14 +100,14 @@ py_version = split(sys.version)[0]
 desperately_seeking_curses = 0
 
 try:
-    from jack_curses import *
+    from jack_curses import endwin, resizeterm, A_REVERSE, newwin, newpad, initscr, noecho, cbreak, echo, nocbreak
     curses_enable = 1
     jack_curses_enable = 1
 except ImportError:
     jack_curses_enable = 0
     print "jack_curses module not found, trying normal curses..."
     try:
-        from curses import *
+        from curses import endwin, A_REVERSE, newwin, newpad, initscr, noecho, cbreak, echo, nocbreak
         curses_enable = 1
     except ImportError:
         print "curses module not found, please install it (see README)"
