@@ -44,6 +44,7 @@ initialized = None
 size_x, size_y = None, None
 orig_size_x, orig_size_y = None, None
 term_type = None
+sig_winch_cache = None
 
 # variables
 xtermset = None
@@ -101,10 +102,11 @@ def xtermset_enable():
         import os
         want_x = 80 - len("track_00") + jack_ripstuff.max_name_len
         want_y = len(jack_ripstuff.all_tracks_todo_sorted) + 3
-        if term_type == "XXXcurses":
+        if term_type == "curses":
             want_y = want_y - 1
         if jack_freedb.names_available:
             want_y = want_y + 1
+        want_y = max(want_y, 7)
         if (size_x, size_y) != (want_x, want_y):
             try:
                 os.system("xtermset -geom %dx%d" % (want_x, want_y))
@@ -188,7 +190,7 @@ def disable():
     global enabled
     import os
 
-    if not enabled:
+    if not enabled or not initialized:
         return
 
     tmod.disable()

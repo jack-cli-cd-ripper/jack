@@ -141,9 +141,12 @@ def consistency_check(cf):
         error("Invalid ripper, choose one of " + `dummy`)
 
     if (cf['vbr_quality']['val'] > 10) or (cf['vbr_quality']['val'] < -1):
-        error("Invalid vbr quality, must be between -1 and 10")
+        error("invalid vbr quality, must be between -1 and 10")
 
     if helpers[cf['_encoder']].has_key('inverse-quality') and helpers[cf['_encoder']]['inverse-quality']:
+        # this is a bit ugly but works for
+        # oggenc: -1 ... 10
+        # lame:    0 ...  9
         cf.rupdate({'vbr_quality': {'val': min(9, 10 - cf['vbr_quality']['val'])}}, "check")
 
     # check for option conflicts:
@@ -177,7 +180,4 @@ def consistency_check(cf):
 
     if cf['_query_on_start'] and cf['_query_when_ready']:
         error("it doesn't make sense to query now _and_ when finished.")
-
-def setup(cf):
-    pass
 

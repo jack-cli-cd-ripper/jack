@@ -16,6 +16,7 @@
 ### along with this program; if not, write to the Free Software
 ### Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+import signal
 import string
 import fcntl
 import time
@@ -31,12 +32,20 @@ from jack_globals import *
 from jack_helpers import helpers
 from jack_init import F_SETFL, O_NONBLOCK
 
+def reset_signals():
+    signal.signal(signal.SIGTERM, signal.SIG_IGN)
+    signal.signal(signal.SIGINT, signal.SIG_IGN)
+    signal.signal(signal.SIGQUIT, signal.SIG_IGN)
+    signal.signal(signal.SIGHUP, signal.SIG_IGN)
+    signal.signal(signal.SIGWINCH, signal.SIG_IGN)
+
 def start_new_process(args, nice_value = 0):
     "start a new process in a pty and renice it"
     data = {}
     data['start_time'] = time.time()
     pid, master_fd = pty.fork()
     if pid == CHILD:
+        reset_signals()
         if nice_value:
             os.nice(nice_value)
         os.execvp(args[0], args)
@@ -90,14 +99,26 @@ def start_new_encoder(track, encoder):
             args.append(track[NAME] + jack_targets.targets[jack_helpers.helpers[cf['_encoder']]['target']]['file_extension'])
         else:
             if jack_targets.targets[helper['target']]['can_pretag']:
-                if i == "%t": args.append(jack_tag.track_names[track[NUM]][1])
-                elif i == "%a":
-                    if jack_tag.track_names[track[NUM]][0]:
-                        args.append(jack_tag.track_names[track[NUM]][0])
+                if i == "%t":
+                    if jack_tag.track_names:
+                        args.append(jack_tag.track_names[track[NUM]][1])
                     else:
-                        args.append(jack_tag.track_names[0][0])
-                elif i == "%n": args.append(`track[NUM]`)
-                elif i == "%l": args.append(jack_tag.track_names[0][1])
+                        args.append("")
+                elif i == "%a":
+                    if jack_tag.track_names:
+                        if jack_tag.track_names[track[NUM]][0]:
+                            args.append(jack_tag.track_names[track[NUM]][0])
+                        else:
+                            args.append(jack_tag.track_names[0][0])
+                    else:
+                        args.append("")
+                elif i == "%n":
+                    args.append(`track[NUM]`)
+                elif i == "%l":
+                    if jack_tag.track_names:
+                        args.append(jack_tag.track_names[0][1])
+                    else:
+                        args.append("")
                 elif i == "%G":
                     if cf['_id3_genre'] >= 0: args.append(cf['_id3_genre'])
                     else: args.append('255')
@@ -105,8 +126,10 @@ def start_new_encoder(track, encoder):
                     if cf['_id3_genre'] >= 0: args.append(jack_tag.genretxt)
                     else: args.append('Unknown')
                 elif i == "%y":
-                    if cf['_id3_year'] > 0: args.append(`cf['_id3_year']`)
-                    else: args.append('0')
+                    if cf['_id3_year'] > 0:
+                        args.append(`cf['_id3_year']`)
+                    else:
+                        args.append('0')
                 else:
                     args.append(i)
             else:
@@ -136,6 +159,7 @@ def start_new_otf(track, ripper, encoder):
     data['rip']['start_time'] = time.time()
     pid = os.fork()
     if pid == CHILD:
+        reset_signals()
         os.dup2(rip_out, STDOUT_FILENO)
         os.dup2(rip_err, STDERR_FILENO)
         os.close(rip_out)
@@ -173,6 +197,7 @@ def start_new_otf(track, ripper, encoder):
     data['enc']['start_time'] = time.time()
     pid = os.fork()
     if pid == CHILD:
+        reset_signals()
         if cf['_nice_value']:
             os.nice(cf['_nice_value'])
         os.dup2(enc_in, STDIN_FILENO)
@@ -207,6 +232,7 @@ def ripread(track, offset = 0):
     start_time = time.time()
     pid, master_fd = pty.fork() # this could also be done with a pipe, anyone?
     if pid == CHILD:
+        reset_signals()
 
 # FIXME: all this offset stuff has to go, track 0 support has to come.
 

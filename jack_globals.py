@@ -18,18 +18,30 @@
 
 from jack_constants import *
 from jack_config import cf
-from jack_generic import info, error, warning, debug, DEBUG
+from jack_init import ID3
+
+from jack_generic import info, warning, debug, DEBUG, error
+#import jack_generic
+#error = jack_generic.error
+
+dummy="""
+def error(x):
+    jack_generic.error(x)
+
+def debug(x):
+    jack_generic.debug(x)
+
+def info(x):
+    jack_generic.info(x)
+
+def debug(x):
+    jack_generic.warning(x)
+"""
 
 # globals
-dae_queue = []                      # This stores the tracks to rip
-enc_queue = []                      # WAVs go here to get some codin'
-enc_running = 0                     # what is going on?
-dae_running = 0                     # what is going on?
-progress_changed = 0                # nothing written to progress, yet
 revision = 0                        # initial revision of freedb data
 
 #misc stuff
-from ID3 import ID3
 tmp = ID3("/dev/null")
 id3genres = tmp.genres
 del tmp

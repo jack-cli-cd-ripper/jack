@@ -164,9 +164,9 @@ def freedb_template(tracks, names = "", revision = 0):
     if names:
         if names[1][0]: # various
             if string.find(string.upper(names[0][0]), "VARIOUS") >= 0:
-                f.write(freedb_split("DTITLE", "Various Artists / " + names[0][1]))
+                f.write(freedb_split("DTITLE", "Various / " + names[0][1]))
             else:
-                f.write(freedb_split("DTITLE", "Various Artists / " + names[0][0] + " - " + names[0][1]))
+                f.write(freedb_split("DTITLE", "Various / " + names[0][0] + " - " + names[0][1]))
         else:
             f.write(freedb_split("DTITLE", names[0][0] + " / " + names[0][1]))
     else:
@@ -308,8 +308,8 @@ def freedb_query(cd_id, tracks, file):
     return err
 
 def freedb_names(cd_id, tracks, name, verb = 0, warn = 1):
-    "returns error, [(artist, albumname), (track_01-artist, track_01-name), ...], cd_id, revision"
-    error = 0
+    "returns err, [(artist, albumname), (track_01-artist, track_01-name), ...], cd_id, revision"
+    err = 0
     tracks_on_cd = tracks[-1][NUM]
     freedb = {}
     f = open(name, "r") # first the freedb info is read in...
@@ -338,7 +338,7 @@ def freedb_names(cd_id, tracks, name, verb = 0, warn = 1):
  
     for i in tracks:    # check that info is there for all tracks
         if not freedb.has_key("TTITLE%i" % (i[NUM] - 1)):   # -1 because freedb starts at 0
-            error = 1
+            err = 1
             if verb:
                 warning("no freedb info for track %02i (\"TTITLE%i\")" % (i[NUM], i[NUM] - 1))
             freedb["TTITLE%i" % (i[NUM] - 1)] = "[not set]"
@@ -346,18 +346,18 @@ def freedb_names(cd_id, tracks, name, verb = 0, warn = 1):
     for i in freedb.keys():# check that there is no extra info
         if i[0:6] == "TTITLE":
             if int(i[6:]) > tracks_on_cd - 1:
-                error = 2
+                err = 2
                 if verb:
                     warning("extra freedb info for track %02i (\"%s\"), cd has only %02i tracks." % (int(i[6:]) + 1, i, tracks_on_cd))
  
     if not freedb.has_key("DTITLE"):
-        error = 3
+        err = 3
         if verb:
             warning("freedb entry doesn't contain disc title info (\"DTITLE\").")
         freedb['DTITLE'] = "[not set]"
  
     if not freedb.has_key("DISCID"):
-        error = 4
+        err = 4
         if verb:
             warning("freedb entry doesn't contain disc id info (\"DISCID\").")
         read_id = "00000000"
@@ -377,11 +377,11 @@ def freedb_names(cd_id, tracks, name, verb = 0, warn = 1):
                 if j not in "0123456789abcdef":
                     if verb:
                         warning("the disc's id is not 8-digit hex (\"DISCID\").")
-                    error = 5
+                    err = 5
             if len(i) != 8:
                 if verb:
                     warning("the disc's id is not 8-digit hex (\"DISCID\").")
-                error = 5
+                err = 5
  
     dtitle = freedb['DTITLE']
     dtitle = string.replace(dtitle, " / ", "/")    # kill superflous slashes
@@ -391,7 +391,12 @@ def freedb_names(cd_id, tracks, name, verb = 0, warn = 1):
     if not dtitle:
         dtitle = "(unknown artist)/(unknown disc title)"
     if string.find(dtitle,"/") == -1:
-        dtitle = "(unknown artist)/" + dtitle
+        if various == 1:
+            dtitle = "Various/" + dtitle
+            warning("bad disc title, using %s. Please fix and submit." % dtitle)
+        else:
+            dtitle = "(unknown artist)/" + dtitle
+
     names = [string.split(dtitle,"/",1)]
     if freedb.has_key('EXTD'):
         extra_tag_pos = string.find(freedb['EXTD'], "\\nYEAR:")
@@ -407,7 +412,7 @@ def freedb_names(cd_id, tracks, name, verb = 0, warn = 1):
     if names[0][0] == "(unknown artist)":
         if verb:
             warning("the disc's title must be set to \"artist / title\" (\"DTITLE\").")
-        error = 6
+        err = 6
  
     if string.upper(names[0][0]) in ("VARIOUS", "VARIOUS ARTISTS", "SAMPLER", "COMPILATION", "DIVERSE"):
         #XXX
@@ -423,7 +428,7 @@ def freedb_names(cd_id, tracks, name, verb = 0, warn = 1):
             if freedb['EXTT'+`i`]:
                 names.append([freedb['EXTT'+`i`], freedb['TTITLE'+`i`]])
             else:
-                error = 8
+                err = 8
                 if verb:
                     warning("no EXTT info for track %02i." % i)
  
@@ -432,7 +437,7 @@ def freedb_names(cd_id, tracks, name, verb = 0, warn = 1):
             if freedb['EXTT'+`i`]:
                 names.append([freedb['TTITLE'+`i`], freedb['EXTT'+`i`]])
             else:
-                error = 8
+                err = 8
                 if verb:
                     warning("no EXTT info for track %02i." % i)
  
@@ -560,13 +565,13 @@ def freedb_names(cd_id, tracks, name, verb = 0, warn = 1):
                     if lenafter != lenbefore - len(closing_brace):
                         if verb:
                             warning("brace" + `j` + " does not close exactly once.")
-                        error = 9
+                        err = 9
                         
                 if cf['_various_swap']:
                     buf = [buf[1], buf[0]]
                 names.append(buf)
         else:
-            error = 7
+            err = 7
             if verb:
                 warning("could not separate artist and title in all TTITLEs. Try setting freedb_pedantic = 0 or use --no-various Maybe additional information is contained in the EXTT fields. check %s and use either --extt-is-artist or --extt-is-title." % cf['_freedb_form_file'])
     else:
@@ -593,7 +598,7 @@ def freedb_names(cd_id, tracks, name, verb = 0, warn = 1):
                     i[j] = i[j][1:-1]
                 while i[j][0] == '"' and string.find(i[j][1:], '"') != -1:
                     i[j] = string.replace(i[j][1:], '"', '', 1)
-    return error, names, read_id, revision
+    return err, names, read_id, revision
 
 def choose_cat(cat = ["blues", "classical", "country", "data", "folk", "jazz", "misc", "newage", "reggae", "rock", "soundtrack"]):
     print "choose a category:"
@@ -686,7 +691,7 @@ def do_freedb_submit(file, cd_id):
     h.putheader('Submit-Mode', 'submit')
     h.putheader('Charset', 'ISO-8859-1')
     h.putheader('X-Cddbd-Note', 'Problems submitting with ' + prog_name + '? - RTFS(ource)!')
-    h.putheader('Content-Length', `jack_utils.filesize(file)`)
+    h.putheader('Content-Length', str(jack_utils.filesize(file)))
     h.endheaders()
     f = open(file, "r")
     h.send(f.read())

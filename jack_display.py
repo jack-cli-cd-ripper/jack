@@ -66,8 +66,6 @@ def init():
             discname = jack_tag.track_names[0][0] + " - " + jack_tag.track_names[0][1]
         else:
             options_string = center_line(jack_tag.track_names[0][0] + " - " + jack_tag.track_names[0][1], fill = "- ", fill_r = " -", width = jack_term.size_x) + "\n" + center_line(options_string, fill = " ", fill_r = " ", width = jack_term.size_x)
-    #XXX
-    #jack_term.tmod.sig_winch_handler(None, None)
 
 def sig_handler(sig, frame):
     "signal handler and general cleanup procedure"
@@ -75,23 +73,28 @@ def sig_handler(sig, frame):
         exit_code = frame
     else:
         exit_code = 0
+
     jack_term.disable()
+
     if sig:
         exit_code = 2
         info("signal %d caught, exiting." % sig)
+
     for i in jack_children.children:
         exit_code = 1
         if not cf['_silent_mode']:
             info("killing %s (pid %d)" % (i['type'], i['pid']))
         os.kill(i['pid'], signal.SIGTERM)
         i['file'].close()
+
     if exit_code and cf['_silent_mode']:
         progress("all", "err", "abnormal exit (code %i), check %s and %s" % (exit_code, err_file, out_file))
 
-    if globals().has_key("wait_on_quit") and wait_on_quit:
+    if cf['_wait_on_quit']:
         raw_input("press ENTER to exit")
 
     sys.exit(exit_code)
+
 #/ end of sig_handler /#
 
 def center_line(str, fill = " ", fill_sep = " ", fill_r = "", width = 80):

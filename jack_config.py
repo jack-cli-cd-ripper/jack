@@ -85,7 +85,7 @@ cf = jack_misc.dict2({
         'type': types.IntType,
         'val': 3,
         'jackrc': 1,
-        'usage': "vbr encoding quality. 0 is lowest, 10 highest.",
+        'usage': "vbr encoding quality. -1 is lowest, 10 highest.",
         'long': 'quality',
         },
     'freedb_server': {
@@ -568,7 +568,7 @@ cf = jack_misc.dict2({
     'read_freedb_file': {
         'type': 'toggle',
         'val': 0,
-        'doc': "XXX read freedb file",
+        'doc': "read freedb file",
         },
     'freedb_rename': {
         'type': 'toggle',
@@ -581,12 +581,12 @@ cf = jack_misc.dict2({
     'set_id3tag': {
         'type': 'toggle',
         'val': 0,
-        'doc': "XXX set id3 tag info",
+        'doc': "set id3 tag info",
         },
     'id3_genre': {
         'type': types.IntType,
         'val': -1,
-        'doc': "XXX set ID3 genre (empty=don't set, help=list)",
+        'doc': "set ID3 genre (empty=don't set, help=list)",
         },
     'id3_year': {
         'type': types.IntType,
@@ -611,16 +611,6 @@ cf = jack_misc.dict2({
         'val': None,
         'init': 0,
         'doc': "required for freedb query"
-        },
-    'Linux': {
-        'type': types.IntType,
-        'val': 0,
-        'init': 0,
-        'doc': r"""XXX some things can be done faster on Linux
-if environ.has_key("OSTYPE") and environ['OSTYPE'] in ["Linux", "linux-gnu"]:
-  Linux = 1             # some things can be done faster on Linux
-else:
-  Linux = 0""",
         },
     'image_toc_file': {
         'type': types.StringType,

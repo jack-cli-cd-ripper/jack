@@ -35,19 +35,15 @@ enabled = None
 
 try:
     from jack_curses import endwin, resizeterm, A_REVERSE, newwin, newpad, initscr, noecho, cbreak, echo, nocbreak
-    curses_enable = 1
 except ImportError:
     warning("jack_curses module not found, trying normal curses...")
     try:
         from curses import endwin, A_REVERSE, newwin, newpad, initscr, noecho, cbreak, echo, nocbreak
         def resizeterm(y, x):
             pass
-        curses_enable = 1
     except ImportError:
         print "curses module not found or too old, please install it (see README)"
-        curses_enable = 0
 
-if jack_globals.DEBUG: curses_enable = 0
 
 # screen objects
 stdscr = status_pad = usage_win = None  # screen objects
@@ -87,7 +83,7 @@ def enable():
         extra_lines = extra_lines + 1
     stdscr = initscr()
     enabled = 1
-    curses_sighandler = signal.signal(signal.SIGWINCH, signal.SIG_IGN)
+    jack_term.sig_winch_cache = signal.signal(signal.SIGWINCH, signal.SIG_IGN)
     # Turn off echoing of keys, and enter cbreak mode,
     # where no buffering is performed on keyboard input
     noecho() ; cbreak()
@@ -109,14 +105,17 @@ def enable():
     sig_winch_handler(None, None)
 
 def disable():
-    if initialized and enabled:
+    global enabled
+    if enabled:
         # Set everything back to normal
         stdscr.keypad(0)
         echo() ; nocbreak()
         # Terminate curses, back to normal screen
         endwin()
         # re-install previous sighandler
-        signal.signal(signal.SIGWINCH, curses_sighandler)
+        #signal.signal(signal.SIGWINCH, jack_term.sig_winch_cache)
+        signal.signal(signal.SIGWINCH, signal.SIG_IGN)
+        enabled = 0
 
 def sig_winch_handler(sig, frame):
     global staus_pad, stdscr, usage_win

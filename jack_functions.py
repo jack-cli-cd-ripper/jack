@@ -27,9 +27,9 @@ import jack_CDTime
 import jack_utils
 import jack_TOC
 import jack_mp3
+import jack_helpers
 
 from jack_globals import *
-from jack_helpers import helpers
 
 def df(fs = ".", blocksize = 1024):
     "returns free space on a filesystem (in bytes)"
@@ -80,14 +80,14 @@ def pprint_i(num, fmt = "%i%s", scale = 2.0**10, max = 4):
 
 def gettoc(toc_prog):
     "Returns track list"
-    if helpers[toc_prog].has_key('toc_cmd'):
-        cmd = string.replace(helpers[toc_prog]['toc_cmd'], "%d", cf['_cd_device'])
+    if jack_helpers.helpers[toc_prog].has_key('toc_cmd'):
+        cmd = string.replace(jack_helpers.helpers[toc_prog]['toc_cmd'], "%d", cf['_cd_device'])
         cmd = string.replace(cmd, "%D", cf['_gen_device'])
         p = os.popen(cmd)
         start = 0
         erg = []
         l = p.readline()
-        exec(helpers[toc_prog]['toc_fkt'])
+        exec(jack_helpers.helpers[toc_prog]['toc_fkt'])
         if p.close():
             if cd_device:
                 try:
@@ -104,7 +104,7 @@ def gettoc(toc_prog):
     else:
         erg = []
         try:
-            exec(helpers[toc_prog]['toc_fkt'])
+            exec(jack_helpers.helpers[toc_prog]['toc_fkt'])
         except:
             traceback.print_exc()
             print "Trouble reading the disk's TOC. If you already ripped the CD, you'll have to"
@@ -147,7 +147,7 @@ def guesstoc(names):
             if not extra_bytes == 0:
                 warning("this is not CDDA block-aligned: " + `i`)
                 yes = raw_input("May I strip %d bytes (= %.4fseconds) off the end? " % (extra_bytes, extra_bytes / 2352.0 / 75.0))
-                if not (yes + "x")[0] == "y":
+                if not string.upper((yes + "x")[0]) == "Y":
                     print "Sorry, I can't process non-aligned files (yet). Bye!"
                     exit()
                 f = open(i, "r+")
@@ -161,7 +161,7 @@ def guesstoc(names):
             if cf['_name'] % num != i_name:
                 progr.append([num, "ren", cf['_name'] % num + "-->" + i_name])
         elif i_ext == ".OGG":
-            error("you still have to wait for ogg support for this ooperation, sorry.")
+            error("you still have to wait for ogg support for this operation, sorry.")
         elif i_ext == ".FLAC":
             error("you still have to wait for FLAC support for this ooperation, sorry.")
         else:
@@ -399,15 +399,14 @@ def progress(track, what="error", data="error", data2 = None):
 
 def check_genre_txt(txt):
     if string.upper(txt) == "HELP":
-        from jack_globals import info, id3genres
         info("available genres: " + `id3genres`)
         sys.exit(0)
 
     elif string.upper(txt) == "NONE":
         return 255 # set genre to [unknown]
     else:
-        import ID3
-        temp_id3 = ID3.ID3("/dev/null")
+        from init import ID3
+        temp_id3 = ID3("/dev/null")
         genre = temp_id3.find_genre(txt)
         if genre == -1:
             error("illegal genre. Try '" + jack_version.prog_name + " --id3-genre help' for a list.")

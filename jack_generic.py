@@ -19,8 +19,6 @@
 import string
 import sys
 
-import jack_term
-
 DEBUG = 1
 
 def ewprint(pre, msg):
@@ -39,6 +37,8 @@ def ewprint(pre, msg):
     print
 
 def error(msg):
+    import jack_term
+    import sys
     jack_term.disable()
     ewprint("error", msg)
     sys.exit(1)

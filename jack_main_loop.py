@@ -37,34 +37,37 @@ import jack_term
 
 from jack_globals import *
 
-def main_loop(mp3s_todo, wavs_todo, space, space_set_from_argv, dae_queue, enc_queue, enc_running, dae_running):
+def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue):
     global_error = 0    # remember if something went wrong
     actual_load = -2    # this is always smaller than max_load
     waiting_load = 0    # are we waiting for the load to drop?
     waiting_space = 0   # are we waiting for disc space to be freed?
     space_waiting = 0   # how much space _running_ subprocesses will consume
     space_adjust = 0    # by how much space has been modified
-    blocked = 0     # we _try_ do detect deadlocks
-    cycles = 0      # it's sort of a timer
-    last_update = 0 # screen updates are done once per second
-    pause = 0       # no new encoders are started if pause==1
-    flags = "[   ]" # runtime controllable flags
+    blocked = 0         # we _try_ do detect deadlocks
+    cycles = 0          # it's sort of a timer
+    last_update = 0     # screen updates are done once per second
+    pause = 0           # no new encoders are started if pause==1
+    flags = "[   ]"     # runtime controllable flags
+    enc_running = 0     # what is going on?
+    dae_running = 0     # what is going on?
+
     rotate="/-\\|"
     rotate_ball=" .o0O0o."
     rot_cycle = len(rotate)
     rot_ball_cycle = len(rotate_ball)
     rot_count = 0
-    global_blocks = jack_functions.tracksize(wavs_todo)[BLOCKS] + jack_functions.tracksize(mp3s_todo)[BLOCKS]
-    global_start = time.time()
     global_done = 0 
     first_encoder = 1
     ext = jack_targets.targets[jack_helpers.helpers[cf['_encoder']]['target']]['file_extension']
+    global_blocks = jack_functions.tracksize(wavs_todo)[BLOCKS] + jack_functions.tracksize(mp3s_todo)[BLOCKS]
 
 
                            #####################
                              ### MAIN LOOP ###
                            #####################
 
+    global_start = time.time()
     while mp3s_todo or enc_queue or dae_queue or enc_running or dae_running:
 
                             # feed in the WAVs which have been there from the start
@@ -87,9 +90,6 @@ def main_loop(mp3s_todo, wavs_todo, space, space_set_from_argv, dae_queue, enc_q
             elif cf['_rip_from_device']:
                 all_tracks_on_cd = jack_functions.gettoc(cf['_toc_prog'])
                 if not jack_utils.cmp_toc_cd(jack_ripstuff.all_tracks_orig, all_tracks_on_cd, what=(NUM, LEN)):
-                    print jack_ripstuff.all_tracks_orig
-                    print all_tracks_on_cd
-                    sys.exit()
                     while dae_queue:
                         track = dae_queue[0]
                         dae_queue = dae_queue[1:]
@@ -207,8 +207,7 @@ def main_loop(mp3s_todo, wavs_todo, space, space_set_from_argv, dae_queue, enc_q
                     continue
                 last_update = time.time()
 
-                                            # read from file with activity
-
+        # read from file with activity
         for i in jack_children.children:
             if i['fd'] in rfd:
                 if os.uname()[0] == "Linux" and i['type'] != "image_reader":
@@ -235,8 +234,7 @@ def main_loop(mp3s_todo, wavs_todo, space, space_set_from_argv, dae_queue, enc_q
                 # put read data into child's buffer
                 i['buf'] = (i['buf'] + x)[-jack_helpers.helpers[i['prog']]['status_blocksize']:]
 
-                                            # check for exiting child processes
-
+        # check for exiting child processes
         if jack_children.children:
             respid, res = os.waitpid(-1, os.WNOHANG)
             if respid != 0:
@@ -247,13 +245,11 @@ def main_loop(mp3s_todo, wavs_todo, space, space_set_from_argv, dae_queue, enc_q
                     if i['pid'] == respid:
                         if exited_proc != []:
                             error("pid " + `respid` + " found at multiple child processes")
-                            jack_display.exit()
                         exited_proc = i
                     else:
                         new_ch.append(i)
                 if not exited_proc:
                     error("unknown process (" + `respid` + ") has exited")
-                    jack_display.exit()
                 jack_children.children = new_ch
                 x = ""
                 try:
@@ -285,7 +281,7 @@ def main_loop(mp3s_todo, wavs_todo, space, space_set_from_argv, dae_queue, enc_q
                                 jack_status.dae_stat_upd(num, string.strip(string.split(exited_proc['buf'], "\n")[-2]))
                                 res = 243
                             global_error = global_error + res
-                    if res and not sloppy:
+                    if res and not cf['_sloppy']:
                         if os.path.exists(track[NAME] + ".wav"):
                             os.remove(track[NAME] + ".wav")
                             space = space + jack_functions.tracksize(track)[WAV]
@@ -304,6 +300,7 @@ def main_loop(mp3s_todo, wavs_todo, space, space_set_from_argv, dae_queue, enc_q
                             if exited_proc['otf'] and jack_helpers.helpers[exited_proc['prog']].has_key('otf-final_status_fkt'):
                                 exec(jack_helpers.helpers[exited_proc['prog']]['otf-final_status_fkt']) in globals(), locals()
                             else:
+                                last_status = None   # (only used in cdparanoia)
                                 exec(jack_helpers.helpers[exited_proc['prog']]['final_status_fkt']) in globals(), locals()
                             jack_status.dae_stat_upd(num, final_status)
                         if jack_status.enc_cache[num]:
@@ -349,7 +346,6 @@ def main_loop(mp3s_todo, wavs_todo, space, space_set_from_argv, dae_queue, enc_q
 
                 else:
                     error("child process of unknown type (" + exited_proc['type'] + ") exited")
-                    jack_display.exit()
                 if global_error:
                     jack_display.smile = " :-["
 
@@ -393,7 +389,7 @@ def main_loop(mp3s_todo, wavs_todo, space, space_set_from_argv, dae_queue, enc_q
 
             cycles = cycles + 1
             if cycles % 30 == 0:
-                if cf['_recheck_space'] and not space_set_from_argv:
+                if cf['_recheck_space'] and not cf['space_from_argv']['history'][-1][0] == "argv":
                     actual_space = jack_functions.df()
                     if space_adjust:
                         diff = actual_space - space

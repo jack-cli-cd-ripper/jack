@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 ### jack_helpers: helper applications for
 ### jack - extract audio from a CD and encode it using 3rd party software
 ### Copyright (C) 2002  Arne Zellentin <zarne@users.sf.net>
@@ -31,13 +30,25 @@ helpers = {
         'can_tag': 1,
         #'vbr-cmd': "oggenc -o %o -t %t -a %a -N %n -l %l -G %g -d %y -b %r %i",
         'vbr-cmd': "oggenc -o %o -t %t -a %a -N %n -l %l -G %g -d %y -q %q %i",
+        'tags': {
+            'ogg': {
+                'track': "-t %s",
+                'artist': "-a %s",
+                'number': "-N %s",
+                'album': "-l %s",
+                'genre': "-G %s",
+                'date': "-d %s",
+            },
+        },
         'status_blocksize': 64,
         'bitrate_factor': 1,
         'status_start': "%",
         'percent_fkt': r"""
 s = string.split(i['buf'], '\015')
-if len(s) >= 2: s = s[-2]
-if len(s) == 1: s = s[0]
+if len(s) >= 2:
+    s = s[-2]
+if len(s) == 1:
+    s = s[0]
 y0 = string.find(s, "[")
 y1 = string.find(s, "%]")
 if y0 != -1 and y1 != -1:
