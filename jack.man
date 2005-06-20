@@ -459,6 +459,19 @@ jack -O --remove-files ; gnoise *wav ; jack -g *wav ; jack
 .RE
 .PP
 Just replace gnoise by the operation you'd like to perform.
+.SH FORMAT STRINGS
+.IP %n
+Track number
+.IP %a
+Artist
+.IP %t
+Track title
+.IP %l
+Album title
+.IP %y
+Album release year
+.IP %g
+Album genre
 .SH FILES
 .IP \fI/etc/jackrc\fP 
 Site-wide configuration file.
