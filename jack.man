@@ -448,6 +448,45 @@ and will be tagged accordingly using ID3 or Vorbis tags.  The file jack.freedb
 will contain the queried FreeDB entry, and the original file will be backed up
 as jack.freedb.bak.
 .PP
+You can use the
+.B \-\-rename\-fmt
+option in order to specify the format of the name which will be given to
+your audio tracks.  A list of valid options can be found below.  You may
+also want to specify a set of characters which are not usable and should
+be replaced.  For example, on Unix systems the slash
+.B (/)
+should most certainly be replaced with something else.  The VFAT filesystem
+also does not support double quotes
+.B (").
+In order to replace such characters, you can specify the options
+.B unusable_chars
+together with
+.B replacement_chars.
+For example,
+.RS
+jack -Q --rename-fmt "%n-%t" --unusable-chars A I \; --replacement-chars a i \;
+.RE
+will query the FreeDB server, rip and encode all tracks of the CD and save
+the files in a format which will contain the track number and the title.
+All occurances of the letters
+.B A
+and
+.B I
+will be replaced with their lower-case versions.  These options can also be
+put in one's configuration file using the following format:
+.RS
+unusable_chars:[\(aq \(aq, \(aq/\(aq]
+.RE
+.RS
+replacement_chars:[\(aq_\(aq, \(aq_\(aq]
+.RE
+This will replace whitespace and slashes with underscores.  If you want to
+convert all characters to lower-case, you don't have to manually specify
+all of them but can use the following option instead:
+.RS
+char_filter:.lower()
+.RE
+.PP
 All in one: query, rip, encode, cleanup:
 .RS
 jack -Q --remove-files
