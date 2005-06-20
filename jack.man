@@ -44,10 +44,10 @@ directory
 .BR ~/jack/jack-xxxxxxxx ,
 with
 .B xxxxxxxx
-representing the CD's CDDB/freedb disc ID. 
+representing the CD's CDDB/FreeDB disc ID. 
 This directory is renamed by Jack when the appropriate information is known.
 .PP
-Most options like ripper, encoder, preferred freedb-Server, directory
+Most options like ripper, encoder, preferred FreeDB-Server, directory
 and MP3-filename format, etc. can be user defined by changing the
 defaults in 
 .B /etc/jackrc
@@ -112,7 +112,7 @@ target bitrate (in kbit/s, default is 160).
 convert file names using a python method
 .TP
 .B \-\-charset string
-charset of freedb data (default "latin-1").
+charset of FreeDB data (default "latin-1").
 .TP
 .B \-c, \-\-check-toc 
 compare toc-file and cd-toc, then exit. Jack caches the TOC of a
@@ -123,15 +123,15 @@ matches the toc-file in the current directory, use this option.
 rename directories even if they were was not created by Jack.
 .TP
 .B  \-\-cont-failed-query  
-continue without freedb data if query fails.
+continue without FreeDB data if query fails.
 .TP
 .B \-D, \-\-create-dirs 
 tells Jack to create sub-directories in which Jack puts all the
-files for the current CD. If no freedb data is available, i.e.
+files for the current CD. If no FreeDB data is available, i.e.
 when not using 
 .B -Q
 , these directories will be named "jack-xxxxxxxx"
-where "xxxxxxxx" stands for the CD's freedb-id. Otherwise
+where "xxxxxxxx" stands for the CD's FreeDB ID. Otherwise
 dir_template (see above) will be used. This option is turned on
 by default.
 .TP
@@ -144,7 +144,7 @@ if directories are renamed, this is the format used (default "%a/%l")
 .TP
 .B \-d, \-\-dont-work
 don't do DAE, encoding, tagging or renaming. This may be useful if you only
-want to do a freedb query, e.g. while another jack is running.
+want to do a FreeDB query, e.g. while another jack is running.
 .TP
 .B \-\-edit-cddb
 open an editor to change the CDDB information which has been obtained
@@ -163,7 +163,7 @@ run predefined command when finished.
 .TP
 .B \-\-extt-is-artist
 the artist is contained in the EXTT fields. The EXTT fields are lines in the
-freedb file which contain additional data for each track. As it's the
+FreeDB file which contain additional data for each track. As it's the
 submitting user's choice what to use them for, Jack can't determine by itself
 what they were intended for. You have to provide this information.
 .TP
@@ -197,7 +197,7 @@ Note that the trailing "
 .B ;
 " is only necessary if you want to
 append more options to your command line.
-You can use it to do a freedb query based on
+You can use it to do a FreeDB query based on
 MP3s alone - no need for the CD. Very useful if you have no idea
 which CD the MP3s are from. The MP3s must be given in the same
 order as they were on their CD. The generated TOC file is
@@ -217,7 +217,7 @@ Show summary of options.
 do not delete WAVs after encoding them.
 .TP
 .B \-m, \-\-mail-submit
-submit freedb entry via e-mail. HTTP submission is preferred. 
+submit FreeDB entry via e-mail. HTTP submission is preferred. 
 You will have to enter the category of the CD.
 .TP
 .B \-l, \-\-max-load float
@@ -225,11 +225,11 @@ only start new encoders if your system's load is below the specified value.
 /proc/loadavg must be readable by you for this to work.
 .TP
 .B \-\-multi-mode         
-try to query freedb for all dirs in searchdirs which
-have no freedb data.
+try to query FreeDB for all dirs in searchdirs which
+have no FreeDB data.
 .TP
 .B \-\-my-mail string
-your e-mail address, needed for freedb submissions.
+your e-mail address, needed for FreeDB submissions.
 .TP
 .B \-n, \-\-nice int
 nice-level with which the encoders are started. Default is 12
@@ -256,25 +256,25 @@ no as it's a torture for the CDROM drive.
 overwrite existing files.
 .\" .TP
 .\" .B \-\-playorder
-.\" use the freedb PLAYORDER field to limit the tracks to
+.\" use the FreeDB PLAYORDER field to limit the tracks to
 .\" rip (non-functional, sorry)
 .TP
 .B \-\-quality int
 vbr encoding quality. -1 is lowest, 10 highest (default 6). You can also specify a float.
 .TP
 .B \-q, \-\-query
-do freedb query when all is done. This is useful if Jack was previously
-run without a freedb query. If all tracks are done you don't even
+do FreeDB query when all is done. This is useful if Jack was previously
+run without a FreeDB query. If all tracks are done you don't even
 have to have a CD inserted as the TOC is cached by Jack. After
 having finished ripping and encoding, Jack will rename the files
 and tag them.
 .TP
 .B \-\-query\-if\-needed=bool
-like \-\-query-now, but only if freedb data hasn't been successfully
+like \-\-query-now, but only if FreeDB data hasn't been successfully
 queried before.
 .TP
 .B \-Q, \-\-query-now
-do freedb query when starting. Use this if you are connected to
+do FreeDB query when starting. Use this if you are connected to
 the Internet when starting Jack. Know that the query may need
 user-interaction. After having finished ripping and encoding, Jack
 will rename the files and tag them.
@@ -290,12 +290,12 @@ have Jack remove its temp jack*-files.
 Be careful - don't delete them too early!
 .TP
 .B \-R, \-\-rename
-rename and tag files according to freedb file. On startup, Jack
-creates a blank freedb entry file (except if 
+rename and tag files according to FreeDB file. On startup, Jack
+creates a blank FreeDB entry file (except if 
 .B \-\-query-now
 is used, 
-then the file is queried from your freedb server). If you have
-changed its contents (e.g. because the CD was unknown to freedb)
+then the file is queried from your FreeDB server). If you have
+changed its contents (e.g. because the CD was unknown to FreeDB)
 and want to rename and tag your MP3s accordingly, use this option.
 Give all other needed options too, like
 .B \-t
@@ -336,7 +336,7 @@ add these directories to the list of directories searched when looking for the
 workdir (default ".").
 .TP
 .B \-\-server string
-which freedb server to use. Don't forget to set your HTTP proxy.
+which FreeDB server to use. Don't forget to set your HTTP proxy.
 Currently either "freedb" (default) or "freedb-de".
 .TP
 .B \-\-silent-mode=bool
@@ -350,7 +350,7 @@ probably fail. The default is to look how much is free and to use
 this value.
 .TP
 .B \-\-submit
-submit freedb entry via HTTP. You will have to enter the category
+submit FreeDB entry via HTTP. You will have to enter the category
 of the CD.
 .TP
 .B \-S, \-\-swab=bool
@@ -384,7 +384,7 @@ have Jack re-create its temp files. Use this if you deleted them
 too early.
 .TP
 .B \-\-update-freedb, -U
-update the freedb info and exit.
+update the FreeDB info and exit.
 .TP
 .B \-\-usage\-win=bool
 show the help screen while running.
@@ -394,14 +394,14 @@ Generate variable bitrate files, only on encoders which support
 this. Default is no.
 .TP
 .B \-\-various=bool
-when parsing freedb data, Jack assumes that if the disc\'s artist
+when parsing FreeDB data, Jack assumes that if the disc\'s artist
 is set to "Various" the track titles have the format
 "[artist] - [title]". If the disc title is set to something else
 and you still want the above behaviour, use 
 .B \-\-various.
 .TP
 .B \-\-various-swap
-exchange artist and title, many freedb entries have them wrong.
+exchange artist and title, many FreeDB entries have them wrong.
 .TP
 .B \-\-wait=bool
 wait for key press before quitting.
@@ -429,7 +429,7 @@ track_nn.mp3 plus jack.toc, jack.freedb, jack.progress. The last three are
 used to store the state jack is in so it can resume work when interrupted.
 .PP
 Jack will create a directory called jack-xxxxxxxx for you, there it
-stores all the file for the CD whose id is xxxxxxxx. After a freedb query
+stores all the file for the CD whose id is xxxxxxxx. After a FreeDB query
 this directory is renamed to something human readable, like "Artist -
 Title".
 .PP
@@ -439,14 +439,14 @@ before to resume work, in this case
 jack
 .RE
 .PP
-Now let's try a freedb query:
+Now let's try a FreeDB query:
 .RS
 jack -q
 .RE
-.PP
-when successful the files are now renamed to something more readable and 
-have been ID3 tagged accordingly. jack.freedb contains the queried freedb
-entry, the original file has been backed up to jack.freedb.bak.
+If the query is successful the files will be renamed to something more readable
+and will be tagged accordingly using ID3 or Vorbis tags.  The file jack.freedb
+will contain the queried FreeDB entry, and the original file will be backed up
+as jack.freedb.bak.
 .PP
 All in one: query, rip, encode, cleanup:
 .RS
@@ -457,7 +457,6 @@ Editing / normalizing / stripping the WAV files before encoding:
 .RS
 jack -O --remove-files ; gnoise *wav ; jack -g *wav ; jack
 .RE
-.PP
 Just replace gnoise by the operation you'd like to perform.
 .SH FORMAT STRINGS
 .IP %n
