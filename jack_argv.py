@@ -59,7 +59,7 @@ While Jack is running, press q or Q to quit,
     r or R to pause/continue all rippers.
 """
     else:
-        print "These are the most commom options. For a complete list, run jack --longhelp"
+        print "These are the most common options. For a complete list, run jack --longhelp"
 
 def get_next(argv, i, extra_arg = None):
     if extra_arg != None:

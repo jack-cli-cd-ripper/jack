@@ -33,6 +33,8 @@ import jack_helpers
 
 from jack_globals import *
 
+progress_changed = None
+
 def df(fs = ".", blocksize = 1024):
     "returns free space on a filesystem (in bytes)"
     try:
@@ -89,7 +91,7 @@ def pprint_speed(s, len=4):
         if s < 1000:
             return "%4.0f" % s
         if s < 10000:
-            return "%4d" % s + 0.5
+            return "%4d" % (s + 0.5)
         else:
             return "9999"
     elif len == 3:

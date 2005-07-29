@@ -33,10 +33,10 @@ import jack_helpers
 # special option handling
 def checkopts(cf, cf2):
     if cf2.has_key('image_file'):
-        cf.rupdate({'rip_from_device': {'val': 0}, 'read_ahead':{'val': 0}}, "check")
+        cf.rupdate({'rip_from_device': {'val': 0}, 'read_ahead':{'val': 1}}, "check")
 
     if cf2.has_key('image_toc_file'):
-        cf.rupdate({'rip_from_device': {'val': 0}, 'read_ahead':{'val': 0}}, "check")
+        cf.rupdate({'rip_from_device': {'val': 0}, 'read_ahead':{'val': 1}}, "check")
 
     if cf2.has_key('space_from_argv'):
         cf.rupdate({'space_set_from_argv': {'val': 1}}, "check")
