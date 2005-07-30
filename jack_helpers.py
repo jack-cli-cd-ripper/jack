@@ -479,7 +479,16 @@ while l:
         'toc_fkt': r"""
 import cdrom
 device = cdrom.open(cf['_cd_device'])
-(first, last) = cdrom.toc_header(device)
+if not os.path.exists(cf['_cd_device']):
+    error("Device %s does not exist!" % cf['_cd_device'])
+if not os.access(cf['_cd_device'], os.R_OK):
+    error("You don't have permission to access device %s!" % cf['_cd_device'])
+try:
+    device = cdrom.open(cf['_cd_device'])
+    (first, last) = cdrom.toc_header(device)
+except cdrom.error, m:
+    error("Access of CD device %s resulted in error: %s" % (cf['_cd_device'], m[1]))
+
 toc = []
 for i in range(first, last + 1):
     (min, sec, frame) = cdrom.toc_entry(device, i)
