@@ -149,7 +149,8 @@ cf = jack_misc.dict2({
     'rename_num': {
         'type': types.StringType,
         'val': "%02d",
-        'doc': "track number format for %n, printf() style",
+        'long': 'AUTO',
+        'usage': "track number format for %n, printf() style",
         },
     'rename_dir': {
         'type': 'toggle',
