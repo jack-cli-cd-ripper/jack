@@ -78,15 +78,6 @@ cf = jack_misc.dict2({
         'short': 'E',
         'long': 'encoder-name',
         },
-    'bitrate': {
-        'type': types.IntType,
-        'val': 160,
-        'help': 1,
-        'doc': "default bitrate",
-        'usage': "target bitrate in kbit/s",
-        'short': 'b',
-        'long': 'AUTO',
-        },
     'vbr': {
         'type': 'toggle',
         'val': 1,
@@ -99,8 +90,20 @@ cf = jack_misc.dict2({
     'vbr_quality': {
         'type': types.FloatType,
         'val': 6,
+        'help': 1,
+        'vbr_only': 1, # only show in --help if vbr is on
         'usage': "vbr encoding quality. -1 is lowest, 10 highest.",
         'long': 'quality',
+        },
+    'bitrate': {
+        'type': types.IntType,
+        'val': 160,
+        'help': 1,
+        'vbr_only': 0,
+        'doc': "default bitrate",
+        'usage': "target bitrate in kbit/s",
+        'short': 'b',
+        'long': 'AUTO',
         },
     'freedb_server': {
         'type': types.StringType,

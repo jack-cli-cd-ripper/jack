@@ -32,6 +32,8 @@ def show_usage(cf, long=0):
             continue
         s = ""
         if cf[i].has_key('usage'):
+            if not long and cf[i].has_key('vbr_only') and cf[i]['vbr_only'] != cf['_vbr']:
+                continue
             if cf[i].has_key('long'):
                 s = "  --%s" % cf[i]['long']
                 if cf[i].has_key('short'):
