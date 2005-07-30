@@ -135,7 +135,7 @@ def yes(what):
             s = "yes"
         else:
             s = "no"
-    if what['type'] == types.StringType:
+    elif what['type'] == types.StringType:
         s = "'%s'" % what['val']
     else:
         s = str(what['val'])
