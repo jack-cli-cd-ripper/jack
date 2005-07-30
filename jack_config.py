@@ -761,7 +761,7 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
     'write_id3v2': {
         'type': 'toggle',
         'val': 1,
-        'usage': "write an id3v1 and an id3v2 tag to the encoded file",
+        'usage': "write an id3v2 tag to the encoded file",
         'long': 'AUTO',
         },
     'playorder': {

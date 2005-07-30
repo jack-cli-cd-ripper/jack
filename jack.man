@@ -416,7 +416,7 @@ where to create directories and put the files.
 write a smart id3v1 tag to the encoded file.
 .TP
 .B \-\-write\-id3v2=bool
-write an id3v1 and an id3v2 tag to the encoded file.
+write an id3v2 tag to the encoded file.
 .TP
 .B \-\-write-m3u
 create a playlist in .m3u format. This has bugs, don't rely on it.
