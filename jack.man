@@ -312,6 +312,9 @@ format of normal files (default "%n - %t")
 .B \-\-rename-fmt-va string
 format of Various Artists files (default "%n - %a - %t")
 .TP
+.B \-\-rename-num string
+format of the track number (%n, printf() style) used to rename the files (default "%02d")
+.TP
 .B \-r, \-\-reorder=bool
 optimize track-order for disk space. This can save you some peak
 disk space during the encoding process; this may make it possible
