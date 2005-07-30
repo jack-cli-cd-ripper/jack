@@ -83,7 +83,10 @@ def rename_path(old, new):
         os.chdir(os.pardir)
     for i in new[:-1]:
         if not os.path.exists(i):
-            os.mkdir(i)
+            try:
+                os.mkdir(i)
+            except OSError:
+                error('Cannot create directory "%s" (Filename is too long or has unusable characters)' % i)
         if os.path.isdir(i):
             os.chdir(i)
         else:
@@ -92,7 +95,10 @@ def rename_path(old, new):
     last_of_new = new[-1]
     if os.path.exists(last_of_new):
         error("destination directory already exists: " + last_of_new)
-    os.rename(cwd, last_of_new)
+    try:
+        os.rename(cwd, last_of_new)
+    except OSError:
+        error('Cannot rename "%s" to "%s" (Filename is too long or has unusable characters)' % (cwd, last_of_new))
     os.chdir(last_of_new)
                                                # now remove empty "orphan" dirs
 
