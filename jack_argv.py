@@ -159,14 +159,17 @@ def parse_argv(cf, argv):
             else:
                allargs[cf[i]['short']] = i
     i = 1
+    help = 0
     while i < len(argv):
         if argv[i] in ("-h", "--help"):
-            show_usage(cf)
-            sys.exit(0)
+            help = 1
+            i = i + 1
+            continue
 
         if argv[i] in ("--longhelp", "--long-help"):
-            show_usage(cf, long=1)
-            sys.exit(0)
+            help = 2
+            i = i + 1
+            continue
 
         option = ""
         tmp_option = tmp_arg = None
@@ -208,5 +211,5 @@ def parse_argv(cf, argv):
         if not i:
             break
         i = i + 1
-    return argv_cf
+    return help, argv_cf
 # end of parse_argv()
