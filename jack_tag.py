@@ -31,6 +31,7 @@ import jack_m3u
 
 from jack_init import ogg
 from jack_init import eyeD3
+from jack_init import flac
 from jack_globals import *
 
 track_names = None
@@ -94,8 +95,8 @@ def tag(freedb_rename):
                             t_name2 = string.replace(t_name2, "(" + t_comm + ")", "")
                         else:
                             t_comm = ""
-                if jack_helpers.helpers[cf['_encoder']]['target'] in ("mp3", "flac"):
-                    if jack_helpers.helpers[cf['_encoder']]['target'] == "mp3" and cf['_write_id3v2']:
+                if jack_helpers.helpers[cf['_encoder']]['target'] == "mp3":
+                    if cf['_write_id3v2']:
                         mp3file = file(mp3name, "rw")
                         tag = eyeD3.Tag()
                         tag.link(mp3file)
@@ -150,6 +151,37 @@ def tag(freedb_rename):
                                 print
                                 print "Track %02d contains data not supported by id3v1; please use --write-id3v2" % i[NUM]
                         mp3file.close()
+                elif jack_helpers.helpers[cf['_encoder']]['target'] == "flac":
+                    if flac:
+                        chain = flac.metadata.Chain()
+                        chain.read(mp3name)
+                        it = flac.metadata.Iterator()
+                        it.init(chain)
+                        while 1:
+                            if it.get_block_type() == flac.metadata.VORBIS_COMMENT:
+                                block = it.get_block()
+                                vc = flac.metadata.VorbisComment(block)
+                                break
+                            if not it.next():
+                                break
+                        if vc:
+                            vc.comments['ALBUM'] = a_title.encode("utf-8")
+                            vc.comments['TRACKNUMBER'] = `i[NUM]`
+                            vc.comments['TITLE'] = t_name.encode("utf-8")
+                            if t_artist:
+                                vc.comments['ARTIST'] = t_artist.encode("utf-8")
+                            else:
+                                vc.comments['ARTIST'] = a_artist.encode("utf-8")
+                            if cf['_id3_genre'] != -1:
+                                vc.comments['GENRE'] = id3genres[cf['_id3_genre']]
+                            if cf['_id3_year'] != -1:
+                                vc.comments['DATE'] = `cf['_id3_year']`
+                            chain.write(True, True)
+                    else:
+                        print
+                        print "Please install the pyflac module available at"
+                        print "http://www.sacredchao.net/quodlibet/wiki/Download"
+                        print "Without it, you'll not be able to tag FLAC tracks."
                 elif jack_helpers.helpers[cf['_encoder']]['target'] == "ogg":
                     vf = ogg.vorbis.VorbisFile(mp3name)
                     oggi = vf.comment()

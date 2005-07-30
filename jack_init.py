@@ -61,3 +61,8 @@ except:
             warning("ogg module not installed, ogg support disabled")
     ogg = dummy_ogg()
 
+try:
+    import flac.metadata
+except ImportError:
+    flac = None
+
