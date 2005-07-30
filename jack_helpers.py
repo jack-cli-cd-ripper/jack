@@ -35,8 +35,8 @@ helpers = {
         'type': "encoder",
         'target': "ogg",
         'can_tag': 1,
-        #'vbr-cmd': "oggenc -o %o -t %t -a %a -N %n -l %l -G %g -d %y -b %r %i",
         'vbr-cmd': "oggenc -o %o -t %t -a %a -N %n -l %l -G %g -d %y -q %q %i",
+        'cmd':     "oggenc -o %o -t %t -a %a -N %n -l %l -G %g -d %y -b %r %i",
         'tags': {
             'ogg': {
                 'track': "-t %s",
