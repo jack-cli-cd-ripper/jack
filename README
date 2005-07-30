@@ -15,8 +15,7 @@ Requirements:
 
     * python-2.2 or later
     * CDDB.py  - see doc/INSTALL on how to get/install it
-    * ID3.py   - see doc/INSTALL on how to get/install it
-    * pyid3lib-0.5.1 or later if you want ID3v2 support
+    * eyeD3    - see doc/INSTALL on how to get/install it
     * an encoder like lame (MP3) or oggenc for Ogg/Vorbis (default)
     * a DAE tool like cdparanioa
 

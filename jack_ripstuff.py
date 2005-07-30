@@ -18,6 +18,8 @@
 
 import jack_freedb
 
+import locale
+
 from jack_globals import *
 
 all_tracks_orig = []
@@ -66,7 +68,8 @@ def gen_printable_names(track_names, todo):
                 tmp = tmp + track_names[i[NUM]][0] + " - " + track_names[i[NUM]][1]
             else:
                 tmp = tmp + track_names[i[NUM]][1]
-            printable_names[i[NUM]] = tmp + "." * (max_name_len - len(tmp))
+            p_tmp = tmp.encode(locale.getpreferredencoding(), "replace")
+            printable_names[i[NUM]] = p_tmp + "." * (max_name_len - len(tmp))
         else:
             if cf['_show_time']:
                 printable_names[i[NUM]] = ("%02i " % i[NUM]) + len_tmp + "." * (max_name_len - len(i[NAME]) - 6)

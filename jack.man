@@ -112,7 +112,7 @@ target bitrate (in kbit/s, default is 160).
 convert file names using a python method
 .TP
 .B \-\-charset string
-charset of FreeDB data (default "latin-1").
+charset of filenames (defaults to your locale).
 .TP
 .B \-c, \-\-check-toc 
 compare toc-file and cd-toc, then exit. Jack caches the TOC of a

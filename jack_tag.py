@@ -18,6 +18,7 @@
 
 import string
 import os, sys
+import locale
 
 import jack_functions
 import jack_ripstuff
@@ -29,10 +30,11 @@ import jack_misc
 import jack_m3u
 
 from jack_init import ogg
-from jack_init import pyid3lib
+from jack_init import eyeD3
 from jack_globals import *
 
 track_names = None
+locale_names = None
 genretxt = None
 
 a_artist = None
@@ -55,8 +57,10 @@ def tag(freedb_rename):
 
     # maybe export?
     if jack_freedb.names_available:
-        a_artist = track_names[0][0]
-        a_title = track_names[0][1]
+        a_artist = track_names[0][0] # unicode
+        a_title = track_names[0][1] # unicode
+        p_artist = locale_names[0][0] # string
+        p_title = locale_names[0][1] # string
 
     if cf['_set_id3tag'] or freedb_rename:
         jack_m3u.init()
@@ -92,56 +96,66 @@ def tag(freedb_rename):
                             t_comm = ""
                 if jack_helpers.helpers[cf['_encoder']]['target'] in ("mp3", "flac"):
                     if jack_helpers.helpers[cf['_encoder']]['target'] == "mp3" and cf['_write_id3v2']:
-                        v2tag = pyid3lib.tag(mp3name)
-                        v2tag.album = a_title
-                        v2tag.track = (i[NUM], len(jack_ripstuff.all_tracks_orig))
-                        v2tag.title = t_name
+                        mp3file = file(mp3name, "rw")
+                        tag = eyeD3.Tag()
+                        tag.link(mp3file)
+                        tag.header.setVersion(eyeD3.ID3_V2_4)
+                        tag.setTextEncoding(eyeD3.UTF_8_ENCODING)
+                        tag.setAlbum(a_title)
+                        tag.setTitle(t_name)
+                        tag.setTrackNum((i[NUM],len(jack_ripstuff.all_tracks_orig)))
+                        tag.setTitle(t_name)
                         if t_artist:
-                            v2tag.artist = t_artist
+                           tag.setArtist(t_artist)
                         else:
-                            v2tag.artist = a_artist
-                        if cf['_id3_genre'] == 255:
-                            try:
-                                del v2tag.contenttype
-                            except AttributeError:
-                                pass
-                        elif cf['_id3_genre'] != -1:
-                            v2tag.contenttype = "(%d)" % (cf['_id3_genre'])
-                        if cf['_id3_year'] != -1:
-                            v2tag.year = `cf['_id3_year']`
-                        v2tag.songlen = `int(i[LEN] * 1000.0 / 75 + 0.5)`
-                        v2tag.update()
-                    if cf['_write_id3v1']:
-                        id3 = ID3(mp3name)
-                        id3.album = a_title
-                        id3.track = i[NUM] # this is ignored if we have an ID3v1.0 tag
-                        if t_comm:
-                            id3.comment = t_comm
-                            id3.title = t_name2
-                        else:
-                            id3.title = t_name
-                        if t_artist:
-                            id3.artist = t_artist
-                        else:
-                            id3.artist = a_artist
+                            tag.setArtist(a_artist)
                         if cf['_id3_genre'] != -1:
-                            id3.genre = cf['_id3_genre']
-                        elif not id3.had_tag:
-                            id3.genre = 255
+                            tag.setGenre("(%d)" % (cf['_id3_genre']))
                         if cf['_id3_year'] != -1:
-                            id3.year = `cf['_id3_year']`
-                        id3.write()
+                            tag.setDate(cf['_id3_year'])
+                        tag.setPlayCount(int(i[LEN] * 1000.0 / 75 + 0.5))
+                        tag.update()
+                        mp3file.close()
+                    if cf['_write_id3v1']:
+                        mp3file = file(mp3name, "rw")
+                        tag = eyeD3.Tag()
+                        tag.link(mp3file)
+
+                        tag.header.setVersion(eyeD3.ID3_V1_1)
+                        tag.setTextEncoding(eyeD3.LATIN1_ENCODING)
+                        old_genre = tag.getGenre()
+
+                        tag.setAlbum(a_title)
+                        if t_comm:
+                            tag.addComment(t_comm)
+                            tag.setTitle(t_name2)
+                        else:
+                            tag.setTitle(t_name)
+                        tag.setTrackNum((i[NUM],len(jack_ripstuff.all_tracks_orig)))
+                        tag.setTitle(t_name)
+                        if t_artist:
+                            tag.setArtist(t_artist)
+                        else:
+                            tag.setArtist(a_artist)
+                        if cf['_id3_genre'] != -1:
+                            tag.setGenre("(%d)" % (cf['_id3_genre']))
+                        elif old_genre == None:
+                            tag.setGenre("(255)") # unknown
+                        if cf['_id3_year'] != -1:
+                            tag.setDate(cf['_id3_year'])
+                        tag.update()
+                        mp3file.close()
                 elif jack_helpers.helpers[cf['_encoder']]['target'] == "ogg":
                     vf = ogg.vorbis.VorbisFile(mp3name)
                     oggi = vf.comment()
                     oggi.clear()
-                    oggi.add_tag('ALBUM', a_title.decode(cf['_charset']).encode('utf-8'))
+                    oggi.add_tag('ALBUM', a_title.encode("utf-8"))
                     oggi.add_tag('TRACKNUMBER', `i[NUM]`)
-                    oggi.add_tag('TITLE', t_name.decode(cf['_charset']).encode('utf-8'))
+                    oggi.add_tag('TITLE', t_name.encode("utf-8"))
                     if t_artist:
-                        oggi.add_tag('ARTIST', t_artist.decode(cf['_charset']).encode('utf-8'))
+                        oggi.add_tag('ARTIST', t_artist.encode("utf-8"))
                     else:
-                        oggi.add_tag('ARTIST', a_artist.decode(cf['_charset']).encode('utf-8'))
+                        oggi.add_tag('ARTIST', a_artist.encode("utf-8"))
                     if cf['_id3_genre'] != -1:
                         oggi.add_tag('GENRE', id3genres[cf['_id3_genre']])
                     if cf['_id3_year'] != -1:
@@ -158,35 +172,44 @@ def tag(freedb_rename):
                 exec("newname = newname" + cf['_char_filter'])
                 for char_i in range(len(cf['_unusable_chars'])):
                     newname = string.replace(newname, cf['_unusable_chars'][char_i], cf['_replacement_chars'][char_i])
+                try:
+                    i[NAME] = unicode(i[NAME], "utf-8")
+                except UnicodeDecodeError:
+                    i[NAME] = unicode(i[NAME], "latin-1")
                 if i[NAME] != newname:
+                    p_newname = newname.encode(locale.getpreferredencoding(), "replace")
+                    u_newname = newname
+                    newname = newname.encode(cf['_charset'], "replace")
+                    p_mp3name = i[NAME].encode(locale.getpreferredencoding(), "replace") + ext
+                    p_wavname = i[NAME].encode(locale.getpreferredencoding(), "replace") + ".wav"
                     ok = 1
                     if os.path.exists(newname + ext):
                         ok = 0
-                        print 'NOT renaming "' + mp3name + '" to "' + newname + ext + '" because dest. exists.'
+                        print 'NOT renaming "' + p_mp3name + '" to "' + p_newname + ext + '" because dest. exists.'
                         if cf['_keep_wavs']:
-                            print 'NOT renaming "' + wavname + '" to "' + newname + ".wav" + '" because dest. exists.'
+                            print 'NOT renaming "' + p_wavname + '" to "' + p_newname + ".wav" + '" because dest. exists.'
                     elif cf['_keep_wavs'] and os.path.exists(newname + ".wav"):
                         ok = 0
-                        print 'NOT renaming "' + wavname + '" to "' + newname + ".wav" + '" because dest. exists.'
-                        print 'NOT renaming "' + mp3name + '" to "' + newname + ext + '" because WAV dest. exists.'
+                        print 'NOT renaming "' + p_wavname + '" to "' + p_newname + ".wav" + '" because dest. exists.'
+                        print 'NOT renaming "' + p_mp3name + '" to "' + p_newname + ext + '" because WAV dest. exists.'
                     if ok:
                         if not cf['_only_dae']:
                             try:
                                 os.rename(mp3name, newname + ext)
                             except OSError:
-                                error('Cannot rename "%s" to "%s" (Filename is too long or has unusable characters)' % (mp3name, newname + ext))
+                                error('Cannot rename "%s" to "%s" (Filename is too long or has unusable characters)' % (p_mp3name, p_newname + ext))
                             jack_m3u.add(newname + ext)
                         if cf['_keep_wavs']:
                             os.rename(wavname, newname + ".wav")
                             jack_m3u.add_wav(newname + ".wav")
-                        jack_functions.progress(i[NUM], "ren", "%s-->%s" % (i[NAME], newname))
+                        jack_functions.progress(i[NUM], "ren", "%s-->%s" % (i[NAME], u_newname))
                     elif cf['_silent_mode']:
                         jack_functions.progress(i[NUM], "err", "while renaming track")
         print
 
     if not cf['_silent_mode']:
         if jack_freedb.names_available:
-            print "Done with \"" + a_artist+ " - " + a_title + "\"."
+            print "Done with \"" + p_artist + " - " + p_title + "\"."
         else:
             print "All done.",
         if cf['_set_id3tag'] and cf['_id3_year'] != -1:

@@ -165,7 +165,9 @@ def mkdirname(names, template):
         
     dirs2 = []
     for i in dirs:
-        replace_list = (("%a", names[0][0]), ("%l", names[0][1]), ("%y", `cf['_id3_year']`), ("%g", cf['_id3_genre_txt']))
+        replace_list = (("%a", names[0][0].encode(cf['_charset'], "replace")),
+                        ("%l", names[0][1].encode(cf['_charset'], "replace")),
+                        ("%y", `cf['_id3_year']`), ("%g", cf['_id3_genre_txt']))
         x = jack_misc.multi_replace(i, replace_list, unusable_charmap)
         exec("x = x" + cf['_char_filter'])
         dirs2.append(x)

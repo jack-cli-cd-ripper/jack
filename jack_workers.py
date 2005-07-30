@@ -55,7 +55,7 @@ def start_new_process(args, nice_value = 0):
         default_signals()
         if nice_value:
             os.nice(nice_value)
-        os.execvp(args[0], args)
+        os.execvp(args[0], [a.encode(cf['_charset'], "replace") for a in args])
     else:
         data['pid'] = pid
         if os.uname()[0] == "Linux":
@@ -76,7 +76,7 @@ def start_new_ripper(track, ripper):
     args = []
     for i in cmd:
         if i == "%n": args.append(`track[NUM]`)
-        elif i == "%o": args.append(track[NAME] + ".wav")
+        elif i == "%o": args.append(track[NAME].decode(cf['_charset'], "replace") + ".wav")
         elif i == "%d": args.append(cf['_cd_device'])
         elif i == "%D": args.append(cf['_gen_device'])
         else: args.append(i)
@@ -105,9 +105,9 @@ def start_new_encoder(track, encoder):
                 quality = cf['_vbr_quality']
             args.append("%.3f" % quality)
         elif i == "%i":
-            args.append(track[NAME] + ".wav")
+            args.append(track[NAME].decode(cf['_charset'], "replace") + ".wav")
         elif i == "%o":
-            args.append(track[NAME] + jack_targets.targets[jack_helpers.helpers[cf['_encoder']]['target']]['file_extension'])
+            args.append(track[NAME].decode(cf['_charset'], "replace") + jack_targets.targets[jack_helpers.helpers[cf['_encoder']]['target']]['file_extension'])
         else:
             if jack_targets.targets[helper['target']]['can_pretag']:
                 if i == "%t":
@@ -202,7 +202,7 @@ def start_new_otf(track, ripper, encoder):
                 quality = cf['_vbr_quality']
             args.append("%.3f" % quality)
         elif i == "%o":
-            args.append(track[NAME] + jack_targets.targets[jack_helpers.helpers[cf['_encoder']]['target']]['file_extension'])
+            args.append(track[NAME].decode(cf['_charset'], "replace") + jack_targets.targets[jack_helpers.helpers[cf['_encoder']]['target']]['file_extension'])
         elif i == "%d":
             args.append(cf['_cd_device'])
         elif i == "%D":
@@ -315,7 +315,7 @@ def ripread(track, offset = 0):
 #
 ## set up output wav file:
 #
-            wav = wave.open(track[NAME] + ".wav", 'w')
+            wav = wave.open(track[NAME].decode(cf['_charset'], "replace") + ".wav", 'w')
             wav.setnchannels(2)
             wav.setsampwidth(2)
             wav.setframerate(44100)

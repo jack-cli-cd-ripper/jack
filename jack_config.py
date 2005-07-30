@@ -21,6 +21,7 @@ import types
 import os
 import string
 import jack_misc
+import locale
 
 import jack_version
 from jack_globals import *
@@ -178,14 +179,14 @@ cf = jack_misc.dict2({
         'type': types.StringType,
         'val': "",
         'usage': "convert file names using a python method",
-        'doc': r"""an example which converts to lowercase, even with non-ascii charsets (you have to specify the charset): ".decode(charset).lower().encode(charset)" """,
+        'doc': r"""an example which converts to lowercase, even with non-ascii charsets: ".lower()" """,
         'long': 'AUTO',
         },
     'charset': {
         'type': types.StringType,
-        'val': "latin-1",
-        'usage': "charset of freedb data",
-        'doc': "examples: latin-1 ascii, utf-8, ...",
+        'val': locale.getpreferredencoding(),
+        'usage': 'charset of filenames',
+        'doc': "examples: latin-1, utf-8, ...",
         'long': 'AUTO',
         },
     'unusable_chars': {

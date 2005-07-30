@@ -17,6 +17,7 @@
 ### along with this program; if not, write to the Free Software
 ### Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+import codecs
 import traceback
 import sndhdr
 import types
@@ -427,32 +428,36 @@ def progress(track, what="error", data="error", data2 = None):
     else:
         error("illegal progress entry:" + `track` + " (" + `type(track)` + ")")
     progress_changed = 1
-    f = open(cf['_progress_file'], "a")
+    f = codecs.open (cf['_progress_file'], "a", "utf-8")
     f.write(first + cf['_progr_sep'] + what + cf['_progr_sep'] + data)
     if data2:
         f.write(cf['_progr_sep'] + data2)
     f.write("\n")
     f.close()
 
-def check_genre_txt(txt):
-    if string.upper(txt) == "HELP":
-        info("available genres: " + `id3genres`)
-        sys.exit(0)
+def check_genre_txt(genre):
+    if isinstance(genre, int):
+        if genre in range(0,256):
+            return genre
+        else:
+            return None
 
-    elif string.upper(txt) == "NONE":
-        return 255 # set genre to [unknown]
-    else:
-        from jack_init import ID3
-        temp_id3 = ID3("/dev/null")
-        genre = temp_id3.find_genre(txt)
-        if not temp_id3.legal_genre(genre):
+    elif isinstance(genre, str):
+        if string.upper(genre) == "HELP":
+            info("available genres: " + string.join([x for x in eyeD3.genres if x != 'Unknown'], ", "))
+            sys.exit(0)
+        elif string.upper(genre) == "NONE":
+            return 255 # set genre to [unknown]
+        else:
             try:
-                genre = int(txt)
-            except ValueError:
-                pass
-        if not temp_id3.legal_genre(genre):
-            import jack_version
-            error("illegal genre. Try '" + jack_version.prog_name + " --id3-genre help' for a list.")
-        del temp_id3
-        return genre
+                genre = int(genre)
+                genre = check_genre_txt(genre)
+                if isinstance(genre, int):
+                    return genre
+            except:
+                for i in range(len(id3genres)):
+                    if genre.upper() == id3genres[i].upper():
+                        return i
 
+    import jack_version
+    error("illegal genre. Try '" + jack_version.prog_name + " --id3-genre help' for a list.")

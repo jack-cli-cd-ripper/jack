@@ -19,7 +19,7 @@
 
 from jack_constants import *
 from jack_config import cf
-from jack_init import ID3
+from jack_init import eyeD3
 
 from jack_generic import info, warning, debug, error, expand
 #import jack_generic
@@ -43,8 +43,5 @@ def debug(x):
 revision = 0                        # initial revision of freedb data
 is_submittable = 0                  # well-formed freedb-file?
 
-#misc stuff
-tmp = ID3("/dev/null")
-id3genres = tmp.genres
-del tmp
+id3genres = eyeD3.genres
 

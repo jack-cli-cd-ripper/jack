@@ -5,10 +5,10 @@
 
 --- Step 1 - install 3rd party modules ---------------------------------------
 
-install the ID3.py and CDDB.py module:
+install the eyeD3 and CDDB.py modules:
 
 * grab them from http://cddb-py.sourceforge.net
-  and            http://id3-py.sourceforge.net
+  and            http://eyed3.nicfit.net/
 
 Too ease up the installations, install the Python Distutils
 from

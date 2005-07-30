@@ -149,7 +149,7 @@ if cf['_query_on_start']:
 ### (10) update freedb dbfile
 if cf['_update_freedb']:
     if not jack_tag.track_names:
-        err, jack_tag.track_names, freedb_rename, revision = jack_freedb.interpret_db_file(jack_ripstuff.all_tracks, cf['_freedb_form_file'], verb = 1, dirs = 0)
+        err, jack_tag.track_names, jack_tag.locale_names, freedb_rename, revision = jack_freedb.interpret_db_file(jack_ripstuff.all_tracks, cf['_freedb_form_file'], verb = 1, dirs = 0)
     jack_freedb.freedb_template(jack_ripstuff.all_tracks, jack_tag.track_names, revision + 1)
     jack_utils.ex_edit(cf['_freedb_form_file'])
     info("now submit your changes if you like, using the option --submit (via http POST). Don't forget to activate your changes locally with -R")
@@ -242,7 +242,7 @@ if cf['_query_when_ready']:
         jack_display.exit()
 
 if cf['_query_when_ready'] or cf['_read_freedb_file'] or cf['_query_on_start']:
-    err, jack_tag.track_names, freedb_rename, revision = jack_freedb.interpret_db_file(jack_ripstuff.all_tracks, cf['_freedb_form_file'], verb = 1, dirs = 1)
+    err, jack_tag.track_names, jack_tag.locale_names, freedb_rename, revision = jack_freedb.interpret_db_file(jack_ripstuff.all_tracks, cf['_freedb_form_file'], verb = 1, dirs = 1)
     if err:
         error("could not read freedb file")
 

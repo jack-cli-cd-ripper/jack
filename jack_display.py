@@ -63,9 +63,9 @@ def init():
     if jack_freedb.names_available:
         jack_term.tmod.extra_lines = jack_term.tmod.extra_lines + 1
         if jack_term.term_type == "curses":
-            discname = jack_tag.track_names[0][0] + " - " + jack_tag.track_names[0][1]
+            discname = jack_tag.locale_names[0][0] + " - " + jack_tag.locale_names[0][1]
         else:
-            options_string = center_line(jack_tag.track_names[0][0] + " - " + jack_tag.track_names[0][1], fill = "- ", fill_r = " -", width = jack_term.size_x) + "\n" + center_line(options_string, fill = " ", fill_r = " ", width = jack_term.size_x)
+            options_string = center_line(jack_tag.locale_names[0][0] + " - " + jack_tag.locale_names[0][1], fill = "- ", fill_r = " -", width = jack_term.size_x) + "\n" + center_line(options_string, fill = " ", fill_r = " ", width = jack_term.size_x)
 
 def sig_handler(sig, frame):
     "signal handler and general cleanup procedure"
