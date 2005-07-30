@@ -174,7 +174,7 @@ def tag(freedb_rename):
                             try:
                                 os.rename(mp3name, newname + ext)
                             except OSError:
-                                error('Cannot rename "%s" (Filename too long?)' % mp3name)
+                                error('Cannot rename "%s" to "%s" (Filename is too long or has unusable characters)' % (mp3name, newname + ext))
                             jack_m3u.add(newname + ext)
                         if cf['_keep_wavs']:
                             os.rename(wavname, newname + ".wav")
