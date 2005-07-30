@@ -105,7 +105,11 @@ def consistency_check(cf):
         tmp_mail = jack_freedb.freedb_servers[cf['freedb_server']['val']]['my_mail']
         tmp_mail2 = cf['_my_mail']
         if len(cf['_my_mail']) <= 3 or cf['_my_mail'] == "default" or cf['_my_mail'].find("@") < 1:
-            jack_freedb.freedb_servers[cf['freedb_server']['val']]['my_mail'] = cf['username']['val'] + "@" + cf['hostname']['val']
+            env = os.getenv("EMAIL")
+            if env:
+                jack_freedb.freedb_servers[cf['freedb_server']['val']]['my_mail'] = env
+            else:
+                jack_freedb.freedb_servers[cf['freedb_server']['val']]['my_mail'] = cf['username']['val'] + "@" + cf['hostname']['val']
             if len(cf['my_mail']['history']) > 1:
                 warning("illegal mail address changed to " + jack_freedb.freedb_servers[cf['freedb_server']['val']]['my_mail'])
         else:
