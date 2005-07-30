@@ -22,14 +22,14 @@ Jack \- rip and encode CDs with one command
 .RI [ options ]
 .SH DESCRIPTION
 .B Jack 
-transforms your audio-CDs to MP3 or Ogg Vorbis files. It uses several helper programs
-in order to achieve things like ripping, encoding and ID3-tagging. 
-Ripping is either done via
+transforms your audio-CDs to FLAC, MP3 or Ogg Vorbis files. It uses several
+helper programs in order to achieve things like ripping, encoding and
+ID3-tagging.  Ripping is either done via
 .B cdparanoia
 (in which case the ripping status is displayed by Jack as well) or
 .B cdda2wav.
 Jack works with several encoders, namely 
-.B oggenc, lame, gogo, bladeenc, l3enc, mp3enc
+.B oggenc, flac, lame, gogo, bladeenc, l3enc, mp3enc
 and
 .B xing.
 Any time during operation (and even when everything is finished and
@@ -525,6 +525,7 @@ Arne Zellentin <zarne@users.sf.net> is the author of Jack.
 .SH SEE ALSO
 .BR cdparanoia (1),
 .BR cdda2wav (1),
+.BR flac (1),
 .BR oggenc (1)
 and
 .BR lame (1)
