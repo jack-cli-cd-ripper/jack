@@ -215,10 +215,13 @@ else:
 s = string.split(i['buf'], '\r')    
 if len (s) >= 2: s = s[-2]
 if len (s) == 1: s = s[0]       
-y0 = string.find(s, ": ")             
-y1 = string.find (s, "%")
+y0 = string.rfind(s, ": ")             
+y1 = string.find (s, "%", y0)
 if y0 != -1 and y1 != -1: 
-    percent = float(s[y0 + 1:y1])
+    try:
+        percent = float(s[y0 + 1:y1])
+    except ValueError:
+        percent = 0
 else:                   
     percent = 0         
 """,
