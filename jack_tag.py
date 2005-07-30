@@ -143,7 +143,12 @@ def tag(freedb_rename):
                             tag.setGenre("(255)") # unknown
                         if cf['_id3_year'] != -1:
                             tag.setDate(cf['_id3_year'])
-                        tag.update()
+                        try:
+                            tag.update()
+                        except UnicodeEncodeError:
+                            if not cf['_write_id3v2']:
+                                print
+                                print "Track %02d contains data not supported by id3v1; please use --write-id3v2" % i[NUM]
                         mp3file.close()
                 elif jack_helpers.helpers[cf['_encoder']]['target'] == "ogg":
                     vf = ogg.vorbis.VorbisFile(mp3name)
