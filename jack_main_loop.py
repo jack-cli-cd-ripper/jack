@@ -285,9 +285,9 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
                             if os.path.exists(track[NAME] + ".wav"):
                                 if jack_functions.tracksize(track)[WAV] != jack_utils.filesize(track[NAME] + ".wav"):
                                     res = 242
-                                    jack_status.dae_stat_upd(num, string.strip(string.split(exited_proc['buf'], "\n")[-2]))
+                                    jack_status.dae_stat_upd(num, jack_status.get_2_line(exited_proc['buf']))
                             else:
-                                jack_status.dae_stat_upd(num, string.strip(string.split(exited_proc['buf'], "\n")[-2]))
+                                jack_status.dae_stat_upd(num, jack_status.get_2_line(exited_proc['buf']))
                                 res = 243
                             global_error = global_error + res
                     if res and not cf['_sloppy']:
@@ -304,7 +304,7 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
                             jack_status.dae_stat_upd(num, 'DAE failed with status ' + `res` + ", wav removed.")
                     else:
                         if exited_proc['type'] == "image_reader":
-                            jack_status.dae_stat_upd(num, string.strip(string.split(exited_proc['buf'], "\n")[-2]))
+                            jack_status.dae_stat_upd(num, jack_status.get_2_line(exited_proc['buf']))
                         else:
                             if exited_proc['otf'] and jack_helpers.helpers[exited_proc['prog']].has_key('otf-final_status_fkt'):
                                 exec(jack_helpers.helpers[exited_proc['prog']]['otf-final_status_fkt']) in globals(), locals()
@@ -391,12 +391,10 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
                             #jack_term.tmod.dae_stat_upd(i['track'][NUM], None, i['percent'])
         
                 elif i['type'] == "image_reader":
-                    line = string.split(i['buf'], "\n")
-                    if len(line) >= 2:
-                        line = string.strip(line[-2])
-                        jack_status.dae_stat_upd(i['track'][NUM], line)
-                        if line[:5] == "Error":
-                            global_error = global_error + 1
+                    line = string.strip(jack_status.get_2_line(i['buf']))
+                    jack_status.dae_stat_upd(i['track'][NUM], line)
+                    if line.startswith("Error"):
+                        global_error = global_error + 1
         
                 else:
                     error("unknown subprocess type \"" + i['type'] + "\".")

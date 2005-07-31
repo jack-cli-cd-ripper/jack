@@ -16,6 +16,8 @@
 ### along with this program; if not, write to the Free Software
 ### Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+import string
+
 from jack_globals import NUM, cf
 import jack_term
 import jack_ripstuff
@@ -54,4 +56,11 @@ def print_status(form = 'normal'):
             print cf['_name'] % i[NUM] + ":", dae_status[i[NUM]], enc_status[i[NUM]]
         else:
             print jack_ripstuff.printable_names[i[NUM]] + ":", dae_status[i[NUM]], enc_status[i[NUM]]
+
+def get_2_line(buf, default="A failure occured"):
+    tmp = string.split(buf, "\n")
+    if len(tmp) >= 2:
+        return string.strip(tmp[-2])
+    else:
+        return default
 

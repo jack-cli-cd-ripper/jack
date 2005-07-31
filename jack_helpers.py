@@ -260,9 +260,12 @@ if len(s) >= 3:
         'status_fkt': r"""
 # (== PROGRESS == [                              | 013124 00 ] == :^D * ==)
 # (== PROGRESS == [                       >      .| 011923 00 ] == :-) . ==)
-tmp = string.split(i['buf'], '\r')[-2] + " "
-new_status = tmp[17:48] + tmp[49:69] # 68->69 because of newer version
-#new_status = string.split(i['buf'], '\r')[-2][17:69] # 68->69 because of newer version
+tmp = string.split(i['buf'], "\r")
+if len(tmp) >= 2:
+    tmp = tmp[-2] + " "
+    new_status = tmp[17:48] + tmp[49:69] # 68->69 because of newer version
+else:
+    new_status = "Cannot parse status"
 """,
         'otf-status_fkt': r"""
 buf = i['buf']
@@ -316,11 +319,14 @@ while l:
         'status_blocksize': 200,
         'status_start': "percent_done:",
         'status_fkt': r"""
-x = string.split(i['buf'], '\r')[-2]
-if string.find(x, '%') != -1:
-    new_status = "ripping: " + string.strip(string.split(i['buf'], '\r')[-2])
+tmp = string.split(i['buf'], "\r")
+if len(tmp) >= 2:
+    if string.find(tmp[-2], '%') != -1:
+        new_status = "ripping: " + string.strip(tmp[-2])
+    else:
+        new_status = "waiting..."
 else:
-    new_status = "waiting..."
+    new_status = "Cannot parse status"
 """,
         'final_status_fkt': r"""
 final_status = ("%s" % jack_functions.pprint_speed(speed)) + "x [ DAE done with cdda2wav       ]"
@@ -419,11 +425,14 @@ if new_c2w and len(new_lengths) == len(new_starts) - 1:
         'status_blocksize': 100,
         'status_start': "total:",
         'status_fkt': r"""
-x = string.split(i['buf'], '\r')[-2]
-if string.find(x, 'total:') != -1:
-    new_status = string.strip(string.split(i['buf'], '\r')[-2])
+tmp = string.split(i['buf'], "\r")
+if len(tmp) >= 2:
+    if string.find(tmp[-2], 'total:') != -1:
+        new_status = string.strip(tmp[-2])
+    else:
+        new_status = "waiting..."
 else:
-    new_status = "waiting..."
+    new_status = "Cannot parse status"
 """,
         'final_status_fkt': r"""
 final_status = ("%s" % jack_functions.pprint_speed(speed)) + "x [ DAE done with dagrab         ]"
