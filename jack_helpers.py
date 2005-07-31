@@ -59,7 +59,10 @@ if len(s) == 1:
 y0 = string.find(s, "[")
 y1 = string.find(s, "%]")
 if y0 != -1 and y1 != -1:
-    percent = float(s[y0 + 1:y1])
+    try:
+        percent = float(s[y0 + 1:y1])
+    except ValueError:
+        percent = 0
 else:
     percent = 0
 """,
