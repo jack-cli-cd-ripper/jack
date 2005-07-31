@@ -392,7 +392,7 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
     'freedb_dir': {
         'type': types.StringType,
         'val': "",
-        'doc': "change this to something like \"/var/spool/cddb\" and all queries will be done in this (local) directory; failed local queries will be done via network",
+        'doc': "change this to something like \"/var/spool/freedb\" and all queries will be done in this (local) directory; failed local queries will be done via network",
         },
     'freedb_pedantic': {
         'type': 'toggle',
@@ -524,7 +524,7 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
         'usage': "continue without freedb data if query fails",
         'long': 'AUTO',
         },
-    'edit_cddb': {
+    'edit_freedb': {
         'type': 'toggle',
         'val': 0,
         'usage': "edit CDDB information before using it",

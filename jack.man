@@ -146,7 +146,7 @@ if directories are renamed, this is the format used (default "%a/%l")
 don't do DAE, encoding, tagging or renaming. This may be useful if you only
 want to do a FreeDB query, e.g. while another jack is running.
 .TP
-.B \-\-edit-cddb
+.B \-\-edit-freedb
 open an editor to change the CDDB information which has been obtained
 previously (only useful with -Q).
 .TP

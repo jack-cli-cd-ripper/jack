@@ -22,6 +22,9 @@ import sys
 import os
 import locale
 import codecs
+import tempfile
+import shutil
+import re
 
 import jack_playorder
 import jack_functions
@@ -649,6 +652,7 @@ def choose_cat(cat = ["blues", "classical", "country", "data", "folk", "jazz", "
 
 def do_freedb_submit(file, cd_id):
     import httplib
+
     hello = "hello=" + cf['_username'] + " " + cf['_hostname'] + " " + prog_name + " " + prog_version
     print "Info: querying categories..."
     url = "http://" + freedb_servers[cf['_freedb_server']]['host'] + "/~cddb/cddb.cgi?" + urllib.quote_plus("cmd=cddb lscat" + "&" + hello + "&proto=6", "=&")
@@ -680,8 +684,7 @@ def do_freedb_submit(file, cd_id):
     if x:
         email = x
 
-    sys.stdout.write("Submitting...") ; sys.stdout.flush()
-
+    info("Submitting...")
     selector = '/~cddb/submit.cgi'
     proxy = ""
     if os.environ.has_key('http_proxy'):
@@ -712,10 +715,16 @@ def do_freedb_submit(file, cd_id):
     h.putheader('Category', cat)
     h.putheader('Discid', cd_id)
     h.putheader('User-Email', email)
-    #h.putheader('Submit-Mode', 'test')
-    h.putheader('Submit-Mode', 'submit')
+    if cf['_debug']:
+        debug("will submit in test-mode, changes are not applied and you'll get an email which contains the data you submitted.")
+        h.putheader('Submit-Mode', 'test')
+    else:
+        h.putheader('Submit-Mode', 'submit')
     h.putheader('Charset', 'UTF-8')
-    h.putheader('X-Cddbd-Note', 'Problems submitting with ' + prog_name + '? Visit jack.sf.net.')
+    if cf['_debug']:
+        h.putheader('X-Cddbd-Note', 'Submission will not be applied to database if --debug is on.')
+    else:
+        h.putheader('X-Cddbd-Note', 'data submitted with ' + prog_name + ' (http://jack.sf.net)')
     h.putheader('Content-Length', str(jack_utils.filesize(file)))
     h.endheaders()
     # The user just wrote the file with a text editor so we assume that it
@@ -757,4 +766,44 @@ def do_freedb_mailsubmit(file, cd_id):
         return os.system("( echo 'To: " + freedb_servers[cf['_freedb_server']]['mail'] + "'; echo From: '" + freedb_servers[cf['_freedb_server']]['my_mail'] + "'; echo 'Subject: cddb " + cat + " " + cd_id + "' ; cat '" + file + "' ) | " + sendmail)
     else:
         print "please set your e-mail address. aborting..."
+
+def update_revision(file):
+    "Update the revision (and submitted-via) information in a FreeDB template"
+
+    re_revision = re.compile(r"^#\s*Revision:\s*(\d+)")
+    re_agent = re.compile(r"^#\s*Submitted via:")
+
+    tmp, tmpname = tempfile.mkstemp()
+    freedb_file = open(file, "r")
+    revision = 0
+    comments = 1
+    for line in freedb_file.readlines():
+        rev = re_revision.match(line)
+        agent = re_agent.match(line)
+        if rev:
+            revision = int(rev.group(1)) + 1
+            os.write(tmp, "# Revision: %d\n" % revision)
+        elif agent:
+            os.write(tmp, "# Submitted via: " + prog_name + " " + prog_version + "\n")
+        else:
+            if not line.startswith("#"):
+                # The 'Revisions' field is option but should be set when you
+                # submit a new version.  Therefore, after the comments check
+                # whether we've seen a revision and if not write one.
+                if comments:
+                    if revision == 0:
+                        revision += 1
+                        os.write(tmp, "# Revision: %d\n" % revision)
+                    comments = 0
+            os.write(tmp, line)
+    os.close(tmp)
+    freedb_file.close()
+    try:
+        shutil.copyfile(tmpname, file)
+    except IOError:
+        print "Cannot copy updated template over existing one."
+    try:
+        os.unlink(tmpname)
+    except IOError:
+        print "Cannot remove temporary file %s." % tmpname
 

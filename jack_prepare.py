@@ -20,6 +20,7 @@ import string
 import types
 import pprint
 import os, sys
+import difflib, shutil
 
 import jack_playorder
 import jack_functions
@@ -469,10 +470,10 @@ def freedb_submit():
     if err:
         error("invalid freedb file")
     else:
-        if cf['_freedb_submit']:
-            jack_freedb.do_freedb_submit(cf['_freedb_form_file'], cd_id)
-        elif cf['_freedb_mailsubmit']:
+        if cf['_freedb_mailsubmit']:
             jack_freedb.do_freedb_mailsubmit(cf['_freedb_form_file'], cd_id)
+        else:
+            jack_freedb.do_freedb_submit(cf['_freedb_form_file'], cd_id)
 
     ### (9) do query on start
 
@@ -488,8 +489,34 @@ def query_on_start():
         else:
             jack_display.exit()
 
-    if cf['_edit_cddb']:
+    if cf['_edit_freedb']:
+        file = cf['_freedb_form_file']
+        bakfile = file + ".bak"
+        if os.path.exists(file):
+            try:
+                shutil.copyfile(file, bakfile)
+            except IOError:
+                pass
         jack_utils.ex_edit(cf['_freedb_form_file'])
+        if os.path.exists(bakfile):
+            try:
+                f = open(file, "r")
+                b = open(bakfile, "r")
+            except IOError:
+                print "Could not open jack.freedb or jack.freedb.bak for comparison"
+            else:
+                pdiff = "".join(difflib.unified_diff(b.readlines(), f.readlines(), bakfile, file))
+                f.close()
+                b.close()
+                if pdiff:
+                    print
+                    print "You made the following changes to the FreeDB file:"
+                    print
+                    print pdiff
+                    x = raw_input("Would you like to submit these changes to the FreeDB server? (y/N) ")
+                    if string.upper(x[0]) == "Y":
+                        jack_freedb.update_revision(file)
+                        freedb_submit()
 
     if cf['_query_on_start']:
         err, jack_tag.track_names, jack_tag.locale_names, freedb_rename, revision = jack_freedb.interpret_db_file(jack_ripstuff.all_tracks, cf['_freedb_form_file'], verb = cf['_query_on_start'], dirs = 1)
