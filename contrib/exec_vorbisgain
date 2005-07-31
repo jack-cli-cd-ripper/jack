@@ -1,0 +1,38 @@
+#!/bin/sh
+
+# Example script for exec hooks
+# Copyright (C) 2005  Martin Michlmayr <tbm@cyrius.com>
+# This script may be distributed under the GPL v2 or higher.
+
+# Process tracks with vorbisgain to calculate their "ReplayGain"
+# so they can be played with a uniform sound level.
+
+# Usage: put the following in your ~/.jack3rc file (without any leading
+# hash symbols)
+#    exec_when_done:yes
+#    exec_no_err:"/usr/share/doc/jack/examples/exec_vorbisgain"
+
+# You have to set (and later restore) $IFS in since $JACK_JUST_ENCODED
+# contains a listing of tracks separated by newlines.
+
+OLDIFS="$IFS"
+IFS="
+"
+
+# There are two alternatives:
+#   1. Process all files at once as an album:
+vorbisgain -a $JACK_JUST_ENCODED
+
+#   2. Process each file individually:
+#for i in $JACK_JUST_ENCODED; do
+#    IFS="$OLDIFS";
+#    vorbisgain "$i"
+#    IFS="
+#"
+#done
+
+# In most real world cases, you will want option 1.  However, option two
+# is included to show how you can process individual files.
+
+IFS="$OLDIFS"
+

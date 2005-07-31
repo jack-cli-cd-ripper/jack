@@ -262,5 +262,7 @@ def tag(freedb_rename):
         else:
             print
 
+    os.environ["JACK_JUST_ENCODED"] = "\n".join(jack_m3u.m3u)
+    os.environ["JACK_JUST_RIPPED"] = "\n".join(jack_m3u.wavm3u)
     jack_m3u.write()
 

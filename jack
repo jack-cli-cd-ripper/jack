@@ -95,6 +95,8 @@ ext = jack_targets.targets[jack_helpers.helpers[cf['_encoder']]['target']]['file
 
 ### (1) search for a dir containing a toc-file or do the multi-mode
 toc_just_read = jack_prepare.find_workdir()
+os.environ["JACK_CUR_DIR"] = os.getcwd()
+os.environ["JACK_BASE_DIR"] = cf['_base_dir']
 # now we are set to go as we know we are in the right dir
 
 ### (2) check toc (operation mode)
@@ -237,6 +239,10 @@ if (wavs_todo or mp3s_todo):
         warning("abnormal exit")
         traceback.print_exc()         
         sys.exit(1)
+# Set the files we have processed but this may still be overwritten by
+# jack_tag.tag() called below.
+os.environ["JACK_JUST_ENCODED"] = "\n".join([x[NAME] + ext for x in mp3s_todo])
+os.environ["JACK_JUST_RIPPED"] = "\n".join([x[NAME] + ".wav" for x in wavs_todo])
 
 jack_term.disable()
 if cf['_query_when_ready']:
