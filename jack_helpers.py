@@ -484,7 +484,6 @@ while l:
         'toc': 1,
         'toc_fkt': r"""
 import cdrom
-device = cdrom.open(cf['_cd_device'])
 if not os.path.exists(cf['_cd_device']):
     error("Device %s does not exist!" % cf['_cd_device'])
 if not os.access(cf['_cd_device'], os.R_OK):
