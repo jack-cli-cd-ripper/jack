@@ -466,7 +466,7 @@ def freedb_submit():
     if not is_submittable:
         error("can't submit in current state, please fix jack.freedb")
 
-    err, jack_tag.track_names, jack_tag.locale_names, cd_id, revision = jack_freedb.freedb_names(jack_freedb.freedb_id(jack_ripstuff.all_tracks), jack_ripstuff.all_tracks, cf['_freedb_form_file'])
+    err, jack_tag.track_names, jack_tag.locale_names, cd_id, revision = jack_freedb.freedb_names(jack_freedb.freedb_id(jack_ripstuff.all_tracks), jack_ripstuff.all_tracks, cf['_freedb_form_file'], verb = 1)
     if err:
         error("invalid freedb file")
     else:
