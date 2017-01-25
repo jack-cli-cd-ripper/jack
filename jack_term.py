@@ -106,7 +106,7 @@ def xtermset_enable():
             want_y = want_y - 1
         if jack_freedb.names_available:
             want_y = want_y + 1
-        want_y = max(want_y, 7)
+        want_y += 7 # for the help panel
         if (size_x, size_y) != (want_x, want_y):
             try:
                 os.system("xtermset -geom %dx%d" % (want_x, want_y))
