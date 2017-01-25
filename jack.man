@@ -161,7 +161,7 @@ use which encoder (default "oggenc")
 .B \-e, \-\-encoders int
 encode how many files in parallel. If you have a SMP machine or
 simply want to stress your system, you can have Jack encode
-several files at once.
+several files at once (default 1).
 .TP
 .B \-x, \-\-exec
 run predefined command when finished.
