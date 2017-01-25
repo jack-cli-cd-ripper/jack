@@ -63,10 +63,10 @@ While Jack is running, press q or Q to quit,
     else:
         print "These are the most common options. For a complete list, run jack --longhelp"
 
-def get_next(argv, i, extra_arg = None):
+def get_next(argv, i, extra_arg = None, allow_equal = 1):
     if extra_arg != None:
         return i, extra_arg
-    elif argv[i].find("=") > 0:
+    elif allow_equal and argv[i].find("=") > 0:
         return i, argv[i].split("=", 1)[1]
     else:
         i = i + 1
@@ -120,7 +120,7 @@ def parse_option(cf, argv, i, option, alt_arg, origin="argv"):
         l = []
         if origin == "argv":
             while 1:
-                i, data = get_next(argv, i, alt_arg)
+                i, data = get_next(argv, i, alt_arg, 0)
                 if data != None:
                     if data == ";":
                         break
