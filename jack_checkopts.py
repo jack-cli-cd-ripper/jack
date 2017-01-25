@@ -65,6 +65,14 @@ def checkopts(cf, cf2):
             cf.rupdate({'id3_genre': {'val': genre}}, "check")
         del genre
 
+    if not cf2.has_key('vbr'):
+        if cf2.has_key('bitrate') and cf2.has_key('vbr_quality'):
+            cf.rupdate({'vbr': {'val': 1}}, "check")
+        elif cf2.has_key('bitrate'):
+            cf.rupdate({'vbr': {'val': 0}}, "check")
+        elif cf2.has_key('vbr_quality'):
+            cf.rupdate({'vbr': {'val': 1}}, "check")
+
     for i in cf2.keys():
         if not cf.has_key(i):
             error("unknown config item `%s'" % i)
