@@ -311,7 +311,7 @@ def ripread(track, offset = 0):
 #
 ## set up output wav file:
 #
-            wav = wave.open(track[NAME].decode(cf['_charset'], "replace") + ".wav", 'w')
+            wav = wave.open(track[NAME] + ".wav", 'w')
             wav.setnchannels(2)
             wav.setsampwidth(2)
             wav.setframerate(44100)

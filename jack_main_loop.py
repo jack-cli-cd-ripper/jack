@@ -391,10 +391,11 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
                             #jack_term.tmod.dae_stat_upd(i['track'][NUM], None, i['percent'])
         
                 elif i['type'] == "image_reader":
-                    line = string.strip(jack_status.get_2_line(i['buf']))
-                    jack_status.dae_stat_upd(i['track'][NUM], line)
-                    if line.startswith("Error"):
-                        global_error = global_error + 1
+                    line = string.strip(jack_status.get_2_line(i['buf'], default=""))
+                    if line:
+                        jack_status.dae_stat_upd(i['track'][NUM], line)
+                        if line.startswith("Error"):
+                            global_error = global_error + 1
         
                 else:
                     error("unknown subprocess type \"" + i['type'] + "\".")
