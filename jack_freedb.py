@@ -37,6 +37,7 @@ from jack_globals import *
 names_available = None          # freedb info is available
 dir_created = None              # dirs are only renamed if we have created them
 NUM, LEN, START, COPY, PRE, CH, RIP, RATE, NAME = range(9)
+freedb_inexact_match = -1
 
 # Warning: code duplication.  Make a function through which information can
 # be requested, and let it fall back to generic information (e.g. my_mail,
@@ -291,6 +292,9 @@ def freedb_query(cd_id, tracks, file):
     buf = f.readline()
     if buf and buf[0:1] == "2":
         if buf[0:3] in ("210", "211"): # Found inexact or multiple exact matches, list follows
+            if buf[0:3] == "211":
+                global freedb_inexact_match
+                freedb_inexact_match = 1
             print "Found the following matches. Choose one:"
             num = 1
             matches = []
@@ -443,10 +447,10 @@ def freedb_names(cd_id, tracks, todo, name, verb = 0, warn = 1):
         for i in read_ids:
             if i == cd_id:
                 id_matched = 1
-        if not id_matched and warn:
-            print "Warning: calculated id (" + cd_id + ") and id from freedb file"
-            print "       :", read_ids
-            print "       : do not match, hopefully due to inexact match."
+        if not id_matched and warn and freedb_inexact_match < 1:
+            print "Warning: CD signature ID and ID from FreeDB file do not match."
+            print "         CD signature: " + cd_id
+            print "         FreeDB ID:    " + ",".join(read_ids)
         for i in read_ids:
             for j in i:
                 if j not in "0123456789abcdef":
