@@ -208,7 +208,7 @@ def consistency_check(cf):
                 error("can't do on-the-fly because " + jack_helpers.helpers[i]['type'] + " " + i + " doesn't support it.")
 
     if not cf['_vbr'] and not jack_helpers.helpers[cf['_encoder']].has_key('cmd'):
-        error("can't do CBR because " + cf['encoder']['val'] + " doesn't support it. Use -v")
+        error("can't do fixed bitrate because " + cf['encoder']['val'] + " doesn't support it. Use -v")
 
     if cf['_ripper'] == "cdparanoia" and cf['_sloppy']:
         jack_helpers.helpers['cdparanoia']['cmd'] = replace(jack_helpers.helpers['cdparanoia']['cmd'], "--abort-on-skip", "")
