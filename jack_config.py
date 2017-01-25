@@ -22,11 +22,19 @@ import os
 import string
 import jack_misc
 import locale
+import sys
 
 import jack_version
 from jack_globals import *
 
 # this must be filled manually (done in main)
+
+# we need a working locale
+try:
+    locale.getpreferredencoding()
+except locale.Error, e:
+    print "Locale problem:", e
+    sys.exit(1)
 
 # config space with attributes
 
