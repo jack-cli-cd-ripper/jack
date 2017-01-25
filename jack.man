@@ -148,9 +148,9 @@ want to do a FreeDB query, e.g. while another jack is running.
 .TP
 .B \-\-edit-freedb
 open an editor to change the CDDB information which has been obtained
-previously (only useful with -Q).
+previously (only useful with \-Q).
 .TP
-.B \-\-encoder-name, -E string
+.B \-\-encoder-name, \-E string
 use which encoder (default "oggenc")
 .TP
 .B \-e, \-\-encoders int
@@ -257,7 +257,7 @@ no as it's a torture for the CDROM drive.
 .\" rip (non-functional, sorry)
 .TP
 .B \-\-quality int
-vbr encoding quality. -1 is lowest, 10 highest (default 6). You can also specify a float.
+vbr encoding quality. \-1 is lowest, 10 highest (default 6). You can also specify a float.
 .TP
 .B \-q, \-\-query
 do FreeDB query when all is done. This is useful if Jack was previously
@@ -283,7 +283,7 @@ Default is 99 which will read the whole CD, provided there is
 enough disk space.
 .TP
 .B \-\-remove-files
-have Jack remove its temp jack*-files.
+have Jack remove its temp jack*\-files.
 Be careful - don't delete them too early!
 .TP
 .B \-R, \-\-rename
@@ -428,7 +428,7 @@ the following files on your HD: track_01.mp3, track_02.mp3, ...,
 track_nn.mp3 plus jack.toc, jack.freedb, jack.progress. The last three are
 used to store the state jack is in so it can resume work when interrupted.
 .PP
-Jack will create a directory called jack-xxxxxxxx for you, there it
+Jack will create a directory called jack\-xxxxxxxx for you, there it
 stores all the file for the CD whose id is xxxxxxxx. After a FreeDB query
 this directory is renamed to something human readable, like "Artist -
 Title".
@@ -441,7 +441,7 @@ jack
 .PP
 Now let's try a FreeDB query:
 .RS
-jack -q
+jack \-q
 .RE
 If the query is successful the files will be renamed to something more readable
 and will be tagged accordingly using ID3 or Vorbis tags.  The file jack.freedb
@@ -464,7 +464,7 @@ together with
 .B replacement_chars.
 For example,
 .RS
-jack -Q --rename-fmt "%n-%t" --unusable-chars A I \; --replacement-chars a i \;
+jack \-Q \-\-rename-fmt "%n-%t" \-\-unusable-chars A I \; \-\-replacement-chars a i \;
 .RE
 will query the FreeDB server, rip and encode all tracks of the CD and save
 the files in a format which will contain the track number and the title.
@@ -489,12 +489,12 @@ char_filter:.lower()
 .PP
 All in one: query, rip, encode, cleanup:
 .RS
-jack -Q --remove-files
+jack \-Q \-\-remove-files
 .RE
 .PP
 Editing / normalizing / stripping the WAV files before encoding:
 .RS
-jack -O --remove-files ; gnoise *wav ; jack -g *wav ; jack
+jack \-O \-\-remove-files ; gnoise *wav ; jack \-g *wav ; jack
 .RE
 Just replace gnoise by the operation you'd like to perform.
 .SH ENVIRONMENT VARIABLES
