@@ -102,8 +102,9 @@ Example:
 .PP
 Jack understands the following options:
 .TP
-.B \-\-append-year=bool
-if known, append the year to dir in the format " (%y)"
+.B \-\-append-year string
+append this string to the directory name (useful with %y to add the year
+an album was released)
 .TP
 .B \-b, \-\-bitrate int
 target bitrate (in kbit/s, default is 160).

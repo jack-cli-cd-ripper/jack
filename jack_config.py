@@ -166,8 +166,8 @@ cf = jack_misc.dict2({
         },
     'append_year': {
         'type': types.StringType,
-        'val': " (%y)",
-        'usage': "if known, append the year to dir",
+        'val': "",
+        'usage': "append this string to the directory name",
         'long': 'AUTO',
         },
     'dir_template': {
