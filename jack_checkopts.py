@@ -59,6 +59,10 @@ def checkopts(cf, cf2):
     if cf2.has_key('freedb_rename') and cf2['freedb_rename']['val']:
         cf.rupdate({'read_freedb_file': {'val': 1}, 'set_id3tag':{'val': 1}}, "check")
 
+    if cf2.has_key('edit_cddb'):
+        warning("--edit-cddb is obsolete, please use --edit-freedb")
+        cf.rupdate({'edit_freedb': {'val': 1}}, "check")
+
     if cf2.has_key('id3_genre_txt'):
         genre = jack_functions.check_genre_txt(cf2['id3_genre_txt']['val'])
         if genre != cf['_id3_genre']:

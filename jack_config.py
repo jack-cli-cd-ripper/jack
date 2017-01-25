@@ -524,6 +524,12 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
         'usage': "continue without freedb data if query fails",
         'long': 'AUTO',
         },
+    'edit_cddb': {
+        # For backwards compatibility only, use edit_freedb instead!
+        'type': 'toggle',
+        'val': 0,
+        'long': 'AUTO',
+        },
     'edit_freedb': {
         'type': 'toggle',
         'val': 0,
