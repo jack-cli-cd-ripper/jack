@@ -60,9 +60,10 @@ def df(fs = ".", blocksize = 1024):
         s = string.split(string.rstrip(p.readline()))
         for i in range(len(s)):
             if s[i] == "Available":
-                p.close()
                 s = string.split(string.rstrip(p.readline()))
-                return int(s[i]) * long(blocksize) - long(keep_free)
+                p.close()
+                return int(s[i]) * long(blocksize)
+        p.close()
 
 def get_sysload_linux_proc():
     "extract sysload from /proc/loadavg, linux only (?)"
