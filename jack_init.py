@@ -62,7 +62,7 @@ except:
     ogg = dummy_ogg()
 
 try:
-    import flac.metadata
+    import mutagen.flac as flac
 except ImportError:
     flac = None
 

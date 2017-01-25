@@ -150,31 +150,21 @@ def tag(freedb_rename):
                         mp3file.close()
                 elif jack_helpers.helpers[cf['_encoder']]['target'] == "flac":
                     if flac:
-                        chain = flac.metadata.Chain()
-                        chain.read(mp3name)
-                        it = flac.metadata.Iterator()
-                        it.init(chain)
-                        while 1:
-                            if it.get_block_type() == flac.metadata.VORBIS_COMMENT:
-                                block = it.get_block()
-                                vc = flac.metadata.VorbisComment(block)
-                                break
-                            if not it.next():
-                                break
-                        if vc:
-                            vc.comments['ALBUM'] = a_title.encode("utf-8")
-                            vc.comments['TRACKNUMBER'] = `i[NUM]`
-                            vc.comments['TITLE'] = t_name.encode("utf-8")
-                            vc.comments['ARTIST'] = t_artist.encode("utf-8")
-                            if cf['_id3_genre'] != -1:
-                                vc.comments['GENRE'] = id3genres[cf['_id3_genre']]
-                            if cf['_id3_year'] != -1:
-                                vc.comments['DATE'] = `cf['_id3_year']`
-                            chain.write(True, True)
+                        f = flac.FLAC(mp3name)
+                        if f.vc is None: f.add_vorbiscomment()
+                        f.vc['ALBUM'] = a_title
+                        f.vc['TRACKNUMBER'] = str(i[NUM])
+                        f.vc['TITLE'] = t_name
+                        f.vc['ARTIST'] = t_artist
+                        if cf['_id3_genre'] != -1:
+                            f.vc['GENRE'] = id3genres[cf['_id3_genre']]
+                        if cf['_id3_year'] != -1:
+                            f.vc['DATE'] = str(cf['_id3_year'])
+                        f.save()
                     else:
                         print
-                        print "Please install the pyflac module available at"
-                        print "http://www.sacredchao.net/quodlibet/wiki/Download"
+                        print "Please install the Mutagen module available at"
+                        print "http://www.sacredchao.net/quodlibet/wiki/Development/Mutagen"
                         print "Without it, you'll not be able to tag FLAC tracks."
                 elif jack_helpers.helpers[cf['_encoder']]['target'] == "ogg":
                     vf = ogg.vorbis.VorbisFile(mp3name)
