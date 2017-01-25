@@ -145,7 +145,7 @@ else:
         'cmd': "gogo %i %o -b %r",
         'vbr-cmd': "gogo %i %o -v %q",
         'otf-cmd': "gogo stdin %o -b %r",
-        'vbr-otf-cmd': "gogo stdin %o -v 4",
+        'vbr-otf-cmd': "gogo stdin %o -v %q",
         'status_blocksize': 160,
         'bitrate_factor': 1,
         'status_start': "%",
