@@ -39,7 +39,7 @@ import jack_tag
 from jack_globals import *
 from jack_init import ogg
 
-tracknum = None
+global tracknum
 datatracks = []
 
 def find_workdir():
@@ -213,8 +213,9 @@ def read_toc_file():
         is_submittable = 1
     return is_submittable, track1_offset
 
-def filter_tracks(toc_just_read):
+def filter_tracks(toc_just_read, status):
     "filter out data tracks"
+    global datatracks
 
     if toc_just_read and jack_helpers.helpers[cf['_ripper']].has_key("toc_cmd") and cf['_ripper'] != cf['_toc_prog']:
         ripper_tracks = jack_functions.gettoc(cf['_ripper'])
@@ -226,25 +227,24 @@ def filter_tracks(toc_just_read):
                         # "NUM LEN START COPY PRE CH" (not: "RIP RATE NAME")
                         if ripper_tracks[rtn][j] != jack_ripstuff.all_tracks[i][j]:
                             jack_functions.progress(i + 1, "patch", "%s %d -> %d" % (fields[j], jack_ripstuff.all_tracks[i][j], ripper_tracks[rtn][j]))
+                            jack_ripstuff.all_tracks[i][j] = ripper_tracks[rtn][j]
                             debug("Track %02d %s" % (i + 1, fields[j]) + `jack_ripstuff.all_tracks[i][j]` + " != " + `ripper_tracks[rtn][j]` + " (trusting %s; to the right)" % cf['_ripper'])
                 else:
                     jack_functions.progress(i + 1, "off", "non-audio")
                     datatracks.append(i + 1)
                     info("Track %02d not found by %s. Treated as non-audio." % (i + 1, cf['_ripper']))
-        
+    if not toc_just_read:
+        datatracks += [x for x in status.keys() if status[x]["off"] and status[x]["off"] == ["non-audio"]]
 
 def gen_todo():
     "parse tracks from argv, generate todo"
-    global tracknum
-
-    tracknum = {}
-    for i in jack_ripstuff.all_tracks:
-        tracknum[i[NUM]] = i
 
     if not cf['_tracks'] and not jack_playorder.order:
         todo = []
         for i in jack_ripstuff.all_tracks:
-            if i[CH] == 2:
+            if i[NUM] in datatracks:
+                pass
+            elif i[CH] == 2:
                 todo.append(i)
             else:
                 info("can't handle non audio track %i" % i[NUM])
@@ -439,8 +439,6 @@ def read_progress(status, todo):
                     error("illegal patch %s. " % j, + "Track %02d: %s is %d" % (i, p_what, todo[jack_utils.has_track(todo, i)][fields.index(p_what)]))
 
         if status[i]['off']:
-            if jack_utils.has_track(todo, i) >= 0:
-                del todo[jack_utils.has_track(todo, i)]
             if jack_utils.has_track(jack_ripstuff.all_tracks_todo_sorted, i) >= 0:
                 del jack_ripstuff.all_tracks_todo_sorted[jack_utils.has_track(jack_ripstuff.all_tracks_todo_sorted, i)]
 
