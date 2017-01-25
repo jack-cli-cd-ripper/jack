@@ -113,7 +113,10 @@ def tag(freedb_rename):
                         if cf['_id3_genre'] != -1:
                             tag.setGenre("(%d)" % (cf['_id3_genre']))
                         if cf['_id3_year'] != -1:
-                            tag.setDate(cf['_id3_year'])
+                            try:
+                                tag.setDate(cf['_id3_year'])
+                            except eyeD3.tag.TagException, e:
+                                print "Error tagging file: %s" % e
                         tag.setPlayCount(int(i[LEN] * 1000.0 / 75 + 0.5))
                         tag.update()
                         mp3file.close()
@@ -140,7 +143,10 @@ def tag(freedb_rename):
                         elif old_genre == None:
                             tag.setGenre("(255)") # unknown
                         if cf['_id3_year'] != -1:
-                            tag.setDate(cf['_id3_year'])
+                            try:
+                                tag.setDate(cf['_id3_year'])
+                            except eyeD3.tag.TagException, e:
+                                print "Error tagging file: %s" % e
                         try:
                             tag.update()
                         except UnicodeEncodeError:
