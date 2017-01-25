@@ -235,7 +235,12 @@ def real_cdrdao_gettoc(tocfile):     # get toc from cdrdao-style toc-file
     "returns TOC object, needs name of toc-file to read"
     toc = jack_TOC.TOC()
 
-    f = open(tocfile, "r")
+    if not os.path.exists(tocfile):
+        error("Can't open TOC file '%s': file does not exist." % os.path.abspath(tocfile))
+    try:
+        f = open(tocfile, "r")
+    except (IOError, OSError), e:
+        error("Can't open TOC file '%s': %s" % (os.path.abspath(tocfile), e))
 
     tocpath, tocfiledummy = os.path.split(tocfile)
 

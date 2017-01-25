@@ -58,6 +58,8 @@ def find_workdir():
                 jack_ripstuff.all_tracks = []
             else:
                 if cf['_image_toc_file']:
+                    # put the absolute path in the variable since we'll change cwd soon
+                    cf['_image_toc_file'] = os.path.abspath(cf['_image_toc_file'])
                     jack_ripstuff.all_tracks, dummy, dummy = jack_functions.cdrdao_gettoc(cf['_image_toc_file'])
                 else:
                     jack_ripstuff.all_tracks = jack_functions.gettoc(cf['_toc_prog'])
