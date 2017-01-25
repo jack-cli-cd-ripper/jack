@@ -371,7 +371,10 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
                         else:
                             exec(jack_helpers.helpers[i['prog']]['status_fkt']) in globals(), locals()
                         if new_status:
-                            jack_status.dae_stat_upd(i['track'][NUM], ":DAE: " + new_status)
+                            try:
+                                jack_status.dae_stat_upd(i['track'][NUM], ":DAE: " + new_status)
+                            except:
+                                debug("error in dae_stat_upd")
         
                 elif i['type'] == "encoder":
                     if len(i['buf']) == jack_helpers.helpers[i['prog']]['status_blocksize']:
