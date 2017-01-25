@@ -119,16 +119,7 @@ def gettoc(toc_prog):
         l = p.readline()
         exec(jack_helpers.helpers[toc_prog]['toc_fkt'])
         if p.close():
-            if cf['_cd_device']:
-                try:
-                    f = open(cf['_cd_device'], "r")
-                except IOError:
-                     info("could not open " + cf['_cd_device'] + ". Check permissions and that a disc is inserted.")
-                else:
-                    info("maybe " + toc_prog + " is not installed?")
-            else:
-                info("try setting cf['_cd_device'] to your CD device, e.g. /dev/cdrom")
-            error("could not read CD's TOC.")
+            error("%s failed - could not read CD's TOC." % toc_prog)
         else:
             return erg
     else:
