@@ -38,6 +38,7 @@ import jack_tag
 
 from jack_globals import *
 from jack_init import ogg
+from jack_init import flac
 
 global tracknum
 datatracks = []
@@ -354,6 +355,13 @@ def update_progress(status, todo):
                     elif ext.upper() == ".OGG" and ogg:
                         x = ogg.vorbis.VorbisFile(i[NAME] + ext)
                         temp_rate = int(x.raw_total(0) * 8 / x.time_total(0) / 1000 + 0.5)
+                    elif ext.upper() == ".FLAC" and flac:
+                        f = flac.FLAC(filename + ext)
+                        size = os.path.getsize(filename + ext)
+                        if f.info and size:
+                            temp_rate = int(size * 8 * f.info.sample_rate / f.info.total_samples / 1000)
+                        else:
+                            temp_rate = 0
                     else:
                         error("don't know how to handle %s files." % ext)
                     status[num]['enc'] = `temp_rate` + cf['_progr_sep'] + "[simulated]"
