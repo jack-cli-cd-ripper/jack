@@ -417,6 +417,13 @@ write an id3v2 tag to the encoded file.
 .TP
 .B \-\-write-m3u
 create a playlist in .m3u format. This has bugs, don't rely on it.
+.SH CONFIG FILE OPTIONS
+In addition the the command line options, there are some options that
+can only be set directly in the config file.
+.TP
+.B freedb_dir
+all FreeDB queries will be done in this (local) directory; failed local
+queries will be done via the network.  Example: /var/spool/freedb
 .SH EXAMPLES
 Insert a CD, fire up jack:
 .RS
