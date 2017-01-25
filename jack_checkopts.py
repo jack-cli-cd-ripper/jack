@@ -219,9 +219,22 @@ def consistency_check(cf):
 # Checks concerning options specified by the user (in the global or user rc
 # files or the command line), i.e. options/values that are not the default
 # jack options from jack_config.
-def check_rc(global_cf, user_cf, argv_cf):
+def check_rc(cf, global_cf, user_cf, argv_cf):
 
     all_keys = global_cf.keys() + user_cf.keys() + argv_cf.keys()
     if 'base_dir' not in all_keys:
         warning("You have no standard location set, putting files into the current directory. Please consider setting base_dir in ~/.jack3rc.")
+
+    # Check if the default ripper is installed, and if not, look for another one
+    if 'ripper' not in all_keys:
+        default_ripper = cf["ripper"]["val"]
+        if not jack_utils.in_path(default_ripper):
+            rippers = [i for i in jack_helpers.helpers if jack_helpers.helpers[i]["type"] == "ripper" and jack_helpers.helpers[i].has_key("toc_cmd")]
+            for cmd in rippers:
+                if jack_utils.in_path(cmd):
+                    warning("Using ripper %s since default ripper %s is not available." % (cmd, default_ripper))
+                    cf.rupdate({'ripper': {'val': cmd}}, "check")
+                    break
+            else:
+                error("No valid ripper found on your system.")
 

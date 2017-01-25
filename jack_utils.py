@@ -207,6 +207,13 @@ def split_path(path, num):
     new_path.append(base)
     new_path.reverse()
 
+def in_path(file):
+    "check if a file is an executable in PATH"
+    for path in os.environ.get("PATH", "").split(os.path.pathsep):
+        p = os.path.join(path, file)
+        if (os.path.isfile(p) and os.access(p, os.X_OK)): return True
+    return False
+
 def ex_edit(file):
     editor = "/usr/bin/sensible-editor"
     if os.environ.has_key("EDITOR"):
