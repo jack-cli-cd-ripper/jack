@@ -25,6 +25,7 @@ import stat
 import string
 import sys
 import os
+import locale
 
 import jack_TOCentry
 import jack_CDTime
@@ -32,6 +33,7 @@ import jack_utils
 import jack_TOC
 import jack_mp3
 import jack_helpers
+import jack_freedb
 
 from jack_globals import *
 from jack_init import ogg
@@ -479,3 +481,14 @@ def check_genre_txt(genre):
 
     import jack_version
     error("illegal genre. Try '" + jack_version.prog_name + " --id3-genre help' for a list.")
+
+def check_file(num, i, ext):
+    "Check if a song exists, either with a generic name or with the FreeDB name"
+    if os.path.exists(i[NAME] + ext):
+        return i[NAME]
+    elif jack_freedb.names_available:
+        s = jack_freedb.filenames[num].encode(locale.getpreferredencoding(), "replace")
+        if os.path.exists(s + ext):
+            return s
+    return None
+
