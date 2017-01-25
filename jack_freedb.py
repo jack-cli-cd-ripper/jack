@@ -522,7 +522,7 @@ def freedb_names(cd_id, tracks, todo, name, verb = 0, warn = 1):
     elif cf['_various']:
         found = [[], [], [], [], [], []]
         # lenght=3   2   1 , 3   2   1 (secondary)
-        ignore = string.letters + string.digits
+        ignore = string.ascii_letters + string.digits
         titles = []
         braces = [['"', '"'], ["'", "'"], ["(", ")"], ["[", "]"], ["{", "}"]]
  
