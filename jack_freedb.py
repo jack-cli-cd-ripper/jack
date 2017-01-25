@@ -525,6 +525,10 @@ def freedb_names(cd_id, tracks, todo, name, verb = 0, warn = 1):
     if freedb.has_key('DYEAR'):
         try:
             year = int(freedb['DYEAR'])
+            if cf['_id3_year'] <= 0:
+                cf['_id3_year'] = year
+            elif cf['_id3_year'] != year:
+                warning("Specified and FreeDB year differ (%d vs %d)" % (cf['_id3_year'], year))
         except ValueError:
             warning("DYEAR has to be an integer but it's the string '%s'" % freedb['DYEAR'])
         else:
@@ -537,6 +541,11 @@ def freedb_names(cd_id, tracks, todo, name, verb = 0, warn = 1):
         except ValueError:
             if freedb['DGENRE'].upper() in [x.upper() for x in id3genres]:
                 genre = [x.upper() for x in id3genres].index(freedb['DGENRE'].upper())
+                if cf['_id3_genre'] <= 0:
+                    cf['_id3_genre'] = genre
+                elif cf['_id3_genre'] != genre:
+                    warning("Specified and FreeDB genre differ (%s vs %s)" %
+                        (id3genres[cf['_id3_genre']], id3genres[genre]))
         else:
             warning("DGENRE should be a string, not an integer.")
     if genre != -1:

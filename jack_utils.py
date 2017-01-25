@@ -168,13 +168,14 @@ def unusable_charmap(x):
     
 def mkdirname(names, template):
     "generate mkdir-able directory name(s)"
+    year = genretxt = None
     if cf['_id3_year'] > 0:
         year = `cf['_id3_year']`
-    else:
-        year = None
+    if cf['_id3_genre'] != -1:
+        genretxt = id3genres[cf['_id3_genre']]
     replacelist = {"a": names[0][0].encode(cf['_charset'], "replace"),
                    "l": names[0][1].encode(cf['_charset'], "replace"),
-                   "y": year, "g": cf['_id3_genre_txt']}
+                   "y": year, "g": genretxt}
     # Process substitution patterns from dir_template
     subst = template.split(os.path.sep)
     dirs = []
