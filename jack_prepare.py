@@ -70,6 +70,12 @@ def find_workdir():
 
             if cf['_scan_dirs']:
                 dirs = [os.getcwd()]
+                # Also scan base_dir since it's not guaranteed that users
+                # run jack in base_dir
+                if cf['_base_dir']:
+                    cf['_base_dir'] = expand(cf['_base_dir'])
+                    if os.path.exists(cf['_base_dir']) and cf['_base_dir'] not in dirs:
+                        dirs.append(cf['_base_dir'])
             else:
                 dirs = cf['_searchdirs']
 
