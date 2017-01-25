@@ -53,14 +53,14 @@ freedb_servers = {
     },
 }
 
-def interpret_db_file(all_tracks, freedb_form_file, verb, dirs = 0, warn = None):
+def interpret_db_file(all_tracks, todo, freedb_form_file, verb, dirs = 0, warn = None):
     "read freedb file and rename dir(s)"
     global names_available, dir_created
     freedb_rename = 0
     if warn == None:
-        err, track_names, locale_names, cd_id, revision = freedb_names(freedb_id(all_tracks), all_tracks, freedb_form_file, verb = verb)
+        err, track_names, locale_names, cd_id, revision = freedb_names(freedb_id(all_tracks), all_tracks, todo, freedb_form_file, verb = verb)
     else:
-        err, track_names, locale_names, cd_id, revision = freedb_names(freedb_id(all_tracks), all_tracks, freedb_form_file, verb = verb, warn = warn)
+        err, track_names, locale_names, cd_id, revision = freedb_names(freedb_id(all_tracks), all_tracks, todo, freedb_form_file, verb = verb, warn = warn)
     if (not err) and dirs:
         freedb_rename = 1
 
@@ -319,7 +319,7 @@ def freedb_query(cd_id, tracks, file):
     f.close()
     return err
 
-def freedb_names(cd_id, tracks, name, verb = 0, warn = 1):
+def freedb_names(cd_id, tracks, todo, name, verb = 0, warn = 1):
     "returns err, [(artist, albumname), (track_01-artist, track_01-name), ...], cd_id, revision"
     err = 0
     tracks_on_cd = tracks[-1][NUM]
@@ -355,7 +355,8 @@ def freedb_names(cd_id, tracks, name, verb = 0, warn = 1):
  
     for i in tracks:    # check that info is there for all tracks
         if not freedb.has_key("TTITLE%i" % (i[NUM] - 1)):   # -1 because freedb starts at 0
-            err = 1
+            if i[NUM] in [x[NUM] for x in todo]:
+                err = 1
             if verb:
                 warning("no freedb info for track %02i (\"TTITLE%i\")" % (i[NUM], i[NUM] - 1))
             freedb["TTITLE%i" % (i[NUM] - 1)] = "[not set]"

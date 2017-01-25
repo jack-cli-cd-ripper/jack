@@ -112,7 +112,7 @@ def find_workdir():
                         unique_dirs.append(jack_dirs[i])
                 for i in unique_dirs:
                     jack_ripstuff.all_tracks, dummy, track1_offset = jack_functions.cdrdao_gettoc(os.path.join(i, cf['_toc_file']))
-                    err, jack_tag.track_names, jack_tag.locale_names, cd_id, revision = freedb_names(jack_freedb.freedb_id(jack_ripstuff.all_tracks), jack_ripstuff.all_tracks,  os.path.join(i, cf['_freedb_form_file']), verb = 0, warn = 0)
+                    err, jack_tag.track_names, jack_tag.locale_names, cd_id, revision = freedb_names(jack_freedb.freedb_id(jack_ripstuff.all_tracks), jack_ripstuff.all_tracks, jack_ripstuff.all_tracks, os.path.join(i, cf['_freedb_form_file']), verb = 0, warn = 0)
                     if err or cf['_force']:# this means freedb data is not there yet
                         info("matching dir found: %d" % i)
                         pid = os.fork()
@@ -471,7 +471,7 @@ def freedb_submit():
     if not is_submittable:
         error("can't submit in current state, please fix jack.freedb")
 
-    err, jack_tag.track_names, jack_tag.locale_names, cd_id, revision = jack_freedb.freedb_names(jack_freedb.freedb_id(jack_ripstuff.all_tracks), jack_ripstuff.all_tracks, cf['_freedb_form_file'], verb = 1)
+    err, jack_tag.track_names, jack_tag.locale_names, cd_id, revision = jack_freedb.freedb_names(jack_freedb.freedb_id(jack_ripstuff.all_tracks), jack_ripstuff.all_tracks, jack_ripstuff.all_tracks, cf['_freedb_form_file'], verb = 1)
     if err:
         error("invalid freedb file")
     else:
@@ -482,7 +482,7 @@ def freedb_submit():
 
     ### (9) do query on start
 
-def query_on_start():
+def query_on_start(todo):
     info("querying...")
     if jack_freedb.freedb_query(jack_freedb.freedb_id(jack_ripstuff.all_tracks), jack_ripstuff.all_tracks, cf['_freedb_form_file']):
         if cf['_cont_failed_query']:
@@ -524,11 +524,11 @@ def query_on_start():
                         freedb_submit()
 
     if cf['_query_on_start']:
-        err, jack_tag.track_names, jack_tag.locale_names, freedb_rename, revision = jack_freedb.interpret_db_file(jack_ripstuff.all_tracks, cf['_freedb_form_file'], verb = cf['_query_on_start'], dirs = 1)
+        err, jack_tag.track_names, jack_tag.locale_names, freedb_rename, revision = jack_freedb.interpret_db_file(jack_ripstuff.all_tracks, todo, cf['_freedb_form_file'], verb = cf['_query_on_start'], dirs = 1)
         if err:
             error("query on start failed to give a good freedb file, aborting.")
     else:
-        err, jack_tag.track_names, jack_tag.locale_names, freedb_rename, revision = jack_freedb.interpret_db_file(jack_ripstuff.all_tracks, cf['_freedb_form_file'], verb = cf['_query_on_start'], warn = cf['_query_on_start'])
+        err, jack_tag.track_names, jack_tag.locale_names, freedb_rename, revision = jack_freedb.interpret_db_file(jack_ripstuff.all_tracks, todo, cf['_freedb_form_file'], verb = cf['_query_on_start'], warn = cf['_query_on_start'])
     return freedb_rename
 
 def undo_rename(status, todo):
