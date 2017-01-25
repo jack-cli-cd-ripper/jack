@@ -62,6 +62,9 @@ def find_workdir():
                     cf['_image_toc_file'] = os.path.abspath(cf['_image_toc_file'])
                     jack_ripstuff.all_tracks, dummy, dummy = jack_functions.cdrdao_gettoc(cf['_image_toc_file'])
                 else:
+                    if cf['_image_file']:
+                        warning("No TOC file for image '%s' specified, reading TOC from CD device." % cf['_image_file'])
+                        cf['_image_file'] = os.path.abspath(cf['_image_file'])
                     jack_ripstuff.all_tracks = jack_functions.gettoc(cf['_toc_prog'])
                     toc_just_read = 1
                     # check that the generic device is usable, too
