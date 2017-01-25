@@ -761,11 +761,11 @@ def freedb_names(cd_id, tracks, todo, name, verb = 0, warn = 1):
 def choose_cat(cat = ["blues", "classical", "country", "data", "folk", "jazz", "misc", "newage", "reggae", "rock", "soundtrack"]):
     print "choose a category:"
     cat.sort()
-    for i in range(1, len(cat)):
-        print "%2d" % i + ".) " + cat[i]
+    for i in range(0, len(cat)):
+        print "%2d" % (i+1) + ".) " + cat[i]
 
     x = -1
-    while x < 0 or x > len(cat) - 1:
+    while x < 0 or x > len(cat):
         if jack_progress.status_all.has_key('freedb_cat') and jack_progress.status_all['freedb_cat'][-1] in cat:
             input = raw_input(" 0.) none of the above (default='%s'): " % jack_progress.status_all['freedb_cat'][-1])
             if not input:
@@ -782,7 +782,7 @@ def choose_cat(cat = ["blues", "classical", "country", "data", "folk", "jazz", "
             print "ok, aborting."
             sys.exit(0)
 
-    return cat[x]
+    return cat[x-1]
 
 def do_freedb_submit(file, cd_id, cat = None):
     import httplib
@@ -798,7 +798,7 @@ def do_freedb_submit(file, cd_id, cat = None):
             cat = choose_cat()
 
         elif buf[0:3] == "210":
-            cat = ["null", ]
+            cat = []
             while 1:
                 buf = f.readline()
                 if not buf:
