@@ -345,13 +345,14 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
                     else:
                         global_done = global_done + exited_proc['track'][LEN]
                         if cf['_vbr']:
-                            jack_status.enc_stat_upd(num, "[coding @" + '%s' % jack_functions.pprint_speed(speed) + "x done, %03.0fkbit]" % ((jack_utils.filesize(track[NAME] + ext) * 0.008) / (track[LEN] / 75.0)))
+                            rate = int((jack_utils.filesize(track[NAME] + ext) * 0.008) / (track[LEN] / 75.0))
                         else:
-                            jack_status.enc_stat_upd(num, "[coding @" + '%s' % jack_functions.pprint_speed(speed) + "x done, mp3 OK]")
+                            rate = track[RATE]
+                        jack_status.enc_stat_upd(num, "[coding @" + '%s' % jack_functions.pprint_speed(speed) + "x done, %dkbit" % rate)
+                        jack_functions.progress(num, "enc", `rate`, jack_status.enc_status[num])
                         if not cf['_otf'] and not cf['_keep_wavs']:
                             os.remove(track[NAME] + ".wav")
                             space = space + jack_functions.tracksize(track)[WAV]
-                        jack_functions.progress(num, "enc", `track[RATE]`, jack_status.enc_status[num])
 
                 else:
                     error("child process of unknown type (" + exited_proc['type'] + ") exited")
