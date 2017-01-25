@@ -226,6 +226,7 @@ def consistency_check(cf):
 def check_rc(cf, global_cf, user_cf, argv_cf):
 
     all_keys = global_cf.keys() + user_cf.keys() + argv_cf.keys()
+    userdef_keys = user_cf.keys() + argv_cf.keys()
     if 'base_dir' not in all_keys:
         warning("You have no standard location set, putting files into the current directory. Please consider setting base_dir in ~/.jack3rc.")
 
@@ -241,6 +242,15 @@ def check_rc(cf, global_cf, user_cf, argv_cf):
                     break
             else:
                 error("No valid ripper found on your system.")
+
+    # Check whether ripper and encoder exist in $PATH.  Skip the check if
+    # it's a plugin since we cannot assume the name of the plugin
+    # corresponds to the executable.
+    for t in ("ripper", "encoder"):
+        helper = cf[t]["val"]
+        if t in userdef_keys and not helper.startswith("plugin_"):
+            if not jack_utils.in_path(helper):
+                error("Helper %s '%s' not found on your system." % (t, helper))
 
     # If the default CD device doesn't exist, see whether we can find another one
     if ('cd_device' not in all_keys and cf["rip_from_device"]["val"] and
