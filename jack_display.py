@@ -74,6 +74,10 @@ def sig_handler(sig, frame):
     else:
         exit_code = 0
 
+    # Ignore Ctrl-C while we disable and enable curses, otherwise there may
+    # be display problems.
+    sigint_handler = signal.getsignal(signal.SIGINT)
+    signal.signal(signal.SIGINT, signal.SIG_IGN)
     jack_term.disable()
 
     if sig:
@@ -92,6 +96,10 @@ def sig_handler(sig, frame):
 
     if cf['_wait_on_quit']:
         raw_input("press ENTER to exit")
+
+    if sig:
+        jack_term.enable()
+    signal.signal(signal.SIGINT, sigint_handler)
 
     sys.exit(exit_code)
 
