@@ -26,8 +26,14 @@ import jack_freedb
 def load_plugin(name, structure):
     import_statement = "from jack_%s import %s" % (name, structure)
     get_statement = "tmp = %s[name]" % structure
-    exec(import_statement) in locals()
-    exec(get_statement) in locals()
+    try:
+        exec(import_statement) in locals()
+    except ImportError, e:
+        error(str(e))
+    try:
+        exec(get_statement) in locals()
+    except KeyError:
+        error("Plugin %s doesn't have an appropriate helper definition." % name)
     return tmp
 
 def import_freedb_servers():
