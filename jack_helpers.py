@@ -511,7 +511,7 @@ for i in range(first, last + 1):
 device.close()
 toc.append(min * 60 * 75 + sec * 75 + frame)
 for i in range(first, last + 1):
-    erg.append([i, toc[i - first + 1] - toc[i - first], toc[i - first] - toc[0], 0, 0, 2, 1, cf['_bitrate'], cf['_name'] % i])
+    erg.append([i, toc[i - first + 1] - toc[i - first], toc[i - first] - MSF_OFFSET, 0, 0, 2, 1, cf['_bitrate'], cf['_name'] % i])
 """,
     }
 }
