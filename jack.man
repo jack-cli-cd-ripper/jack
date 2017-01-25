@@ -251,9 +251,6 @@ This is off by default.
 On-the-fly operation. Only on some encoders/rippers. Do not
 create WAVs, pipe ripper output through the encoder. Default is
 no as it's a torture for the CDROM drive.
-.TP
-.B \-o, \-\-overwrite=bool
-overwrite existing files.
 .\" .TP
 .\" .B \-\-playorder
 .\" use the FreeDB PLAYORDER field to limit the tracks to
