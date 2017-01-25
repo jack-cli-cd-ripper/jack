@@ -208,8 +208,8 @@ def consistency_check(cf):
         error("can't do fixed bitrate because " + cf['encoder']['val'] + " doesn't support it. Use -v")
 
     if cf['_ripper'] == "cdparanoia" and cf['_sloppy']:
-        jack_helpers.helpers['cdparanoia']['cmd'] = replace(jack_helpers.helpers['cdparanoia']['cmd'], "--abort-on-skip", "")
-        jack_helpers.helpers['cdparanoia']['otf-cmd'] = replace(jack_helpers.helpers['cdparanoia']['otf-cmd'], "--abort-on-skip", "")
+        jack_helpers.helpers['cdparanoia']['cmd'] = jack_helpers.helpers['cdparanoia']['cmd'].replace("--abort-on-skip", "")
+        jack_helpers.helpers['cdparanoia']['otf-cmd'] = jack_helpers.helpers['cdparanoia']['otf-cmd'].replace("--abort-on-skip", "")
 
     if cf['_query_on_start'] and cf['_query_when_ready']:
         error("it doesn't make sense to query now _and_ when finished.")
