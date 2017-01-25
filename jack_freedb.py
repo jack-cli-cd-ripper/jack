@@ -784,34 +784,35 @@ def choose_cat(cat = ["blues", "classical", "country", "data", "folk", "jazz", "
 
     return cat[x]
 
-def do_freedb_submit(file, cd_id):
+def do_freedb_submit(file, cd_id, cat = None):
     import httplib
 
-    hello = "hello=" + cf['_username'] + " " + cf['_hostname'] + " " + prog_name + " " + prog_version
-    print "Info: querying categories..."
-    url = "http://" + freedb_servers[cf['_freedb_server']]['host'] + "/~cddb/cddb.cgi?" + urllib.quote_plus("cmd=cddb lscat" + "&" + hello + "&proto=6", "=&")
-    f = urllib2.urlopen(url)
-    buf = f.readline()
-    if buf[0:3] == "500":
-        print "Info: LSCAT failed, using builtin categories..."
-        cat = choose_cat()
+    if not cat:
+        hello = "hello=" + cf['_username'] + " " + cf['_hostname'] + " " + prog_name + " " + prog_version
+        print "Info: querying categories..."
+        url = "http://" + freedb_servers[cf['_freedb_server']]['host'] + "/~cddb/cddb.cgi?" + urllib.quote_plus("cmd=cddb lscat" + "&" + hello + "&proto=6", "=&")
+        f = urllib2.urlopen(url)
+        buf = f.readline()
+        if buf[0:3] == "500":
+            print "Info: LSCAT failed, using builtin categories..."
+            cat = choose_cat()
 
-    elif buf[0:3] == "210":
-        cat = ["null", ]
-        while 1:
-            buf = f.readline()
-            if not buf:
-                break
-            buf = string.rstrip(buf)
-            if buf != ".":
-                cat.append(buf)
-        f.close()
-        cat = choose_cat(cat)
+        elif buf[0:3] == "210":
+            cat = ["null", ]
+            while 1:
+                buf = f.readline()
+                if not buf:
+                    break
+                buf = string.rstrip(buf)
+                if buf != ".":
+                    cat.append(buf)
+            f.close()
+            cat = choose_cat(cat)
 
-    else:
-        error("LSCAT failed: " + string.rstrip(buf) + f.read())
+        else:
+            error("LSCAT failed: " + string.rstrip(buf) + f.read())
 
-    print "OK, using `" + cat + "'."
+    print "OK, using category `" + cat + "'."
     email = freedb_servers[cf['_freedb_server']]['my_mail']
     print "Your e-mail address is needed to send error messages to you."
     x = raw_input("enter your e-mail-address [" + email + "]: ")
@@ -890,11 +891,12 @@ def do_freedb_submit(file, cd_id):
         print "consider submitting via mail (" + progname + " -m). full error:\n"
     print err, msg
 
-def do_freedb_mailsubmit(file, cd_id):
+def do_freedb_mailsubmit(file, cd_id, cat = None):
     warning("Support for freedb submission via e-mail may be dropped in future versions. Please begin to use HTTP to submit your entries (--submit)")
     sendmail = '/usr/lib/sendmail -t'
     #sendmail = 'cat > /tmp/jack.test.mailsubmit'
-    cat = choose_cat()
+    if not cat:
+        cat = choose_cat()
     print "OK, using `" + cat + "'."
     if string.find(freedb_servers[cf['_freedb_server']]['my_mail'], "@") >= 1 and len(freedb_servers[cf['_freedb_server']]['my_mail']) > 3:
         return os.system("( echo 'To: " + freedb_servers[cf['_freedb_server']]['mail'] + "'; echo From: '" + freedb_servers[cf['_freedb_server']]['my_mail'] + "'; echo 'Subject: cddb " + cat + " " + cd_id + "' ; cat '" + file + "' ) | " + sendmail)

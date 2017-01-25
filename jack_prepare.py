@@ -476,7 +476,7 @@ def read_progress(status, todo):
 
     return status
 
-def freedb_submit():
+def freedb_submit(cat = None):
     "submit freedb data on user's request"
     if not is_submittable:
         error("can't submit in current state, please fix jack.freedb")
@@ -486,9 +486,9 @@ def freedb_submit():
         error("invalid freedb file")
     else:
         if cf['_freedb_mailsubmit']:
-            jack_freedb.do_freedb_mailsubmit(cf['_freedb_form_file'], cd_id)
+            jack_freedb.do_freedb_mailsubmit(cf['_freedb_form_file'], cd_id, cat)
         else:
-            jack_freedb.do_freedb_submit(cf['_freedb_form_file'], cd_id)
+            jack_freedb.do_freedb_submit(cf['_freedb_form_file'], cd_id, cat)
 
     ### (9) do query on start
 
@@ -536,7 +536,7 @@ def query_on_start(todo):
                     x = raw_input("Would you like to submit these changes to the FreeDB server? (y/N) ")
                     if string.upper(x[0]) == "Y":
                         jack_freedb.update_revision(file)
-                        freedb_submit()
+                        freedb_submit(jack_progress.status_all.get('freedb_cat', None))
 
     if cf['_query_on_start']:
         err, jack_tag.track_names, jack_tag.locale_names, freedb_rename, revision = jack_freedb.interpret_db_file(jack_ripstuff.all_tracks, todo, cf['_freedb_form_file'], verb = cf['_query_on_start'], dirs = 1)
