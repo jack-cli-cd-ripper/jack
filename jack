@@ -270,7 +270,7 @@ if global_error:
 jack_tag.tag(freedb_rename)
 
 if jack_functions.progress_changed:
-    jack_functions.progress("all", "done", time.strftime("%b %2d %H:%M:%S", time.localtime(time.time())))
+    jack_functions.progress("all", "done", unicode(time.strftime("%b %2d %H:%M:%S", time.localtime(time.time())), locale.getpreferredencoding(), "replace"))
 
 if cf['_remove_files']:
     print "cleaning up in", os.getcwd()
