@@ -341,10 +341,10 @@ def update_progress(todo):
                     jack_functions.progress(num, "dae", status[num]['dae'])
             if not status[num]['enc']:
                 if os.path.exists(i[NAME] + ext):
-                    if ext == ".mp3":
+                    if ext.upper() == ".MP3":
                         x = jack_mp3.mp3format(i[NAME] + ext)
                         temp_rate = x['bitrate']
-                    elif ext == ".ogg":
+                    elif ext.upper() == ".OGG" and ogg:
                         x = ogg.vorbis.VorbisFile(i[NAME] + ext)
                         temp_rate = int(x.raw_total(0) * 8 / x.time_total(0) / 1000 + 0.5)
                     else:

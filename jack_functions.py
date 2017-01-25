@@ -205,7 +205,7 @@ def guesstoc(names):
             else:
                 error("The FLAC Python bindings are not installed.")
         else:
-            error("this is neither .mp3 nor .ogg nor .wav nor .flac: %s" % i)
+            error("don't know how to handle %s files." % i_ext)
         if cf['_name'] % num != i_name:
             progr.append([num, "ren", cf['_name'] % num + "-->" + unicode(i_name, cf['_charset'], "replace")])
         num = num + 1
