@@ -135,6 +135,7 @@ def consistency_check(cf):
 
     # stretch replacement_chars
     if len(cf['_unusable_chars']) > len(cf['_replacement_chars']):
+        warning("unusable_chars contains more elements than replacement_chars")
         u, r = cf['_unusable_chars'], cf['_replacement_chars']
         while len(u) > len(r):
             if type(r) == types.ListType:
@@ -145,6 +146,9 @@ def consistency_check(cf):
                 error("unsupported type: " + `type(cf['replacement_chars']['val'][-1])`)
         cf.rupdate({'replacement_chars': {'val': r}}, "check")
         del u, r
+    elif len(cf['_replacement_chars']) > len(cf['_unusable_chars']):
+        # This has no practical negative effect but print a warning anyway
+        warning("replacement_chars contains more elements than unusable_chars")
 
     if cf['silent_mode']['val']:
         cf['terminal']['val'] = "dumb"
