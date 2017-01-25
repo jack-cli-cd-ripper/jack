@@ -71,9 +71,8 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
 
     global_start = time.time()
     while mp3s_todo or enc_queue or dae_queue or enc_running or dae_running:
-
+        orig_space = space
                             # feed in the WAVs which have been there from the start
-
         if mp3s_todo and jack_functions.tracksize(mp3s_todo[0])[ENC] < space:
             waiting_space = 0
             enc_queue.append(mp3s_todo[0])
@@ -356,6 +355,8 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
                     error("child process of unknown type (" + exited_proc['type'] + ") exited")
                 if global_error:
                     jack_display.smile = " :-["
+
+        space_adjust += orig_space-space
 
         if last_update + cf['_update_interval'] <= time.time():
             last_update = time.time()
