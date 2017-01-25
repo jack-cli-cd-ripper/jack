@@ -186,22 +186,7 @@ def tag(freedb_rename):
                         oggi.add_tag('DATE', `cf['_id3_year']`)
                     oggi.write_to(mp3name)
             if freedb_rename:
-                if t_artist:    # 'Various Artists'
-                    replacelist = (("%n", cf['_rename_num'] % i[NUM]), ("%a", t_artist), ("%t", t_name), ("%l", a_title), ("%y", `cf['_id3_year']`), ("%g", genretxt))
-                    newname = jack_misc.multi_replace(cf['_rename_fmt_va'], replacelist)
-                    
-                else:
-                    replacelist = (("%n", cf['_rename_num'] % i[NUM]), ("%a", a_artist), ("%t", t_name), ("%l", a_title), ("%y", `cf['_id3_year']`), ("%g", genretxt))
-                    newname = jack_misc.multi_replace(cf['_rename_fmt'], replacelist)
-                exec("newname = newname" + cf['_char_filter'])
-                for char_i in range(len(cf['_unusable_chars'])):
-                    try:
-                        a = unicode(cf['_unusable_chars'][char_i], locale.getpreferredencoding(), "replace")
-                        b = unicode(cf['_replacement_chars'][char_i], locale.getpreferredencoding(), "replace")
-                    except UnicodeDecodeError:
-                        warning("Cannot substitute unusable character %d." % (char_i+1))
-                    else:
-                        newname = string.replace(newname, a, b)
+                newname = jack_freedb.filenames[i[NUM]]
                 try:
                     i[NAME] = unicode(i[NAME], "utf-8")
                 except UnicodeDecodeError:

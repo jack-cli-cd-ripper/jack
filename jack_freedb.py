@@ -30,6 +30,8 @@ import jack_playorder
 import jack_functions
 import jack_progress
 import jack_utils
+import jack_tag
+import jack_misc
 
 from jack_version import prog_version, prog_name
 from jack_globals import *
@@ -38,6 +40,7 @@ names_available = None          # freedb info is available
 dir_created = None              # dirs are only renamed if we have created them
 NUM, LEN, START, COPY, PRE, CH, RIP, RATE, NAME = range(9)
 freedb_inexact_match = -1
+filenames = []
 
 # Warning: code duplication.  Make a function through which information can
 # be requested, and let it fall back to generic information (e.g. my_mail,
@@ -144,6 +147,36 @@ def interpret_db_file(all_tracks, todo, freedb_form_file, verb, dirs = 0, warn =
                 jack_functions.progress("all", 'ren', unicode(dir_created + "-->" + new_dir, cf['_charset'], "replace"))
 
     if not err:
+        cd = track_names[0]
+        year = genretxt = None
+        if len(cd) > 2:
+            year = `cd[2]`
+        if len(cd) > 3:
+            genretxt = id3genres[cd[3]]
+        filenames.append('') # FIXME: possibly put the dir here, but in no
+        # case remove this since people access filenames with i[NUM] which starts at 1
+        num = 1
+        for i in track_names[1:]:
+            replacelist = [("%n", cf['_rename_num'] % num), ("%l", cd[1]), ("%t", i[1]),
+                           ("%y", year), ("%g", genretxt)]
+            if cf['_various']:
+                replacelist.append(("%a", i[0]))
+                newname = jack_misc.multi_replace(cf['_rename_fmt_va'], replacelist)
+            else:
+                replacelist.append(("%a", cd[0]))
+                newname = jack_misc.multi_replace(cf['_rename_fmt'], replacelist)
+            exec("newname = newname" + cf['_char_filter'])
+            for char_i in range(len(cf['_unusable_chars'])):
+                try:
+                    a = unicode(cf['_unusable_chars'][char_i], locale.getpreferredencoding(), "replace")
+                    b = unicode(cf['_replacement_chars'][char_i], locale.getpreferredencoding(), "replace")
+                except UnicodeDecodeError:
+                    warning("Cannot substitute unusable character %d."
+% (char_i+1))
+                else:
+                    newname = string.replace(newname, a, b)
+            filenames.append(newname)
+            num += 1
         names_available = 1
     else:
         freedb_rename = 0
