@@ -340,10 +340,23 @@ for l in p.readlines():
         'status_fkt': r"""
 tmp = string.split(i['buf'], "\r")
 if len(tmp) >= 2:
-    if string.find(tmp[-2], '%') != -1:
-        new_status = "ripping: " + string.strip(tmp[-2])
-    else:
+    tmp = tmp[-2].lstrip()
+    pct = tmp.find("%")
+    if pct == -1:
         new_status = "waiting..."
+    else:
+        # A normal line when it's ripping looks like this:
+        #   7%
+        # However, when an error occurs, it'll look something like this:
+        #   0%cdda2wav: Operation not permitted. Cannot send SCSI cmd via ioctl
+        info = tmp[:pct+1]
+        error = info + "cdda2wav:"
+        if tmp == info:
+            new_status = "ripping: " + info
+        elif tmp.startswith(error):
+            new_status = "Error: " + tmp[len(error):].lstrip()
+        else:
+            new_status = "Cannot parse status"
 else:
     new_status = "Cannot parse status"
 """,
