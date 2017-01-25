@@ -119,10 +119,22 @@ def parse_option(cf, argv, i, option, alt_arg, origin="argv"):
     if ty == types.ListType:
         l = []
         if origin == "argv":
+            valid_short_opts = [cf[key]['short'] for key in cf.keys() if cf[key].has_key('short')]
+            valid_long_opts = [cf[key]['long'] for key in cf.keys() if cf[key].has_key('long')]
             while 1:
                 i, data = get_next(argv, i, alt_arg, 0)
                 if data != None:
                     if data == ";":
+                        break
+                    # The end of a list has to be signaled with a semicolon but
+                    # many users forget this; therefore, check whether the next list
+                    # entry is a valid option, and if so, assume the end of the list
+                    # has been reached.
+                    if data.startswith("--") and data[2:].split('=', 1)[0] in valid_long_opts:
+                        i -= 1
+                        break
+                    if data.startswith("-") and len(data) == 2 and data[1] in valid_short_opts:
+                        i -= 1
                         break
                     l.append(data)
                     if alt_arg: # only one option in --opt=val form
