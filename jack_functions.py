@@ -39,6 +39,8 @@ from jack_init import flac
 
 progress_changed = None
 
+progress_changed = 0
+
 def df(fs = ".", blocksize = 1024):
     "returns free space on a filesystem (in bytes)"
     try:
