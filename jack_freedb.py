@@ -38,9 +38,72 @@ names_available = None          # freedb info is available
 dir_created = None              # dirs are only renamed if we have created them
 NUM, LEN, START, COPY, PRE, CH, RIP, RATE, NAME = range(9)
 
+# Warning: code duplication.  Make a function through which information can
+# be requested, and let it fall back to generic information (e.g. my_mail,
+# mail, id) and only require individual entries to have 'host').  FIXME
 freedb_servers = {
     'freedb': {
         'host': "freedb.freedb.org",
+        'id': prog_name + " " + prog_version,
+        'mail': "freedb-submit@freedb.org",
+        'my_mail': "default"
+    },
+    'freedb-at': {
+        'host': "at.freedb.org",
+        'id': prog_name + " " + prog_version,
+        'mail': "freedb-submit@freedb.org",
+        'my_mail': "default"
+    },
+    'freedb-au': {
+        'host': "au.freedb.org",
+        'id': prog_name + " " + prog_version,
+        'mail': "freedb-submit@freedb.org",
+        'my_mail': "default"
+    },
+    'freedb-ca': {
+        'host': "ca.freedb.org",
+        'id': prog_name + " " + prog_version,
+        'mail': "freedb-submit@freedb.org",
+        'my_mail': "default"
+    },
+    'freedb-es': {
+        'host': "es.freedb.org",
+        'id': prog_name + " " + prog_version,
+        'mail': "freedb-submit@freedb.org",
+        'my_mail': "default"
+    },
+    'freedb-fi': {
+        'host': "fi.freedb.org",
+        'id': prog_name + " " + prog_version,
+        'mail': "freedb-submit@freedb.org",
+        'my_mail': "default"
+    },
+    'freedb-jp': {
+        'host': "jp.freedb.org",
+        'id': prog_name + " " + prog_version,
+        'mail': "freedb-submit@freedb.org",
+        'my_mail': "default"
+    },
+    'freedb-ru': {
+        'host': "ru.freedb.org",
+        'id': prog_name + " " + prog_version,
+        'mail': "freedb-submit@freedb.org",
+        'my_mail': "default"
+    },
+    'freedb-uk': {
+        'host': "uk.freedb.org",
+        'id': prog_name + " " + prog_version,
+        'mail': "freedb-submit@freedb.org",
+        'my_mail': "default"
+    },
+    'freedb-uk2': {
+        'host': "uk2.freedb.org",
+        'id': prog_name + " " + prog_version,
+        'mail': "freedb-submit@freedb.org",
+        'my_mail': "default"
+    },
+    'freedb-us': {
+        'host': "us.freedb.org",
         'id': prog_name + " " + prog_version,
         'mail': "freedb-submit@freedb.org",
         'my_mail': "default"
