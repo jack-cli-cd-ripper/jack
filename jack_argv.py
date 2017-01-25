@@ -136,7 +136,7 @@ def parse_option(cf, argv, i, option, alt_arg, origin="argv"):
         if l and type(l) == types.ListType:
             return i, l
         else:
-            return None, "option `%s' takes a non-empty list (which may be terminated by \";\")" % `option`
+            return None, "option `%s' takes a non-empty list (which may be terminated by \";\")" % option
     # default
     return None, "unknown argument type for option `%s'." % option
             
