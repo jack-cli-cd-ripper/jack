@@ -33,6 +33,8 @@ import jack_mp3
 import jack_helpers
 
 from jack_globals import *
+from jack_init import ogg
+from jack_init import flac
 
 progress_changed = None
 
@@ -141,21 +143,17 @@ def guesstoc(names):
     erg = []
     progr = []
     for i in names:
-        i_name = os.path.basename(i)[:-4]
-        i_ext  = string.upper(os.path.basename(i)[-4:])
+        i_name, i_ext = os.path.splitext(os.path.basename(i))
+        i_ext = i_ext.upper()
+        # erg: NUM, LEN, START, COPY, PRE, CH, RIP, RATE, NAME
         if i_ext == ".MP3":
             x = jack_mp3.mp3format(i) 
             if not x:
                 error("could not get MP3 info for file \"%x\"" % i)
             blocks = int(x['length'] * CDDA_BLOCKS_PER_SECOND + 0.5)
-            #           NUM, LEN,    START, COPY, PRE, CH, RIP, RATE,
-            #   NAME
-            erg.append([num, blocks, start, 0,    0,   2,  1,   x['bitrate'],
-                i_name])
+            erg.append([num, blocks, start, 0, 0, 2, 1, x['bitrate'], i_name])
             progr.append([num, "dae", "  *   [          simulated           ]"])
             progr.append([num, "enc", `x['bitrate']`, "[ s i m u l a t e d %3ikbit]" % (x['bitrate'] + 0.5)])
-            if cf['_name'] % num != i_name:
-                progr.append([num, "ren", cf['_name'] % num + "-->" + i_name])
         elif i_ext == ".WAV":
             x = sndhdr.whathdr(i)
             if not x:
@@ -179,14 +177,37 @@ def guesstoc(names):
             blocks = blocks / CDDA_BLOCKSIZE
             erg.append([num, blocks, start, 0, 0, 2, 1, cf['_bitrate'], i_name])
             progr.append([num, "dae", "  =p  [  s  i  m  u  l  a  t  e  d   ]"])
-            if cf['_name'] % num != i_name:
-                progr.append([num, "ren", cf['_name'] % num + "-->" + i_name])
         elif i_ext == ".OGG":
-            error("you still have to wait for ogg support for this operation, sorry.")
+            if ogg:
+                x = ogg.vorbis.VorbisFile(i)
+                blocks = int(x.time_total(0) * CDDA_BLOCKS_PER_SECOND + 0.5)
+                bitrate = temp_rate = int(x.raw_total(0) * 8 / x.time_total(0) / 1000 + 0.5)
+                erg.append([num, blocks, start, 0, 0, 2, 1, bitrate, i_name])
+                progr.append([num, "dae", "  *   [          simulated           ]"])
+                progr.append([num, "enc", `bitrate`, "[ s i m u l a t e d %3ikbit]" % bitrate])
+            else:
+                error("The OGG Python bindings are not installed.")
         elif i_ext == ".FLAC":
-            error("you still have to wait for FLAC support for this ooperation, sorry.")
+            if flac:
+                # TODO: move all of this duplicate code (see update_progress in
+                # jack_prepare.py) into a jack_flac or jack_audio or jack_formats.
+                # The same goes for the OGG stuff above
+                f = flac.FLAC(i)
+                size = os.path.getsize(i)
+                if f.info and size:
+                    blocks = int(float(f.info.total_samples)/f.info.sample_rate * CDDA_BLOCKS_PER_SECOND + 0.5)
+                    bitrate = int(size * 8 * f.info.sample_rate / f.info.total_samples / 1000)
+                else:
+                    blocks = bitrate = 0
+                erg.append([num, blocks, start, 0, 0, 2, 1, bitrate, i_name])
+                progr.append([num, "dae", "  *   [          simulated           ]"])
+                progr.append([num, "enc", `bitrate`, "[ s i m u l a t e d %3ikbit]" % bitrate])
+            else:
+                error("The FLAC Python bindings are not installed.")
         else:
             error("this is neither .mp3 nor .ogg nor .wav nor .flac: %s" % i)
+        if cf['_name'] % num != i_name:
+            progr.append([num, "ren", cf['_name'] % num + "-->" + unicode(i_name, cf['_charset'], "replace")])
         num = num + 1
         start = start + blocks
     for i in progr:     # this is deferred so that it is only written if no
