@@ -177,7 +177,8 @@ cf = jack_misc.dict2({
         'doc': """specify how the resulting files are named:
     %a: artist
     %l: album title
-    %g: album genre - individual track genres are unsupported""",
+    %g: album genre - individual track genres are unsupported
+    %y: album release year - individual track years are unsupported""",
         'long': 'AUTO',
         },
     'char_filter': {
