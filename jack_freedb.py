@@ -548,22 +548,22 @@ def freedb_names(cd_id, tracks, todo, name, verb = 0, warn = 1):
                         (id3genres[cf['_id3_genre']], id3genres[genre]))
         else:
             warning("DGENRE should be a string, not an integer.")
+    if freedb.has_key('EXTD') and not freedb.has_key('DYEAR'):
+        extra_tag_pos = string.find(freedb['EXTD'], "YEAR:")
+        if extra_tag_pos >= 0:
+            arg = freedb['EXTD'][extra_tag_pos + 5:].lstrip().split()[0]
+            if arg.isdigit():
+                year = int(arg)
+    if freedb.has_key('EXTD') and not freedb.has_key('DGENRE'):
+        extra_tag_pos = string.find(freedb['EXTD'], "ID3G:")
+        if extra_tag_pos >= 0:
+            arg = freedb['EXTD'][extra_tag_pos + 5:].lstrip().split()[0]
+            if arg.isdigit():
+                genre = int(arg)
     if genre != -1:
         names[0].extend([year, genre])
     elif year != -1:
         names[0].extend([year])
-    if freedb.has_key('EXTD') and not(freedb.has_key('DYEAR') or freedb.has_key('DGENRE')):
-        extra_tag_pos = string.find(freedb['EXTD'], "\\nYEAR:")
-        if extra_tag_pos >= 0:
-            try:
-                extd_info = freedb['EXTD'][extra_tag_pos + 7:]
-                extd_year, extd_id3g = string.split(extd_info, "ID3G:", 1)
-                extd_year, extd_id3g = int(extd_year), int(extd_id3g)
-            except:
-                print "can't handle '%s'." % freedb['EXTD']
-            else:
-                names = [string.split(dtitle, "/", 1)]
-                names[0].extend([extd_year, extd_id3g])
     if names[0][0] == "(unknown artist)":
         if verb:
             warning("the disc's title must be set to \"artist / title\" (\"DTITLE\").")
