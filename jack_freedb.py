@@ -270,6 +270,23 @@ def freedb_template(tracks, names = "", revision = 0):
             f.write(freedb_split("DTITLE", names[0][0] + " / " + names[0][1]))
     else:
         f.write("DTITLE=\n")
+    freedb_year, freedb_id3genre = -1, -1
+    if cf['_id3_genre'] >= 0 and cf['_id3_genre'] < len(id3genres) or cf['_id3_genre'] == 255:
+        freedb_id3genre = cf['_id3_genre']
+    elif names and len(names[0]) == 4:
+        freedb_id3genre = names[0][3]
+    if cf['_id3_year'] >= 0:
+        freedb_year = cf['_id3_year']
+    elif names and len(names[0]) == 4:
+        freedb_year = names[0][2]
+    if freedb_year >= 0:
+        f.write("DYEAR=%d\n" % freedb_year)
+    else:
+        f.write("DYEAR=\n")
+    if freedb_id3genre >= 0:
+        f.write("DGENRE=%s\n" % id3genres[freedb_id3genre])
+    else:
+        f.write("DGENRE=\n")
     for i in tracks:
         if names:
             if names[i[NUM]][0]: # various
@@ -284,15 +301,6 @@ def freedb_template(tracks, names = "", revision = 0):
                 f.write(freedb_split("TTITLE" + `i[NUM]-1`, names[i[NUM]][1]))
         else:
             f.write("TTITLE" + `i[NUM]-1` + "=\n")
-    freedb_year, freedb_id3genre = -1, -1
-    if cf['_id3_genre'] >= 0 and cf['_id3_genre'] < len(id3genres) or cf['_id3_genre'] == 255:
-        freedb_id3genre = cf['_id3_genre']
-    elif names and len(names[0]) == 4:
-        freedb_id3genre = names[0][3]
-    if cf['_id3_year'] >= 0:
-        freedb_year = cf['_id3_year']
-    elif names and len(names[0]) == 4:
-        freedb_year = names[0][2]
     if freedb_year >= 0 or freedb_id3genre >= 0:
         f.write("EXTD=\\nYEAR: %4s  ID3G: %3s\n" % (freedb_year, freedb_id3genre))
     else:
@@ -432,7 +440,7 @@ def freedb_names(cd_id, tracks, todo, name, verb = 0, warn = 1):
         line = string.replace(line, "\r", "")  # I consider "\r"s as bugs in db info
         if jack_functions.starts_with(line, "# Revision:"):
             revision = int(line[11:])
-        for i in ["DISCID", "DTITLE", "TTITLE", "EXTD", "EXTT", "PLAYORDER"]:
+        for i in ["DISCID", "DTITLE", "DYEAR", "DGENRE", "TTITLE", "EXTD", "EXTT", "PLAYORDER"]:
             if jack_functions.starts_with(line, i):
                 buf = line
                 if string.find(buf, "=") != -1:
@@ -513,7 +521,29 @@ def freedb_names(cd_id, tracks, todo, name, verb = 0, warn = 1):
             dtitle = "(unknown artist)/" + dtitle
 
     names = [string.split(dtitle,"/",1)]
-    if freedb.has_key('EXTD'):
+    year = -1
+    if freedb.has_key('DYEAR'):
+        try:
+            year = int(freedb['DYEAR'])
+        except ValueError:
+            warning("DYEAR has to be an integer but it's the string '%s'" % freedb['DYEAR'])
+        else:
+            if year == 0:
+                warning("DYEAR should not be 0 but empty")
+    genre = -1
+    if freedb.has_key('DGENRE'):
+        try:
+            genre = int(freedb['DGENRE'])
+        except ValueError:
+            if freedb['DGENRE'].upper() in [x.upper() for x in id3genres]:
+                genre = [x.upper() for x in id3genres].index(freedb['DGENRE'].upper())
+        else:
+            warning("DGENRE should be a string, not an integer.")
+    if genre != -1:
+        names[0].extend([year, genre])
+    elif year != -1:
+        names[0].extend([year])
+    if freedb.has_key('EXTD') and not(freedb.has_key('DYEAR') or freedb.has_key('DGENRE')):
         extra_tag_pos = string.find(freedb['EXTD'], "\\nYEAR:")
         if extra_tag_pos >= 0:
             try:

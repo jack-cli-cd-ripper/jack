@@ -65,12 +65,11 @@ def tag(freedb_rename):
 
     if cf['_set_id3tag'] or freedb_rename:
         jack_m3u.init()
-        if len(track_names[0]) == 4:
-            # use freedb year and genre data if available
-            if cf['_id3_genre'] == -1:
-                cf['_id3_genre'] = track_names[0][3]
-            if cf['_id3_year'] == -1:
-                cf['_id3_year'] = track_names[0][2]
+        # use freedb year and genre data if available
+        if cf['_id3_year'] == -1 and len(track_names[0]) >= 3:
+            cf['_id3_year'] = track_names[0][2]
+        if cf['_id3_genre'] == -1 and len(track_names[0]) == 4:
+            cf['_id3_genre'] = track_names[0][3]
 
         print "Tagging",
         for i in jack_ripstuff.all_tracks_todo_sorted:
