@@ -173,7 +173,7 @@ def resize():
     if (x, y) != (None, None):
         size_x, size_y = x, y
 
-def enable():
+def enable(all = 1):
     global enabled
 
     if not initialized:
@@ -182,11 +182,12 @@ def enable():
     if enabled:
         return
 
-    xtermset_enable()
+    if all:
+        xtermset_enable()
     tmod.enable()
     enabled = 1
 
-def disable():
+def disable(all = 1):
     global enabled
     import os
 
@@ -194,5 +195,6 @@ def disable():
         return
 
     tmod.disable()
-    xtermset_disable()
+    if all:
+        xtermset_disable()
     enabled = 0

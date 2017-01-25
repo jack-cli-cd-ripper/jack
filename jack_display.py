@@ -78,7 +78,10 @@ def sig_handler(sig, frame):
     # be display problems.
     sigint_handler = signal.getsignal(signal.SIGINT)
     signal.signal(signal.SIGINT, signal.SIG_IGN)
-    jack_term.disable()
+    if sig:
+        jack_term.disable(all = 0)
+    else:
+        jack_term.disable(all = 1)
 
     if sig:
         exit_code = 2
@@ -101,7 +104,7 @@ def sig_handler(sig, frame):
             raw_input("press ENTER to exit\n")
 
     if sig:
-        jack_term.enable()
+        jack_term.enable(all = 0)
     signal.signal(signal.SIGINT, sigint_handler)
 
     sys.exit(exit_code)
