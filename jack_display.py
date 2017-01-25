@@ -95,7 +95,10 @@ def sig_handler(sig, frame):
         progress("all", "err", "abnormal exit (code %i), check %s and %s" % (exit_code, cf['_err_file'], cf['_out_file']))
 
     if cf['_wait_on_quit']:
-        raw_input("press ENTER to exit")
+        if sig:
+            raw_input("press ENTER\n")
+        else:
+            raw_input("press ENTER to exit\n")
 
     if sig:
         jack_term.enable()
