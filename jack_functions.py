@@ -240,9 +240,9 @@ def blockstomsf(blocks):
     ff = blocks % CDDA_BLOCKS_PER_SECOND
     return mm, ss, ff, blocks
 
-def starts_with(str, with):
-    "checks whether str starts with with"
-    return str[0:len(with)] == with
+def starts_with(str, x):
+    "checks whether str starts with a given string x"
+    return str[0:len(x)] == x
 
 ## #XXX the following will be used if all references to it have been updated.
 ## meanwhile the wrapper below is used.
