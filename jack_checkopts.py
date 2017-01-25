@@ -194,14 +194,14 @@ def consistency_check(cf):
         warning("disabling on-the-fly operation as we're reading from image.")
         cf.rupdate({'otf': {'val': 0}}, "check")
 
+    if cf['_vbr'] and not jack_helpers.helpers[cf['_encoder']].has_key('vbr-cmd'):
+        warning("disabling VBR because " + cf['_encoder'] + " doesn't support it.")
+        cf.rupdate({'vbr': {'val': 0}}, "check")
+
     if cf['_otf']:
         for i in (cf['_ripper'], cf['_encoder']):
             if not jack_helpers.helpers[i].has_key(('vbr-' * cf['_vbr'] * (i == cf['_encoder'])) + 'otf-cmd'):
                 error("can't do on-the-fly because " + jack_helpers.helpers[i]['type'] + " " + i + " doesn't support it.")
-
-    if cf['_vbr'] and not jack_helpers.helpers[cf['_encoder']].has_key('vbr-cmd'):
-        warning("disabling VBR because " + cf['_encoder'] + " doesn't support it.")
-        cf.rupdate({'vbr': {'val': 0}}, "check")
 
     if not cf['_vbr'] and not jack_helpers.helpers[cf['_encoder']].has_key('cmd'):
         error("can't do CBR because " + cf['encoder']['val'] + " doesn't support it. Use -v")
