@@ -21,6 +21,7 @@ import codecs
 import traceback
 import sndhdr
 import types
+import stat
 import string
 import sys
 import os

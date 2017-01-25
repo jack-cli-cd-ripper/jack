@@ -496,6 +496,8 @@ if not os.path.exists(cf['_cd_device']):
     error("Device %s does not exist!" % cf['_cd_device'])
 if not os.access(cf['_cd_device'], os.R_OK):
     error("You don't have permission to access device %s!" % cf['_cd_device'])
+if not stat.S_ISBLK(os.stat(cf['_cd_device'])[stat.ST_MODE]):
+    error("Device %s is not a block device!" % cf['_cd_device'])
 try:
     device = cdrom.open(cf['_cd_device'])
     (first, last) = cdrom.toc_header(device)
