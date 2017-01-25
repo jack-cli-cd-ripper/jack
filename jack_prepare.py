@@ -494,7 +494,6 @@ def query_on_start(todo):
             if string.upper(x[0]) != "Y":
                 sys.exit(0)
             cf['_query_on_start'] = 0
-            cf['_set_id3tag'] = 0
         else:
             jack_display.exit()
 
@@ -533,6 +532,14 @@ def query_on_start(todo):
             error("query on start failed to give a good freedb file, aborting.")
     else:
         err, jack_tag.track_names, jack_tag.locale_names, freedb_rename, revision = jack_freedb.interpret_db_file(jack_ripstuff.all_tracks, todo, cf['_freedb_form_file'], verb = cf['_query_on_start'], warn = cf['_query_on_start'])
+        # If the FreeDB query failed and the FreeDB data cannot be parsed,
+        # don't tag the files.  However, if the FreeDB data can be parsed
+        # even though the query failed assume that the query worked and
+        # do the tagging (the user might have edited the file by hand).
+        if cf['_cont_failed_query'] and err:
+            cf['_set_id3tag'] = 0
+        else:
+            cf['_query_on_start'] = 1
     return freedb_rename
 
 def undo_rename(status, todo):
