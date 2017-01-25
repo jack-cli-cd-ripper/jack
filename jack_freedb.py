@@ -591,7 +591,7 @@ def freedb_names(cd_id, tracks, name, verb = 0, warn = 1):
         else:
             err = 7
             if verb:
-                warning("could not separate artist and title in all TTITLEs. Try setting freedb_pedantic = 0 or use --no-various Maybe additional information is contained in the EXTT fields. check %s and use either --extt-is-artist or --extt-is-title." % cf['_freedb_form_file'])
+                warning("could not separate artist and title in all TTITLEs. Try setting freedb_pedantic = 0 or use --various=no. Maybe additional information is contained in the EXTT fields. check %s and use either --extt-is-artist or --extt-is-title." % cf['_freedb_form_file'])
     else:
         for i in range(tracks_on_cd):
             buf = freedb['TTITLE'+`i`]
