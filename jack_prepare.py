@@ -67,9 +67,6 @@ def find_workdir():
                         cf['_image_file'] = os.path.abspath(cf['_image_file'])
                     jack_ripstuff.all_tracks = jack_functions.gettoc(cf['_toc_prog'])
                     toc_just_read = 1
-                    # check that the generic device is usable, too
-                    if cf['_gen_device'] and not os.access(cf['_gen_device'], os.R_OK | os.W_OK):
-                        warning(r"""could not open generic device %s for reading and writing.""" % cf['_gen_device'])
 
             if cf['_scan_dirs']:
                 dirs = [os.getcwd()]

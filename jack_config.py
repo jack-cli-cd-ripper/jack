@@ -64,12 +64,6 @@ cf = jack_misc.dict2({
         'usage': "use which device for ripping",
         'long': 'device',
         },
-    'gen_device': {
-        'type': types.StringType,
-        'val': None,
-        'doc': "cdda2wav may need the scsi generic device",
-        'long': 'AUTO',
-        },
     'encoder': {
         'type': types.StringType,
         'val': "oggenc",

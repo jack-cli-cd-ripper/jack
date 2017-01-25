@@ -350,7 +350,6 @@ while 1:
             ch = [ "none", "mono", "stereo", "three", "quad" ].index(ch)
             erg.append([num, length, start, copy, pre, ch, 1, cf['_bitrate'], cf['_name'] % (num + 1)])
 """,
-        'toc_cmd_old': "cdda2wav --no-infofile -D %D -J -v 35 2>&1",
         'toc_fkt_old': r"""
 new_c2w = 0
 new_toc1 = 0

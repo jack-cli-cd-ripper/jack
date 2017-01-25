@@ -78,7 +78,6 @@ def start_new_ripper(track, ripper):
         if i == "%n": args.append(`track[NUM]`)
         elif i == "%o": args.append(track[NAME].decode(cf['_charset'], "replace") + ".wav")
         elif i == "%d": args.append(cf['_cd_device'])
-        elif i == "%D": args.append(cf['_gen_device'])
         else: args.append(i)
     data = start_new_process(args)
     data['type'] = "ripper"
@@ -165,7 +164,6 @@ def start_new_otf(track, ripper, encoder):
     for i in string.split(helpers[ripper]['otf-cmd']):
         if i == "%n": args.append(`track[NUM]`)
         elif i == "%d": args.append(cf['_cd_device'])
-        elif i == "%D": args.append(cf['_gen_device'])
         else: args.append(i)
     data['rip']['start_time'] = time.time()
     pid = os.fork()
@@ -205,8 +203,6 @@ def start_new_otf(track, ripper, encoder):
             args.append(track[NAME].decode(cf['_charset'], "replace") + jack_targets.targets[jack_helpers.helpers[cf['_encoder']]['target']]['file_extension'])
         elif i == "%d":
             args.append(cf['_cd_device'])
-        elif i == "%D":
-            args.append(cf['_gen_device'])
         else:
             args.append(i)
     data['enc']['start_time'] = time.time()

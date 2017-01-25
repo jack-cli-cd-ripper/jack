@@ -111,8 +111,6 @@ def gettoc(toc_prog):
     "Returns track list"
     if jack_helpers.helpers[toc_prog].has_key('toc_cmd'):
         cmd = string.replace(jack_helpers.helpers[toc_prog]['toc_cmd'], "%d", cf['_cd_device'])
-        if cf['_gen_device']:
-            cmd = string.replace(cmd, "%D", cf['_gen_device'])
         p = os.popen(cmd)
         start = 0
         erg = []
