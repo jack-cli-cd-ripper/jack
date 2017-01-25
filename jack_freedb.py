@@ -45,12 +45,6 @@ freedb_servers = {
         'mail': "freedb-submit@freedb.org",
         'my_mail': "default"
     },
-    'freedb-de': {
-        'host': "de.freedb.org",
-        'id': prog_name + " " + prog_version,
-        'mail': "freedb-submit@freedb.org",
-        'my_mail': "default"
-    },
 }
 
 def interpret_db_file(all_tracks, todo, freedb_form_file, verb, dirs = 0, warn = None):
