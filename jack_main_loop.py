@@ -215,7 +215,7 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
                 if os.uname()[0] == "Linux" and i['type'] != "image_reader":
                     try:
                         x = i['file'].read()
-                    except IOError:
+                    except (IOError, ValueError):
                         pass
                 else:
                     read_chars = 0
@@ -223,7 +223,7 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
                     while read_chars < jack_helpers.helpers[i['prog']]['status_blocksize']:
                         try:
                             xchar = i['file'].read(1)
-                        except IOError:
+                        except (IOError, ValueError):
                             break
                         x = x + xchar
                         read_chars = read_chars + 1
@@ -263,9 +263,7 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
                 x = ""
                 try:
                     x = exited_proc['file'].read()
-                except IOError:
-                    pass
-                except ValueError:
+                except (IOError, ValueError):
                     pass
                 exited_proc['buf'] = (exited_proc['buf'] + x)[-jack_helpers.helpers[exited_proc['prog']]['status_blocksize']:]
                 exited_proc['file'].close()
