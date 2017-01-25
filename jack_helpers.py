@@ -210,8 +210,8 @@ else:
     'flac': {
         'type': "encoder",
         'target': "flac",
-        'vbr-cmd': "flac -o %o %i",     
-        'vbr-otf-cmd': "flac -fr -fb -fc 2 -fp 16 -fs 44100 -o %o", 
+        'vbr-cmd': "flac -o %o %i",
+        'vbr-otf-cmd': "flac --channels 2 --bps 16 --sample-rate 44100 --force-raw-format --endian=big --sign=signed -o %o -",
         'status_blocksize': 160,
         'status_start': "%", 
         'percent_fkt': r"""
