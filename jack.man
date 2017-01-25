@@ -23,8 +23,8 @@ Jack \- rip and encode CDs with one command
 .SH DESCRIPTION
 .B Jack 
 transforms your audio-CDs to FLAC, MP3 or Ogg Vorbis files. It uses several
-helper programs in order to achieve things like ripping, encoding and
-ID3-tagging.  Ripping is either done via
+helper programs in order to achieve functions such as ripping, encoding and,
+tagging files with meta information.  Ripping is either done via
 .B cdparanoia
 (in which case the ripping status is displayed by Jack as well) or
 .B cdda2wav.
@@ -33,11 +33,10 @@ Jack works with several encoders, namely
 and
 .B xing.
 Any time during operation (and even when everything is finished and
-the original CD lost) you can let Jack look up the track names at 
+the original CD lost) you can let Jack look up the track names at
 .B freedb.org
-and rename the tracks accordingly. ID3-tagging of MP3s (or insertion
-of equivalent comment fields in Ogg Vorbis files) is performed
-as well. 
+and rename the tracks accordingly. Tagging of audio files with meta
+information about artist, track title, etc. is performed as well.
 .PP
 If no freedb-lookup has been performed, Jack drops all files in a
 directory
@@ -48,7 +47,7 @@ representing the CD's CDDB/FreeDB disc ID.
 This directory is renamed by Jack when the appropriate information is known.
 .PP
 Most options like ripper, encoder, preferred FreeDB-Server, directory
-and MP3-filename format, etc. can be user defined by changing the
+and sound file format, etc. can be user defined by changing the
 defaults in 
 .B /etc/jackrc
 or by saving them to
@@ -197,15 +196,15 @@ do not have a toc-file (or don't specify a toc-file),
 the TOC is read from the CD itself.
 .TP
 .B \-g, \-\-guess-toc list
-make up a TOC from the MP3 file given in mp3_files. Format is 
-.B track_01.mp3 ... track_nn.mp3 ;
+make up a TOC from the list of sound file given. The format is
+.B track_01.ogg ... track_nn.ogg ;
 Note that the trailing "
 .B ;
 " is only necessary if you want to
 append more options to your command line.
-You can use it to do a FreeDB query based on
-MP3s alone - no need for the CD. Very useful if you have no idea
-which CD the MP3s are from. The MP3s must be given in the same
+You can use it to do a FreeDB query based on your sound files
+alone - no need for the CD. Very useful if you have no idea
+which CD the songs are from. The songs must be given in the same
 order as they were on their CD. The generated TOC file is
 similar, but not identical to the TOC of the CD - do not submit
 these!
@@ -214,7 +213,8 @@ these!
 set ID3 genre. Use 'help' to get a list of all known genres. (You can also specify the ID3v1 genre as an int)
 .TP
 .B \-Y, \-\-id3-year int
-set ID3 year.
+set the year of the album (the term ID3 comes from MP3 but this option also
+works with other audio formats, such as OGG Vorbis and FLAC)
 .TP
 .B \-h, \-\-help
 Show summary of options.
@@ -299,7 +299,7 @@ creates a blank FreeDB entry file (except if
 is used, 
 then the file is queried from your FreeDB server). If you have
 changed its contents (e.g. because the CD was unknown to FreeDB)
-and want to rename and tag your MP3s accordingly, use this option.
+and want to rename and tag your audio files accordingly, use this option.
 Give all other needed options too, like
 .B \-t
 , 
@@ -380,7 +380,7 @@ default is to process the whole CD.
 undo file renaming and exit. If you don't like how Jack renamed
 your files, use this option to restore the previous state.
 Several levels of undo are possible. Note
-that ID3 tags are not restored.
+that meta information tags are not restored.
 .TP
 .B \-\-unusable-chars list
 characters which can't be used in filenames (default "/").
