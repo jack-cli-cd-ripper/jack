@@ -215,3 +215,13 @@ def consistency_check(cf):
 
     if cf['_dont_work'] and cf['_query_when_ready']:
         warning("you want to use --query-now / -Q instead of --query / -q")
+
+# Checks concerning options specified by the user (in the global or user rc
+# files or the command line), i.e. options/values that are not the default
+# jack options from jack_config.
+def check_rc(global_cf, user_cf, argv_cf):
+
+    all_keys = global_cf.keys() + user_cf.keys() + argv_cf.keys()
+    if 'base_dir' not in all_keys:
+        warning("You have no standard location set, putting files into the current directory. Please consider setting base_dir in ~/.jack3rc.")
+

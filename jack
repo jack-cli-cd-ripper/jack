@@ -84,6 +84,7 @@ debug("global_cf: " + `global_cf`)
 debug("user_cf: " + `user_cf`)
 debug("argv_cf: " + `argv_cf`)
 
+jack_checkopts.check_rc(global_cf, user_cf, argv_cf)
 jack_checkopts.consistency_check(cf)
 
 if cf['save_args']['val'] == 1:
