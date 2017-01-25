@@ -64,6 +64,9 @@ import jack_prepare
 ###################### M A I N ###############################################
 ##############################################################################
 
+import locale
+locale.setlocale(locale.LC_ALL, "")
+
 # say hello...
 print "This is", jack_version.prog_name, jack_version.prog_version, jack_version.prog_copyright, jack_version.prog_devemail
 
