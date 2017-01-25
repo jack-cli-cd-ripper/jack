@@ -17,11 +17,11 @@
 ### along with this program; if not, write to the Free Software
 ### Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-from jack_constants import *
 from jack_config import cf
-from jack_init import eyeD3
+from jack_constants import *
+from jack_generic import debug, error, expand, info, warning
+from jack_init import eyed3
 
-from jack_generic import info, warning, debug, error, expand
 #import jack_generic
 #error = jack_generic.error
 
@@ -43,5 +43,4 @@ def debug(x):
 revision = 0                        # initial revision of freedb data
 is_submittable = 0                  # well-formed freedb-file?
 
-id3genres = eyeD3.genres
-
+id3genres = eyed3.id3.ID3_GENRES

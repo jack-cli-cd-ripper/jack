@@ -30,7 +30,7 @@ import jack_misc
 import jack_m3u
 
 from jack_init import ogg
-from jack_init import eyeD3
+from jack_init import eyed3
 from jack_init import flac
 from jack_globals import *
 
@@ -40,6 +40,30 @@ genretxt = None
 
 a_artist = None
 a_title = None
+
+
+def _set_id3_tag(mp3file, version, encoding, a_title, t_name, track_num, t_artist,
+                 genre, year, comment, play_count):
+    tag = eyed3.id3.Tag()
+    tag.parse(mp3file)
+    tag.album = a_title
+    tag.title = t_name
+    tag.track_num = track_num
+    tag.artist = t_artist
+
+    old_genre = tag.genre
+    if genre != -1:
+        tag.genre = genre
+    elif old_genre == None:
+        tag.genre = 255
+
+    if year != -1:
+        tag.release_date = year
+    if comment:
+        tag.comments.set(comment)
+    tag.play_count = play_count
+
+    tag.save(mp3file, version, encoding=encoding)
 
 def tag(freedb_rename):
     global a_artist, a_title
@@ -99,60 +123,21 @@ def tag(freedb_rename):
                             t_comm = ""
                 if jack_helpers.helpers[cf['_encoder']]['target'] == "mp3":
                     if cf['_write_id3v2']:
-                        mp3file = file(mp3name, "rw")
-                        tag = eyeD3.Tag()
-                        tag.link(mp3file)
-                        tag.header.setVersion(eyeD3.ID3_V2_4)
-                        tag.setTextEncoding(eyeD3.UTF_8_ENCODING)
-                        tag.setAlbum(a_title)
-                        tag.setTitle(t_name)
-                        tag.setTrackNum((i[NUM],len(jack_ripstuff.all_tracks_orig)))
-                        tag.setTitle(t_name)
-                        tag.setArtist(t_artist)
-                        if cf['_id3_genre'] != -1:
-                            tag.setGenre("(%d)" % (cf['_id3_genre']))
-                        if cf['_id3_year'] != -1:
-                            try:
-                                tag.setDate(cf['_id3_year'])
-                            except eyeD3.tag.TagException, e:
-                                print "Error tagging file: %s" % e
-                        tag.setPlayCount(int(i[LEN] * 1000.0 / 75 + 0.5))
-                        tag.update()
-                        mp3file.close()
+                        _set_id3_tag(
+                            mp3name, eyed3.id3.ID3_V2_4,  'utf-8', a_title,
+                            t_name, (i[NUM],len(jack_ripstuff.all_tracks_orig)),
+                            t_artist, cf['_id3_genre'], cf['_id3_year'], None,
+                            int(i[LEN] * 1000.0 / 75 + 0.5)
+                        )
                     if cf['_write_id3v1']:
-                        mp3file = file(mp3name, "rw")
-                        tag = eyeD3.Tag()
-                        tag.link(mp3file)
-
-                        tag.header.setVersion(eyeD3.ID3_V1_1)
-                        tag.setTextEncoding(eyeD3.LATIN1_ENCODING)
-                        old_genre = tag.getGenre()
-
-                        tag.setAlbum(a_title)
-                        if t_comm:
-                            tag.addComment(t_comm)
-                            tag.setTitle(t_name2)
-                        else:
-                            tag.setTitle(t_name)
-                        tag.setTrackNum((i[NUM],len(jack_ripstuff.all_tracks_orig)))
-                        tag.setTitle(t_name)
-                        tag.setArtist(t_artist)
-                        if cf['_id3_genre'] != -1:
-                            tag.setGenre("(%d)" % (cf['_id3_genre']))
-                        elif old_genre == None:
-                            tag.setGenre("(255)") # unknown
-                        if cf['_id3_year'] != -1:
-                            try:
-                                tag.setDate(cf['_id3_year'])
-                            except eyeD3.tag.TagException, e:
-                                print "Error tagging file: %s" % e
-                        try:
-                            tag.update()
-                        except UnicodeEncodeError:
-                            if not cf['_write_id3v2']:
-                                print
-                                print "Track %02d contains data not supported by id3v1; please use --write-id3v2" % i[NUM]
-                        mp3file.close()
+                        # encoding ??
+                        _set_id3_tag(
+                            mp3name, eyed3.id3.ID3_V1_1,  'latin1',
+                            a_title, t_name,
+                            (i[NUM],len(jack_ripstuff.all_tracks_orig)),
+                            t_artist, cf['_id3_genre'], cf['_id3_year'], t_comm,
+                            int(i[LEN] * 1000.0 / 75 + 0.5)
+                        )
                 elif jack_helpers.helpers[cf['_encoder']]['target'] == "flac":
                     if flac:
                         f = flac.FLAC(mp3name)
@@ -244,4 +229,3 @@ def tag(freedb_rename):
     if jack_m3u.wavm3u:
         os.environ["JACK_JUST_RIPPED"] = "\n".join(jack_m3u.wavm3u)
     jack_m3u.write()
-
