@@ -168,9 +168,6 @@ def unusable_charmap(x):
     
 def mkdirname(names, template):
     "generate mkdir-able directory name(s)"
-    dirs = template.split(os.path.sep)
-        
-    dirs2 = []
     if cf['_id3_year'] > 0:
         year = `cf['_id3_year']`
     else:
@@ -178,16 +175,16 @@ def mkdirname(names, template):
     replacelist = {"a": names[0][0].encode(cf['_charset'], "replace"),
                    "l": names[0][1].encode(cf['_charset'], "replace"),
                    "y": year, "g": cf['_id3_genre_txt']}
-    for i in dirs:
+    # Process substitution patterns from dir_template
+    subst = template.split(os.path.sep)
+    dirs = []
+    for i in subst:
         x = jack_misc.multi_replace(i, replacelist, "dir_template", unusable_charmap, warn = 2)
         exec("x = x" + cf['_char_filter'])
-        dirs2.append(x)
+        dirs.append(x)
     if cf['_append_year'] and year:
-        dirs2[-1] = dirs2[-1] + jack_misc.multi_replace(cf['_append_year'], replacelist, "append-year", warn = 1)
-    name = ""
-    for i in dirs2:
-        name = os.path.join(name, i)
-    return dirs2, name
+        dirs[-1] += jack_misc.multi_replace(cf['_append_year'], replacelist, "append-year", warn = 1)
+    return dirs, os.path.join(*dirs)
 
 def split_dirname(name):
     "split path in components"
