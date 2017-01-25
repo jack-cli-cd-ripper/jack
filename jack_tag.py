@@ -195,7 +195,7 @@ def tag(freedb_rename):
                     newname = jack_misc.multi_replace(cf['_rename_fmt_va'], replacelist)
                     
                 else:
-                    replacelist = (("%n", cf['_rename_num'] % i[NUM]), ("%a", a_artist), ("%t", t_name), ("%l", a_title))
+                    replacelist = (("%n", cf['_rename_num'] % i[NUM]), ("%a", a_artist), ("%t", t_name), ("%l", a_title), ("%y", `cf['_id3_year']`), ("%g", genretxt))
                     newname = jack_misc.multi_replace(cf['_rename_fmt'], replacelist)
                 exec("newname = newname" + cf['_char_filter'])
                 for char_i in range(len(cf['_unusable_chars'])):
