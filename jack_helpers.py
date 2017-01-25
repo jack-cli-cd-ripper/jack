@@ -297,19 +297,38 @@ final_status = "[otf - done]"
 """,
         #'toc': 1,  # we can't generate correct freedb IDs with cdparanoia.
         'toc_cmd': "cdparanoia -d %d -Q 2>&1",
+# The output from cdparanoia which we parse looks like this:
+
+# cdparanoia III release 9.8 (March 23, 2001)
+# (C) 2001 Monty <monty@xiph.org> and Xiphophorus
+# ...
+# track        length               begin        copy pre ch
+# ===========================================================
+#   1.    13584 [03:01.09]        0 [00:00.00]    no   no  2
+#   2.    13769 [03:03.44]    13584 [03:01.09]    no   no  2
+# ...
+# TOTAL  121128 [26:55.03]    (audio only)
+
+# That is, we look for a line only consisting of === signs as the start,
+# for a line starting with "TOTAL" as the end, and take everything
+# inbetween (to be precise: the first number on each line)
         'toc_fkt': r"""
-while l:
+for l in p.readlines():
     l = string.rstrip(l)
-    if l and l[0:5] == "TOTAL":
+    if not l:
+        continue
+    if l.startswith("TOTAL"):
         start = 0
-    if l and l == '=' * (len(l)):
+    elif l == ('=' * len(l)):
         start = 1
-    elif l and start:
-        l = string.split(l, '.', 1)
-        num = int(l[0])
-        l = string.split(l[1])
-        erg.append([num, int(l[0]), int(l[2]), l[4] == 'OK', l[5] == 'yes', int(l[6]), 1, cf['_bitrate'], cf['_name'] % num])
-    l = p.readline()
+    elif start:
+        l = l.split('.', 1)
+        if l[0].lstrip().isdigit():
+            num = int(l[0])
+            l = l[1].split()
+            erg.append([num, int(l[0]), int(l[2]), l[4] == 'OK', l[5] == 'yes', int(l[6]), 1, cf['_bitrate'], cf['_name'] % num])
+        else:
+            warning("Cannot parse cdrecord TOC line: " + ". ".join(l))
 """,
     },
 
