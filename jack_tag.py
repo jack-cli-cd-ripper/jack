@@ -77,7 +77,10 @@ def tag(freedb_rename):
             sys.stdout.write(".") ; sys.stdout.flush()
             mp3name = i[NAME] + ext
             wavname = i[NAME] + ".wav"
-            t_artist = track_names[i[NUM]][0]
+            if track_names[i[NUM]][0]:
+                t_artist = track_names[i[NUM]][0]
+            else:
+                t_artist = a_artist
             t_name = track_names[i[NUM]][1]
             t_comm = ""
             if not cf['_only_dae'] and cf['_set_id3tag']:
@@ -106,10 +109,7 @@ def tag(freedb_rename):
                         tag.setTitle(t_name)
                         tag.setTrackNum((i[NUM],len(jack_ripstuff.all_tracks_orig)))
                         tag.setTitle(t_name)
-                        if t_artist:
-                           tag.setArtist(t_artist)
-                        else:
-                            tag.setArtist(a_artist)
+                        tag.setArtist(t_artist)
                         if cf['_id3_genre'] != -1:
                             tag.setGenre("(%d)" % (cf['_id3_genre']))
                         if cf['_id3_year'] != -1:
@@ -134,10 +134,7 @@ def tag(freedb_rename):
                             tag.setTitle(t_name)
                         tag.setTrackNum((i[NUM],len(jack_ripstuff.all_tracks_orig)))
                         tag.setTitle(t_name)
-                        if t_artist:
-                            tag.setArtist(t_artist)
-                        else:
-                            tag.setArtist(a_artist)
+                        tag.setArtist(t_artist)
                         if cf['_id3_genre'] != -1:
                             tag.setGenre("(%d)" % (cf['_id3_genre']))
                         elif old_genre == None:
@@ -168,10 +165,7 @@ def tag(freedb_rename):
                             vc.comments['ALBUM'] = a_title.encode("utf-8")
                             vc.comments['TRACKNUMBER'] = `i[NUM]`
                             vc.comments['TITLE'] = t_name.encode("utf-8")
-                            if t_artist:
-                                vc.comments['ARTIST'] = t_artist.encode("utf-8")
-                            else:
-                                vc.comments['ARTIST'] = a_artist.encode("utf-8")
+                            vc.comments['ARTIST'] = t_artist.encode("utf-8")
                             if cf['_id3_genre'] != -1:
                                 vc.comments['GENRE'] = id3genres[cf['_id3_genre']]
                             if cf['_id3_year'] != -1:
@@ -189,10 +183,7 @@ def tag(freedb_rename):
                     oggi.add_tag('ALBUM', a_title.encode("utf-8"))
                     oggi.add_tag('TRACKNUMBER', `i[NUM]`)
                     oggi.add_tag('TITLE', t_name.encode("utf-8"))
-                    if t_artist:
-                        oggi.add_tag('ARTIST', t_artist.encode("utf-8"))
-                    else:
-                        oggi.add_tag('ARTIST', a_artist.encode("utf-8"))
+                    oggi.add_tag('ARTIST', t_artist.encode("utf-8"))
                     if cf['_id3_genre'] != -1:
                         oggi.add_tag('GENRE', id3genres[cf['_id3_genre']])
                     if cf['_id3_year'] != -1:
