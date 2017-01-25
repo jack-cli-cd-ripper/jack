@@ -14,7 +14,8 @@ setup( # Distribution meta-data
 
     # Description of the modules and packages in the distribution
     ext_modules = [ Extension('jack_cursesmodule',
-    ['cursesmodule/jack_cursesmodule.c'], libraries=["ncurses"],
+    ['cursesmodule/jack_cursesmodule.c'], libraries=["ncursesw"],
+    include_dirs=["/usr/include/ncursesw"],
     extra_compile_args=["-Wno-strict-prototypes"]) ],
 
     py_modules = [ 'jack_CDTime', 'jack_TOC', 'jack_TOCentry', 'jack_argv',
