@@ -394,7 +394,7 @@ show the help screen while running.
 .TP
 .B \-v, \-\-vbr=bool
 Generate variable bitrate files, only on encoders which support
-this. Default is no.
+this. Default is yes.
 .TP
 .B \-\-various=bool
 when parsing FreeDB data, Jack assumes that if the disc\'s artist
