@@ -173,14 +173,14 @@ def consistency_check(cf):
         for i in jack_helpers.helpers.keys():
             if jack_helpers.helpers[i]['type'] == "encoder":
                 dummy.append(i)
-        error("Invalid encoder, choose one of " + `dummy`)
+        error("Invalid encoder, choose one of " + ", ".join(dummy))
 
     if not jack_helpers.helpers.has_key(cf['_ripper']) or jack_helpers.helpers[cf['_ripper']]['type'] != "ripper":
         dummy = []
         for i in jack_helpers.helpers.keys():
             if jack_helpers.helpers[i]['type'] == "ripper":
                 dummy.append(i)
-        error("Invalid ripper, choose one of " + `dummy`)
+        error("Invalid ripper, choose one of " + ", ".join(dummy))
 
     if (cf['vbr_quality']['val'] > 10) or (cf['vbr_quality']['val'] < -1):
         error("invalid vbr quality, must be between -1 and 10")
