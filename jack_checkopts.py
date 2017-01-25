@@ -242,3 +242,44 @@ def check_rc(cf, global_cf, user_cf, argv_cf):
             else:
                 error("No valid ripper found on your system.")
 
+    # If the default CD device doesn't exist, see whether we can find another one
+    if ('cd_device' not in all_keys and cf["rip_from_device"]["val"] and
+        not os.path.exists(cf["cd_device"]["val"])):
+        default = cf["cd_device"]["val"]
+        devices = []
+        # All CD devices can be found in /proc on Linux
+        cdrom_info = "/proc/sys/dev/cdrom/info"
+        if os.path.exists(cdrom_info):
+            try:
+                info = open(cdrom_info, "r")
+            except (IOError, OSError):
+                pass
+            else:
+                for line in info.readlines():
+                    if line.startswith("drive name:"):
+                        devices = ["/dev/" + x for x in line.rstrip().split("\t")[2:]]
+                        break
+                info.close()
+        message = "Default CD device %s does not exist" % default
+        if not devices:
+            warning("%s." % message)
+        elif len(devices) == 1:
+            warning("%s, using %s." % (message, devices[0]))
+            cf.rupdate({'cd_device': {'val': devices[0]}}, "check")
+        else:
+            warning("%s but there are several CD devices." % message)
+            for i in range(len(devices)):
+                print "%2d" % (i+1) + ".) " + devices[i]
+            input = 0
+            while input <= 0 or input > len(devices):
+                try:
+                    input = raw_input("Please choose: ")
+                except KeyboardInterrupt:
+                    sys.exit(0)
+                if input.isdigit():
+                    input = int(input)
+                else:
+                    input = 0
+            devices[0] = devices[input-1]
+            cf.rupdate({'cd_device': {'val': devices[0]}}, "check")
+
