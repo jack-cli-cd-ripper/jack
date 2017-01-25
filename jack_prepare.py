@@ -497,8 +497,8 @@ def query_on_start(todo):
     if jack_freedb.freedb_query(jack_freedb.freedb_id(jack_ripstuff.all_tracks), jack_ripstuff.all_tracks, cf['_freedb_form_file']):
         if cf['_cont_failed_query']:
             
-            x = raw_input("\nfreedb search failed, continue? ") + "x"
-            if string.upper(x[0]) != "Y":
+            x = raw_input("\nfreedb search failed, continue? (y/N) ") + "x"
+            if not x or x[0].upper() != "Y":
                 sys.exit(0)
             if not cf['_edit_freedb']:
                 x = raw_input("\nDo you want to edit the freedb data?  (y/N) ") + "x"
@@ -534,7 +534,7 @@ def query_on_start(todo):
                     print
                     print pdiff
                     x = raw_input("Would you like to submit these changes to the FreeDB server? (y/N) ")
-                    if string.upper(x[0]) == "Y":
+                    if x and x[0].upper() == "Y":
                         jack_freedb.update_revision(file)
                         freedb_submit(jack_progress.status_all.get('freedb_cat', None))
 
@@ -776,11 +776,11 @@ def remove_files(remove_q):
         print "/\\" * 40
         for i in remove_q:
             print i
-        x = raw_input("These files will be deleted, continue? ") + "x"
+        x = raw_input("These files will be deleted, continue? (y/N) ") + "x"
         if cf['_force']:
             info("(forced)")
         else:
-            if string.upper(x[0]) != "Y":
+            if not x or x[0].upper() != "Y":
                 sys.exit(0)
 
         for i in remove_q:
