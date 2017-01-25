@@ -27,6 +27,7 @@ import jack_functions
 import jack_globals
 import jack_misc
 import jack_term
+import jack_config
 
 from jack_globals import *
 
@@ -170,15 +171,19 @@ def mkdirname(names, template):
     dirs = template.split(os.path.sep)
         
     dirs2 = []
+    if cf['_id3_year'] > 0:
+        year = `cf['_id3_year']`
+    else:
+        year = None
+    replace_list = (("%a", names[0][0].encode(cf['_charset'], "replace")),
+                    ("%l", names[0][1].encode(cf['_charset'], "replace")),
+                    ("%y", year), ("%g", cf['_id3_genre_txt']))
     for i in dirs:
-        replace_list = (("%a", names[0][0].encode(cf['_charset'], "replace")),
-                        ("%l", names[0][1].encode(cf['_charset'], "replace")),
-                        ("%y", `cf['_id3_year']`), ("%g", cf['_id3_genre_txt']))
-        x = jack_misc.multi_replace(i, replace_list, unusable_charmap)
+        x = jack_misc.multi_replace(i, replace_list, "dir_template", unusable_charmap, warn = 2)
         exec("x = x" + cf['_char_filter'])
         dirs2.append(x)
-    if cf['_append_year'] and len(`cf['_id3_year']`) == 4:  # Y10K bug!
-        dirs2[-1] = dirs2[-1] + jack_misc.multi_replace(cf['_append_year'], replace_list)
+    if cf['_append_year'] and year:
+        dirs2[-1] = dirs2[-1] + jack_misc.multi_replace(cf['_append_year'], replace_list, "append-year", warn = 1)
     name = ""
     for i in dirs2:
         name = os.path.join(name, i)

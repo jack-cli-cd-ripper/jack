@@ -20,11 +20,19 @@ import string, types
 import sys
 import os
 
+import jack_globals
+
 def id(x):
     return x
 
-def multi_replace(s, rules, filter = id):
+def multi_replace(s, rules, where, filter = id, warn = 0):
     "like string.replace but take list (('from0', 'to0'), ('from1', 'to1'))..."
+
+    if warn == 2:
+        do_warn = jack_globals.error
+    else:
+        do_warn = jack_globals.warning
+
     # currently all from must be like %x (a percent sign follow by single char.
     res = ""
     maybe = 0
@@ -34,10 +42,14 @@ def multi_replace(s, rules, filter = id):
             found = 0
             for j in rules:
                 if ("%" + i) == j[0]:
+                    if not j[1] and warn:
+                        do_warn("%%%c is not set but used in %s." % (i, where))
                     res = res[:-1] + filter(j[1])
                     found = 1
             if found:
                 continue
+            elif warn:
+                do_warn("Unknown pattern %%%c is used in %s." % (i, where))
         maybe = 0
         if i == "%":
             maybe = 1

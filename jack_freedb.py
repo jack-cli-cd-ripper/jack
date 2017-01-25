@@ -161,10 +161,10 @@ def interpret_db_file(all_tracks, todo, freedb_form_file, verb, dirs = 0, warn =
                            ("%y", year), ("%g", genretxt)]
             if cf['_various']:
                 replacelist.append(("%a", i[0]))
-                newname = jack_misc.multi_replace(cf['_rename_fmt_va'], replacelist)
+                newname = jack_misc.multi_replace(cf['_rename_fmt_va'], replacelist, "rename_fmt_va", warn = (num == 1))
             else:
                 replacelist.append(("%a", cd[0]))
-                newname = jack_misc.multi_replace(cf['_rename_fmt'], replacelist)
+                newname = jack_misc.multi_replace(cf['_rename_fmt'], replacelist, "rename_fmt", warn = (num == 1))
             exec("newname = newname" + cf['_char_filter'])
             for char_i in range(len(cf['_unusable_chars'])):
                 try:
