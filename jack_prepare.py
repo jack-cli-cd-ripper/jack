@@ -493,7 +493,12 @@ def query_on_start(todo):
             x = raw_input("\nfreedb search failed, continue? ") + "x"
             if string.upper(x[0]) != "Y":
                 sys.exit(0)
-            cf['_query_on_start'] = 0
+            if not cf['_edit_freedb']:
+                x = raw_input("\nDo you want to edit the freedb data?  (y/N) ") + "x"
+                if x and x[0].upper() == "Y":
+                    cf['_edit_freedb'] = 1
+                else:
+                    cf['_query_on_start'] = 0
         else:
             jack_display.exit()
 
