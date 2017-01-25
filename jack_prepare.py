@@ -406,7 +406,7 @@ def read_progress(status, todo):
                 if status[i]['names'][-1] == names[0]:
                     status[i]['names'].append(names[1])
             if type(i) == types.IntType:
-                tracknum[i][NAME] = status[i]['names'][-1]
+                tracknum[i][NAME] = unicode(status[i]['names'][-1], "utf-8", "replace").encode(cf['_charset'], "replace")
         del status[i]['ren']
 
     # status info for the whole CD is treated separately
