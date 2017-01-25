@@ -141,7 +141,7 @@ def interpret_db_file(all_tracks, todo, freedb_form_file, verb, dirs = 0, warn =
             if jack_utils.check_path(dirs_created, old_dirs) and not jack_utils.check_path(dirs_created, new_dirs):
                 jack_utils.rename_path(dirs_created, new_dirs)
                 print "Info: cwd now", os.getcwd()
-                jack_functions.progress("all", 'ren', dir_created + "-->" + unicode(new_dir, cf['_charset']))
+                jack_functions.progress("all", 'ren', unicode(dir_created + "-->" + new_dir, cf['_charset'], "replace"))
 
     if not err:
         names_available = 1
