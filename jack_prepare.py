@@ -494,6 +494,7 @@ def query_on_start(todo):
             if string.upper(x[0]) != "Y":
                 sys.exit(0)
             cf['_query_on_start'] = 0
+            cf['_set_id3tag'] = 0
         else:
             jack_display.exit()
 
