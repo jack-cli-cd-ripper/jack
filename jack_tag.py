@@ -195,7 +195,13 @@ def tag(freedb_rename):
                     newname = jack_misc.multi_replace(cf['_rename_fmt'], replacelist)
                 exec("newname = newname" + cf['_char_filter'])
                 for char_i in range(len(cf['_unusable_chars'])):
-                    newname = string.replace(newname, cf['_unusable_chars'][char_i], cf['_replacement_chars'][char_i])
+                    try:
+                        a = unicode(cf['_unusable_chars'][char_i], locale.getpreferredencoding(), "replace")
+                        b = unicode(cf['_replacement_chars'][char_i], locale.getpreferredencoding(), "replace")
+                    except UnicodeDecodeError:
+                        warning("Cannot substitute unusable character %d." % (char_i+1))
+                    else:
+                        newname = string.replace(newname, a, b)
                 try:
                     i[NAME] = unicode(i[NAME], "utf-8")
                 except UnicodeDecodeError:
