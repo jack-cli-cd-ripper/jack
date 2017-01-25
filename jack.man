@@ -53,6 +53,11 @@ defaults in
 .B /etc/jackrc
 or by saving them to
 .BR ~/.jack3rc .
+Additional rippers, encoders and FreeDB servers can be defined by users
+through the help of a plug-in directory (as defined by the
+.BR plugin_path
+option which defaults to
+.BR ~/.jack_plugins ).
 .PP
 While Jack is running, these keyboard commands are available:
 .RS
@@ -505,6 +510,34 @@ Editing / normalizing / stripping the WAV files before encoding:
 jack \-O \-D \-\-remove-files ; gnoise *wav ; jack \-g *wav ; jack
 .RE
 Just replace gnoise by the operation you'd like to perform.
+.SH PLUG-INS
+Additional rippers, encoders and FreeDB servers currently not known by jack
+can be defined using jack's plug-in mechanism.  Plug-ins have to be put in
+the
+.BR ~/.jack_plugins
+directory (or the path defined by the
+.BR plugin_path
+option).  The plug-ins are simple Python scripts which define a hash with
+the values for your ripper, encoder or FreeDB server.  For rippers and
+encoders, the hash
+.BR plugin_helpers
+has to be defined while additional FreeDB servers are specified in
+.BR plugin_freedb_servers .
+Both expect another hash whose names corresponds to the entry you want to
+add (prefixed by
+.BR plugin_ )
+and have to define certain values.  Two examples are provided,
+.BR jack_plugin_cddb.py
+(to define a new FreeDB server) and
+.BR jack_plugin_lame.py
+(to show how rippers and encoders can be defined).  After defining
+plug-ins, you have to manually select them by specifying the ripper,
+encoder, or CDDB server.  An example would be:
+.RS
+jack \-\-encoder-name plugin_lame \-\-ripper plugin_foo \-\-server plugin_cddb
+.RE
+Plug-ins can also be used to define your own rippers and encoders which
+uses different options than those used by default by jack.
 .SH ENVIRONMENT VARIABLES
 There are several environment variables which can be used in jack's exec
 hooks:
