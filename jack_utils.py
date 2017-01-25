@@ -95,7 +95,7 @@ def rename_path(old, new):
 
     last_of_new = new[-1]
     if os.path.exists(last_of_new):
-        error("destination directory already exists: " + last_of_new)
+        error("destination directory already exists: " + os.path.join(*[cf['_base_dir']] + new))
     try:
         os.rename(cwd, last_of_new)
     except OSError:
