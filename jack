@@ -133,7 +133,7 @@ status = jack_prepare.init_status()
 
 ### (6) update progress file at user's request (operation mode)
 if cf['_upd_progress']:
-    jack_prepare.update_progress(todo)
+    jack_prepare.update_progress(status, todo)
     sys.exit(0)
 
 ### (7) now read in the progress file

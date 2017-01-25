@@ -37,6 +37,7 @@ import jack_misc
 import jack_tag
 
 from jack_globals import *
+from jack_init import ogg
 
 tracknum = None
 datatracks = []
@@ -334,7 +335,7 @@ def init_status():
     status['all']['id3_year'] = ["-1",]
     return status
 
-def update_progress(todo):
+def update_progress(status, todo):
     ext = jack_targets.targets[jack_helpers.helpers[cf['_encoder']]['target']]['file_extension']
     "update progress file at user's request (operation mode)"
 

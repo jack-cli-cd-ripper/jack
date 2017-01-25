@@ -56,10 +56,8 @@ except:
 try:
     import ogg.vorbis
 except:
-    class dummy_ogg:
-        def __init__(self):
-            warning("ogg module not installed, ogg support disabled")
-    ogg = dummy_ogg()
+    warning("ogg module not installed, ogg support disabled")
+    ogg = None
 
 try:
     import mutagen.flac as flac
