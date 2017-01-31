@@ -19,6 +19,7 @@
 import jack_freedb
 
 import locale
+import unicodedata
 
 from jack_globals import *
 
@@ -32,6 +33,21 @@ printable_names = None              # these are displayed for the track names
 max_name_len = None                 # max len of printable_names[]
 
 raw_space = None                    # free diskspace
+
+# There's currently no good way in Python to obtain the real width a string
+# will take up on the screen since it may e.g. depend on how the terminal
+# displays wide characters.  This function is a first attempt to at least
+# get an approximate idea of the width of a string (assuming that wide
+# characters take up two columns on the screen).  This is only to be used
+# until there's a real solution in Python.
+def width(s):
+    w = 0
+    for c in s.decode(locale.getpreferredencoding()):
+        if unicodedata.east_asian_width(c) in ("W", "F"):
+            w += 2
+        else:
+            w += 1
+    return w
 
 def gen_printable_names(track_names, todo):
     global printable_names
@@ -69,7 +85,7 @@ def gen_printable_names(track_names, todo):
             else:
                 tmp = tmp + track_names[i[NUM]][1]
             p_tmp = tmp.encode(locale.getpreferredencoding(), "replace")
-            printable_names[i[NUM]] = p_tmp + "." * (max_name_len - len(tmp))
+            printable_names[i[NUM]] = p_tmp + "." * (max_name_len - width(p_tmp))
         else:
             if cf['_show_time']:
                 printable_names[i[NUM]] = ("%02i " % i[NUM]) + len_tmp + "." * (max_name_len - len(i[NAME]) - 6)

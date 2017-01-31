@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 ### jack - extract audio from a CD and encode it using 3rd party software
 ### Copyright (C) 1999-2004  Arne Zellentin <zarne@users.sf.net>
 
@@ -64,6 +64,9 @@ import jack_prepare
 ###################### M A I N ###############################################
 ##############################################################################
 
+import locale
+locale.setlocale(locale.LC_ALL, "")
+
 # say hello...
 print "This is", jack_version.prog_name, jack_version.prog_version, jack_version.prog_copyright, jack_version.prog_devemail
 
@@ -84,6 +87,7 @@ debug("global_cf: " + `global_cf`)
 debug("user_cf: " + `user_cf`)
 debug("argv_cf: " + `argv_cf`)
 
+jack_checkopts.check_rc(cf, global_cf, user_cf, argv_cf)
 jack_checkopts.consistency_check(cf)
 
 if cf['save_args']['val'] == 1:
@@ -93,36 +97,28 @@ if cf['save_args']['val'] == 1:
 
 ext = jack_targets.targets[jack_helpers.helpers[cf['_encoder']]['target']]['file_extension']
 
-### (1) search for a dir containing a toc-file or do the multi-mode
+### search for a dir containing a toc-file or do the multi-mode
 toc_just_read = jack_prepare.find_workdir()
 os.environ["JACK_CUR_DIR"] = os.getcwd()
 os.environ["JACK_BASE_DIR"] = cf['_base_dir']
 # now we are set to go as we know we are in the right dir
 
-### (2) check toc (operation mode)
+### check toc (operation mode)
 if cf['_check_toc']:
     jack_prepare.check_toc()
     sys.exit(0)
 
-### (3a) read and interpret toc_file
+### read and interpret toc_file
 is_submittable, track1_offset = jack_prepare.read_toc_file()
 
-### (3b) make sure we have a freedb file
+### make sure we have a freedb file
 if not os.path.exists(cf['_freedb_form_file']):
     jack_freedb.freedb_template(jack_ripstuff.all_tracks)
 
-### (4a) filter out data tracks
-jack_prepare.filter_tracks(toc_just_read)
-
-### (4b) Parse tracks from argv, generate todo
-todo = jack_prepare.gen_todo()
-if len(todo) == 0:
-    error("nothing to do. bye.")
-
 ### init status
-jack_status.init(todo)
+jack_status.init(jack_ripstuff.all_tracks)
 
-#XXX## (5) read progress info into status
+#XXX## read progress info into status
 
 jack_ripstuff.all_tracks_orig = []
 for i in jack_ripstuff.all_tracks:
@@ -130,37 +126,49 @@ for i in jack_ripstuff.all_tracks:
 
 status = jack_prepare.init_status()
 
-### (6) update progress file at user's request (operation mode)
-if cf['_upd_progress']:
-    jack_prepare.update_progress(todo)
-    sys.exit(0)
+jack_prepare.tracknum = {}
+for i in jack_ripstuff.all_tracks:
+    jack_prepare.tracknum[i[NUM]] = i
 
-### (7) now read in the progress file
-status = jack_prepare.read_progress(status, todo)
+### now read in the progress file
+status = jack_prepare.read_progress(status, jack_ripstuff.all_tracks)
 
-### (8) submit freedb data on user's request
+### filter out data tracks
+jack_prepare.filter_tracks(toc_just_read, status)
+
+### Parse tracks from argv, generate todo
+todo = jack_prepare.gen_todo()
+if len(todo) == 0:
+    error("nothing to do. bye.")
+
+### submit freedb data on user's request
 if cf['_freedb_submit'] or cf['_freedb_mailsubmit']:
     jack_prepare.freedb_submit()
     sys.exit(0)
 
-### (9) do query on start
+### do query on start
 freedb_rename = 0
 if cf['_query_if_needed']:
     if not os.path.exists(cf['_freedb_form_file'] + ".bak"):
         cf['_query_on_start'] = 1
 if cf['_query_on_start']:
-    freedb_rename = jack_prepare.query_on_start()
+    freedb_rename = jack_prepare.query_on_start(todo)
 
-### (10) update freedb dbfile
+### update freedb dbfile
 if cf['_update_freedb']:
     if not jack_tag.track_names:
-        err, jack_tag.track_names, jack_tag.locale_names, freedb_rename, revision = jack_freedb.interpret_db_file(jack_ripstuff.all_tracks, cf['_freedb_form_file'], verb = 1, dirs = 0)
+        err, jack_tag.track_names, jack_tag.locale_names, freedb_rename, revision = jack_freedb.interpret_db_file(jack_ripstuff.all_tracks, todo, cf['_freedb_form_file'], verb = 1, dirs = 0)
     jack_freedb.freedb_template(jack_ripstuff.all_tracks, jack_tag.track_names, revision + 1)
     jack_utils.ex_edit(cf['_freedb_form_file'])
     info("now submit your changes if you like, using the option --submit (via http POST). Don't forget to activate your changes locally with -R")
     sys.exit(0)
 
-### (11) undo renaming (operation mode)
+### update progress file at user's request (operation mode)
+if cf['_upd_progress']:
+    jack_prepare.update_progress(status, todo)
+    sys.exit(0)
+
+### undo renaming (operation mode)
 if cf['_undo_rename']:
     jack_prepare.undo_rename(status, todo)
     sys.exit(0)
@@ -251,7 +259,7 @@ if cf['_query_when_ready']:
         jack_display.exit()
 
 if cf['_query_when_ready'] or cf['_read_freedb_file'] or cf['_query_on_start']:
-    err, jack_tag.track_names, jack_tag.locale_names, freedb_rename, revision = jack_freedb.interpret_db_file(jack_ripstuff.all_tracks, cf['_freedb_form_file'], verb = 1, dirs = 1)
+    err, jack_tag.track_names, jack_tag.locale_names, freedb_rename, revision = jack_freedb.interpret_db_file(jack_ripstuff.all_tracks, todo, cf['_freedb_form_file'], verb = 1, dirs = 1)
     if err:
         error("could not read freedb file")
 
@@ -269,7 +277,7 @@ if global_error:
 jack_tag.tag(freedb_rename)
 
 if jack_functions.progress_changed:
-    jack_functions.progress("all", "done", time.strftime("%b %2d %H:%M:%S", time.localtime(time.time())))
+    jack_functions.progress("all", "done", unicode(time.strftime("%b %2d %H:%M:%S", time.localtime(time.time())), locale.getpreferredencoding(), "replace"))
 
 if cf['_remove_files']:
     print "cleaning up in", os.getcwd()

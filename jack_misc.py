@@ -20,29 +20,31 @@ import string, types
 import sys
 import os
 
+import jack_globals
+
 def id(x):
     return x
 
-def multi_replace(s, rules, filter = id):
+def multi_replace(s, rules, where, filter = id, warn = 0):
     "like string.replace but take list (('from0', 'to0'), ('from1', 'to1'))..."
-    # currently all from must be like %x (a percent sign follow by single char.
-    res = ""
-    maybe = 0
-    for i in s:
-        if maybe:
-            maybe = 0
-            found = 0
-            for j in rules:
-                if ("%" + i) == j[0]:
-                    res = res[:-1] + filter(j[1])
-                    found = 1
-            if found:
-                continue
-        maybe = 0
-        if i == "%":
-            maybe = 1
-        res = res + i
-    return res
+
+    if warn == 2:
+        do_warn = jack_globals.error
+    else:
+        do_warn = jack_globals.warning
+
+    # get a list of characters we need to replace (i.e. the x from %x)
+    # currently all from must be like %x (a percent sign follow by single char).
+    pattern = [x[0] for x in s[s.find("%"):].split("%") if x]
+    for p in pattern:
+        if not rules.has_key(p):
+            warn and do_warn("Unknown pattern %%%c is used in %s." % (p, where))
+        else:
+            if not rules[p]:
+                warn and do_warn("%%%c is not set but used in %s." % (p, where))
+            else:
+                s = s.replace("%%%c" % p, filter(rules[p]))
+    return s
 
 def safe_int(number, message):
     try:

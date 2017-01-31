@@ -106,7 +106,7 @@ def xtermset_enable():
             want_y = want_y - 1
         if jack_freedb.names_available:
             want_y = want_y + 1
-        want_y = max(want_y, 7)
+        want_y += 7 # for the help panel
         if (size_x, size_y) != (want_x, want_y):
             try:
                 os.system("xtermset -geom %dx%d" % (want_x, want_y))
@@ -173,7 +173,7 @@ def resize():
     if (x, y) != (None, None):
         size_x, size_y = x, y
 
-def enable():
+def enable(all = 1):
     global enabled
 
     if not initialized:
@@ -182,11 +182,12 @@ def enable():
     if enabled:
         return
 
-    xtermset_enable()
+    if all:
+        xtermset_enable()
     tmod.enable()
     enabled = 1
 
-def disable():
+def disable(all = 1):
     global enabled
     import os
 
@@ -194,5 +195,6 @@ def disable():
         return
 
     tmod.disable()
-    xtermset_disable()
+    if all:
+        xtermset_disable()
     enabled = 0

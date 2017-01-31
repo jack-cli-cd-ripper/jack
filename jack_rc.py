@@ -32,39 +32,45 @@ from jack_globals import *
 
 def read(file):
     read_rc = []
-
     try:
         f = open(file)
-    except:
+    except (IOError, OSError):
         return read_rc
-
     lineno = 0
-    while 1:
-        x = f.readline()
-        if not x:
-            break
+    for x in f.readlines():
+        lineno += 1
+        x = x.strip()
         opt = val = com = None
-        lineno = lineno + 1
-
-        x = string.strip(x)
-        x = string.split(x, "#", 1)
-        if len(x) > 1:
-            opt, com = x
+        if not x:
+            # also return empty lines so --save will honour them
+            pass
+        elif x.startswith("#"):
+            com = x[1:]
         else:
-            opt = x[0]
-        if opt and com:
-            opt = string.strip(opt)
-        if opt:
-            x = string.split(opt, ":", 1)
-            if len(x) > 1:
-                opt, val = x
-            else:
+            x = [i.strip() for i in x.split(":", 1)]
+            if len(x) < 2:
                 opt = x[0]
-        else:
-            opt = None
+            else:
+                opt, val = x
+                # check if there's a comment ridden in val
+                if "#" in val:
+                    quoted = []
+                    for i in range(len(val)):
+                        c = val[i]
+                        if c in ('"', "'") and (not i or val[i-1] != "\\"):
+                            if quoted and quoted[-1] == c:
+                                quoted.pop()
+                            else:
+                                quoted.append(c)
+                        elif c == "#" and not quoted:
+                            val, com = val[:i].strip(), val[i+1:]
+                            print com
+                            break
         read_rc.append([opt, val, com, lineno])
     version = get_version(read_rc)
-    if version != jack_version.prog_rcversion:
+    if not version:
+        warning("config file %s doesn't define jackrc-version." % file)
+    elif version != jack_version.prog_rcversion:
         warning("config file %s is of unknown version %s." % (file, `version`))
     return read_rc
 
@@ -80,10 +86,9 @@ def get_version(rc):
             return None
         if vers[0] != "jackrc-version":
             return None
-        ver = int(vers[1])
-        return ver
-    else:
-        return None
+        if vers[1].isdigit():
+            return int(vers[1])
+    return None
 
 def load(cf, file):
     rc = read(expand(file))

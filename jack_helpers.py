@@ -145,7 +145,7 @@ else:
         'cmd': "gogo %i %o -b %r",
         'vbr-cmd': "gogo %i %o -v %q",
         'otf-cmd': "gogo stdin %o -b %r",
-        'vbr-otf-cmd': "gogo stdin %o -v 4",
+        'vbr-otf-cmd': "gogo stdin %o -v %q",
         'status_blocksize': 160,
         'bitrate_factor': 1,
         'status_start': "%",
@@ -210,8 +210,8 @@ else:
     'flac': {
         'type': "encoder",
         'target': "flac",
-        'vbr-cmd': "flac -o %o %i",     
-        'vbr-otf-cmd': "flac -fr -fb -fc 2 -fp 16 -fs 44100 -o %o", 
+        'vbr-cmd': "flac -o %o %i",
+        'vbr-otf-cmd': "flac --channels 2 --bps 16 --sample-rate 44100 --force-raw-format --endian=big --sign=signed -o %o -",
         'status_blocksize': 160,
         'status_start': "%", 
         'percent_fkt': r"""
@@ -297,19 +297,38 @@ final_status = "[otf - done]"
 """,
         #'toc': 1,  # we can't generate correct freedb IDs with cdparanoia.
         'toc_cmd': "cdparanoia -d %d -Q 2>&1",
+# The output from cdparanoia which we parse looks like this:
+
+# cdparanoia III release 9.8 (March 23, 2001)
+# (C) 2001 Monty <monty@xiph.org> and Xiphophorus
+# ...
+# track        length               begin        copy pre ch
+# ===========================================================
+#   1.    13584 [03:01.09]        0 [00:00.00]    no   no  2
+#   2.    13769 [03:03.44]    13584 [03:01.09]    no   no  2
+# ...
+# TOTAL  121128 [26:55.03]    (audio only)
+
+# That is, we look for a line only consisting of === signs as the start,
+# for a line starting with "TOTAL" as the end, and take everything
+# inbetween (to be precise: the first number on each line)
         'toc_fkt': r"""
-while l:
+for l in p.readlines():
     l = string.rstrip(l)
-    if l and l[0:5] == "TOTAL":
+    if not l:
+        continue
+    if l.startswith("TOTAL"):
         start = 0
-    if l and l == '=' * (len(l)):
+    elif l == ('=' * len(l)):
         start = 1
-    elif l and start:
-        l = string.split(l, '.', 1)
-        num = int(l[0])
-        l = string.split(l[1])
-        erg.append([num, int(l[0]), int(l[2]), l[4] == 'OK', l[5] == 'yes', int(l[6]), 1, cf['_bitrate'], cf['_name'] % num])
-    l = p.readline()
+    elif start:
+        l = l.split('.', 1)
+        if l[0].lstrip().isdigit():
+            num = int(l[0])
+            l = l[1].split()
+            erg.append([num, int(l[0]), int(l[2]), l[4] == 'OK', l[5] == 'yes', int(l[6]), 1, cf['_bitrate'], cf['_name'] % num])
+        else:
+            warning("Cannot parse cdrecord TOC line: " + ". ".join(l))
 """,
     },
 
@@ -321,10 +340,23 @@ while l:
         'status_fkt': r"""
 tmp = string.split(i['buf'], "\r")
 if len(tmp) >= 2:
-    if string.find(tmp[-2], '%') != -1:
-        new_status = "ripping: " + string.strip(tmp[-2])
-    else:
+    tmp = tmp[-2].lstrip()
+    pct = tmp.find("%")
+    if pct == -1:
         new_status = "waiting..."
+    else:
+        # A normal line when it's ripping looks like this:
+        #   7%
+        # However, when an error occurs, it'll look something like this:
+        #   0%cdda2wav: Operation not permitted. Cannot send SCSI cmd via ioctl
+        info = tmp[:pct+1]
+        error = info + "cdda2wav:"
+        if tmp == info:
+            new_status = "ripping: " + info
+        elif tmp.startswith(error):
+            new_status = "Error: " + tmp[len(error):].lstrip()
+        else:
+            new_status = "Cannot parse status"
 else:
     new_status = "Cannot parse status"
 """,
@@ -350,7 +382,6 @@ while 1:
             ch = [ "none", "mono", "stereo", "three", "quad" ].index(ch)
             erg.append([num, length, start, copy, pre, ch, 1, cf['_bitrate'], cf['_name'] % (num + 1)])
 """,
-        'toc_cmd_old': "cdda2wav --no-infofile -D %D -J -v 35 2>&1",
         'toc_fkt_old': r"""
 new_c2w = 0
 new_toc1 = 0
@@ -497,6 +528,8 @@ if not os.path.exists(cf['_cd_device']):
     error("Device %s does not exist!" % cf['_cd_device'])
 if not os.access(cf['_cd_device'], os.R_OK):
     error("You don't have permission to access device %s!" % cf['_cd_device'])
+if not stat.S_ISBLK(os.stat(cf['_cd_device'])[stat.ST_MODE]):
+    error("Device %s is not a block device!" % cf['_cd_device'])
 try:
     device = cdrom.open(cf['_cd_device'])
     (first, last) = cdrom.toc_header(device)
@@ -511,7 +544,7 @@ for i in range(first, last + 1):
 device.close()
 toc.append(min * 60 * 75 + sec * 75 + frame)
 for i in range(first, last + 1):
-    erg.append([i, toc[i - first + 1] - toc[i - first], toc[i - first] - toc[0], 0, 0, 2, 1, cf['_bitrate'], cf['_name'] % i])
+    erg.append([i, toc[i - first + 1] - toc[i - first], toc[i - first] - MSF_OFFSET, 0, 0, 2, 1, cf['_bitrate'], cf['_name'] % i])
 """,
     }
 }

@@ -30,7 +30,7 @@ import jack_misc
 import jack_m3u
 
 from jack_init import ogg
-from jack_init import eyeD3
+from jack_init import eyed3
 from jack_init import flac
 from jack_globals import *
 
@@ -40,6 +40,30 @@ genretxt = None
 
 a_artist = None
 a_title = None
+
+
+def _set_id3_tag(mp3file, version, encoding, a_title, t_name, track_num, t_artist,
+                 genre, year, comment, play_count):
+    tag = eyed3.id3.Tag()
+    tag.parse(mp3file)
+    tag.album = a_title
+    tag.title = t_name
+    tag.track_num = track_num
+    tag.artist = t_artist
+
+    old_genre = tag.genre
+    if genre != -1:
+        tag.genre = genre
+    elif old_genre == None:
+        tag.genre = 255
+
+    if year != -1:
+        tag.release_date = year
+    if comment:
+        tag.comments.set(comment)
+    tag.play_count = play_count
+
+    tag.save(mp3file, version, encoding=encoding)
 
 def tag(freedb_rename):
     global a_artist, a_title
@@ -65,19 +89,21 @@ def tag(freedb_rename):
 
     if cf['_set_id3tag'] or freedb_rename:
         jack_m3u.init()
-        if len(track_names[0]) == 4:
-            # use freedb year and genre data if available
-            if cf['_id3_genre'] == -1:
-                cf['_id3_genre'] = track_names[0][3]
-            if cf['_id3_year'] == -1:
-                cf['_id3_year'] = track_names[0][2]
+        # use freedb year and genre data if available
+        if cf['_id3_year'] == -1 and len(track_names[0]) >= 3:
+            cf['_id3_year'] = track_names[0][2]
+        if cf['_id3_genre'] == -1 and len(track_names[0]) == 4:
+            cf['_id3_genre'] = track_names[0][3]
 
         print "Tagging",
         for i in jack_ripstuff.all_tracks_todo_sorted:
             sys.stdout.write(".") ; sys.stdout.flush()
             mp3name = i[NAME] + ext
             wavname = i[NAME] + ".wav"
-            t_artist = track_names[i[NUM]][0]
+            if track_names[i[NUM]][0]:
+                t_artist = track_names[i[NUM]][0]
+            else:
+                t_artist = a_artist
             t_name = track_names[i[NUM]][1]
             t_comm = ""
             if not cf['_only_dae'] and cf['_set_id3tag']:
@@ -97,90 +123,38 @@ def tag(freedb_rename):
                             t_comm = ""
                 if jack_helpers.helpers[cf['_encoder']]['target'] == "mp3":
                     if cf['_write_id3v2']:
-                        mp3file = file(mp3name, "rw")
-                        tag = eyeD3.Tag()
-                        tag.link(mp3file)
-                        tag.header.setVersion(eyeD3.ID3_V2_4)
-                        tag.setTextEncoding(eyeD3.UTF_8_ENCODING)
-                        tag.setAlbum(a_title)
-                        tag.setTitle(t_name)
-                        tag.setTrackNum((i[NUM],len(jack_ripstuff.all_tracks_orig)))
-                        tag.setTitle(t_name)
-                        if t_artist:
-                           tag.setArtist(t_artist)
-                        else:
-                            tag.setArtist(a_artist)
-                        if cf['_id3_genre'] != -1:
-                            tag.setGenre("(%d)" % (cf['_id3_genre']))
-                        if cf['_id3_year'] != -1:
-                            tag.setDate(cf['_id3_year'])
-                        tag.setPlayCount(int(i[LEN] * 1000.0 / 75 + 0.5))
-                        tag.update()
-                        mp3file.close()
+                        _set_id3_tag(
+                            mp3name, eyed3.id3.ID3_V2_4,  'utf-8', a_title,
+                            t_name, (i[NUM],len(jack_ripstuff.all_tracks_orig)),
+                            t_artist, cf['_id3_genre'], cf['_id3_year'], None,
+                            int(i[LEN] * 1000.0 / 75 + 0.5)
+                        )
                     if cf['_write_id3v1']:
-                        mp3file = file(mp3name, "rw")
-                        tag = eyeD3.Tag()
-                        tag.link(mp3file)
-
-                        tag.header.setVersion(eyeD3.ID3_V1_1)
-                        tag.setTextEncoding(eyeD3.LATIN1_ENCODING)
-                        old_genre = tag.getGenre()
-
-                        tag.setAlbum(a_title)
-                        if t_comm:
-                            tag.addComment(t_comm)
-                            tag.setTitle(t_name2)
-                        else:
-                            tag.setTitle(t_name)
-                        tag.setTrackNum((i[NUM],len(jack_ripstuff.all_tracks_orig)))
-                        tag.setTitle(t_name)
-                        if t_artist:
-                            tag.setArtist(t_artist)
-                        else:
-                            tag.setArtist(a_artist)
-                        if cf['_id3_genre'] != -1:
-                            tag.setGenre("(%d)" % (cf['_id3_genre']))
-                        elif old_genre == None:
-                            tag.setGenre("(255)") # unknown
-                        if cf['_id3_year'] != -1:
-                            tag.setDate(cf['_id3_year'])
-                        try:
-                            tag.update()
-                        except UnicodeEncodeError:
-                            if not cf['_write_id3v2']:
-                                print
-                                print "Track %02d contains data not supported by id3v1; please use --write-id3v2" % i[NUM]
-                        mp3file.close()
+                        # encoding ??
+                        _set_id3_tag(
+                            mp3name, eyed3.id3.ID3_V1_1,  'latin1',
+                            a_title, t_name,
+                            (i[NUM],len(jack_ripstuff.all_tracks_orig)),
+                            t_artist, cf['_id3_genre'], cf['_id3_year'], t_comm,
+                            int(i[LEN] * 1000.0 / 75 + 0.5)
+                        )
                 elif jack_helpers.helpers[cf['_encoder']]['target'] == "flac":
                     if flac:
-                        chain = flac.metadata.Chain()
-                        chain.read(mp3name)
-                        it = flac.metadata.Iterator()
-                        it.init(chain)
-                        while 1:
-                            if it.get_block_type() == flac.metadata.VORBIS_COMMENT:
-                                block = it.get_block()
-                                vc = flac.metadata.VorbisComment(block)
-                                break
-                            if not it.next():
-                                break
-                        if vc:
-                            vc.comments['ALBUM'] = a_title.encode("utf-8")
-                            vc.comments['TRACKNUMBER'] = `i[NUM]`
-                            vc.comments['TITLE'] = t_name.encode("utf-8")
-                            if t_artist:
-                                vc.comments['ARTIST'] = t_artist.encode("utf-8")
-                            else:
-                                vc.comments['ARTIST'] = a_artist.encode("utf-8")
-                            if cf['_id3_genre'] != -1:
-                                vc.comments['GENRE'] = id3genres[cf['_id3_genre']]
-                            if cf['_id3_year'] != -1:
-                                vc.comments['DATE'] = `cf['_id3_year']`
-                            chain.write(True, True)
+                        f = flac.FLAC(mp3name)
+                        if f.vc is None: f.add_vorbiscomment()
+                        f.vc['ALBUM'] = a_title
+                        f.vc['TRACKNUMBER'] = str(i[NUM])
+                        f.vc['TITLE'] = t_name
+                        f.vc['ARTIST'] = t_artist
+                        if cf['_id3_genre'] != -1:
+                            f.vc['GENRE'] = id3genres[cf['_id3_genre']]
+                        if cf['_id3_year'] != -1:
+                            f.vc['DATE'] = str(cf['_id3_year'])
+                        f.save()
                     else:
                         print
-                        print "Please install the pyflac module available at"
-                        print "http://www.sacredchao.net/quodlibet/wiki/Download"
+                        print "Please install the Mutagen module available at"
+                        print "http://www.sacredchao.net/quodlibet/wiki/Development/Mutagen"
                         print "Without it, you'll not be able to tag FLAC tracks."
                 elif jack_helpers.helpers[cf['_encoder']]['target'] == "ogg":
                     vf = ogg.vorbis.VorbisFile(mp3name)
@@ -189,26 +163,14 @@ def tag(freedb_rename):
                     oggi.add_tag('ALBUM', a_title.encode("utf-8"))
                     oggi.add_tag('TRACKNUMBER', `i[NUM]`)
                     oggi.add_tag('TITLE', t_name.encode("utf-8"))
-                    if t_artist:
-                        oggi.add_tag('ARTIST', t_artist.encode("utf-8"))
-                    else:
-                        oggi.add_tag('ARTIST', a_artist.encode("utf-8"))
+                    oggi.add_tag('ARTIST', t_artist.encode("utf-8"))
                     if cf['_id3_genre'] != -1:
                         oggi.add_tag('GENRE', id3genres[cf['_id3_genre']])
                     if cf['_id3_year'] != -1:
                         oggi.add_tag('DATE', `cf['_id3_year']`)
                     oggi.write_to(mp3name)
             if freedb_rename:
-                if t_artist:    # 'Various Artists'
-                    replacelist = (("%n", cf['_rename_num'] % i[NUM]), ("%a", t_artist), ("%t", t_name), ("%l", a_title), ("%y", `cf['_id3_year']`), ("%g", genretxt))
-                    newname = jack_misc.multi_replace(cf['_rename_fmt_va'], replacelist)
-                    
-                else:
-                    replacelist = (("%n", cf['_rename_num'] % i[NUM]), ("%a", a_artist), ("%t", t_name), ("%l", a_title))
-                    newname = jack_misc.multi_replace(cf['_rename_fmt'], replacelist)
-                exec("newname = newname" + cf['_char_filter'])
-                for char_i in range(len(cf['_unusable_chars'])):
-                    newname = string.replace(newname, cf['_unusable_chars'][char_i], cf['_replacement_chars'][char_i])
+                newname = jack_freedb.filenames[i[NUM]]
                 try:
                     i[NAME] = unicode(i[NAME], "utf-8")
                 except UnicodeDecodeError:
@@ -267,4 +229,3 @@ def tag(freedb_rename):
     if jack_m3u.wavm3u:
         os.environ["JACK_JUST_RIPPED"] = "\n".join(jack_m3u.wavm3u)
     jack_m3u.write()
-

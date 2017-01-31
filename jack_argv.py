@@ -63,10 +63,10 @@ While Jack is running, press q or Q to quit,
     else:
         print "These are the most common options. For a complete list, run jack --longhelp"
 
-def get_next(argv, i, extra_arg = None):
+def get_next(argv, i, extra_arg = None, allow_equal = 1):
     if extra_arg != None:
         return i, extra_arg
-    elif argv[i].find("=") > 0:
+    elif allow_equal and argv[i].find("=") > 0:
         return i, argv[i].split("=", 1)[1]
     else:
         i = i + 1
@@ -119,10 +119,22 @@ def parse_option(cf, argv, i, option, alt_arg, origin="argv"):
     if ty == types.ListType:
         l = []
         if origin == "argv":
+            valid_short_opts = [cf[key]['short'] for key in cf.keys() if cf[key].has_key('short')]
+            valid_long_opts = [cf[key]['long'] for key in cf.keys() if cf[key].has_key('long')]
             while 1:
-                i, data = get_next(argv, i, alt_arg)
+                i, data = get_next(argv, i, alt_arg, 0)
                 if data != None:
                     if data == ";":
+                        break
+                    # The end of a list has to be signaled with a semicolon but
+                    # many users forget this; therefore, check whether the next list
+                    # entry is a valid option, and if so, assume the end of the list
+                    # has been reached.
+                    if data.startswith("--") and data[2:].split('=', 1)[0] in valid_long_opts:
+                        i -= 1
+                        break
+                    if data.startswith("-") and len(data) == 2 and data[1] in valid_short_opts:
+                        i -= 1
                         break
                     l.append(data)
                     if alt_arg: # only one option in --opt=val form
@@ -136,7 +148,7 @@ def parse_option(cf, argv, i, option, alt_arg, origin="argv"):
         if l and type(l) == types.ListType:
             return i, l
         else:
-            return None, "option `%s' takes a non-empty list (which may be terminated by \";\")" % `option`
+            return None, "option `%s' takes a non-empty list (which may be terminated by \";\")" % option
     # default
     return None, "unknown argument type for option `%s'." % option
             

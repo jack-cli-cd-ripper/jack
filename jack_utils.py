@@ -27,6 +27,7 @@ import jack_functions
 import jack_globals
 import jack_misc
 import jack_term
+import jack_config
 
 from jack_globals import *
 
@@ -94,7 +95,7 @@ def rename_path(old, new):
 
     last_of_new = new[-1]
     if os.path.exists(last_of_new):
-        error("destination directory already exists: " + last_of_new)
+        error("destination directory already exists: " + os.path.join(*[cf['_base_dir']] + new))
     try:
         os.rename(cwd, last_of_new)
     except OSError:
@@ -167,22 +168,24 @@ def unusable_charmap(x):
     
 def mkdirname(names, template):
     "generate mkdir-able directory name(s)"
-    dirs = template.split(os.path.sep)
-        
-    dirs2 = []
-    for i in dirs:
-        replace_list = (("%a", names[0][0].encode(cf['_charset'], "replace")),
-                        ("%l", names[0][1].encode(cf['_charset'], "replace")),
-                        ("%y", `cf['_id3_year']`), ("%g", cf['_id3_genre_txt']))
-        x = jack_misc.multi_replace(i, replace_list, unusable_charmap)
+    year = genretxt = None
+    if cf['_id3_year'] > 0:
+        year = `cf['_id3_year']`
+    if cf['_id3_genre'] != -1:
+        genretxt = id3genres[cf['_id3_genre']]
+    replacelist = {"a": names[0][0].encode(cf['_charset'], "replace"),
+                   "l": names[0][1].encode(cf['_charset'], "replace"),
+                   "y": year, "g": genretxt}
+    # Process substitution patterns from dir_template
+    subst = template.split(os.path.sep)
+    dirs = []
+    for i in subst:
+        x = jack_misc.multi_replace(i, replacelist, "dir_template", unusable_charmap, warn = 2)
         exec("x = x" + cf['_char_filter'])
-        dirs2.append(x)
-    if cf['_append_year'] and len(`cf['_id3_year']`) == 4:  # Y10K bug!
-        dirs2[-1] = dirs2[-1] + jack_misc.multi_replace(cf['_append_year'], replace_list)
-    name = ""
-    for i in dirs2:
-        name = os.path.join(name, i)
-    return dirs2, name
+        dirs.append(x)
+    if cf['_append_year'] and year:
+        dirs[-1] += jack_misc.multi_replace(cf['_append_year'], replacelist, "append-year", warn = 1)
+    return dirs, os.path.join(*dirs)
 
 def split_dirname(name):
     "split path in components"
@@ -206,6 +209,13 @@ def split_path(path, num):
         new_path.append(end)
     new_path.append(base)
     new_path.reverse()
+
+def in_path(file):
+    "check if a file is an executable in PATH"
+    for path in os.environ.get("PATH", "").split(os.path.pathsep):
+        p = os.path.join(path, file)
+        if (os.path.isfile(p) and os.access(p, os.X_OK)): return True
+    return False
 
 def ex_edit(file):
     editor = "/usr/bin/sensible-editor"

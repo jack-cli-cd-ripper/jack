@@ -22,11 +22,19 @@ import os
 import string
 import jack_misc
 import locale
+import sys
 
 import jack_version
 from jack_globals import *
 
 # this must be filled manually (done in main)
+
+# we need a working locale
+try:
+    locale.getpreferredencoding()
+except locale.Error, e:
+    print "Locale problem:", e
+    sys.exit(1)
 
 # config space with attributes
 
@@ -63,12 +71,6 @@ cf = jack_misc.dict2({
         'val': "/dev/cdrom",
         'usage': "use which device for ripping",
         'long': 'device',
-        },
-    'gen_device': {
-        'type': types.StringType,
-        'val': None,
-        'doc': "cdda2wav may need the scsi generic device",
-        'long': 'AUTO',
         },
     'encoder': {
         'type': types.StringType,
@@ -164,8 +166,8 @@ cf = jack_misc.dict2({
         },
     'append_year': {
         'type': types.StringType,
-        'val': " (%y)",
-        'usage': "if known, append the year to dir",
+        'val': "",
+        'usage': "append this string to the directory name",
         'long': 'AUTO',
         },
     'dir_template': {
@@ -175,7 +177,8 @@ cf = jack_misc.dict2({
         'doc': """specify how the resulting files are named:
     %a: artist
     %l: album title
-    %g: album genre - individual track genres are unsupported""",
+    %g: album genre - individual track genres are unsupported
+    %y: album release year - individual track years are unsupported""",
         'long': 'AUTO',
         },
     'char_filter': {
@@ -522,6 +525,12 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
         'type': 'toggle',
         'val': 0,
         'usage': "continue without freedb data if query fails",
+        'long': 'AUTO',
+        },
+    'edit_cddb': {
+        # For backwards compatibility only, use edit_freedb instead!
+        'type': 'toggle',
+        'val': 0,
         'long': 'AUTO',
         },
     'edit_freedb': {

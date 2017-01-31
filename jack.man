@@ -23,8 +23,8 @@ Jack \- rip and encode CDs with one command
 .SH DESCRIPTION
 .B Jack 
 transforms your audio-CDs to FLAC, MP3 or Ogg Vorbis files. It uses several
-helper programs in order to achieve things like ripping, encoding and
-ID3-tagging.  Ripping is either done via
+helper programs in order to achieve functions such as ripping, encoding and,
+tagging files with meta information.  Ripping is either done via
 .B cdparanoia
 (in which case the ripping status is displayed by Jack as well) or
 .B cdda2wav.
@@ -33,11 +33,10 @@ Jack works with several encoders, namely
 and
 .B xing.
 Any time during operation (and even when everything is finished and
-the original CD lost) you can let Jack look up the track names at 
+the original CD lost) you can let Jack look up the track names at
 .B freedb.org
-and rename the tracks accordingly. ID3-tagging of MP3s (or insertion
-of equivalent comment fields in Ogg Vorbis files) is performed
-as well. 
+and rename the tracks accordingly. Tagging of audio files with meta
+information about artist, track title, etc. is performed as well.
 .PP
 If no freedb-lookup has been performed, Jack drops all files in a
 directory
@@ -48,11 +47,16 @@ representing the CD's CDDB/FreeDB disc ID.
 This directory is renamed by Jack when the appropriate information is known.
 .PP
 Most options like ripper, encoder, preferred FreeDB-Server, directory
-and MP3-filename format, etc. can be user defined by changing the
+and sound file format, etc. can be user defined by changing the
 defaults in 
 .B /etc/jackrc
 or by saving them to
 .BR ~/.jack3rc .
+Additional rippers, encoders and FreeDB servers can be defined by users
+through the help of a plug-in directory (as defined by the
+.BR plugin_path
+option which defaults to
+.BR ~/.jack_plugins ).
 .PP
 While Jack is running, these keyboard commands are available:
 .RS
@@ -102,8 +106,9 @@ Example:
 .PP
 Jack understands the following options:
 .TP
-.B \-\-append-year=bool
-if known, append the year to dir in the format " (%y)"
+.B \-\-append-year string
+append this string to the directory name (useful with %y to add the year
+an album was released)
 .TP
 .B \-b, \-\-bitrate int
 target bitrate (in kbit/s, default is 160).
@@ -148,15 +153,15 @@ want to do a FreeDB query, e.g. while another jack is running.
 .TP
 .B \-\-edit-freedb
 open an editor to change the CDDB information which has been obtained
-previously (only useful with -Q).
+previously (only useful with \-Q).
 .TP
-.B \-\-encoder-name, -E string
+.B \-\-encoder-name, \-E string
 use which encoder (default "oggenc")
 .TP
 .B \-e, \-\-encoders int
 encode how many files in parallel. If you have a SMP machine or
 simply want to stress your system, you can have Jack encode
-several files at once.
+several files at once (default 1).
 .TP
 .B \-x, \-\-exec
 run predefined command when finished.
@@ -191,15 +196,15 @@ do not have a toc-file (or don't specify a toc-file),
 the TOC is read from the CD itself.
 .TP
 .B \-g, \-\-guess-toc list
-make up a TOC from the MP3 file given in mp3_files. Format is 
-.B track_01.mp3 ... track_nn.mp3 ;
+make up a TOC from the list of sound file given. The format is
+.B track_01.ogg ... track_nn.ogg ;
 Note that the trailing "
 .B ;
 " is only necessary if you want to
 append more options to your command line.
-You can use it to do a FreeDB query based on
-MP3s alone - no need for the CD. Very useful if you have no idea
-which CD the MP3s are from. The MP3s must be given in the same
+You can use it to do a FreeDB query based on your sound files
+alone - no need for the CD. Very useful if you have no idea
+which CD the songs are from. The songs must be given in the same
 order as they were on their CD. The generated TOC file is
 similar, but not identical to the TOC of the CD - do not submit
 these!
@@ -208,7 +213,8 @@ these!
 set ID3 genre. Use 'help' to get a list of all known genres. (You can also specify the ID3v1 genre as an int)
 .TP
 .B \-Y, \-\-id3-year int
-set ID3 year.
+set the year of the album (the term ID3 comes from MP3 but this option also
+works with other audio formats, such as OGG Vorbis and FLAC)
 .TP
 .B \-h, \-\-help
 Show summary of options.
@@ -251,16 +257,13 @@ This is off by default.
 On-the-fly operation. Only on some encoders/rippers. Do not
 create WAVs, pipe ripper output through the encoder. Default is
 no as it's a torture for the CDROM drive.
-.TP
-.B \-o, \-\-overwrite=bool
-overwrite existing files.
 .\" .TP
 .\" .B \-\-playorder
 .\" use the FreeDB PLAYORDER field to limit the tracks to
 .\" rip (non-functional, sorry)
 .TP
 .B \-\-quality int
-vbr encoding quality. -1 is lowest, 10 highest (default 6). You can also specify a float.
+vbr encoding quality. \-1 is lowest, 10 highest (default 6). You can also specify a float.
 .TP
 .B \-q, \-\-query
 do FreeDB query when all is done. This is useful if Jack was previously
@@ -286,7 +289,7 @@ Default is 99 which will read the whole CD, provided there is
 enough disk space.
 .TP
 .B \-\-remove-files
-have Jack remove its temp jack*-files.
+have Jack remove its temp jack*\-files.
 Be careful - don't delete them too early!
 .TP
 .B \-R, \-\-rename
@@ -296,7 +299,7 @@ creates a blank FreeDB entry file (except if
 is used, 
 then the file is queried from your FreeDB server). If you have
 changed its contents (e.g. because the CD was unknown to FreeDB)
-and want to rename and tag your MP3s accordingly, use this option.
+and want to rename and tag your audio files accordingly, use this option.
 Give all other needed options too, like
 .B \-t
 , 
@@ -377,7 +380,7 @@ default is to process the whole CD.
 undo file renaming and exit. If you don't like how Jack renamed
 your files, use this option to restore the previous state.
 Several levels of undo are possible. Note
-that ID3 tags are not restored.
+that meta information tags are not restored.
 .TP
 .B \-\-unusable-chars list
 characters which can't be used in filenames (default "/").
@@ -394,7 +397,7 @@ show the help screen while running.
 .TP
 .B \-v, \-\-vbr=bool
 Generate variable bitrate files, only on encoders which support
-this. Default is no.
+this. Default is yes.
 .TP
 .B \-\-various=bool
 when parsing FreeDB data, Jack assumes that if the disc\'s artist
@@ -420,6 +423,13 @@ write an id3v2 tag to the encoded file.
 .TP
 .B \-\-write-m3u
 create a playlist in .m3u format. This has bugs, don't rely on it.
+.SH CONFIG FILE OPTIONS
+In addition the the command line options, there are some options that
+can only be set directly in the config file.
+.TP
+.B freedb_dir
+all FreeDB queries will be done in this (local) directory; failed local
+queries will be done via the network.  Example: /var/spool/freedb
 .SH EXAMPLES
 Insert a CD, fire up jack:
 .RS
@@ -431,7 +441,7 @@ the following files on your HD: track_01.mp3, track_02.mp3, ...,
 track_nn.mp3 plus jack.toc, jack.freedb, jack.progress. The last three are
 used to store the state jack is in so it can resume work when interrupted.
 .PP
-Jack will create a directory called jack-xxxxxxxx for you, there it
+Jack will create a directory called jack\-xxxxxxxx for you, there it
 stores all the file for the CD whose id is xxxxxxxx. After a FreeDB query
 this directory is renamed to something human readable, like "Artist -
 Title".
@@ -444,7 +454,7 @@ jack
 .PP
 Now let's try a FreeDB query:
 .RS
-jack -q
+jack \-q
 .RE
 If the query is successful the files will be renamed to something more readable
 and will be tagged accordingly using ID3 or Vorbis tags.  The file jack.freedb
@@ -467,7 +477,7 @@ together with
 .B replacement_chars.
 For example,
 .RS
-jack -Q --rename-fmt "%n-%t" --unusable-chars A I \; --replacement-chars a i \;
+jack \-Q \-\-rename-fmt "%n-%t" \-\-unusable-chars A I \; \-\-replacement-chars a i \;
 .RE
 will query the FreeDB server, rip and encode all tracks of the CD and save
 the files in a format which will contain the track number and the title.
@@ -492,14 +502,42 @@ char_filter:.lower()
 .PP
 All in one: query, rip, encode, cleanup:
 .RS
-jack -Q --remove-files
+jack \-Q \-\-remove-files
 .RE
 .PP
 Editing / normalizing / stripping the WAV files before encoding:
 .RS
-jack -O --remove-files ; gnoise *wav ; jack -g *wav ; jack
+jack \-O \-D \-\-remove-files ; gnoise *wav ; jack \-g *wav ; jack
 .RE
 Just replace gnoise by the operation you'd like to perform.
+.SH PLUG-INS
+Additional rippers, encoders and FreeDB servers currently not known by jack
+can be defined using jack's plug-in mechanism.  Plug-ins have to be put in
+the
+.BR ~/.jack_plugins
+directory (or the path defined by the
+.BR plugin_path
+option).  The plug-ins are simple Python scripts which define a hash with
+the values for your ripper, encoder or FreeDB server.  For rippers and
+encoders, the hash
+.BR plugin_helpers
+has to be defined while additional FreeDB servers are specified in
+.BR plugin_freedb_servers .
+Both expect another hash whose names corresponds to the entry you want to
+add (prefixed by
+.BR plugin_ )
+and have to define certain values.  Two examples are provided,
+.BR jack_plugin_cddb.py
+(to define a new FreeDB server) and
+.BR jack_plugin_lame.py
+(to show how rippers and encoders can be defined).  After defining
+plug-ins, you have to manually select them by specifying the ripper,
+encoder, or CDDB server.  An example would be:
+.RS
+jack \-\-encoder-name plugin_lame \-\-ripper plugin_foo \-\-server plugin_cddb
+.RE
+Plug-ins can also be used to define your own rippers and encoders which
+uses different options than those used by default by jack.
 .SH ENVIRONMENT VARIABLES
 There are several environment variables which can be used in jack's exec
 hooks:

@@ -37,8 +37,10 @@ import jack_misc
 import jack_tag
 
 from jack_globals import *
+from jack_init import ogg
+from jack_init import flac
 
-tracknum = None
+global tracknum
 datatracks = []
 
 def find_workdir():
@@ -58,16 +60,24 @@ def find_workdir():
                 jack_ripstuff.all_tracks = []
             else:
                 if cf['_image_toc_file']:
+                    # put the absolute path in the variable since we'll change cwd soon
+                    cf['_image_toc_file'] = os.path.abspath(cf['_image_toc_file'])
                     jack_ripstuff.all_tracks, dummy, dummy = jack_functions.cdrdao_gettoc(cf['_image_toc_file'])
                 else:
+                    if cf['_image_file']:
+                        warning("No TOC file for image '%s' specified, reading TOC from CD device." % cf['_image_file'])
+                        cf['_image_file'] = os.path.abspath(cf['_image_file'])
                     jack_ripstuff.all_tracks = jack_functions.gettoc(cf['_toc_prog'])
                     toc_just_read = 1
-                    # check that the generic device is usable, too
-                    if cf['_gen_device'] and not os.access(cf['_gen_device'], os.R_OK | os.W_OK):
-                        warning(r"""could not open generic device %s for reading and writing.""" % cf['_gen_device'])
 
             if cf['_scan_dirs']:
                 dirs = [os.getcwd()]
+                # Also scan base_dir since it's not guaranteed that users
+                # run jack in base_dir
+                if cf['_base_dir']:
+                    cf['_base_dir'] = expand(cf['_base_dir'])
+                    if os.path.exists(cf['_base_dir']) and cf['_base_dir'] not in dirs:
+                        dirs.append(cf['_base_dir'])
             else:
                 dirs = cf['_searchdirs']
 
@@ -107,7 +117,7 @@ def find_workdir():
                         unique_dirs.append(jack_dirs[i])
                 for i in unique_dirs:
                     jack_ripstuff.all_tracks, dummy, track1_offset = jack_functions.cdrdao_gettoc(os.path.join(i, cf['_toc_file']))
-                    err, jack_tag.track_names, jack_tag.locale_names, cd_id, revision = freedb_names(jack_freedb.freedb_id(jack_ripstuff.all_tracks), jack_ripstuff.all_tracks,  os.path.join(i, cf['_freedb_form_file']), verb = 0, warn = 0)
+                    err, jack_tag.track_names, jack_tag.locale_names, cd_id, revision = freedb_names(jack_freedb.freedb_id(jack_ripstuff.all_tracks), jack_ripstuff.all_tracks, jack_ripstuff.all_tracks, os.path.join(i, cf['_freedb_form_file']), verb = 0, warn = 0)
                     if err or cf['_force']:# this means freedb data is not there yet
                         info("matching dir found: %d" % i)
                         pid = os.fork()
@@ -204,8 +214,9 @@ def read_toc_file():
         is_submittable = 1
     return is_submittable, track1_offset
 
-def filter_tracks(toc_just_read):
+def filter_tracks(toc_just_read, status):
     "filter out data tracks"
+    global datatracks
 
     if toc_just_read and jack_helpers.helpers[cf['_ripper']].has_key("toc_cmd") and cf['_ripper'] != cf['_toc_prog']:
         ripper_tracks = jack_functions.gettoc(cf['_ripper'])
@@ -217,25 +228,24 @@ def filter_tracks(toc_just_read):
                         # "NUM LEN START COPY PRE CH" (not: "RIP RATE NAME")
                         if ripper_tracks[rtn][j] != jack_ripstuff.all_tracks[i][j]:
                             jack_functions.progress(i + 1, "patch", "%s %d -> %d" % (fields[j], jack_ripstuff.all_tracks[i][j], ripper_tracks[rtn][j]))
+                            jack_ripstuff.all_tracks[i][j] = ripper_tracks[rtn][j]
                             debug("Track %02d %s" % (i + 1, fields[j]) + `jack_ripstuff.all_tracks[i][j]` + " != " + `ripper_tracks[rtn][j]` + " (trusting %s; to the right)" % cf['_ripper'])
                 else:
                     jack_functions.progress(i + 1, "off", "non-audio")
                     datatracks.append(i + 1)
                     info("Track %02d not found by %s. Treated as non-audio." % (i + 1, cf['_ripper']))
-        
+    if not toc_just_read:
+        datatracks += [x for x in status.keys() if status[x]["off"] and status[x]["off"] == ["non-audio"]]
 
 def gen_todo():
     "parse tracks from argv, generate todo"
-    global tracknum
-
-    tracknum = {}
-    for i in jack_ripstuff.all_tracks:
-        tracknum[i[NUM]] = i
 
     if not cf['_tracks'] and not jack_playorder.order:
         todo = []
         for i in jack_ripstuff.all_tracks:
-            if i[CH] == 2:
+            if i[NUM] in datatracks:
+                pass
+            elif i[CH] == 2:
                 todo.append(i)
             else:
                 info("can't handle non audio track %i" % i[NUM])
@@ -326,7 +336,7 @@ def init_status():
     status['all']['id3_year'] = ["-1",]
     return status
 
-def update_progress(todo):
+def update_progress(status, todo):
     ext = jack_targets.targets[jack_helpers.helpers[cf['_encoder']]['target']]['file_extension']
     "update progress file at user's request (operation mode)"
 
@@ -339,12 +349,19 @@ def update_progress(todo):
                     jack_functions.progress(num, "dae", status[num]['dae'])
             if not status[num]['enc']:
                 if os.path.exists(i[NAME] + ext):
-                    if ext == ".mp3":
+                    if ext.upper() == ".MP3":
                         x = jack_mp3.mp3format(i[NAME] + ext)
                         temp_rate = x['bitrate']
-                    elif ext == ".ogg":
+                    elif ext.upper() == ".OGG" and ogg:
                         x = ogg.vorbis.VorbisFile(i[NAME] + ext)
                         temp_rate = int(x.raw_total(0) * 8 / x.time_total(0) / 1000 + 0.5)
+                    elif ext.upper() == ".FLAC" and flac:
+                        f = flac.FLAC(filename + ext)
+                        size = os.path.getsize(filename + ext)
+                        if f.info and size:
+                            temp_rate = int(size * 8 * f.info.sample_rate / f.info.total_samples / 1000)
+                        else:
+                            temp_rate = 0
                     else:
                         error("don't know how to handle %s files." % ext)
                     status[num]['enc'] = `temp_rate` + cf['_progr_sep'] + "[simulated]"
@@ -398,7 +415,7 @@ def read_progress(status, todo):
                 if status[i]['names'][-1] == names[0]:
                     status[i]['names'].append(names[1])
             if type(i) == types.IntType:
-                tracknum[i][NAME] = status[i]['names'][-1]
+                tracknum[i][NAME] = unicode(status[i]['names'][-1], "utf-8", "replace").encode(cf['_charset'], "replace")
         del status[i]['ren']
 
     # status info for the whole CD is treated separately
@@ -430,8 +447,6 @@ def read_progress(status, todo):
                     error("illegal patch %s. " % j, + "Track %02d: %s is %d" % (i, p_what, todo[jack_utils.has_track(todo, i)][fields.index(p_what)]))
 
         if status[i]['off']:
-            if jack_utils.has_track(todo, i) >= 0:
-                del todo[jack_utils.has_track(todo, i)]
             if jack_utils.has_track(jack_ripstuff.all_tracks_todo_sorted, i) >= 0:
                 del jack_ripstuff.all_tracks_todo_sorted[jack_utils.has_track(jack_ripstuff.all_tracks_todo_sorted, i)]
 
@@ -461,31 +476,36 @@ def read_progress(status, todo):
 
     return status
 
-def freedb_submit():
+def freedb_submit(cat = None):
     "submit freedb data on user's request"
     if not is_submittable:
         error("can't submit in current state, please fix jack.freedb")
 
-    err, jack_tag.track_names, jack_tag.locale_names, cd_id, revision = jack_freedb.freedb_names(jack_freedb.freedb_id(jack_ripstuff.all_tracks), jack_ripstuff.all_tracks, cf['_freedb_form_file'], verb = 1)
+    err, jack_tag.track_names, jack_tag.locale_names, cd_id, revision = jack_freedb.freedb_names(jack_freedb.freedb_id(jack_ripstuff.all_tracks), jack_ripstuff.all_tracks, jack_ripstuff.all_tracks, cf['_freedb_form_file'], verb = 1)
     if err:
         error("invalid freedb file")
     else:
         if cf['_freedb_mailsubmit']:
-            jack_freedb.do_freedb_mailsubmit(cf['_freedb_form_file'], cd_id)
+            jack_freedb.do_freedb_mailsubmit(cf['_freedb_form_file'], cd_id, cat)
         else:
-            jack_freedb.do_freedb_submit(cf['_freedb_form_file'], cd_id)
+            jack_freedb.do_freedb_submit(cf['_freedb_form_file'], cd_id, cat)
 
     ### (9) do query on start
 
-def query_on_start():
+def query_on_start(todo):
     info("querying...")
     if jack_freedb.freedb_query(jack_freedb.freedb_id(jack_ripstuff.all_tracks), jack_ripstuff.all_tracks, cf['_freedb_form_file']):
         if cf['_cont_failed_query']:
             
-            x = raw_input("\nfreedb search failed, continue? ") + "x"
-            if string.upper(x[0]) != "Y":
+            x = raw_input("\nfreedb search failed, continue? (y/N) ") + "x"
+            if not x or x[0].upper() != "Y":
                 sys.exit(0)
-            cf['_query_on_start'] = 0
+            if not cf['_edit_freedb']:
+                x = raw_input("\nDo you want to edit the freedb data?  (y/N) ") + "x"
+                if x and x[0].upper() == "Y":
+                    cf['_edit_freedb'] = 1
+                else:
+                    cf['_query_on_start'] = 0
         else:
             jack_display.exit()
 
@@ -514,16 +534,24 @@ def query_on_start():
                     print
                     print pdiff
                     x = raw_input("Would you like to submit these changes to the FreeDB server? (y/N) ")
-                    if string.upper(x[0]) == "Y":
+                    if x and x[0].upper() == "Y":
                         jack_freedb.update_revision(file)
-                        freedb_submit()
+                        freedb_submit(jack_progress.status_all.get('freedb_cat', None))
 
     if cf['_query_on_start']:
-        err, jack_tag.track_names, jack_tag.locale_names, freedb_rename, revision = jack_freedb.interpret_db_file(jack_ripstuff.all_tracks, cf['_freedb_form_file'], verb = cf['_query_on_start'], dirs = 1)
+        err, jack_tag.track_names, jack_tag.locale_names, freedb_rename, revision = jack_freedb.interpret_db_file(jack_ripstuff.all_tracks, todo, cf['_freedb_form_file'], verb = cf['_query_on_start'], dirs = 1)
         if err:
             error("query on start failed to give a good freedb file, aborting.")
     else:
-        err, jack_tag.track_names, jack_tag.locale_names, freedb_rename, revision = jack_freedb.interpret_db_file(jack_ripstuff.all_tracks, cf['_freedb_form_file'], verb = cf['_query_on_start'], warn = cf['_query_on_start'])
+        err, jack_tag.track_names, jack_tag.locale_names, freedb_rename, revision = jack_freedb.interpret_db_file(jack_ripstuff.all_tracks, todo, cf['_freedb_form_file'], verb = cf['_query_on_start'], warn = cf['_query_on_start'])
+        # If the FreeDB query failed and the FreeDB data cannot be parsed,
+        # don't tag the files.  However, if the FreeDB data can be parsed
+        # even though the query failed assume that the query worked and
+        # do the tagging (the user might have edited the file by hand).
+        if cf['_cont_failed_query'] and err:
+            cf['_set_id3tag'] = 0
+        else:
+            cf['_query_on_start'] = 1
     return freedb_rename
 
 def undo_rename(status, todo):
@@ -748,11 +776,11 @@ def remove_files(remove_q):
         print "/\\" * 40
         for i in remove_q:
             print i
-        x = raw_input("These files will be deleted, continue? ") + "x"
+        x = raw_input("These files will be deleted, continue? (y/N) ") + "x"
         if cf['_force']:
             info("(forced)")
         else:
-            if string.upper(x[0]) != "Y":
+            if not x or x[0].upper() != "Y":
                 sys.exit(0)
 
         for i in remove_q:

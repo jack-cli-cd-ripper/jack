@@ -16,11 +16,12 @@
 ### along with this program; if not, write to the Free Software
 ### Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+import os
 import string
 import sys
-import os
-from jack_globals import *
+
 from jack_generic import *
+from jack_globals import *
 
 try:
     from fcntl import F_SETFL
@@ -33,7 +34,7 @@ except:
     from FCNTL import O_NONBLOCK
 
 try:
-    from eyeD3 import eyeD3
+    import eyed3.id3
 except:
     print "Please install the eyeD3 module available from http://eyed3.nicfit.net/"
     sys.exit(1)
@@ -56,13 +57,10 @@ except:
 try:
     import ogg.vorbis
 except:
-    class dummy_ogg:
-        def __init__(self):
-            warning("ogg module not installed, ogg support disabled")
-    ogg = dummy_ogg()
+    warning("ogg module not installed, ogg support disabled")
+    ogg = None
 
 try:
-    import flac.metadata
+    import mutagen.flac as flac
 except ImportError:
     flac = None
-

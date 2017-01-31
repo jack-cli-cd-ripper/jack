@@ -33,11 +33,11 @@ from jack_globals import *
 enabled = None
 
 try:
-    from jack_curses import endwin, resizeterm, A_REVERSE, newwin, newpad, initscr, noecho, cbreak, echo, nocbreak
+    from jack_curses import endwin, resizeterm, A_REVERSE, newwin, newpad, initscr, noecho, cbreak, echo, nocbreak, error
 except ImportError:
     warning("jack_curses module not found, trying normal curses...")
     try:
-        from curses import endwin, A_REVERSE, newwin, newpad, initscr, noecho, cbreak, echo, nocbreak
+        from curses import endwin, A_REVERSE, newwin, newpad, initscr, noecho, cbreak, echo, nocbreak, error
         def resizeterm(y, x):
             pass
     except ImportError:
@@ -255,11 +255,17 @@ def dae_stat_upd(num, string, reverse=-1):
         front = jack_ripstuff.printable_names[num] + ": " + jack_status.dae_status[num][:6]
         middle = jack_status.dae_status[num][6:split_point]
         end = jack_status.dae_status[num][split_point:] + " " + jack_status.enc_status[num]
-        status_pad.addstr(map_track_num[num], 0, front)
-        status_pad.addstr(map_track_num[num], len(front), middle, A_REVERSE)
-        status_pad.addstr(map_track_num[num], len(front + middle), end)
+        try:
+            status_pad.addstr(map_track_num[num], 0, front)
+            status_pad.addstr(map_track_num[num], len(front), middle, A_REVERSE)
+            status_pad.addstr(map_track_num[num], len(front + middle), end)
+        except error:
+            pass
     else:
-        status_pad.addstr(map_track_num[num], 0, (jack_ripstuff.printable_names[num] + ": " + jack_status.dae_status[num] + " " + jack_status.enc_status[num]))
+        try:
+            status_pad.addstr(map_track_num[num], 0, (jack_ripstuff.printable_names[num] + ": " + jack_status.dae_status[num] + " " + jack_status.enc_status[num]))
+        except error:
+            pass
 
     dummy = """
     if ripper == "cdparanoia" and track in dae_tracks or (track in enc_queue and track not in mp3s_done):
