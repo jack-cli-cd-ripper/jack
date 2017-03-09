@@ -53,7 +53,8 @@ it'll run out of the box, you need to install additional software.
 
 ## Authors and Copyrights
 
-Jack is Free Libre Open Source Software distributed through the GNU-GPL.
+Jack is Free Libre Open Source Software distributed under the GNU General Public
+License version 2, or (at your option) any later version.
 
 This repository is the new home of the project. The development and maintenance
 of Jack has been taken over by longtime faithful users of Jack. This has been
