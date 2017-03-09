@@ -12,20 +12,28 @@ like it.
 
 Rip, encode, tag and put all metadata from CDDB in the track files:
 
-    $ jack --query
+```shell
+$ jack --query
+```
 
 Write, augment or fix metadata in the track files:
 
-    $ vim jack.freedb
-    $ jack --rename
+```shell
+$ vim jack.freedb
+$ jack --rename
+```
 
 Publish the augmented/fixed metadata to CDDB:
 
-    $ jack --submit
+```shell
+$ jack --submit
+```
 
 Use to save frequently uses options to your `~/.jack3rc` configuration file:
 
-    $ jack --encoder-name=flac --save
+```shell
+$ jack --encoder-name=flac --save
+```
 
 
 ## Installation
