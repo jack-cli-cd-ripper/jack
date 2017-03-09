@@ -65,8 +65,9 @@ the code was hosted in SourceForge.
 
 Jack has first been developed by the following authors, be they praised:
 
-* Copyright (C) 1999-2004 Arne Zellentin <zarne@users.sf.net>, for the Jack code
-* Copyright (C) Michael Banck <mbanck@debian.org>, for all the Debian patches
+* Copyright (C) 1999-2005 Arne Zellentin <zarne@users.sf.net>, for the Jack code
+* Copyright (C) 2002-2016 Martin Michlmayr <tbm@debian.org>, Michael Banck
+  <mbanck@debian.org>, for all the Debian patches
 
 
 ## Contributions
