@@ -2,7 +2,12 @@
 
 """Setup script for the jack module distribution."""
 
+import os
+
 from distutils.core import setup, Extension
+
+
+basepath = os.path.dirname(__file__)
 
 setup(  # Distribution meta-data
     name="jack",
@@ -12,6 +17,7 @@ setup(  # Distribution meta-data
     author_email="zarne@users.sf.net",
     url="http://www.home.unix-ag.org/arne/jack/",
 
+    scripts=(os.path.join(basepath, 'bin', 'jack'),),
     # Description of the modules and packages in the distribution
     ext_modules=[Extension('jack_cursesmodule',
                            ['cursesmodule/jack_cursesmodule.c'], libraries=["ncursesw"],
