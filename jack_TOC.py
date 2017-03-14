@@ -1,22 +1,24 @@
-### jack_toc - class for CDDA TOCs - part ("module") of 
-### jack - extract audio from a CD and MP3ify it using 3rd party software
-### Copyright (C) 1999,2000  Arne Zellentin <zarne@users.sf.net>
+# jack_toc - class for CDDA TOCs - part ("module") of
+# jack - extract audio from a CD and MP3ify it using 3rd party software
+# Copyright (C) 1999,2000  Arne Zellentin <zarne@users.sf.net>
 
-### This program is free software; you can redistribute it and/or modify
-### it under the terms of the GNU General Public License as published by
-### the Free Software Foundation; either version 2 of the License, or
-### (at your option) any later version.
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
 
-### This program is distributed in the hope that it will be useful,
-### but WITHOUT ANY WARRANTY; without even the implied warranty of
-### MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-### GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 
-### You should have received a copy of the GNU General Public License
-### along with this program; if not, write to the Free Software
-### Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
 
 class TOC:
+
     def __init__(self):
         self.data = []
         self.image_file = None
@@ -28,7 +30,7 @@ class TOC:
 
     def append(self, entry):
 
-## if we don't have a image_name specified, we'll take the first one available
+# if we don't have a image_name specified, we'll take the first one available
 
         if entry.image_name == "":
             self.in_need_of_image_name.append(entry.number)
@@ -40,8 +42,8 @@ class TOC:
                 self.data[i].image_name = entry.image_name
             self.in_need_of_image_name = []
 
-## if the entry has a pregap this needs to be added to the previous track and
-## substracted from the current one
+# if the entry has a pregap this needs to be added to the previous track and
+# substracted from the current one
 
         if entry.pregap:
             self.data[-1].length = self.data[-1].length + entry.pregap
@@ -50,7 +52,7 @@ class TOC:
 
         self.end_pos = self.end_pos + entry.length
 
-## update image_file
+# update image_file
 
         self.same_image()
 

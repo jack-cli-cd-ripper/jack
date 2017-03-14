@@ -1,23 +1,24 @@
-### jack_tag: name information (ID3 among others) stuff for
-### jack - tag audio from a CD and encode it using 3rd party software
-### Copyright (C) 1999-2003  Arne Zellentin <zarne@users.sf.net>
+# jack_tag: name information (ID3 among others) stuff for
+# jack - tag audio from a CD and encode it using 3rd party software
+# Copyright (C) 1999-2003  Arne Zellentin <zarne@users.sf.net>
 
-### This program is free software; you can redistribute it and/or modify
-### it under the terms of the GNU General Public License as published by
-### the Free Software Foundation; either version 2 of the License, or
-### (at your option) any later version.
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
 
-### This program is distributed in the hope that it will be useful,
-### but WITHOUT ANY WARRANTY; without even the implied warranty of
-### MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-### GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 
-### You should have received a copy of the GNU General Public License
-### along with this program; if not, write to the Free Software
-### Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 import string
-import os, sys
+import os
+import sys
 import locale
 
 import jack_functions
@@ -42,7 +43,8 @@ a_artist = None
 a_title = None
 
 
-def _set_id3_tag(mp3file, version, encoding, a_title, t_name, track_num, t_artist,
+def _set_id3_tag(
+    mp3file, version, encoding, a_title, t_name, track_num, t_artist,
                  genre, year, comment, play_count):
     tag = eyed3.id3.Tag()
     tag.parse(mp3file)
@@ -65,10 +67,12 @@ def _set_id3_tag(mp3file, version, encoding, a_title, t_name, track_num, t_artis
 
     tag.save(mp3file, version, encoding=encoding)
 
+
 def tag(freedb_rename):
     global a_artist, a_title
 
-    ext = jack_targets.targets[jack_helpers.helpers[cf['_encoder']]['target']]['file_extension']
+    ext = jack_targets.targets[
+        jack_helpers.helpers[cf['_encoder']]['target']]['file_extension']
 
     if cf['_vbr'] and not cf['_only_dae']:
         total_length = 0
@@ -82,10 +86,10 @@ def tag(freedb_rename):
 
     # maybe export?
     if jack_freedb.names_available:
-        a_artist = track_names[0][0] # unicode
-        a_title = track_names[0][1] # unicode
-        p_artist = locale_names[0][0] # string
-        p_title = locale_names[0][1] # string
+        a_artist = track_names[0][0]  # unicode
+        a_title = track_names[0][1]  # unicode
+        p_artist = locale_names[0][0]  # string
+        p_title = locale_names[0][1]  # string
 
     if cf['_set_id3tag'] or freedb_rename:
         jack_m3u.init()
@@ -97,7 +101,8 @@ def tag(freedb_rename):
 
         print "Tagging",
         for i in jack_ripstuff.all_tracks_todo_sorted:
-            sys.stdout.write(".") ; sys.stdout.flush()
+            sys.stdout.write(".")
+            sys.stdout.flush()
             mp3name = i[NAME] + ext
             wavname = i[NAME] + ".wav"
             if track_names[i[NUM]][0]:
@@ -115,17 +120,22 @@ def tag(freedb_rename):
                             t_comm = t_comm[:-1]
                             if t_comm[-1] == " ":
                                 t_comm = t_comm[:-1]
-                            t_name2 = string.replace(t_name, " (" + t_comm + ") ", "")
-                            t_name2 = string.replace(t_name2, " (" + t_comm + ")", "")
-                            t_name2 = string.replace(t_name2, "(" + t_comm + ") ", "")
-                            t_name2 = string.replace(t_name2, "(" + t_comm + ")", "")
+                            t_name2 = string.replace(
+                                t_name, " (" + t_comm + ") ", "")
+                            t_name2 = string.replace(
+                                t_name2, " (" + t_comm + ")", "")
+                            t_name2 = string.replace(
+                                t_name2, "(" + t_comm + ") ", "")
+                            t_name2 = string.replace(
+                                t_name2, "(" + t_comm + ")", "")
                         else:
                             t_comm = ""
                 if jack_helpers.helpers[cf['_encoder']]['target'] == "mp3":
                     if cf['_write_id3v2']:
                         _set_id3_tag(
                             mp3name, eyed3.id3.ID3_V2_4,  'utf-8', a_title,
-                            t_name, (i[NUM],len(jack_ripstuff.all_tracks_orig)),
+                            t_name, (
+                                i[NUM], len(jack_ripstuff.all_tracks_orig)),
                             t_artist, cf['_id3_genre'], cf['_id3_year'], None,
                             int(i[LEN] * 1000.0 / 75 + 0.5)
                         )
@@ -134,14 +144,16 @@ def tag(freedb_rename):
                         _set_id3_tag(
                             mp3name, eyed3.id3.ID3_V1_1,  'latin1',
                             a_title, t_name,
-                            (i[NUM],len(jack_ripstuff.all_tracks_orig)),
-                            t_artist, cf['_id3_genre'], cf['_id3_year'], t_comm,
+                            (i[NUM], len(jack_ripstuff.all_tracks_orig)),
+                            t_artist, cf['_id3_genre'], cf[
+                                '_id3_year'], t_comm,
                             int(i[LEN] * 1000.0 / 75 + 0.5)
                         )
                 elif jack_helpers.helpers[cf['_encoder']]['target'] == "flac":
                     if flac:
                         f = flac.FLAC(mp3name)
-                        if f.vc is None: f.add_vorbiscomment()
+                        if f.vc is None:
+                            f.add_vorbiscomment()
                         f.vc['ALBUM'] = a_title
                         f.vc['TRACKNUMBER'] = str(i[NUM])
                         f.vc['TITLE'] = t_name
@@ -176,11 +188,14 @@ def tag(freedb_rename):
                 except UnicodeDecodeError:
                     i[NAME] = unicode(i[NAME], "latin-1")
                 if i[NAME] != newname:
-                    p_newname = newname.encode(locale.getpreferredencoding(), "replace")
+                    p_newname = newname.encode(
+                        locale.getpreferredencoding(), "replace")
                     u_newname = newname
                     newname = newname.encode(cf['_charset'], "replace")
-                    p_mp3name = i[NAME].encode(locale.getpreferredencoding(), "replace") + ext
-                    p_wavname = i[NAME].encode(locale.getpreferredencoding(), "replace") + ".wav"
+                    p_mp3name = i[NAME].encode(
+                        locale.getpreferredencoding(), "replace") + ext
+                    p_wavname = i[NAME].encode(
+                        locale.getpreferredencoding(), "replace") + ".wav"
                     ok = 1
                     if os.path.exists(newname + ext):
                         ok = 0
@@ -196,14 +211,17 @@ def tag(freedb_rename):
                             try:
                                 os.rename(mp3name, newname + ext)
                             except OSError:
-                                error('Cannot rename "%s" to "%s" (Filename is too long or has unusable characters)' % (p_mp3name, p_newname + ext))
+                                error('Cannot rename "%s" to "%s" (Filename is too long or has unusable characters)' %
+                                      (p_mp3name, p_newname + ext))
                             jack_m3u.add(newname + ext)
                         if cf['_keep_wavs']:
                             os.rename(wavname, newname + ".wav")
                             jack_m3u.add_wav(newname + ".wav")
-                        jack_functions.progress(i[NUM], "ren", "%s-->%s" % (i[NAME], u_newname))
+                        jack_functions.progress(
+                            i[NUM], "ren", "%s-->%s" % (i[NAME], u_newname))
                     elif cf['_silent_mode']:
-                        jack_functions.progress(i[NUM], "err", "while renaming track")
+                        jack_functions.progress(
+                            i[NUM], "err", "while renaming track")
         print
 
     if not cf['_silent_mode']:
@@ -213,9 +231,10 @@ def tag(freedb_rename):
             print "All done.",
         if cf['_set_id3tag'] and cf['_id3_year'] != -1:
             print "Year: %4i" % cf['_id3_year'],
-            if cf['_id3_genre'] == -1: print
+            if cf['_id3_genre'] == -1:
+                print
         if cf['_set_id3tag'] and cf['_id3_genre'] != -1:
-            if cf['_id3_genre'] <0 or cf['_id3_genre'] > len(id3genres):
+            if cf['_id3_genre'] < 0 or cf['_id3_genre'] > len(id3genres):
                 print "Genre: [unknown]"
             else:
                 print "Genre: %s" % id3genres[cf['_id3_genre']]
