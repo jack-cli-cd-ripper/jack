@@ -67,15 +67,15 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
     global_blocks = jack_functions.tracksize(wavs_todo)[
         BLOCKS] + jack_functions.tracksize(mp3s_todo)[BLOCKS]
 
-                           #
-                             # MAIN LOOP ###
-                           #
+    #
+    # MAIN LOOP ###
+    #
 
     global_start = time.time()
     while mp3s_todo or enc_queue or dae_queue or enc_running or dae_running:
         orig_space = space
-                            # feed in the WAVs which have been there from the
-                            # start
+        # feed in the WAVs which have been there from the
+        # start
         if mp3s_todo and jack_functions.tracksize(mp3s_todo[0])[ENC] < space:
             waiting_space = 0
             enc_queue.append(mp3s_todo[0])
@@ -83,7 +83,7 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
             jack_status.enc_stat_upd(mp3s_todo[0][NUM], "waiting for encoder.")
             mp3s_todo = mp3s_todo[1:]
 
-                                                    # start new DAE subprocess
+        # start new DAE subprocess
 
         elif (len(enc_queue) + enc_running) < (cf['_read_ahead'] + cf['_encoders']) and dae_queue and dae_running < cf['_rippers'] and ((jack_functions.tracksize(dae_queue[0])[BOTH] < space) or (cf['_only_dae'] and jack_functions.tracksize(dae_queue[0])[WAV] < space) or (cf['_otf'] and jack_functions.tracksize(dae_queue[0])[ENC] < space)):
             waiting_space = 0
@@ -154,7 +154,7 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
                         jack_status.dae_stat_upd(
                             track[NUM], ":?AE: don't know how to rip this!")
 
-                                            # start new encoder subprocess
+        # start new encoder subprocess
 
         if enc_queue and enc_running < cf['_encoders']:
             if jack_functions.tracksize(enc_queue[0])[ENC] <= space + space_waiting:
@@ -175,7 +175,7 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
                 else:
                     waiting_load = 1
 
-                                            # check for subprocess output
+        # check for subprocess output
 
         readfd = [sys.stdin.fileno()]
         for i in jack_children.children:
@@ -187,7 +187,7 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
             rfd, wfd, xfd = [], [], []
             jack_term.tmod.sig_winch_handler(None, None)
 
-                                            # check for keyboard commands
+        # check for keyboard commands
 
         if sys.stdin.fileno() in rfd:
             last_update = last_update - cf['_update_interval']
@@ -411,7 +411,7 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
         if last_update + cf['_update_interval'] <= time.time():
             last_update = time.time()
 
-                                                # interpret subprocess output
+            # interpret subprocess output
 
             for i in jack_children.children:
                 if i['type'] == "ripper":
@@ -513,7 +513,7 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
                 rot = rotate[rot_count % rot_cycle]
             rot_count = rot_count + 1
 
-                                                            # print status
+            # print status
 
             if blocked > 2:
                 jack_display.special_line = " ...I feel blocked - quit with 'q' if you get bored... "
@@ -532,7 +532,7 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
             else:
                 jack_display.special_line = None
 
-            jack_display.bottom_line =  "(" + rot + ") " \
+            jack_display.bottom_line = "(" + rot + ") " \
                 + "SPACE:" * (space_adjust != 0) \
                 + "space:" * (space_adjust == 0) \
                 + jack_functions.pprint_i(space, "%i%sB") \

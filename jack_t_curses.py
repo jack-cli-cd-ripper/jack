@@ -180,7 +180,7 @@ def sig_winch_handler(sig, frame):
             stdscr.addstr(
                 1, 0, jack_display.center_line(
                     jack_display.discname, fill="- ",
-                         fill_r=" -", width=jack_term.size_x)[:jack_term.size_x], A_REVERSE)
+                    fill_r=" -", width=jack_term.size_x)[:jack_term.size_x], A_REVERSE)
         else:
             stdscr.addstr(0, 0, (jack_display.options_string + " " * (jack_term.size_x - len(
                 jack_display.options_string) - (0 + 4)) + scroll_keys)[:jack_term.size_x], A_REVERSE)

@@ -30,20 +30,20 @@ class TOC:
 
     def append(self, entry):
 
-# if we don't have a image_name specified, we'll take the first one available
+        # if we don't have a image_name specified, we'll take the first one available
 
         if entry.image_name == "":
             self.in_need_of_image_name.append(entry.number)
         elif self.in_need_of_image_name:
             for i in self.in_need_of_image_name:
 
-# FIXME: maybe we can't reference a track by it's number?
+                # FIXME: maybe we can't reference a track by it's number?
 
                 self.data[i].image_name = entry.image_name
             self.in_need_of_image_name = []
 
-# if the entry has a pregap this needs to be added to the previous track and
-# substracted from the current one
+            # if the entry has a pregap this needs to be added to the previous track and
+            # substracted from the current one
 
         if entry.pregap:
             self.data[-1].length = self.data[-1].length + entry.pregap
@@ -52,7 +52,7 @@ class TOC:
 
         self.end_pos = self.end_pos + entry.length
 
-# update image_file
+        # update image_file
 
         self.same_image()
 

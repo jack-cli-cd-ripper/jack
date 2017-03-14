@@ -341,9 +341,7 @@ def freedb_query(cd_id, tracks, file):
     qs = "cmd=cddb query " + cd_id + " " + `len(tracks)` + " "  # query string
     for i in tracks:
         qs = qs + `i[START] + MSF_OFFSET` + " "
-    qs = qs + \
-        `(MSF_OFFSET + tracks[-1][START] + tracks[
-          -1][LEN]) / CDDA_BLOCKS_PER_SECOND`
+    qs = qs + `(MSF_OFFSET + tracks[-1][START] + tracks[-1][LEN]) / CDDA_BLOCKS_PER_SECOND`
     hello = "hello=" + cf['_username'] + " " + cf[
         '_hostname'] + " " + freedb_servers[cf['_freedb_server']]['id']
     qs = urllib.quote_plus(qs + "&" + hello + "&proto=6", "=&")
@@ -468,10 +466,9 @@ def freedb_names(cd_id, tracks, todo, name, verb=0, warn=1):
         except UnicodeDecodeError:
             line = unicode(line, "latin-1")
         line = string.replace(line, "\n", "")
-                              # cannot use rstrip, we need trailing
-                                        # spaces
+        # cannot use rstrip, we need trailing spaces
         line = string.replace(line, "\r", "")
-                              # I consider "\r"s as bugs in db info
+        # I consider "\r"s as bugs in db info
         if jack_functions.starts_with(line, "# Revision:"):
             revision = int(line[11:])
         for i in ["DISCID", "DTITLE", "DYEAR", "DGENRE", "TTITLE", "EXTD", "EXTT", "PLAYORDER"]:
@@ -637,7 +634,7 @@ def freedb_names(cd_id, tracks, todo, name, verb=0, warn=1):
                 if verb:
                     warning("no EXTT info for track %02i." % i)
 
-# we'll try some magic to separate artist and title
+    # we'll try some magic to separate artist and title
 
     elif cf['_various']:
         found = [[], [], [], [], [], []]
@@ -646,25 +643,25 @@ def freedb_names(cd_id, tracks, todo, name, verb=0, warn=1):
         titles = []
         braces = [['"', '"'], ["'", "'"], ["(", ")"], ["[", "]"], ["{", "}"]]
 
-# first generate a list of track titles
+        # first generate a list of track titles
 
         for i in range(tracks_on_cd):
             titles.append(freedb['TTITLE' + `i`])
 
-# now try to find a string common to all titles with length 3...1
+        # now try to find a string common to all titles with length 3...1
 
         for i in (3, 2, 1):
             candidate_found = 0
             for j in range(len(titles[0]) - (i - 1)):
 
-# choose a possible candidate
+                # choose a possible candidate
 
                 candidate = titles[0][j:j + i]
                 illegal_letter = 0
                 for k in candidate:
                     if k in ignore:
 
-# candidate must not have characters from ignore
+                        # candidate must not have characters from ignore
 
                         illegal_letter = 1
                         break
@@ -673,7 +670,7 @@ def freedb_names(cd_id, tracks, todo, name, verb=0, warn=1):
                 else:
                     candidate_found = 1
 
-# if we have a candidate, check that it occurs in all titles
+                # if we have a candidate, check that it occurs in all titles
 
                 if candidate_found:
                     all_matched = 1
@@ -722,7 +719,7 @@ def freedb_names(cd_id, tracks, todo, name, verb=0, warn=1):
                         else:
                             found[3 - i].append(candidate)
 
-# if no candidate has been found, try one with less characters
+                # if no candidate has been found, try one with less characters
 
                 else:
                     continue

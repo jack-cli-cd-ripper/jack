@@ -39,6 +39,7 @@ def blockstomsf(blocks):
     ff = blocks % CDDA_BLOCKS_PER_SECOND
     return mm, ss, ff, blocks
 
+
 B_MM, B_SS, B_FF = 0, 1, 2
 
 

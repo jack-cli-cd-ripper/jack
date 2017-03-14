@@ -445,7 +445,7 @@ def read_progress(status, todo):
     # names for 'all' can't be initialized earlier...
     status['all']['names'] = [status['all']['mkdir'][-1], ]
 
-                                        # extract names from renaming
+    # extract names from renaming
     for i in status.keys():
         for j in status[i]['ren']:
             if j == ('Undo',):
@@ -795,6 +795,7 @@ def print_todo(todo, wavs_todo, mp3s_todo):
             if jack_status.enc_status[i[NUM]] != "[simulated]":
                 print jack_status.enc_status[i[NUM]],
         print
+
 
 # overwrite cached bitrates from argv
 if cf['bitrate']['history'][-1][0] == "argv":

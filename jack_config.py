@@ -50,7 +50,7 @@ cf = jack_misc.dict2({
     'debug_write': {
         'type': 'toggle',
         'val': 0,
-        #'usage': "write debug information to a file",
+        # 'usage': "write debug information to a file",
         'long': 'AUTO',
     },
     'plugin_path': {

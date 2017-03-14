@@ -253,6 +253,7 @@ def timestrtoblocks(str):
     blocks = blocks + int(str[0]) * 60 * CDDA_BLOCKS_PER_SECOND
     return blocks
 
+
 B_MM, B_SS, B_FF = 0, 1, 2
 
 

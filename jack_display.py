@@ -58,8 +58,7 @@ def init():
         + " read-ahead=" + `cf['_read_ahead']` \
         + " keep-wavs" * cf['_keep_wavs'] \
         + " id=" + jack_freedb.freedb_id(jack_ripstuff.all_tracks) \
-        + (" len=%02i:%02i" % (global_total / jack_globals.CDDA_BLOCKS_PER_SECOND
-                               / 60, global_total / jack_globals.CDDA_BLOCKS_PER_SECOND % 60)) \
+        + (" len=%02i:%02i" % (global_total / jack_globals.CDDA_BLOCKS_PER_SECOND / 60, global_total / jack_globals.CDDA_BLOCKS_PER_SECOND % 60)) \
         + " | press Q to quit"
     jack_term.tmod.extra_lines = 2
     if jack_freedb.names_available:

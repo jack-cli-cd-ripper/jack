@@ -108,8 +108,8 @@ def rename_path(old, new):
         error('Cannot rename "%s" to "%s" (Filename is too long or has unusable characters)' %
               (cwd, last_of_new))
     os.chdir(last_of_new)
-                                               # now remove empty "orphan" dirs
 
+    # now remove empty "orphan" dirs
     old_dirs = all_paths(cwds)
     old_dirs.reverse()
     for i in old_dirs[:len(old)][1:]:
@@ -128,6 +128,7 @@ def cmp_toc(x, y):
         return 0
     elif x < y:
         return -1
+
 
 NUM, LEN, START, COPY, PRE, CH, RIP, RATE, NAME = range(9)
 

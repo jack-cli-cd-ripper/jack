@@ -44,8 +44,8 @@ a_title = None
 
 
 def _set_id3_tag(
-    mp3file, version, encoding, a_title, t_name, track_num, t_artist,
-                 genre, year, comment, play_count):
+        mp3file, version, encoding, a_title, t_name, track_num, t_artist,
+        genre, year, comment, play_count):
     tag = eyed3.id3.Tag()
     tag.parse(mp3file)
     tag.album = a_title
@@ -133,7 +133,7 @@ def tag(freedb_rename):
                 if jack_helpers.helpers[cf['_encoder']]['target'] == "mp3":
                     if cf['_write_id3v2']:
                         _set_id3_tag(
-                            mp3name, eyed3.id3.ID3_V2_4,  'utf-8', a_title,
+                            mp3name, eyed3.id3.ID3_V2_4, 'utf-8', a_title,
                             t_name, (
                                 i[NUM], len(jack_ripstuff.all_tracks_orig)),
                             t_artist, cf['_id3_genre'], cf['_id3_year'], None,
@@ -142,7 +142,7 @@ def tag(freedb_rename):
                     if cf['_write_id3v1']:
                         # encoding ??
                         _set_id3_tag(
-                            mp3name, eyed3.id3.ID3_V1_1,  'latin1',
+                            mp3name, eyed3.id3.ID3_V1_1, 'latin1',
                             a_title, t_name,
                             (i[NUM], len(jack_ripstuff.all_tracks_orig)),
                             t_artist, cf['_id3_genre'], cf[
