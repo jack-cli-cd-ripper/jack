@@ -1,24 +1,26 @@
-### jack_CDTime - various converters between data representation - part of
-### jack - extract audio from a CD and MP3ify it using 3rd party software
-### Copyright (C) 1999,2000  Arne Zellentin <zarne@users.sf.net>
+# jack_CDTime - various converters between data representation - part of
+# jack - extract audio from a CD and MP3ify it using 3rd party software
+# Copyright (C) 1999,2000  Arne Zellentin <zarne@users.sf.net>
 
-### This program is free software; you can redistribute it and/or modify
-### it under the terms of the GNU General Public License as published by
-### the Free Software Foundation; either version 2 of the License, or
-### (at your option) any later version.
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
 
-### This program is distributed in the hope that it will be useful,
-### but WITHOUT ANY WARRANTY; without even the implied warranty of
-### MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-### GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 
-### You should have received a copy of the GNU General Public License
-### along with this program; if not, write to the Free Software
-### Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-import string, types
+import string
+import types
 
 CDDA_BLOCKS_PER_SECOND = 75
+
 
 def strtoblocks(str):
     "convert mm:ss:ff to blocks"
@@ -28,6 +30,7 @@ def strtoblocks(str):
     blocks = blocks + string.atoi(str[0]) * 60 * CDDA_BLOCKS_PER_SECOND
     return blocks
 
+
 def blockstomsf(blocks):
     "convert blocks to mm, ss, ff"
     mm = blocks / 60 / CDDA_BLOCKS_PER_SECOND
@@ -36,14 +39,18 @@ def blockstomsf(blocks):
     ff = blocks % CDDA_BLOCKS_PER_SECOND
     return mm, ss, ff, blocks
 
+
 B_MM, B_SS, B_FF = 0, 1, 2
+
+
 def msftostr(msf):
     "convert msf format to readable string"
-    return "%02i" % msf[B_MM]+":"+"%02i" % msf[B_SS]+":"+"%02i" % msf[B_FF]
+    return "%02i" % msf[B_MM] + ":" + "%02i" % msf[B_SS] + ":" + "%02i" % msf[B_FF]
 
 
 class CDTime:
-    def __init__(self, any = None):
+
+    def __init__(self, any=None):
         self.__dict__['blocks'] = 0
         self.__dict__['mm'] = 0
         self.__dict__['ss'] = 0
@@ -59,7 +66,7 @@ class CDTime:
         self.__dict__[name] = value
         if name == 'string' or name == 'any':
             new_val = self.__dict__[name]
-            if type(new_val) == types.StringType and len(new_val) >=2:
+            if type(new_val) == types.StringType and len(new_val) >= 2:
                 if new_val[0] == new_val[-1]:
                     if new_val[0] in ('"', "'"):
                         new_val = new_val[1:-1]

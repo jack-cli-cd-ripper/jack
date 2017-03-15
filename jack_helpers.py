@@ -1,21 +1,21 @@
 # -*- coding: iso-8859-15 -*-
-### jack_helpers: helper applications for
-### jack - extract audio from a CD and encode it using 3rd party software
-### Copyright (C) 1999-2004  Arne Zellentin <zarne@users.sf.net>
+# jack_helpers: helper applications for
+# jack - extract audio from a CD and encode it using 3rd party software
+# Copyright (C) 1999-2004  Arne Zellentin <zarne@users.sf.net>
 
-### This program is free software; you can redistribute it and/or modify
-### it under the terms of the GNU General Public License as published by
-### the Free Software Foundation; either version 2 of the License, or
-### (at your option) any later version.
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
 
-### This program is distributed in the hope that it will be useful,
-### but WITHOUT ANY WARRANTY; without even the implied warranty of
-### MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-### GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 
-### You should have received a copy of the GNU General Public License
-### along with this program; if not, write to the Free Software
-### Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 import string
 import re
@@ -29,14 +29,14 @@ helpers = {
     'builtin': {
         'type': "dummy",
         'status_blocksize': 160
-        },
+    },
 
-    'oggenc': { # based on a patch kindly provided by Bryan Larsen.
+    'oggenc': {  # based on a patch kindly provided by Bryan Larsen.
         'type': "encoder",
         'target': "ogg",
         'can_tag': 1,
         'vbr-cmd': "oggenc -o %o -t %t -a %a -N %n -l %l -G %g -d %y -q %q %i",
-        'cmd':     "oggenc -o %o -t %t -a %a -N %n -l %l -G %g -d %y -b %r %i",
+        'cmd': "oggenc -o %o -t %t -a %a -N %n -l %l -G %g -d %y -b %r %i",
         'tags': {
             'ogg': {
                 'track': "-t %s",
@@ -138,7 +138,7 @@ else:
 """,
     },
 
-    'gogo': { # Thanks to José Antonio Pérez Sánchez for the vbr and otf presets
+    'gogo': {  # Thanks to José Antonio Pérez Sánchez for the vbr and otf presets
         'type': "encoder",
         'target': "mp3",
         'inverse-quality': 1,
@@ -182,7 +182,7 @@ else:
 """,
     },
 
-# xing  definitions kindly provided by Sebastian Weber
+    # xing  definitions kindly provided by Sebastian Weber
     'xing': {
         'type': "encoder",
         'target': "mp3",
@@ -213,20 +213,20 @@ else:
         'vbr-cmd': "flac -o %o %i",
         'vbr-otf-cmd': "flac --channels 2 --bps 16 --sample-rate 44100 --force-raw-format --endian=big --sign=signed -o %o -",
         'status_blocksize': 160,
-        'status_start': "%", 
+        'status_start': "%",
         'percent_fkt': r"""
-s = string.split(i['buf'], '\r')    
+s = string.split(i['buf'], '\r')
 if len (s) >= 2: s = s[-2]
-if len (s) == 1: s = s[0]       
-y0 = string.rfind(s, ": ")             
+if len (s) == 1: s = s[0]
+y0 = string.rfind(s, ": ")
 y1 = string.find (s, "%", y0)
-if y0 != -1 and y1 != -1: 
+if y0 != -1 and y1 != -1:
     try:
         percent = float(s[y0 + 1:y1])
     except ValueError:
         percent = 0
-else:                   
-    percent = 0         
+else:
+    percent = 0
 """,
     },
 
@@ -235,7 +235,7 @@ else:
         'target': "mpc",
         'can_tag': 0,
         'vbr-cmd': "mppenc --standard %i %o",
-        #'vbr-otf-cmd': "mppenc --standard - %o", # doesn't work, needs WAVE
+        # 'vbr-otf-cmd': "mppenc --standard - %o", # doesn't work, needs WAVE
         'status_blocksize': 160,
         'status_start': "-.-",
         'percent_fkt': r"""
@@ -295,23 +295,23 @@ final_status = ("%sx" % jack_functions.pprint_speed(speed)) + last_status[16:48]
         'otf-final_status_fkt': r"""
 final_status = "[otf - done]"
 """,
-        #'toc': 1,  # we can't generate correct freedb IDs with cdparanoia.
+        # 'toc': 1,  # we can't generate correct freedb IDs with cdparanoia.
         'toc_cmd': "cdparanoia -d %d -Q 2>&1",
-# The output from cdparanoia which we parse looks like this:
+        # The output from cdparanoia which we parse looks like this:
 
-# cdparanoia III release 9.8 (March 23, 2001)
-# (C) 2001 Monty <monty@xiph.org> and Xiphophorus
-# ...
-# track        length               begin        copy pre ch
-# ===========================================================
-#   1.    13584 [03:01.09]        0 [00:00.00]    no   no  2
-#   2.    13769 [03:03.44]    13584 [03:01.09]    no   no  2
-# ...
-# TOTAL  121128 [26:55.03]    (audio only)
+        # cdparanoia III release 9.8 (March 23, 2001)
+        # (C) 2001 Monty <monty@xiph.org> and Xiphophorus
+        # ...
+        # track        length               begin        copy pre ch
+        # ===========================================================
+        #   1.    13584 [03:01.09]        0 [00:00.00]    no   no  2
+        #   2.    13769 [03:03.44]    13584 [03:01.09]    no   no  2
+        # ...
+        # TOTAL  121128 [26:55.03]    (audio only)
 
-# That is, we look for a line only consisting of === signs as the start,
-# for a line starting with "TOTAL" as the end, and take everything
-# inbetween (to be precise: the first number on each line)
+        # That is, we look for a line only consisting of === signs as the start,
+        # for a line starting with "TOTAL" as the end, and take everything
+        # inbetween (to be precise: the first number on each line)
         'toc_fkt': r"""
 for l in p.readlines():
     l = string.rstrip(l)
@@ -550,10 +550,12 @@ for i in range(first, last + 1):
 }
 
 helpers['lame-user'] = helpers['lame'].copy()
-helpers['lame-user'].update({'cmd': "lame --preset cbr %r --strictly-enforce-ISO %i %o",
-        'vbr-cmd': "lame -V %q --vbr-new --nohist --strictly-enforce-ISO %i %o",
-        'otf-cmd': "lame --preset cbr %r --strictly-enforce-ISO - %o",
-        'vbr-otf-cmd': "lame -V %q --vbr-new --nohist --strictly-enforce-ISO - %o", })
+helpers[
+    'lame-user'].update({'cmd': "lame --preset cbr %r --strictly-enforce-ISO %i %o",
+                         'vbr-cmd': "lame -V %q --vbr-new --nohist --strictly-enforce-ISO %i %o",
+                         'otf-cmd': "lame --preset cbr %r --strictly-enforce-ISO - %o",
+                         'vbr-otf-cmd': "lame -V %q --vbr-new --nohist --strictly-enforce-ISO - %o", })
+
 
 def init():
     # import plugin

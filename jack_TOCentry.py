@@ -1,24 +1,26 @@
-### jack_TOCentry - class for CDDA TOCs - part ("module") of 
-### jack - extract audio from a CD and MP3ify it using 3rd party software
-### Copyright (C) 1999,2000  Arne Zellentin <zarne@users.sf.net>
+# jack_TOCentry - class for CDDA TOCs - part ("module") of
+# jack - extract audio from a CD and MP3ify it using 3rd party software
+# Copyright (C) 1999,2000  Arne Zellentin <zarne@users.sf.net>
 
-### This program is free software; you can redistribute it and/or modify
-### it under the terms of the GNU General Public License as published by
-### the Free Software Foundation; either version 2 of the License, or
-### (at your option) any later version.
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
 
-### This program is distributed in the hope that it will be useful,
-### but WITHOUT ANY WARRANTY; without even the implied warranty of
-### MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-### GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 
-### You should have received a copy of the GNU General Public License
-### along with this program; if not, write to the Free Software
-### Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-entry_fields =  ['type', 'copy', 'preemphasis', 'channels', 'media',
+entry_fields = ['type', 'copy', 'preemphasis', 'channels', 'media',
                 'filename', 'start', 'length', 'pregap']
-compat_fields = ['number', 'length', 'start', 'copy', 'preemphasis', 'channels', 'rip', 'bitrate', 'rip_name']
+compat_fields = ['number', 'length', 'start', 'copy',
+                 'preemphasis', 'channels', 'rip', 'bitrate', 'rip_name']
+
 
 class TOCentry:
 

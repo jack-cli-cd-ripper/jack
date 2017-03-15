@@ -1,20 +1,20 @@
-### jack_checkopts: check the options for consistency, a module for
-### jack - extract audio from a CD and encode it using 3rd party software
-### Copyright (C) 1999-2004  Arne Zellentin <zarne@users.sf.net>
+# jack_checkopts: check the options for consistency, a module for
+# jack - extract audio from a CD and encode it using 3rd party software
+# Copyright (C) 1999-2004  Arne Zellentin <zarne@users.sf.net>
 
-### This program is free software; you can redistribute it and/or modify
-### it under the terms of the GNU General Public License as published by
-### the Free Software Foundation; either version 2 of the License, or
-### (at your option) any later version.
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
 
-### This program is distributed in the hope that it will be useful,
-### but WITHOUT ANY WARRANTY; without even the implied warranty of
-### MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-### GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 
-### You should have received a copy of the GNU General Public License
-### along with this program; if not, write to the Free Software
-### Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 import signal
 import types
@@ -31,21 +31,26 @@ import jack_freedb
 import jack_helpers
 
 # special option handling
+
+
 def checkopts(cf, cf2):
     if cf2.has_key('image_file'):
-        cf.rupdate({'rip_from_device': {'val': 0}, 'read_ahead':{'val': 1}}, "check")
+        cf.rupdate(
+            {'rip_from_device': {'val': 0}, 'read_ahead': {'val': 1}}, "check")
 
     if cf2.has_key('image_toc_file'):
-        cf.rupdate({'rip_from_device': {'val': 0}, 'read_ahead':{'val': 1}}, "check")
+        cf.rupdate(
+            {'rip_from_device': {'val': 0}, 'read_ahead': {'val': 1}}, "check")
 
     if cf2.has_key('space_from_argv'):
         cf.rupdate({'space_set_from_argv': {'val': 1}}, "check")
-    
+
     if cf2.has_key('only_dae') and cf2['only_dae']['val']:
         cf.rupdate({'encoders': {'val': 0}}, "check")
 
     if cf2.has_key('query_when_ready') and cf2['query_when_ready']['val']:
-        cf.rupdate({'read_freedb_file': {'val': 1}, 'set_id3tag':{'val': 1}}, "check")
+        cf.rupdate(
+            {'read_freedb_file': {'val': 1}, 'set_id3tag': {'val': 1}}, "check")
 
     if cf2.has_key('query_on_start') and cf2['query_on_start']['val']:
         cf.rupdate({'set_id3tag': {'val': 1}}, "check")
@@ -54,7 +59,8 @@ def checkopts(cf, cf2):
         cf.rupdate({'rename_dir': {'val': 1}}, "check")
 
     if cf2.has_key('freedb_rename') and cf2['freedb_rename']['val']:
-        cf.rupdate({'read_freedb_file': {'val': 1}, 'set_id3tag':{'val': 1}}, "check")
+        cf.rupdate(
+            {'read_freedb_file': {'val': 1}, 'set_id3tag': {'val': 1}}, "check")
 
     if cf2.has_key('edit_cddb'):
         warning("--edit-cddb is obsolete, please use --edit-freedb")
@@ -78,6 +84,7 @@ def checkopts(cf, cf2):
         if not cf.has_key(i):
             error("unknown config item `%s'" % i)
 
+
 def consistency_check(cf):
 
     # set plugins path and import freedb_server plugin
@@ -91,8 +98,10 @@ def consistency_check(cf):
 
     # check dir_template and scan_dirs
     if len(cf['_dir_template'].split(os.path.sep)) > cf['_scan_dirs']:
-        warning("dir-template consists of more sub-paths (%i) than scan-dirs (%i). Jack may not find the workdir next time it is run. (Auto-raised)" % (len(cf['_dir_template'].split(os.path.sep)), cf['_scan_dirs']))
-        cf.rupdate({'scan_dirs': {'val': len(cf['_dir_template'].split(os.path.sep))}}, "check")
+        warning("dir-template consists of more sub-paths (%i) than scan-dirs (%i). Jack may not find the workdir next time it is run. (Auto-raised)" %
+                (len(cf['_dir_template'].split(os.path.sep)), cf['_scan_dirs']))
+        cf.rupdate(
+            {'scan_dirs': {'val': len(cf['_dir_template'].split(os.path.sep))}}, "check")
 
     # check for unsername
     if cf['username']['val'] == None:
@@ -111,28 +120,34 @@ def consistency_check(cf):
 
     # check for e-mail address
     if len(jack_freedb.freedb_servers[cf['_freedb_server']]['my_mail']) <= 3 or jack_freedb.freedb_servers[cf['freedb_server']['val']]['my_mail'] == "default":
-        tmp_mail = jack_freedb.freedb_servers[cf['freedb_server']['val']]['my_mail']
+        tmp_mail = jack_freedb.freedb_servers[
+            cf['freedb_server']['val']]['my_mail']
         tmp_mail2 = cf['_my_mail']
         if len(cf['_my_mail']) <= 3 or cf['_my_mail'] == "default" or cf['_my_mail'].find("@") < 1:
             env = os.getenv("EMAIL")
             if env:
-                jack_freedb.freedb_servers[cf['freedb_server']['val']]['my_mail'] = env
+                jack_freedb.freedb_servers[
+                    cf['freedb_server']['val']]['my_mail'] = env
             else:
-                jack_freedb.freedb_servers[cf['freedb_server']['val']]['my_mail'] = cf['username']['val'] + "@" + cf['hostname']['val']
+                jack_freedb.freedb_servers[cf['freedb_server']['val']][
+                    'my_mail'] = cf['username']['val'] + "@" + cf['hostname']['val']
             if len(cf['my_mail']['history']) > 1:
-                warning("illegal mail address changed to " + jack_freedb.freedb_servers[cf['freedb_server']['val']]['my_mail'])
+                warning("illegal mail address changed to " +
+                        jack_freedb.freedb_servers[cf['freedb_server']['val']]['my_mail'])
         else:
-            jack_freedb.freedb_servers[cf['freedb_server']['val']]['my_mail'] = cf['_my_mail']
-        debug("mail is " + jack_freedb.freedb_servers[cf['freedb_server']['val']]['my_mail'] + ", was " + tmp_mail + " / " + tmp_mail2)
+            jack_freedb.freedb_servers[
+                cf['freedb_server']['val']]['my_mail'] = cf['_my_mail']
+        debug("mail is " + jack_freedb.freedb_servers[cf['freedb_server']['val']][
+              'my_mail'] + ", was " + tmp_mail + " / " + tmp_mail2)
         del tmp_mail, tmp_mail2
 
-    #if cf.has_key('charset'):
+    # if cf.has_key('charset'):
     #    if not cf['char_filter']['val']:
     #        warning("charset has no effect without a char_filter")
     #                 this is not true, the ogg tag uses this.
 
     if len(cf['replacement_chars']['val']) == 0:
-        cf.rupdate({'replacement_chars': {'val': ["",]}}, "check")
+        cf.rupdate({'replacement_chars': {'val': ["", ]}}, "check")
 
     # stretch replacement_chars
     if len(cf['_unusable_chars']) > len(cf['_replacement_chars']):
@@ -144,7 +159,8 @@ def consistency_check(cf):
             elif type(r) == types.StringType:
                 r = r + r[-1]
             else:
-                error("unsupported type: " + `type(cf['replacement_chars']['val'][-1])`)
+                error("unsupported type: " + `type(
+                    cf['replacement_chars']['val'][-1])`)
         cf.rupdate({'replacement_chars': {'val': r}}, "check")
         del u, r
     elif len(cf['_replacement_chars']) > len(cf['_unusable_chars']):
@@ -188,7 +204,8 @@ def consistency_check(cf):
         cf.rupdate({'otf': {'val': 0}}, "check")
 
     if cf['_otf'] and cf['_keep_wavs']:
-        warning("disabling on-the-fly operation because we want to keep the wavs")
+        warning(
+            "disabling on-the-fly operation because we want to keep the wavs")
         cf.rupdate({'otf': {'val': 0}}, "check")
 
     if cf['_otf'] and cf['_image_file']:
@@ -196,20 +213,25 @@ def consistency_check(cf):
         cf.rupdate({'otf': {'val': 0}}, "check")
 
     if cf['_vbr'] and not jack_helpers.helpers[cf['_encoder']].has_key('vbr-cmd'):
-        warning("disabling VBR because " + cf['_encoder'] + " doesn't support it.")
+        warning("disabling VBR because " +
+                cf['_encoder'] + " doesn't support it.")
         cf.rupdate({'vbr': {'val': 0}}, "check")
 
     if cf['_otf']:
         for i in (cf['_ripper'], cf['_encoder']):
             if not jack_helpers.helpers[i].has_key(('vbr-' * cf['_vbr'] * (i == cf['_encoder'])) + 'otf-cmd'):
-                error("can't do on-the-fly because " + jack_helpers.helpers[i]['type'] + " " + i + " doesn't support it.")
+                error("can't do on-the-fly because " + jack_helpers.helpers[
+                      i]['type'] + " " + i + " doesn't support it.")
 
     if not cf['_vbr'] and not jack_helpers.helpers[cf['_encoder']].has_key('cmd'):
-        error("can't do fixed bitrate because " + cf['encoder']['val'] + " doesn't support it. Use -v")
+        error("can't do fixed bitrate because " +
+              cf['encoder']['val'] + " doesn't support it. Use -v")
 
     if cf['_ripper'] == "cdparanoia" and cf['_sloppy']:
-        jack_helpers.helpers['cdparanoia']['cmd'] = jack_helpers.helpers['cdparanoia']['cmd'].replace("--abort-on-skip", "")
-        jack_helpers.helpers['cdparanoia']['otf-cmd'] = jack_helpers.helpers['cdparanoia']['otf-cmd'].replace("--abort-on-skip", "")
+        jack_helpers.helpers['cdparanoia']['cmd'] = jack_helpers.helpers[
+            'cdparanoia']['cmd'].replace("--abort-on-skip", "")
+        jack_helpers.helpers['cdparanoia']['otf-cmd'] = jack_helpers.helpers[
+            'cdparanoia']['otf-cmd'].replace("--abort-on-skip", "")
 
     if cf['_query_on_start'] and cf['_query_when_ready']:
         error("it doesn't make sense to query now _and_ when finished.")
@@ -220,21 +242,27 @@ def consistency_check(cf):
 # Checks concerning options specified by the user (in the global or user rc
 # files or the command line), i.e. options/values that are not the default
 # jack options from jack_config.
+
+
 def check_rc(cf, global_cf, user_cf, argv_cf):
 
     all_keys = global_cf.keys() + user_cf.keys() + argv_cf.keys()
     userdef_keys = user_cf.keys() + argv_cf.keys()
     if 'base_dir' not in all_keys:
-        warning("You have no standard location set, putting files into the current directory. Please consider setting base_dir in ~/.jack3rc.")
+        warning(
+            "You have no standard location set, putting files into the current directory. Please consider setting base_dir in ~/.jack3rc.")
 
-    # Check if the default ripper is installed, and if not, look for another one
+    # Check if the default ripper is installed, and if not, look for another
+    # one
     if 'ripper' not in all_keys:
         default_ripper = cf["ripper"]["val"]
         if not jack_utils.in_path(default_ripper):
-            rippers = [i for i in jack_helpers.helpers if jack_helpers.helpers[i]["type"] == "ripper" and jack_helpers.helpers[i].has_key("toc_cmd")]
+            rippers = [i for i in jack_helpers.helpers if jack_helpers.helpers[i][
+                "type"] == "ripper" and jack_helpers.helpers[i].has_key("toc_cmd")]
             for cmd in rippers:
                 if jack_utils.in_path(cmd):
-                    warning("Using ripper %s since default ripper %s is not available." % (cmd, default_ripper))
+                    warning("Using ripper %s since default ripper %s is not available." %
+                            (cmd, default_ripper))
                     cf.rupdate({'ripper': {'val': cmd}}, "check")
                     break
             else:
@@ -249,9 +277,10 @@ def check_rc(cf, global_cf, user_cf, argv_cf):
             if not jack_utils.in_path(helper):
                 error("Helper %s '%s' not found on your system." % (t, helper))
 
-    # If the default CD device doesn't exist, see whether we can find another one
+    # If the default CD device doesn't exist, see whether we can find another
+    # one
     if ('cd_device' not in all_keys and cf["rip_from_device"]["val"] and
-        not os.path.exists(cf["cd_device"]["val"])):
+            not os.path.exists(cf["cd_device"]["val"])):
         default = cf["cd_device"]["val"]
         devices = []
         # All CD devices can be found in /proc on Linux
@@ -264,7 +293,8 @@ def check_rc(cf, global_cf, user_cf, argv_cf):
             else:
                 for line in info.readlines():
                     if line.startswith("drive name:"):
-                        devices = ["/dev/" + x for x in line.rstrip().split("\t")[2:]]
+                        devices = [
+                            "/dev/" + x for x in line.rstrip().split("\t")[2:]]
                         break
                 info.close()
         message = "Default CD device %s does not exist" % default
@@ -276,7 +306,7 @@ def check_rc(cf, global_cf, user_cf, argv_cf):
         else:
             warning("%s but there are several CD devices." % message)
             for i in range(len(devices)):
-                print "%2d" % (i+1) + ".) " + devices[i]
+                print "%2d" % (i + 1) + ".) " + devices[i]
             input = 0
             while input <= 0 or input > len(devices):
                 try:
@@ -287,6 +317,5 @@ def check_rc(cf, global_cf, user_cf, argv_cf):
                     input = int(input)
                 else:
                     input = 0
-            devices[0] = devices[input-1]
+            devices[0] = devices[input - 1]
             cf.rupdate({'cd_device': {'val': devices[0]}}, "check")
-

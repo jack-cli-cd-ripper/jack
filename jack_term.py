@@ -1,20 +1,20 @@
-### jack_term: terminal specific stuff for
-### jack - extract audio from a CD and encode it using 3rd party software
-### Copyright (C) 1999-2002  Arne Zellentin <zarne@users.sf.net>
+# jack_term: terminal specific stuff for
+# jack - extract audio from a CD and encode it using 3rd party software
+# Copyright (C) 1999-2002  Arne Zellentin <zarne@users.sf.net>
 
-### This program is free software; you can redistribute it and/or modify
-### it under the terms of the GNU General Public License as published by
-### the Free Software Foundation; either version 2 of the License, or
-### (at your option) any later version.
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
 
-### This program is distributed in the hope that it will be useful,
-### but WITHOUT ANY WARRANTY; without even the implied warranty of
-### MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-### GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 
-### You should have received a copy of the GNU General Public License
-### along with this program; if not, write to the Free Software
-### Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 # terminal is one of dumb, curses
 
@@ -29,14 +29,14 @@ import jack_freedb
 from jack_globals import *
 
 # exported functions:
-#init
-#enable
-#disable
+# init
+# enable
+# disable
 
 # expected functions in tmod:
-#update
-#getkey
-#sig_winch_handler
+# update
+# getkey
+# sig_winch_handler
 
 # exported variables:
 enabled = None
@@ -52,7 +52,7 @@ can_getsize = None
 geom_changed = None
 
 
-def init(arg_type="auto", arg_xtermset = 0):
+def init(arg_type="auto", arg_xtermset=0):
     global initialized
     global geom_changed
     global tmod
@@ -61,7 +61,7 @@ def init(arg_type="auto", arg_xtermset = 0):
     global size_x, size_y
     global orig_size_x, orig_size_y
     size_x, size_y = None, None
-    
+
     if initialized:
         return
 
@@ -95,6 +95,7 @@ def init(arg_type="auto", arg_xtermset = 0):
         size_x, size_y = oldsize
     del oldsize
 
+
 def xtermset_enable():
     global xtermset
     global geom_changed
@@ -106,7 +107,7 @@ def xtermset_enable():
             want_y = want_y - 1
         if jack_freedb.names_available:
             want_y = want_y + 1
-        want_y += 7 # for the help panel
+        want_y += 7  # for the help panel
         if (size_x, size_y) != (want_x, want_y):
             try:
                 os.system("xtermset -geom %dx%d" % (want_x, want_y))
@@ -117,15 +118,18 @@ def xtermset_enable():
                 xtermset = 0
         del want_x, want_y
 
+
 def xtermset_disable():
     import os
     global geom_changed
     if xtermset and geom_changed:
         try:
-            os.system("xtermset -restore -geom %dx%d" % (orig_size_x, orig_size_y))
+            os.system("xtermset -restore -geom %dx%d" %
+                      (orig_size_x, orig_size_y))
             geom_changed = 0
         except:
             pass
+
 
 def getsize():
     global can_getsize
@@ -167,13 +171,15 @@ to convert /usr/include/asm/ioctls.h to IOCTLS.py and install it.""")
         return None, None
     return new_x, new_y
 
+
 def resize():
     global size_x, size_y
     x, y = getsize()
     if (x, y) != (None, None):
         size_x, size_y = x, y
 
-def enable(all = 1):
+
+def enable(all=1):
     global enabled
 
     if not initialized:
@@ -187,7 +193,8 @@ def enable(all = 1):
     tmod.enable()
     enabled = 1
 
-def disable(all = 1):
+
+def disable(all=1):
     global enabled
     import os
 

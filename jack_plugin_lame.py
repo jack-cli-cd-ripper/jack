@@ -1,4 +1,4 @@
-### jack_plugin_lame: user-editable lame plugin for jack
+# jack_plugin_lame: user-editable lame plugin for jack
 
 plugin_helpers = {
     'plugin_lame': {

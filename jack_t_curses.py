@@ -1,20 +1,20 @@
-### jack_t_curses: dumb terminal functions for
-### jack - extract audio from a CD and encode it using 3rd party software
-### Copyright (C) 1999-2004  Arne Zellentin <zarne@users.sf.net>
+# jack_t_curses: dumb terminal functions for
+# jack - extract audio from a CD and encode it using 3rd party software
+# Copyright (C) 1999-2004  Arne Zellentin <zarne@users.sf.net>
 
-### This program is free software; you can redistribute it and/or modify
-### it under the terms of the GNU General Public License as published by
-### the Free Software Foundation; either version 2 of the License, or
-### (at your option) any later version.
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
 
-### This program is distributed in the hope that it will be useful,
-### but WITHOUT ANY WARRANTY; without even the implied warranty of
-### MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-### GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 
-### You should have received a copy of the GNU General Public License
-### along with this program; if not, write to the Free Software
-### Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 import termios
 import sys
@@ -38,6 +38,7 @@ except ImportError:
     warning("jack_curses module not found, trying normal curses...")
     try:
         from curses import endwin, A_REVERSE, newwin, newpad, initscr, noecho, cbreak, echo, nocbreak, error
+
         def resizeterm(y, x):
             pass
     except ImportError:
@@ -66,6 +67,7 @@ map_track_num = None        # list track number -> line number
 extra_lines = None
 had_special = None
 
+
 def enable():
     # Initialize curses
     global stdscr
@@ -82,7 +84,7 @@ def enable():
         return
 
     had_special = 0
-    extra_lines = 2 # top + bottom status lines
+    extra_lines = 2  # top + bottom status lines
     if jack_display.discname:
         extra_lines = extra_lines + 1
     stdscr = initscr()
@@ -90,7 +92,8 @@ def enable():
     jack_term.sig_winch_cache = signal.signal(signal.SIGWINCH, signal.SIG_IGN)
     # Turn off echoing of keys, and enter cbreak mode,
     # where no buffering is performed on keyboard input
-    noecho() ; cbreak()
+    noecho()
+    cbreak()
 
     # In keypad mode, escape sequences for special keys
     # (like the cursor keys) will be interpreted and
@@ -99,7 +102,8 @@ def enable():
     stdscr.leaveok(0)
 
     # build the pad
-    pad_height, pad_width = len(jack_ripstuff.all_tracks_todo_sorted), jack_ripstuff.max_name_len + 72
+    pad_height, pad_width = len(
+        jack_ripstuff.all_tracks_todo_sorted), jack_ripstuff.max_name_len + 72
     status_pad = newpad(pad_height, pad_width)
     usage_win = newwin(usage_win_height, usage_win_width, 0, 0)
     map_track_num = {}
@@ -108,18 +112,21 @@ def enable():
 
     sig_winch_handler(None, None)
 
+
 def disable():
     global enabled
     if enabled:
         # Set everything back to normal
         stdscr.keypad(0)
-        echo() ; nocbreak()
+        echo()
+        nocbreak()
         # Terminate curses, back to normal screen
         endwin()
         # re-install previous sighandler
-        #signal.signal(signal.SIGWINCH, jack_term.sig_winch_cache)
+        # signal.signal(signal.SIGWINCH, jack_term.sig_winch_cache)
         signal.signal(signal.SIGWINCH, signal.SIG_IGN)
         enabled = 0
+
 
 def sig_winch_handler(sig, frame):
     global staus_pad, stdscr, usage_win
@@ -139,9 +146,11 @@ def sig_winch_handler(sig, frame):
     resizeterm(jack_term.size_y, jack_term.size_x)
     pad_y, pad_x = pad_disp_start_y, pad_disp_start_x
     pad_start_y, pad_start_x = extra_lines - 1, 0
-    pad_end_y = min(extra_lines - 1 + pad_height, jack_term.size_y - 2 - splash_reserve)
+    pad_end_y = min(extra_lines - 1 + pad_height,
+                    jack_term.size_y - 2 - splash_reserve)
     pad_end_x = min(jack_term.size_x, pad_width) - 1
-    pad_missing_y = max(pad_height - (jack_term.size_y - extra_lines - splash_reserve), 0)
+    pad_missing_y = max(
+        pad_height - (jack_term.size_y - extra_lines - splash_reserve), 0)
     pad_missing_x = max(pad_width - jack_term.size_x, 0)
     if pad_missing_y >= pad_height:
         pad_start_y = 0
@@ -166,29 +175,40 @@ def sig_winch_handler(sig, frame):
         scroll_keys = scroll_keys + " "
     if extra_lines < jack_term.size_y:
         if jack_display.discname:
-            stdscr.addstr(0, 0, (jack_display.center_line(jack_display.options_string + " [" + scroll_keys + "]", fill = " ", width = jack_term.size_x))[:jack_term.size_x], A_REVERSE)
-            stdscr.addstr(1, 0, jack_display.center_line(jack_display.discname, fill = "- ", fill_r = " -", width = jack_term.size_x)[:jack_term.size_x], A_REVERSE)
+            stdscr.addstr(
+                0, 0, (jack_display.center_line(jack_display.options_string + " [" + scroll_keys + "]", fill=" ", width=jack_term.size_x))[:jack_term.size_x], A_REVERSE)
+            stdscr.addstr(
+                1, 0, jack_display.center_line(
+                    jack_display.discname, fill="- ",
+                    fill_r=" -", width=jack_term.size_x)[:jack_term.size_x], A_REVERSE)
         else:
-            stdscr.addstr(0, 0, (jack_display.options_string + " " * (jack_term.size_x - len(jack_display.options_string) - (0 + 4)) + scroll_keys)[:jack_term.size_x], A_REVERSE)
+            stdscr.addstr(0, 0, (jack_display.options_string + " " * (jack_term.size_x - len(
+                jack_display.options_string) - (0 + 4)) + scroll_keys)[:jack_term.size_x], A_REVERSE)
 
         if jack_display.special_line:
             spec_pos = 1
             if jack_display.discname:
                 spec_pos = 2
-            stdscr.addstr(spec_pos, 0, jack_display.center_line(jack_display.special_line, fill = " ", width = jack_term.size_x)[:jack_term.size_x], A_REVERSE)
+            stdscr.addstr(spec_pos, 0, jack_display.center_line(
+                jack_display.special_line, fill=" ", width=jack_term.size_x)[:jack_term.size_x], A_REVERSE)
 
         if jack_display.bottom_line:
-            stdscr.addstr(jack_term.size_y - 1, 0, (jack_display.bottom_line + " " * (jack_term.size_x - len(jack_display.bottom_line) - 1 ))[:jack_term.size_x - 1], A_REVERSE)
+            stdscr.addstr(jack_term.size_y - 1, 0, (jack_display.bottom_line + " " * (
+                jack_term.size_x - len(jack_display.bottom_line) - 1))[:jack_term.size_x - 1], A_REVERSE)
 
         stdscr.refresh()
 
-        usage_win_y, usage_win_x = jack_term.size_y - usage_win_height - 1, (jack_term.size_x - usage_win_width) / 2
+        usage_win_y, usage_win_x = jack_term.size_y - \
+            usage_win_height - 1, (jack_term.size_x - usage_win_width) / 2
         if usage_win_y > extra_lines and usage_win_x > 0 and jack_term.size_y > extra_lines + 2 + usage_win_height and jack_term.size_x > usage_win_width:
             del usage_win
-            usage_win = newwin(usage_win_height, usage_win_width, usage_win_y, usage_win_x)
+            usage_win = newwin(
+                usage_win_height, usage_win_width, usage_win_y, usage_win_x)
             usage_win.box()
-            usage_win.addstr(1, 2, "* * * " + jack_version.prog_name + " " + jack_version.prog_version + " " + jack_version.prog_copyright + " * * *")
-            usage_win.addstr(2, 2, "use cursor keys or hjkl to scroll status info")
+            usage_win.addstr(1, 2, "* * * " + jack_version.prog_name + " " +
+                             jack_version.prog_version + " " + jack_version.prog_copyright + " * * *")
+            usage_win.addstr(
+                2, 2, "use cursor keys or hjkl to scroll status info")
             usage_win.addstr(3, 2, "press P to disable/continue ripping,")
             usage_win.addstr(4, 2, "      E to pause/continue all encoders or")
             usage_win.addstr(5, 2, "      R to pause/continue all rippers.")
@@ -199,9 +219,11 @@ def sig_winch_handler(sig, frame):
             enc_stat_upd(i[NUM], jack_status.enc_status[i[NUM]])
 
         if pad_start_y < pad_end_y:
-            status_pad.refresh(pad_y, pad_x, pad_start_y, pad_start_x, pad_end_y, pad_end_x)
+            status_pad.refresh(
+                pad_y, pad_x, pad_start_y, pad_start_x, pad_end_y, pad_end_x)
     signal.signal(signal.SIGWINCH, sig_winch_handler)
-#/ end of sig_winch_handler(sig, frame) /#
+# / end of sig_winch_handler(sig, frame) /#
+
 
 def move_pad(cmd):
     global pad_disp_start_y, pad_disp_start_x, splash_reserve
@@ -220,14 +242,19 @@ def move_pad(cmd):
             splash_reserve = usage_win_height
     sig_winch_handler(None, None)
 
+
 def disp_bottom_line(bottom_line):
-    stdscr.addstr(jack_term.size_y - 1, 0, (bottom_line + " " * (jack_term.size_x - len(bottom_line)))[:jack_term.size_x - 1], A_REVERSE)
+    stdscr.addstr(jack_term.size_y - 1, 0, (bottom_line + " " *
+                  (jack_term.size_x - len(bottom_line)))[:jack_term.size_x - 1], A_REVERSE)
     if pad_start_y < pad_end_y:
-        status_pad.refresh(pad_y, pad_x, pad_start_y, pad_start_x, pad_end_y, pad_end_x)
+        status_pad.refresh(
+            pad_y, pad_x, pad_start_y, pad_start_x, pad_end_y, pad_end_x)
     stdscr.refresh()
+
 
 def getkey():
     return stdscr.getkey()
+
 
 def update(special_line, bottom_line):
     global had_special
@@ -244,26 +271,33 @@ def update(special_line, bottom_line):
     if 1 < jack_term.size_y:
         disp_bottom_line(bottom_line)
 
+
 def enc_stat_upd(num, string):
-    status_pad.addstr(map_track_num[num], jack_ripstuff.max_name_len + 40, " " + jack_status.enc_status[num])
+    status_pad.addstr(
+        map_track_num[num], jack_ripstuff.max_name_len + 40, " " + jack_status.enc_status[num])
     status_pad.clrtoeol()
 
+
 def dae_stat_upd(num, string, reverse=-1):
-    track = jack_ripstuff.all_tracks[num-1]
+    track = jack_ripstuff.all_tracks[num - 1]
     if reverse >= 0:
         split_point = int(6.5 + reverse / 100.0 * 32)
-        front = jack_ripstuff.printable_names[num] + ": " + jack_status.dae_status[num][:6]
+        front = jack_ripstuff.printable_names[
+            num] + ": " + jack_status.dae_status[num][:6]
         middle = jack_status.dae_status[num][6:split_point]
-        end = jack_status.dae_status[num][split_point:] + " " + jack_status.enc_status[num]
+        end = jack_status.dae_status[num][
+            split_point:] + " " + jack_status.enc_status[num]
         try:
             status_pad.addstr(map_track_num[num], 0, front)
-            status_pad.addstr(map_track_num[num], len(front), middle, A_REVERSE)
+            status_pad.addstr(
+                map_track_num[num], len(front), middle, A_REVERSE)
             status_pad.addstr(map_track_num[num], len(front + middle), end)
         except error:
             pass
     else:
         try:
-            status_pad.addstr(map_track_num[num], 0, (jack_ripstuff.printable_names[num] + ": " + jack_status.dae_status[num] + " " + jack_status.enc_status[num]))
+            status_pad.addstr(map_track_num[num], 0, (jack_ripstuff.printable_names[
+                              num] + ": " + jack_status.dae_status[num] + " " + jack_status.enc_status[num]))
         except error:
             pass
 
