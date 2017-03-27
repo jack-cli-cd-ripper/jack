@@ -18,11 +18,6 @@ setup(  # Distribution meta-data
     url="http://www.home.unix-ag.org/arne/jack/",
 
     scripts=(os.path.join(basepath, 'bin', 'jack'),),
-    # Description of the modules and packages in the distribution
-    ext_modules=[Extension('jack_cursesmodule',
-                           ['cursesmodule/jack_cursesmodule.c'], libraries=["ncursesw"],
-                           include_dirs=["/usr/include/ncursesw"],
-                           extra_compile_args=["-Wno-strict-prototypes"])],
     packages = ['jack'],
 )
 
