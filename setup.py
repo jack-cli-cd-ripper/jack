@@ -18,7 +18,7 @@ setup(  # Distribution meta-data
     url="http://www.home.unix-ag.org/arne/jack/",
 
     scripts=(os.path.join(basepath, 'bin', 'jack'),),
-    packages = ['jack'],
+    packages=['jack'],
 )
 
 print "If you have installed the modules, copy jack to some place in your $PATH,"
