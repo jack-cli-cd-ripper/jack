@@ -223,14 +223,14 @@ def consistency_check(cf):
                 error("can't do on-the-fly because " + jack.helpers.helpers[
                       i]['type'] + " " + i + " doesn't support it.")
 
-    if not cf['_vbr'] and not jack_helpers.helpers[cf['_encoder']].has_key('cmd'):
+    if not cf['_vbr'] and not jack.helpers.helpers[cf['_encoder']].has_key('cmd'):
         error("can't do fixed bitrate because " +
               cf['encoder']['val'] + " doesn't support it. Use -v")
 
     if cf['_ripper'] == "cdparanoia" and cf['_sloppy']:
-        jack_helpers.helpers['cdparanoia']['cmd'] = jack_helpers.helpers[
+        jack.helpers.helpers['cdparanoia']['cmd'] = jack.helpers.helpers[
             'cdparanoia']['cmd'].replace("--abort-on-skip", "")
-        jack_helpers.helpers['cdparanoia']['otf-cmd'] = jack_helpers.helpers[
+        jack.helpers.helpers['cdparanoia']['otf-cmd'] = jack.helpers.helpers[
             'cdparanoia']['otf-cmd'].replace("--abort-on-skip", "")
 
     if cf['_query_on_start'] and cf['_query_when_ready']:
