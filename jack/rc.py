@@ -18,7 +18,6 @@
 
 import os
 import sys
-import string
 import types
 
 import jack.argv
@@ -65,14 +64,14 @@ def read(file):
                                 quoted.append(c)
                         elif c == "#" and not quoted:
                             val, com = val[:i].strip(), val[i + 1:]
-                            print com
+                            print(com)
                             break
         read_rc.append([opt, val, com, lineno])
     version = get_version(read_rc)
     if not version:
         warning("config file %s doesn't define jackrc-version." % file)
     elif version != jack.version.prog_rcversion:
-        warning("config file %s is of unknown version %s." % (file, `version`))
+        warning("config file %s is of unknown version %s." % (file, repr(version)))
     return read_rc
 
 
@@ -98,7 +97,7 @@ def load(cf, file):
     rc_cf = {}
     for i in rc:
         if i[0] != None:
-            if cf.has_key(i[0]):
+            if i[0] in cf:
                 ret, val = jack.argv.parse_option(
                     cf, i[0:2], 0, i[0], None, origin="rcfile")
                 if ret != None:
@@ -164,27 +163,27 @@ def write_yes(x):
 
 def convert(cf):
     rc = []
-    for i in cf.keys():
-        if cf[i]['type'] == types.StringType:
+    for i in list(cf.keys()):
+        if cf[i]['type'] == bytes or cf[i]['type'] == str:
             rc.append([i, cf[i]['val'], None])
-        elif cf[i]['type'] == types.FloatType:
-            rc.append([i, `cf[i]['val']`, None])
-        elif cf[i]['type'] == types.IntType:
-            rc.append([i, `cf[i]['val']`, None])
+        elif cf[i]['type'] == float:
+            rc.append([i, repr(cf[i]['val']), None])
+        elif cf[i]['type'] == int:
+            rc.append([i, repr(cf[i]['val']), None])
         elif cf[i]['type'] == 'toggle':
             rc.append([i, write_yes(cf[i]['val']), 'toggle'])
-        elif cf[i]['type'] == types.ListType:
-            rc.append([i, `cf[i]['val']`, None])
+        elif cf[i]['type'] == list:
+            rc.append([i, repr(cf[i]['val']), None])
         else:
-            error("don't know how to handle " + `cf[i]['type']`)
+            error("don't know how to handle " + repr(cf[i]['type']))
     return rc
 
 
 def save(file, cf):
     file = expand(file)
     rc_cf = {}
-    for i in cf.keys():
-        if cf[i].has_key('save') and not cf[i]['save']:
+    for i in list(cf.keys()):
+        if 'save' in cf[i] and not cf[i]['save']:
             continue
         opt = cf[i]
         if opt['history'][-1][0] == "argv":

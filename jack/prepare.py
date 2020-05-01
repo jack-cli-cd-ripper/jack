@@ -16,7 +16,6 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-import string
 import types
 import pprint
 import os
@@ -50,7 +49,7 @@ def find_workdir():
     "search for a dir containing a toc-file or do the multi-mode"
     tries = 0
     toc_just_read = 0
-    debug("multi_mode:" + `cf['_multi_mode']`)
+    debug("multi_mode:" + repr(cf['_multi_mode']))
     while (not os.path.exists(cf['_toc_file'])) or cf['_multi_mode']:
         tries = tries + 1
         if tries > 2:
@@ -98,8 +97,8 @@ def find_workdir():
                         new_dirs.append(i)
                     try:
                         subdir = os.listdir(i)
-                    except OSError, msg:
-                        print "skipped %s, %s" % (i, msg)
+                    except OSError as msg:
+                        print("skipped %s, %s" % (i, msg))
                         continue
                     for j in subdir:
                         dir = os.path.join(i, j)
@@ -139,7 +138,7 @@ def find_workdir():
                             for killarg in ('--force', '--multi-mode'):
                                 if killarg in ch_args:
                                     ch_args.remove(killarg)
-                            info("running" + `ch_args`)
+                            info("running" + repr(ch_args))
                             os.execvp(ch_args[0], ch_args)
                         else:
                             respid, res = os.waitpid(pid, 0)
@@ -187,6 +186,11 @@ def find_workdir():
     return toc_just_read
 
 
+def cmp(a, b):
+    "python2 compatible cmp function"
+    return (a > b) - (a < b)
+
+
 def check_toc():
     "compare CD toc to tocfile"
 
@@ -196,18 +200,18 @@ def check_toc():
             file_toc, dummy, dummy = jack.functions.cdrdao_gettoc(
                 cf['_toc_file'])
         else:
-            print "no toc-file named " + cf['_toc_file'] + " found, exiting."
+            print("no toc-file named " + cf['_toc_file'] + " found, exiting.")
             jack.display.exit()
-        print "This is the inserted CD:"
+        print("This is the inserted CD:")
         pprint.pprint(cd_toc)
-        print
-        print "And This is what we expect:"
+        print()
+        print("And This is what we expect:")
         pprint.pprint(file_toc)
-        print
+        print()
         if cmp(cd_toc, file_toc) == 0:
-            print 'Yes, toc-file ("' + cf['_toc_file'] + '") matches inserted CD.'
+            print('Yes, toc-file ("' + cf['_toc_file'] + '") matches inserted CD.')
         else:
-            print 'No, toc-file ("' + cf['_toc_file'] + '") *DOES NOT* match inserted CD.'
+            print('No, toc-file ("' + cf['_toc_file'] + '") *DOES NOT* match inserted CD.')
 
 
 def read_toc_file():
@@ -241,7 +245,7 @@ def filter_tracks(toc_just_read, status):
     "filter out data tracks"
     global datatracks
 
-    if toc_just_read and jack.helpers.helpers[cf['_ripper']].has_key("toc_cmd") and cf['_ripper'] != cf['_toc_prog']:
+    if toc_just_read and "toc_cmd" in jack.helpers.helpers[cf['_ripper']] and cf['_ripper'] != cf['_toc_prog']:
         ripper_tracks = jack.functions.gettoc(cf['_ripper'])
         if ripper_tracks != jack.ripstuff.all_tracks:
             for i in range(len(jack.ripstuff.all_tracks)):
@@ -255,15 +259,15 @@ def filter_tracks(toc_just_read, status):
                                 fields[j], jack.ripstuff.all_tracks[i][j], ripper_tracks[rtn][j]))
                             jack.ripstuff.all_tracks[i][
                                 j] = ripper_tracks[rtn][j]
-                            debug("Track %02d %s" % (i + 1, fields[j]) + `jack.ripstuff.all_tracks[i][
-                                  j]` + " != " + `ripper_tracks[rtn][j]` + " (trusting %s; to the right)" % cf['_ripper'])
+                            debug("Track %02d %s" % (i + 1, fields[j]) + repr(jack.ripstuff.all_tracks[i][
+                                  j]) + " != " + repr(ripper_tracks[rtn][j]) + " (trusting %s; to the right)" % cf['_ripper'])
                 else:
                     jack.functions.progress(i + 1, "off", "non-audio")
                     datatracks.append(i + 1)
                     info("Track %02d not found by %s. Treated as non-audio." %
                          (i + 1, cf['_ripper']))
     if not toc_just_read:
-        datatracks += [x for x in status.keys() if status[
+        datatracks += [x for x in list(status.keys()) if status[
             x]["off"] and status[x]["off"] == ["non-audio"]]
 
 
@@ -284,12 +288,12 @@ def gen_todo():
         # example: "1,2,4-8,12-" ->  [ 1,2,4,5,6,7,8,12,13,...,n ]
         tlist = []
         if cf['_tracks']:
-            tracks = string.split(cf['_tracks'], ",")
+            tracks = (cf['_tracks']).split(",")
         else:
-            tracks = string.split(jack.playorder.order, ",")
+            tracks = jack.playorder.order.split(",")
         for k in tracks:
-            if string.find(k, '-') >= 0:
-                k = string.split(k, '-')
+            if k.find('-') >= 0:
+                k = k.split('-')
                 lower_limit = jack.misc.safe_int(
                     k[0], "Track '%s' is not a number." % k[0])
                 if k[1]:
@@ -321,8 +325,8 @@ def gen_todo():
                 continue
             audiotracks.append(i[NUM])
 
-        if audiotracks != range(1, audiotracks[-1] + 1):
-            info("strange audio track layout " + `audiotracks`)
+        if audiotracks != list(range(1, audiotracks[-1] + 1)):
+            info("strange audio track layout " + repr(audiotracks))
             continuous = 0
         else:
             continuous = 1
@@ -394,18 +398,18 @@ def update_progress(status, todo):
                     elif ext.upper() == ".OGG" and ogg:
                         x = ogg.vorbis.VorbisFile(i[NAME] + ext)
                         temp_rate = int(
-                            x.raw_total(0) * 8 / x.time_total(0) / 1000 + 0.5)
+                            x.raw_total(0) * 8 // x.time_total(0) // 1000 + 0.5)
                     elif ext.upper() == ".FLAC" and flac:
                         f = flac.FLAC(filename + ext)
                         size = os.path.getsize(filename + ext)
                         if f.info and size:
                             temp_rate = int(
-                                size * 8 * f.info.sample_rate / f.info.total_samples / 1000)
+                                size * 8 * f.info.sample_rate // f.info.total_samples // 1000)
                         else:
                             temp_rate = 0
                     else:
                         error("don't know how to handle %s files." % ext)
-                    status[num]['enc'] = `temp_rate` + cf[
+                    status[num]['enc'] = repr(temp_rate) + cf[
                         '_progr_sep'] + "[simulated]"
                     jack.functions.progress(num, "enc", status[num]['enc'])
 
@@ -421,13 +425,13 @@ def read_progress(status, todo):
                 break
 
             # strip doesn't work here as we may have trailing spaces
-            buf = string.replace(buf, "\n", "")
+            buf = buf.replace("\n", "")
 
             # ignore empty lines
             if not buf:
                 continue
 
-            buf = string.split(buf, cf['_progr_sep'], 3)
+            buf = buf.split(cf['_progr_sep'], 3)
             try:
                 num = int(buf[0])
             except ValueError:
@@ -446,7 +450,7 @@ def read_progress(status, todo):
     status['all']['names'] = [status['all']['mkdir'][-1], ]
 
     # extract names from renaming
-    for i in status.keys():
+    for i in list(status.keys()):
         for j in status[i]['ren']:
             if j == ('Undo',):
                 if len(status[i]['names']) > 1:
@@ -454,12 +458,11 @@ def read_progress(status, todo):
                 else:
                     error("more undos than renames, exit.")
             else:
-                names = string.split(j[0], '-->', 1)
+                names = (j[0]).split('-->', 1)
                 if status[i]['names'][-1] == names[0]:
                     status[i]['names'].append(names[1])
-            if type(i) == types.IntType:
-                tracknum[i][NAME] = unicode(
-                    status[i]['names'][-1], "utf-8", "replace").encode(cf['_charset'], "replace")
+            if type(i) == int:
+                tracknum[i][NAME] = str(status[i]['names'][-1])
         del status[i]['ren']
 
     # status info for the whole CD is treated separately
@@ -468,7 +471,7 @@ def read_progress(status, todo):
     del status['all']
 
     # now clean up a little
-    for i in status.keys():
+    for i in list(status.keys()):
         if len(status[i]['dae']) > 1 or len(status[i]['enc']) > 2:
             error("malformed progress file")
             sys.exit()
@@ -482,7 +485,7 @@ def read_progress(status, todo):
 
         if status[i]['patch']:
             for j in status[i]['patch']:
-                p_what, p_from, dummy, p_to = string.split(j)
+                p_what, p_from, dummy, p_to = j.split()
                 p_from = int(p_from)
                 p_to = int(p_to)
                 if tracknum[i][fields.index(p_what)] == p_from:
@@ -510,7 +513,7 @@ def read_progress(status, todo):
         cf['_id3_genre'] = jack.progress.status_all['id3_genre']
     else:
         if cf['_id3_genre'] != jack.progress.status_all['id3_genre']:
-            jack.functions.progress("all", "id3_genre", `cf['_id3_genre']`)
+            jack.functions.progress("all", "id3_genre", repr(cf['_id3_genre']))
 
     jack.tag.genretxt = ""
     if cf['_id3_genre'] >= 0 and cf['_id3_genre'] < len(id3genres):
@@ -520,7 +523,7 @@ def read_progress(status, todo):
         cf['_id3_year'] = jack.progress.status_all['id3_year']
     else:
         if cf['_id3_year'] != jack.progress.status_all['id3_year']:
-            jack.functions.progress("all", "id3_year", `cf['_id3_year']`)
+            jack.functions.progress("all", "id3_year", repr(cf['_id3_year']))
 
     return status
 
@@ -549,11 +552,11 @@ def query_on_start(todo):
     if jack.freedb.freedb_query(jack.freedb.freedb_id(jack.ripstuff.all_tracks), jack.ripstuff.all_tracks, cf['_freedb_form_file']):
         if cf['_cont_failed_query']:
 
-            x = raw_input("\nfreedb search failed, continue? (y/N) ") + "x"
+            x = input("\nfreedb search failed, continue? (y/N) ") + "x"
             if not x or x[0].upper() != "Y":
                 sys.exit(0)
             if not cf['_edit_freedb']:
-                x = raw_input(
+                x = input(
                     "\nDo you want to edit the freedb data?  (y/N) ") + "x"
                 if x and x[0].upper() == "Y":
                     cf['_edit_freedb'] = 1
@@ -576,18 +579,18 @@ def query_on_start(todo):
                 f = open(file, "r")
                 b = open(bakfile, "r")
             except IOError:
-                print "Could not open jack.freedb or jack.freedb.bak for comparison"
+                print("Could not open jack.freedb or jack.freedb.bak for comparison")
             else:
                 pdiff = "".join(difflib.unified_diff(
                     b.readlines(), f.readlines(), bakfile, file))
                 f.close()
                 b.close()
                 if pdiff:
-                    print
-                    print "You made the following changes to the FreeDB file:"
-                    print
-                    print pdiff
-                    x = raw_input(
+                    print()
+                    print("You made the following changes to the FreeDB file:")
+                    print()
+                    print(pdiff)
+                    x = input(
                         "Would you like to submit these changes to the FreeDB server? (y/N) ")
                     if x and x[0].upper() == "Y":
                         jack.freedb.update_revision(file)
@@ -618,7 +621,7 @@ def undo_rename(status, todo):
     ext = jack.targets.targets[
         jack.helpers.helpers[cf['_encoder']]['target']]['file_extension']
     "undo renaming (operation mode)"
-    maxnames = max(map(lambda x: len(x['names']), status.values()))
+    maxnames = max([len(x['names']) for x in list(status.values())])
     if len(jack.progress.status_all['names']) >= maxnames:
         dir_too = 1
     else:
@@ -635,7 +638,7 @@ def undo_rename(status, todo):
             jack.functions.progress("all", "undo", "dir")
 
         else:
-            maxnames = max(map(lambda x: len(x['names']), status.values()))
+            maxnames = max([len(x['names']) for x in list(status.values())])
 
         # undo file renaming
         for i in todo:
@@ -648,10 +651,10 @@ def undo_rename(status, todo):
                     new_name, old_name = new_name + j, old_name + j
                     if not os.path.exists(old_name):
                         if j == ext:
-                            print 'NOT renaming "' + old_name + '": it doesn\'t exist.'
+                            print('NOT renaming "' + old_name + '": it doesn\'t exist.')
                     else:
                         if os.path.exists(new_name):
-                            print 'NOT renaming "' + old_name + '" to "' + new_name + '" because dest. exists.'
+                            print('NOT renaming "' + old_name + '" to "' + new_name + '" because dest. exists.')
                         else:
                             jack.functions.progress(i[NUM], "undo", "-")
                             os.rename(old_name, new_name)
@@ -776,25 +779,25 @@ def what_todo(space, todo):
 def print_todo(todo, wavs_todo, mp3s_todo):
     "print what needs to be done"
     for i in jack.ripstuff.all_tracks:
-        print "%02i" % i[NUM],
+        print("%02i" % i[NUM], end=' ')
         if jack.utils.has_track(todo, i[NUM]) >= 0:
-            print "*",
+            print("*", end=' ')
         else:
-            print "-",
+            print("-", end=' ')
         if i in wavs_todo:
-            print ":DAE:",
+            print(":DAE:", end=' ')
             # FIXME!
             if jack.status.dae_status[i[NUM]] != "[simulated]":
-                print jack.status.dae_status[i[NUM]],
+                print(jack.status.dae_status[i[NUM]], end=' ')
             if not cf['_only_dae']:
-                print ":ENC:",
+                print(":ENC:", end=' ')
                 if jack.status.enc_status[i[NUM]] != "[simulated]":
-                    print jack.status.enc_status[i[NUM]],
+                    print(jack.status.enc_status[i[NUM]], end=' ')
         if i in mp3s_todo:
-            print ":ENC:",
+            print(":ENC:", end=' ')
             if jack.status.enc_status[i[NUM]] != "[simulated]":
-                print jack.status.enc_status[i[NUM]],
-        print
+                print(jack.status.enc_status[i[NUM]], end=' ')
+        print()
 
 
 # overwrite cached bitrates from argv
@@ -845,19 +848,19 @@ def check_cd():
 
 def remove_files(remove_q):
     if cf['_silent_mode'] or cf['_dont_work']:
-        print "remove these files before going on:"
+        print("remove these files before going on:")
         for i in remove_q:
-            print i
-        print "### . ###"
+            print(i)
+        print("### . ###")
 
         if cf['_silent_mode']:
             sys.exit(3)
 
     else:
-        print "/\\" * 40
+        print("/\\" * 40)
         for i in remove_q:
-            print i
-        x = raw_input("These files will be deleted, continue? (y/N) ") + "x"
+            print(i)
+        x = input("These files will be deleted, continue? (y/N) ") + "x"
         if cf['_force']:
             info("(forced)")
         else:

@@ -28,11 +28,11 @@ def load_plugin(name, structure):
     import_statement = "from jack_%s import %s" % (name, structure)
     get_statement = "tmp = %s[name]" % structure
     try:
-        exec(import_statement) in locals()
-    except ImportError, e:
+        exec((import_statement), locals())
+    except ImportError as e:
         error(str(e))
     try:
-        exec(get_statement) in locals()
+        exec((get_statement), locals())
     except KeyError:
         error("Plugin %s doesn't have an appropriate helper definition." %
               name)
@@ -49,7 +49,7 @@ def import_helpers():
     for i in (cf['_encoder'], cf['_ripper']):
         if i.startswith("plugin_"):
             tmp = load_plugin(i, "plugin_helpers")
-            if jack.helpers.helpers.has_key(i):
+            if i in jack.helpers.helpers:
                 warning("plugin %s already loaded, skipping.", i)
                 continue
             jack.helpers.helpers[i] = tmp

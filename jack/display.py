@@ -55,10 +55,10 @@ def init():
     options_string = "Options:" \
         + (" bitrate=%i" % cf['_bitrate']) * (not cf['_vbr']) + " vbr" * cf['_vbr'] \
         + " reorder" * cf['_reorder'] \
-        + " read-ahead=" + `cf['_read_ahead']` \
+        + " read-ahead=" + repr(cf['_read_ahead']) \
         + " keep-wavs" * cf['_keep_wavs'] \
         + " id=" + jack.freedb.freedb_id(jack.ripstuff.all_tracks) \
-        + (" len=%02i:%02i" % (global_total / jack.globals.CDDA_BLOCKS_PER_SECOND / 60, global_total / jack.globals.CDDA_BLOCKS_PER_SECOND % 60)) \
+        + (" len=%02i:%02i" % (global_total // jack.globals.CDDA_BLOCKS_PER_SECOND // 60, global_total // jack.globals.CDDA_BLOCKS_PER_SECOND % 60)) \
         + " | press Q to quit"
     jack.term.tmod.extra_lines = 2
     if jack.freedb.names_available:
@@ -104,9 +104,9 @@ def sig_handler(sig, frame):
 
     if cf['_wait_on_quit']:
         if sig:
-            raw_input("press ENTER\n")
+            input("press ENTER\n")
         else:
-            raw_input("press ENTER to exit\n")
+            input("press ENTER to exit\n")
 
     if sig:
         jack.term.enable(all=0)
@@ -125,10 +125,10 @@ def center_line(str, fill=" ", fill_sep=" ", fill_r="", width=80):
         if not fill_r:
             fill_r = fill
         length = len(fill)
-        left = free / 2
-        right = free / 2 + (free % 2)
-        left_c = fill * (left / length) + fill_sep * (left % length)
-        right_c = fill_sep * (right % length) + fill_r * (right / length)
+        left = free // 2
+        right = free // 2 + (free % 2)
+        left_c = fill * (left // length) + fill_sep * (left % length)
+        right_c = fill_sep * (right % length) + fill_r * (right // length)
         return left_c + str + right_c
     else:
         return str

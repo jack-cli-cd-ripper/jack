@@ -62,14 +62,14 @@ def sig_winch_handler(sig, frame):
 
 
 def update(special_line, bottom_line):
-    print
-    print
+    print()
+    print()
     if special_line:
-        print jack.display.center_line(special_line, fill="#")
-    print jack.display.options_string
+        print(jack.display.center_line(special_line, fill="#"))
+    print(jack.display.options_string)
     for i in jack.ripstuff.all_tracks_todo_sorted:
-        print jack.ripstuff.printable_names[i[NUM]] + ": " + jack.status.dae_status[i[NUM]], jack.status.enc_status[i[NUM]]
-    print bottom_line
+        print(jack.ripstuff.printable_names[i[NUM]] + ": " + jack.status.dae_status[i[NUM]], jack.status.enc_status[i[NUM]])
+    print(bottom_line)
 
 
 def enc_stat_upd(num, string):

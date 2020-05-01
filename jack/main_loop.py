@@ -17,7 +17,6 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-import string
 import signal
 import select
 import time
@@ -193,35 +192,35 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
             last_update = last_update - cf['_update_interval']
             cmd = jack.term.tmod.getkey()
             sys.stdin.flush()
-            if string.upper(cmd) == "Q":
+            if cmd.upper() == "Q":
                 jack.display.exit()
-            elif not pause and string.upper(cmd) == "P":
+            elif not pause and cmd.upper() == "P":
                 pause = 1
                 flags = flags[:1] + "P" + flags[2:]
-            elif string.upper(cmd) == "C" or pause and string.upper(cmd) == "P":
+            elif cmd.upper() == "C" or pause and cmd.upper() == "P":
                 pause = 0
                 flags = flags[:1] + " " + flags[2:]
-            elif not flags[3] == "e" and string.upper(cmd) == "E":
+            elif not flags[3] == "e" and cmd.upper() == "E":
                 for i in jack.children.children:
                     if i['type'] == "encoder":
                         os.kill(i['pid'], signal.SIGSTOP)
                         flags = flags[:3] + "e" + flags[4:]
-            elif flags[3] == "e" and string.upper(cmd) == "E":
+            elif flags[3] == "e" and cmd.upper() == "E":
                 for i in jack.children.children:
                     if i['type'] == "encoder":
                         os.kill(i['pid'], signal.SIGCONT)
                         flags = flags[:3] + " " + flags[4:]
-            elif not flags[2] == "r" and string.upper(cmd) == "R":
+            elif not flags[2] == "r" and cmd.upper() == "R":
                 for i in jack.children.children:
                     if i['type'] == "ripper":
                         os.kill(i['pid'], signal.SIGSTOP)
                         flags = flags[:2] + "r" + flags[3:]
-            elif flags[2] == "r" and string.upper(cmd) == "R":
+            elif flags[2] == "r" and cmd.upper() == "R":
                 for i in jack.children.children:
                     if i['type'] == "ripper":
                         os.kill(i['pid'], signal.SIGCONT)
                         flags = flags[:2] + " " + flags[3:]
-            elif string.upper(cmd) == "U":
+            elif cmd.upper() == "U":
                 cycles = 29     # do periodic stuff _now_
             else:
                 jack.term.tmod.move_pad(cmd)
@@ -258,7 +257,7 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
                 # put read data into child's buffer
                 i['buf'] = i['buf'] + x
 
-                if jack.helpers.helpers[i['prog']].has_key('filters'):
+                if 'filters' in jack.helpers.helpers[i['prog']]:
                     for fil in jack.helpers.helpers[i['prog']]['filters']:
                         i['buf'] = fil[0].sub(fil[1], i['buf'])
 
@@ -277,12 +276,12 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
                     if i['pid'] == respid:
                         if exited_proc != []:
                             error(
-                                "pid " + `respid` + " found at multiple child processes")
+                                "pid " + repr(respid) + " found at multiple child processes")
                         exited_proc = i
                     else:
                         new_ch.append(i)
                 if not exited_proc:
-                    error("unknown process (" + `respid` + ") has exited")
+                    error("unknown process (" + repr(respid) + ") has exited")
                 jack.children.children = new_ch
                 x = ""
                 try:
@@ -331,19 +330,20 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
                                 space = space + \
                                     jack.functions.tracksize(track)[ENC]
                             jack.status.dae_stat_upd(
-                                num, 'DAE failed with status ' + `res` + ", wav removed.")
+                                num, 'DAE failed with status ' + repr(res) + ", wav removed.")
                     else:
                         if exited_proc['type'] == "image_reader":
                             jack.status.dae_stat_upd(
                                 num, jack.status.get_2_line(exited_proc['buf']))
                         else:
-                            if exited_proc['otf'] and jack.helpers.helpers[exited_proc['prog']].has_key('otf-final_status_fkt'):
-                                exec(jack.helpers.helpers[exited_proc['prog']][
-                                     'otf-final_status_fkt']) in globals(), locals()
+                            if exited_proc['otf'] and 'otf-final_status_fkt' in jack.helpers.helpers[exited_proc['prog']]:
+                                exec((jack.helpers.helpers[exited_proc['prog']][
+                                     'otf-final_status_fkt']), globals(), locals())
                             else:
                                 last_status = None   # (only used in cdparanoia)
-                                exec(jack.helpers.helpers[exited_proc['prog']][
-                                     'final_status_fkt']) in globals(), locals()
+                                exec((jack.helpers.helpers[exited_proc['prog']][
+                                     'final_status_fkt']), globals(), locals())
+                            final_status = '' # FIXME
                             jack.status.dae_stat_upd(num, final_status)
                         if jack.status.enc_cache[num]:
                             jack.status.enc_stat_upd(
@@ -374,7 +374,7 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
                         global_blocks = global_blocks - \
                             exited_proc['track'][LEN]
                         global_start = global_start + \
-                            exited_proc['elapsed'] / (enc_running + 1)
+                            exited_proc['elapsed'] // (enc_running + 1)
                         if global_start > time.time():
                             global_start = time.time()
                         if os.path.exists(track[NAME] + ext):
@@ -383,7 +383,7 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
                             os.remove(track[NAME] + ext)
                         space = space + jack.functions.tracksize(track)[ENC]
                         jack.status.enc_stat_upd(
-                            num, 'coding failed, err#' + `res`)
+                            num, 'coding failed, err#' + repr(res))
                     else:
                         global_done = global_done + exited_proc['track'][LEN]
                         if cf['_vbr']:
@@ -394,7 +394,7 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
                         jack.status.enc_stat_upd(
                             num, "[coding @" + '%s' % jack.functions.pprint_speed(speed) + "x done, %dkbit" % rate)
                         jack.functions.progress(
-                            num, "enc", `rate`, jack.status.enc_status[num])
+                            num, "enc", repr(rate), jack.status.enc_status[num])
                         if not cf['_otf'] and not cf['_keep_wavs']:
                             os.remove(track[NAME] + ".wav")
                             space = space + \
@@ -416,44 +416,48 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
             for i in jack.children.children:
                 if i['type'] == "ripper":
                     if len(i['buf']) == jack.helpers.helpers[i['prog']]['status_blocksize']:
-                        if i['otf'] and jack.helpers.helpers[i['prog']].has_key('otf-status_fkt'):
-                            exec(jack.helpers.helpers[i['prog']][
-                                 'otf-status_fkt']) in globals(), locals()
+                        if i['otf'] and 'otf-status_fkt' in jack.helpers.helpers[i['prog']]:
+                            exec((jack.helpers.helpers[i['prog']][
+                                 'otf-status_fkt']), globals(), locals())
                         else:
-                            exec(jack.helpers.helpers[i['prog']][
-                                 'status_fkt']) in globals(), locals()
-                        if new_status:
-                            try:
-                                jack.status.dae_stat_upd(
-                                    i['track'][NUM], ":DAE: " + new_status)
-                            except:
-                                debug("error in dae_stat_upd")
+                            exec((jack.helpers.helpers[i['prog']][
+                                 'status_fkt']), globals(), locals())
+                        try:
+                            new_status
+                        except:
+                            debug("new_status not defined")
+                        else:
+                            if new_status:
+                                try:
+                                    jack.status.dae_stat_upd(
+                                        i['track'][NUM], ":DAE: " + new_status)
+                                except:
+                                    debug("error in dae_stat_upd")
 
                 elif i['type'] == "encoder":
                     if len(i['buf']) == jack.helpers.helpers[i['prog']]['status_blocksize']:
                         tmp_d = {'i': i.copy(), 'percent': 0}
                         try:
-                            exec(jack.helpers.helpers[i['prog']][
-                                 'percent_fkt']) in globals(), tmp_d
+                            exec((jack.helpers.helpers[i['prog']][
+                                 'percent_fkt']), globals(), tmp_d)
                         except:
                             tmp_d['percent'] = 0
-                            debug("error in percent_fkt of %s." % `i`)
+                            debug("error in percent_fkt of %s." % repr(i))
                         i['percent'] = tmp_d['percent']
                         if i['percent'] > 0:
                             i['elapsed'] = time.time() - i['start_time']
                             speed = ((i['track'][LEN] / float(CDDA_BLOCKS_PER_SECOND)) * (
-                                i['percent'] / 100)) / i['elapsed']
+                                i['percent'] // 100)) // i['elapsed']
                             eta = (100 - i['percent']) * i[
-                                'elapsed'] / i['percent']
-                            eta_ms = "%02i:%02i" % (eta / 60, eta % 60)
+                                'elapsed'] // i['percent']
+                            eta_ms = "%02i:%02i" % (eta // 60, eta % 60)
                             jack.status.enc_stat_upd(i['track'][NUM], '%2i%% done, ETA:%6s, %sx' % (
                                 i['percent'], eta_ms, jack.functions.pprint_speed(speed)))
                             # jack.term.tmod.dae_stat_upd(i['track'][NUM],
                             # None, i['percent'])
 
                 elif i['type'] == "image_reader":
-                    line = string.strip(
-                        jack.status.get_2_line(i['buf'], default=""))
+                    line = (jack.status.get_2_line(i['buf'], default="")).strip()
                     if line:
                         jack.status.dae_stat_upd(i['track'][NUM], line)
                         if line.startswith("Error"):
@@ -490,20 +494,20 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
             total_done = global_done
             for i in jack.children.children:
                 total_done = total_done + \
-                    (i['percent'] / 100) * i['track'][LEN]
+                    (i['percent'] // 100) * i['track'][LEN]
             elapsed = time.time() - global_start
             if global_blocks > 0:
-                percent = total_done / global_blocks
+                percent = total_done // global_blocks
             else:
                 percent = 0
             if percent > 0 and elapsed > 40:
-                eta = ((1 - percent) * elapsed / percent)
+                eta = ((1 - percent) * elapsed // percent)
                 eta_hms = " ETA=%i:%02i:%02i" % (
-                    eta / 3600, (eta % 3600) / 60, eta % 60)
+                    eta // 3600, (eta % 3600) // 60, eta % 60)
             else:
                 eta_hms = ""
 
-            if string.strip(flags[1:-1]):
+            if (flags[1:-1]).strip():
                 print_flags = " " + flags
             else:
                 print_flags = ""
@@ -537,10 +541,10 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
                 + "space:" * (space_adjust == 0) \
                 + jack.functions.pprint_i(space, "%i%sB") \
                 + (" waiting_WAVs:%02i" % len(enc_queue)) \
-                + " DAE:" + `cf['_rippers'] - dae_running` + "+" + `dae_running` \
-                + " ENC:" + `cf['_encoders'] - enc_running` + "+" + `enc_running` \
+                + " DAE:" + repr(cf['_rippers'] - dae_running) + "+" + repr(dae_running) \
+                + " ENC:" + repr(cf['_encoders'] - enc_running) + "+" + repr(enc_running) \
                 + eta_hms \
-                + " errors: " + `global_error` \
+                + " errors: " + repr(global_error) \
                 + jack.display.smile + print_flags
 
             jack.term.tmod.update(

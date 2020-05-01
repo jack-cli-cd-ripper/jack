@@ -17,7 +17,6 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 import os
-import string
 import sys
 
 from jack.generic import *
@@ -36,14 +35,14 @@ except:
 try:
     import eyed3.id3
 except:
-    print "Please install the eyeD3 module available from http://eyed3.nicfit.net/"
+    print("Please install the eyeD3 module available from http://eyed3.nicfit.net/")
     sys.exit(1)
 
 try:
     import cdrom
 except:
-    print "Please install the CDDB module available at http://cddb-py.sourceforge.net"
-    print "Without it, you'll not be able to rip from CDs."
+    print("Please install the CDDB module available at http://cddb-py.sourceforge.net")
+    print("Without it, you'll not be able to rip from CDs.")
 
     # want to see my favorite ugly hack of the day?
     class dummy_cdrom:
@@ -52,7 +51,7 @@ except:
             pass
 
         def open(self, dummy=None):
-            print "Cannot access cdrom device while the CDDB module is not installed. See above."
+            print("Cannot access cdrom device while the CDDB module is not installed. See above.")
             sys.exit(1)
     cdrom = dummy_cdrom()
 

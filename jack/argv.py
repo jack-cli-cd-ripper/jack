@@ -26,18 +26,18 @@ from jack.globals import *
 from jack.misc import safe_int
 
 
-def show_usage(cf, long=0):
+def show_usage(cf, longhelp):
     l = []
-    for i in cf.keys():
-        if not long and not cf[i].has_key('help'):
+    for i in list(cf.keys()):
+        if not longhelp and 'help' not in cf[i]:
             continue
         s = ""
-        if cf[i].has_key('usage'):
-            if not long and cf[i].has_key('vbr_only') and cf[i]['vbr_only'] != cf['_vbr']:
+        if 'usage' in cf[i]:
+            if not longhelp and 'vbr_only' in cf[i] and cf[i]['vbr_only'] != cf['_vbr']:
                 continue
-            if cf[i].has_key('long'):
+            if 'long' in cf[i]:
                 s = "  --%s" % cf[i]['long']
-                if cf[i].has_key('short'):
+                if 'short' in cf[i]:
                     s = s + ", -%s" % cf[i]['short']
             else:
                 error("internal error in show_usage")
@@ -49,20 +49,20 @@ def show_usage(cf, long=0):
         max_len = max(max_len, len(i[0]))
 
     l.sort()
-    print "usage: jack [option]..."
+    print("usage: jack [option]...")
     for i in l:
         jack.generic.indent(i[0] + " " * (max_len - len(i[0])), i[1])
 
-    if long:
-        print """
+    if longhelp:
+        print("""
 While Jack is running, press q or Q to quit,
     p or P to disable ripping (you need the CD drive)
     p or P (again) or c or C to resume,
     e or E to pause/continue all encoders and
     r or R to pause/continue all rippers.
-"""
+""")
     else:
-        print "These are the most common options. For a complete list, run jack --longhelp"
+        print("These are the most common options. For a complete list, run jack --longhelp")
 
 
 def get_next(argv, i, extra_arg=None, allow_equal=1):
@@ -90,7 +90,7 @@ def parse_option(cf, argv, i, option, alt_arg, origin="argv"):
         else:
             return i, not cf[option]['val']
 
-    if ty == types.FloatType:
+    if ty == float:
         i, data = get_next(argv, i, alt_arg)
         if data != None:
             try:
@@ -101,7 +101,7 @@ def parse_option(cf, argv, i, option, alt_arg, origin="argv"):
         else:
             return None, "Option `%s' needs exactly one argument" % option
 
-    if ty == types.IntType:
+    if ty == int:
         i, data = get_next(argv, i, alt_arg)
         if data != None:
             try:
@@ -114,19 +114,20 @@ def parse_option(cf, argv, i, option, alt_arg, origin="argv"):
         else:
             return None, "Option `%s' needs exactly one argument" % option
 
-    if ty == types.StringType:
+    if ty == bytes or ty == str:
         i, data = get_next(argv, i, alt_arg)
         if data != None:
             return i, data
         else:
             return None, "Option `%s' needs exactly one string argument" % option
-    if ty == types.ListType:
+
+    if ty == list:
         l = []
         if origin == "argv":
             valid_short_opts = [cf[key]['short']
-                                for key in cf.keys() if cf[key].has_key('short')]
+                                for key in list(cf.keys()) if 'short' in cf[key]]
             valid_long_opts = [cf[key]['long']
-                               for key in cf.keys() if cf[key].has_key('long')]
+                               for key in list(cf.keys()) if 'long' in cf[key]]
             while 1:
                 i, data = get_next(argv, i, alt_arg, 0)
                 if data != None:
@@ -151,7 +152,7 @@ def parse_option(cf, argv, i, option, alt_arg, origin="argv"):
         elif origin == "rcfile":
             i, data = get_next(argv, i, alt_arg)
             l = eval(data)
-        if l and type(l) == types.ListType:
+        if l and type(l) == list:
             return i, l
         else:
             return None, "option `%s' takes a non-empty list (which may be terminated by \";\")" % option
@@ -162,18 +163,18 @@ def parse_option(cf, argv, i, option, alt_arg, origin="argv"):
 def parse_argv(cf, argv):
     argv_cf = {}
     allargs = {}
-    for i in cf.keys():
-        if cf[i].has_key('long'):
-            if len(cf[i]['long']) < 2 or allargs.has_key(cf[i]['long']):
-                print "Hey Arne, don't bullshit me!"
-                print cf[i]
+    for i in list(cf.keys()):
+        if 'long' in cf[i]:
+            if len(cf[i]['long']) < 2 or cf[i]['long'] in allargs:
+                print("Hey Arne, don't bullshit me!")
+                print(cf[i])
                 sys.exit(1)
             else:
                 allargs[cf[i]['long']] = i
-        if cf[i].has_key('short'):
-            if len(cf[i]['short']) != 1 or allargs.has_key(cf[i]['short']):
-                print "Hey Arne, don't bullshit me!"
-                print cf[i]
+        if 'short' in cf[i]:
+            if len(cf[i]['short']) != 1 or cf[i]['short'] in allargs:
+                print("Hey Arne, don't bullshit me!")
+                print(cf[i])
                 sys.exit(1)
             else:
                 allargs[cf[i]['short']] = i
@@ -200,7 +201,7 @@ def parse_argv(cf, argv):
 
         if len(tmp_option) == 2 and tmp_option[0] == "-":
             o = tmp_option[1]
-            if allargs.has_key(o):
+            if o in allargs:
                 option = allargs[o]
 
         elif tmp_option == "--override":
@@ -208,23 +209,23 @@ def parse_argv(cf, argv):
             if option.find("=") > 0:
                 option, tmp_arg = option.split("=", 1)
             if option == None:
-                print "--override takes two arguments: <VARIABLE> <VALUE>"
+                print("--override takes two arguments: <VARIABLE> <VALUE>")
                 sys.exit(1)
 
         elif len(tmp_option) > 2 and tmp_option[0:2] == "--":
             o = tmp_option[2:]
-            if allargs.has_key(o):
+            if o in allargs:
                 option = allargs[o]
 
         if option:
             i, value = parse_option(cf, argv, i, option, tmp_arg)
             if i == None:
                 error(value)
-            if not argv_cf.has_key(option):
+            if option not in argv_cf:
                 argv_cf[option] = {}
             argv_cf[option].update({'val': value})
         else:
-            print "unknown option `%s'" % argv[i]
+            print("unknown option `%s'" % argv[i])
             show_usage(cf)
             sys.exit(1)
         if not i:

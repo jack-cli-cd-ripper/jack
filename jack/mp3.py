@@ -19,11 +19,11 @@
 
 DEBUG = 0
 
-import string
 import types
 from os import stat
 from stat import ST_SIZE
-from StringIO import StringIO
+from io import StringIO
+from functools import reduce
 
 global warnings
 global F, f, xing, id3v2, start_offset
@@ -58,42 +58,42 @@ VBR_SCALE_FLAG = 0x0008
 
 
 def get_l4(s):
-    return reduce(lambda a, b: ((a << 8) + b), map(long, map(ord, s)))
+    return reduce(lambda a, b: ((a << 8) + b), list(map(int, list(map(ord, s)))))
 
 
 def decode_xing():
     global F, f, xing
     # defaults:
-    frames = bytes = scale = toc = None
+    frames = nbytes = scale = toc = None
     where = f.tell()
     try:
         if 1:
             if DEBUG:
-                print "Xing at", where
-            # 32-bit fields; "Xing", flags, frames, bytes, 100 toc
+                print("Xing at", where)
+            # 32-bit fields; "Xing", flags, frames, nbytes, 100 toc
             flags = get_l4(f.read(4))
             if flags & FRAMES_FLAG:
                 frames = get_l4(f.read(4))
             if flags & BYTES_FLAG:
-                bytes = get_l4(f.read(4))
+                nbytes = get_l4(f.read(4))
             if flags & TOC_FLAG:
-                toc = map(lambda x: ord(x), f.read(100))
+                toc = [ord(x) for x in f.read(100)]
                 for j in range(len(toc)):
-                    toc[j] = int(toc[j] / 256.0 * bytes)
+                    toc[j] = int(toc[j] / 256.0 * nbytes)
             if flags & VBR_SCALE_FLAG:
                 scale = get_l4(f.read(4))
 
             if DEBUG > 2:
-                print "Xing: frames=%i" % frames
-                print "Xing: bytes=%i" % bytes
-                print "Xing: toc=", toc
-                print "Xing: scale=%i" % scale
+                print("Xing: frames=%i" % frames)
+                print("Xing: bytes=%i" % nbytes)
+                print("Xing: toc=", toc)
+                print("Xing: scale=%i" % scale)
 
             xing = {}
             if frames:
                 xing['x_frames'] = frames
-            if bytes:
-                xing['x_bytes'] = bytes
+            if nbytes:
+                xing['x_bytes'] = nbytes
             if toc:
                 xing['x_toc'] = toc
             if scale:
@@ -115,7 +115,7 @@ def find_xing(framelen):
     "read (and skip) the Xing header if present"
     where = f.tell()
     x = f.read(framelen)
-    pos = string.find(x, "Xing")
+    pos = x.find("Xing")
     if pos >= 0:
         f.seek(where + pos + 4)
         decode_xing()
@@ -129,7 +129,7 @@ def reread_f(size):
     pos = f.tell()
     f.seek(F.offset)
     if DEBUG:
-        print "reread_f: now at", f.tell()
+        print("reread_f: now at", f.tell())
     F_offset = F.offset
     F_file = F.file
     F = StringIO(f.read(F.len + size + 10))
@@ -141,7 +141,7 @@ def reread_f(size):
 def handle_id3v2(version, flags, data):
     global id3v2
     if DEBUG:
-        print "ID3:", `version`, `flags`, len(data)
+        print("ID3:", repr(version), repr(flags), len(data))
     id3v2 = {}
     id3v2['version'] = tuple(version)
 
@@ -155,7 +155,7 @@ def read_id3v2():
     header = f.read(10)
     if header[:3] != "ID3":
         if DEBUG:
-            print "no header?", where, `header`
+            print("no header?", where, repr(header))
         f.seek(where)
         return None
 
@@ -230,7 +230,7 @@ def decode_header(buffer):
         if DEBUG:
             import traceback
             traceback.print_exc()
-            print "Illegal header, so far:", x
+            print("Illegal header, so far:", x)
         x = None
 
     return x
@@ -242,11 +242,11 @@ def extend_frameinfo(x):
     elif x['version_num'] == "2":
         x['samples_per_frame'] = 576
     else:
-        print "What is the spf for %s?" % x['version_name'], "(%s)" % x['version_num']
+        print("What is the spf for %s?" % x['version_name'], "(%s)" % x['version_num'])
 
     # calculate BPF
-    x['bpf'] = (x['bitrate'] * bpf_fact[x['lay']]) / x['sfreq']
-    x['framesize'] = (x['bitrate'] * bpf_fact[x['lay']]) / x[
+    x['bpf'] = (x['bitrate'] * bpf_fact[x['lay']]) // x['sfreq']
+    x['framesize'] = (x['bitrate'] * bpf_fact[x['lay']]) // x[
         'sfreq'] + x['padding']
     # stereo = (mode == MPG_MD_MONO) ? 1 : 2;
     return x
@@ -274,7 +274,7 @@ def syncronize(what=1):
                     x = extend_frameinfo(x)
                     next_header = where + x['framesize']
                     if DEBUG:
-                        print "MPEG header found at %i, expect next header at %i." % (x['header_at'], next_header)
+                        print("MPEG header found at %i, expect next header at %i." % (x['header_at'], next_header))
                     f.seek(next_header)
                     buf = f.read(4)
                     y = None
@@ -286,7 +286,7 @@ def syncronize(what=1):
                         break
                     else:
                         if DEBUG:
-                            print "but no valid header follows at %i." % next_header
+                            print("but no valid header follows at %i." % next_header)
                         f.seek(where)
                         index = where
                         x = None
@@ -296,7 +296,7 @@ def syncronize(what=1):
                     read_id3v2()
                     if id3v2:
                         if DEBUG:
-                            print "ID3v2 found, now at %i" % f.tell(), id3v2
+                            print("ID3v2 found, now at %i" % f.tell(), id3v2)
                         index = f.tell()
                         fields.remove("I")
                         continue
@@ -307,7 +307,7 @@ def syncronize(what=1):
                 decode_xing()
                 if xing:
                     if DEBUG:
-                        print "Xing header found without frame sync."
+                        print("Xing header found without frame sync.")
                     index = f.tell()
                     fields.remove("X")
                     continue
@@ -316,7 +316,7 @@ def syncronize(what=1):
 
             elif F.buf[index - start_offset:index - start_offset + 4] == "RIFF":
                 if warnings:
-                    print "skipping RIFF header at %i..." % F.tell()
+                    print("skipping RIFF header at %i..." % F.tell())
                 fields.remove("R")
         index = index + 1
     return x
@@ -330,15 +330,15 @@ def mp3format(file, warn=1, max_skip=100000, offset=0):
 
     f = xing = id3v2 = None
     if DEBUG:
-        print "examining", file, "warnings=%i" % warnings, "offset=%i" % start_offset, "max_skip=%i" % max_skip
+        print("examining", file, "warnings=%i" % warnings, "offset=%i" % start_offset, "max_skip=%i" % max_skip)
 
     # XXX we're using StringIO because it's faster - transitionally.
-    if type(file) == types.StringType:
+    if type(file) == bytes:
         f = open(file, "r")
     elif hasattr(file, 'seek'):
         f = file
     else:
-        print "unknown object:", file
+        print("unknown object:", file)
         return None
     f.seek(start_offset)
     search_in = f.read(max_skip)
@@ -351,12 +351,12 @@ def mp3format(file, warn=1, max_skip=100000, offset=0):
 
     if not x:
         if warnings:
-            print "Warning: no MP3 header found in the first", F.tell(), "bytes of file\n       : \"" + file + "\"."
+            print("Warning: no MP3 header found in the first", F.tell(), "bytes of file\n       : \"" + file + "\".")
         return {}
 
     # we're quite sure we have a valid header now
     if warnings > 1:
-        print "Warning: MP3 header found at offset", f.tell() - 4
+        print("Warning: MP3 header found at offset", f.tell() - 4)
 
     # fill in convenience stuff
     x = extend_frameinfo(x)
@@ -368,23 +368,23 @@ def mp3format(file, warn=1, max_skip=100000, offset=0):
 
     if xing:
         x.update(xing)
-        if x.has_key('x_frames'):
+        if 'x_frames' in x:
             x['length_in_samples'] = x['x_frames'] * x['samples_per_frame']
             x['length'] = float(x['length_in_samples']) / x['sfreq']
             # should use the real file size instead of x_bytes.
-            if x.has_key("x_bytes"):
+            if "x_bytes" in x:
                 x['bitrate'] = int(
                     (x['x_bytes'] * 8.0 / x['length']) / 100 + 0.5)
                 x['bitrate'] = x['bitrate'] / 10.0
         else:
-            print "strange xing=" + `xing`
+            print("strange xing=" + repr(xing))
     else:
         x['length'] = stat(file)[ST_SIZE] * 8.0 / (x['bitrate'] * 1000)
     if id3v2:
         x['id3v2'] = id3v2
 
     if DEBUG > 1:
-        print x
+        print(x)
     return x
 
 
@@ -394,11 +394,11 @@ class MP3:
 
         self.file = None
         self.name = name
-        if type(file) == types.StringType:
+        if type(file) == bytes:
             self.file = open(file, "rb")
             self.name = file
         elif hasattr(file, 'seek'):
             self.file = file
         else:
-            print "unknown object:", file
+            print("unknown object:", file)
             return None

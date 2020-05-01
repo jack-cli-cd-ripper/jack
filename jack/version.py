@@ -16,7 +16,6 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-from string import split
 from sys import version
 
 prog_version = "3.1.1"
@@ -24,4 +23,4 @@ prog_name = "jack"
 prog_rcversion = 31
 prog_copyright = "(C)2004 Arne Zellentin"
 prog_devemail = "<zarne@users.sf.net>"
-py_version = split(version)[0]
+py_version = version.split(' ')[0]

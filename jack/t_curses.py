@@ -42,7 +42,7 @@ except ImportError:
         def resizeterm(y, x):
             pass
     except ImportError:
-        print "curses module not found or too old, please install it (see README)"
+        print("curses module not found or too old, please install it (see README)")
 
 
 # screen objects
@@ -199,7 +199,7 @@ def sig_winch_handler(sig, frame):
         stdscr.refresh()
 
         usage_win_y, usage_win_x = jack.term.size_y - \
-            usage_win_height - 1, (jack.term.size_x - usage_win_width) / 2
+            usage_win_height - 1, int ((jack.term.size_x - usage_win_width) // 2)
         if usage_win_y > extra_lines and usage_win_x > 0 and jack.term.size_y > extra_lines + 2 + usage_win_height and jack.term.size_x > usage_win_width:
             del usage_win
             usage_win = newwin(

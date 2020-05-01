@@ -63,10 +63,10 @@ def gen_printable_names(track_names, todo):
     if jack.freedb.names_available and cf['_show_names']:
         if cf['_various']:
             max_name_len = max(
-                map(lambda x: len(track_names[x[NUM]][0] + " - " + track_names[x[NUM]][1]), todo))
+                [len(track_names[x[NUM]][0] + " - " + track_names[x[NUM]][1]) for x in todo])
         else:
             max_name_len = max(
-                map(lambda x: len(track_names[x[NUM]][1]), todo))
+                [len(track_names[x[NUM]][1]) for x in todo])
         max_name_len = len("01 ") + max_name_len
         if cf['_show_time']:
             max_name_len = max_name_len + 6
@@ -77,8 +77,8 @@ def gen_printable_names(track_names, todo):
 
     for i in todo:
         if cf['_show_time']:
-            len_tmp = i[LEN] / CDDA_BLOCKS_PER_SECOND
-            len_tmp = ("%02i:%02i") % (len_tmp / 60, len_tmp % 60)
+            len_tmp = i[LEN] // CDDA_BLOCKS_PER_SECOND
+            len_tmp = ("%02i:%02i") % (len_tmp // 60, len_tmp % 60)
 
         if jack.freedb.names_available and cf['_show_names']:
             if cf['_show_time']:
@@ -90,7 +90,7 @@ def gen_printable_names(track_names, todo):
                     0] + " - " + track_names[i[NUM]][1]
             else:
                 tmp = tmp + track_names[i[NUM]][1]
-            p_tmp = tmp.encode(locale.getpreferredencoding(), "replace")
+            p_tmp = tmp
             printable_names[i[NUM]] = p_tmp + "." * (
                 max_name_len - width(p_tmp))
         else:

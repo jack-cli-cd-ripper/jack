@@ -42,7 +42,7 @@ $ jack --encoder-name=flac --save
 
 ### Requirements
 
-* Right now only python-2.7 is supported - as found on Debian GNU/Linux 9.0 (stretch)
+* Python 3
 * CDDB.py  - see `doc/INSTALL` on how to get/install it
 * eyeD3    - see `doc/INSTALL` on how to get/install it
 * an encoder like oggenc for Ogg/Vorbis (default), flac (Free Lossless Audio
