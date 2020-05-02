@@ -19,6 +19,7 @@
 import os
 import sys
 import locale
+import re
 
 import jack.functions
 import jack.ripstuff
@@ -40,6 +41,7 @@ genretxt = None
 
 a_artist = None
 a_title = None
+discnum = None
 
 
 def _set_id3_tag(
@@ -87,6 +89,17 @@ def tag(freedb_rename):
     if jack.freedb.names_available:
         a_artist = track_names[0][0]  # unicode
         a_title = track_names[0][1]  # unicode
+
+        r1 = re.compile(r'( \(disc[ ]*| \(side[ ]*| \(cd[^a-z0-9]*)([0-9]*|One|Two|A|B)([^a-z0-9])', re.IGNORECASE)
+        mo = r1.search(a_title)
+        discnum = None
+        if mo != None:
+            discnum = a_title[mo.start(2):mo.end(2)].lstrip("0")
+            a_title = a_title[0:mo.start(1)]
+            if discnum == "One" or discnum == "one" or discnum == "A":
+                discnum = "1"
+            elif discnum == "Two" or discnum == "two" or discnum == "B":
+                discnum = "2"
 
     if cf['_set_id3tag'] or freedb_rename:
         jack.m3u.init()
@@ -161,6 +174,13 @@ def tag(freedb_rename):
                         else:
                             if 'COMPILATION' in f.vc:
                                 del f.vc['COMPILATION']
+                        if discnum:
+                            f.vc['DISCNUMBER'] = discnum
+                        else:
+                            if 'DISCNUMBER' in f.vc:
+                                del f.vc['DISCNUMBER']
+                            if 'DISCTOTAL' in f.vc:
+                                del f.vc['DISCTOTAL']
                         f.save()
                     else:
                         print()
