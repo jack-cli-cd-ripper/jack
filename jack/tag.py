@@ -149,6 +149,7 @@ def tag(freedb_rename):
                             f.add_vorbiscomment()
                         f.vc['ALBUM'] = a_title
                         f.vc['TRACKNUMBER'] = str(i[NUM])
+                        f.vc['TRACKTOTAL'] = str(len(jack.ripstuff.all_tracks_orig))
                         f.vc['TITLE'] = t_name
                         f.vc['ARTIST'] = t_artist
                         if cf['_id3_genre'] != -1:
