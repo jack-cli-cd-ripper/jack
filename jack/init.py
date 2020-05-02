@@ -56,10 +56,10 @@ except:
     cdrom = dummy_cdrom()
 
 try:
-    import ogg.vorbis
+    import pyogg.vorbis
 except:
-    warning("ogg module not installed, ogg support disabled")
-    ogg = None
+    warning("pyogg module not installed, ogg support disabled")
+    pyogg = None
 
 try:
     import mutagen.flac as flac

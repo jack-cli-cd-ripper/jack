@@ -35,7 +35,7 @@ import jack.helpers
 import jack.freedb
 
 from jack.globals import *
-from jack.init import ogg
+from jack.init import pyogg
 from jack.init import flac
 
 progress_changed = None
@@ -195,8 +195,8 @@ def guesstoc(names):
             progr.append(
                 [num, "dae", "  =p  [  s  i  m  u  l  a  t  e  d   ]"])
         elif i_ext == ".OGG":
-            if ogg:
-                x = ogg.vorbis.VorbisFile(i)
+            if pyogg:
+                x = pyogg.VorbisFile(i)
                 blocks = int(x.time_total(0) * CDDA_BLOCKS_PER_SECOND + 0.5)
                 bitrate = temp_rate = int(
                     x.raw_total(0) * 8 / x.time_total(0) / 1000 + 0.5)

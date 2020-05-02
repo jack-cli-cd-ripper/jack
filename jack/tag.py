@@ -30,7 +30,7 @@ import jack.utils
 import jack.misc
 import jack.m3u
 
-from jack.init import ogg
+from jack.init import pyogg
 from jack.init import eyed3
 from jack.init import flac
 from jack.globals import *
@@ -188,19 +188,18 @@ def tag(freedb_rename):
                         print("http://www.sacredchao.net/quodlibet/wiki/Development/Mutagen")
                         print("Without it, you'll not be able to tag FLAC tracks.")
                 elif jack.helpers.helpers[cf['_encoder']]['target'] == "ogg":
-                    #vf = ogg.vorbis.VorbisFile(mp3name)
-                    #oggi = vf.comment()
-                    #oggi.clear()
-                    #oggi.add_tag('ALBUM', a_title
-                    #oggi.add_tag('TRACKNUMBER', repr(i[NUM]))
-                    #oggi.add_tag('TITLE', t_name
-                    #oggi.add_tag('ARTIST', t_artist
-                    #if cf['_id3_genre'] != -1:
-                    #    oggi.add_tag('GENRE', id3genres[cf['_id3_genre']])
-                    #if cf['_id3_year'] != -1:
-                    #    oggi.add_tag('DATE', repr(cf['_id3_year']))
-                    #oggi.write_to(mp3name)
-                    pass
+                    vf = pyogg.VorbisFile(mp3name)
+                    oggi = vf.comment()
+                    oggi.clear()
+                    oggi.add_tag('ALBUM', a_title)
+                    oggi.add_tag('TRACKNUMBER', repr(i[NUM]))
+                    oggi.add_tag('TITLE', t_name)
+                    oggi.add_tag('ARTIST', t_artist)
+                    if cf['_id3_genre'] != -1:
+                        oggi.add_tag('GENRE', id3genres[cf['_id3_genre']])
+                    if cf['_id3_year'] != -1:
+                        oggi.add_tag('DATE', repr(cf['_id3_year']))
+                    oggi.write_to(mp3name)
             if freedb_rename:
                 newname = jack.freedb.filenames[i[NUM]]
                 if i[NAME] != newname:

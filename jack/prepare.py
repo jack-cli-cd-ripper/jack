@@ -38,7 +38,7 @@ import jack.misc
 import jack.tag
 
 from jack.globals import *
-from jack.init import ogg
+from jack.init import pyogg
 from jack.init import flac
 
 global tracknum
@@ -395,8 +395,8 @@ def update_progress(status, todo):
                     if ext.upper() == ".MP3":
                         x = jack.mp3.mp3format(i[NAME] + ext)
                         temp_rate = x['bitrate']
-                    elif ext.upper() == ".OGG" and ogg:
-                        x = ogg.vorbis.VorbisFile(i[NAME] + ext)
+                    elif ext.upper() == ".OGG" and pyogg:
+                        x = pyogg.VorbisFile(i[NAME] + ext)
                         temp_rate = int(
                             x.raw_total(0) * 8 // x.time_total(0) // 1000 + 0.5)
                     elif ext.upper() == ".FLAC" and flac:

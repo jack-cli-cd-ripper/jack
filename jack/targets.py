@@ -19,13 +19,10 @@
 from jack.globals import *
 
 try:
-    import ogg.vorbis
-    has_ogg_vorbis = 1
-    if ogg.vorbis.__version__ < "0.5":
-        has_ogg_vorbis = 0
-        debug("ogg.vorbis tagging disabled, version is too low.")
+    import pyogg.vorbis
+    has_pyogg_vorbis = 1
 except:
-    has_ogg_vorbis = 0
+    has_pyogg_vorbis = 0
     debug("ogg.vorbis tagging disabled.")
 
 # supported target file fomats
@@ -43,7 +40,7 @@ targets = {
         'can_vbr': 1,
         'can_id3': 1,
         'can_pretag': 1,
-        'can_posttag': (1 & has_ogg_vorbis),
+        'can_posttag': (1 & has_pyogg_vorbis),
         'file_extension': ".ogg"
     },
     'flac': {
