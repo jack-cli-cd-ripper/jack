@@ -362,10 +362,6 @@ def freedb_query(cd_id, tracks, file):
             matches = []
             while 1:
                 buf = f.readline().decode(cf['_charset'])
-                try:
-                    buf = str(buf, "utf-8")
-                except UnicodeDecodeError:
-                    buf = str(buf, "latin-1")
                 if not buf:
                     break
                 buf = buf.rstrip()
