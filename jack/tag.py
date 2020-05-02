@@ -143,7 +143,7 @@ def tag(freedb_rename):
                             t_name, (
                                 i[NUM], len(jack.ripstuff.all_tracks_orig)),
                             t_artist, cf['_id3_genre'], cf['_id3_year'], None,
-                            int(i[LEN] * 1000.0 // 75 + 0.5)
+                            int(i[LEN] * 1000.0 / 75 + 0.5)
                         )
                     if cf['_write_id3v1']:
                         # encoding ??
@@ -153,7 +153,7 @@ def tag(freedb_rename):
                             (i[NUM], len(jack.ripstuff.all_tracks_orig)),
                             t_artist, cf['_id3_genre'], cf[
                                 '_id3_year'], t_comm,
-                            int(i[LEN] * 1000.0 // 75 + 0.5)
+                            int(i[LEN] * 1000.0 / 75 + 0.5)
                         )
                 elif jack.helpers.helpers[cf['_encoder']]['target'] == "flac":
                     if flac:
