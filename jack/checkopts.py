@@ -307,15 +307,15 @@ def check_rc(cf, global_cf, user_cf, argv_cf):
             warning("%s but there are several CD devices." % message)
             for i in range(len(devices)):
                 print("%2d" % (i + 1) + ".) " + devices[i])
-            input = 0
-            while input <= 0 or input > len(devices):
+            userinput = 0
+            while userinput <= 0 or userinput > len(devices):
                 try:
-                    input = input("Please choose: ")
+                    userinput = input("Please choose: ")
                 except KeyboardInterrupt:
                     sys.exit(0)
-                if input.isdigit():
-                    input = int(input)
+                if userinput.isdigit():
+                    userinput = int(userinput)
                 else:
-                    input = 0
-            devices[0] = devices[input - 1]
+                    userinput = 0
+            devices[0] = devices[userinput - 1]
             cf.rupdate({'cd_device': {'val': devices[0]}}, "check")

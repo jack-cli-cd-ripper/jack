@@ -371,11 +371,11 @@ def freedb_query(cd_id, tracks, file):
                     num = num + 1
             x = -1
             while x < 0 or x > num - 1:
-                input = input(" 0.) none of the above: ")
-                if not input:
+                userinput = input(" 0.) none of the above: ")
+                if not userinput:
                     continue
                 try:
-                    x = int(input)
+                    x = int(userinput)
                 except ValueError:
                     x = -1    # start the loop again
                 if not x:
@@ -798,15 +798,15 @@ def choose_cat(cat=["blues", "classical", "country", "data", "folk", "jazz", "mi
     x = -1
     while x < 0 or x > len(cat):
         if 'freedb_cat' in jack.progress.status_all and jack.progress.status_all['freedb_cat'][-1] in cat:
-            input = input(" 0.) none of the above (default='%s'): " %
+            userinput = input(" 0.) none of the above (default='%s'): " %
                               jack.progress.status_all['freedb_cat'][-1])
-            if not input:
+            if not userinput:
                 x = cat.index(jack.progress.status_all['freedb_cat'][-1])
                 continue
         else:
-            input = input(" 0.) none of the above: ")
+            userinput = input(" 0.) none of the above: ")
         try:
-            x = int(input)
+            x = int(userinput)
         except ValueError:
             x = -1    # start the loop again
 
