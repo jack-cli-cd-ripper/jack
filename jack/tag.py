@@ -155,6 +155,11 @@ def tag(freedb_rename):
                             f.vc['GENRE'] = id3genres[cf['_id3_genre']]
                         if cf['_id3_year'] != -1:
                             f.vc['DATE'] = str(cf['_id3_year'])
+                        if cf['_various']:
+                            f.vc['COMPILATION'] = "1"
+                        else:
+                            if 'COMPILATION' in f.vc:
+                                del f.vc['COMPILATION']
                         f.save()
                     else:
                         print()
