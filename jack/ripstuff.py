@@ -44,7 +44,7 @@ raw_space = None                    # free diskspace
 
 def width(s):
     w = 0
-    for c in s.decode(locale.getpreferredencoding()):
+    for c in s:
         if unicodedata.east_asian_width(c) in ("W", "F"):
             w += 2
         else:
