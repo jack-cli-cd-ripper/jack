@@ -38,8 +38,11 @@ import jack.term
 
 from jack.globals import *
 
-
 def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
+    global helper_new_status
+    global helper_final_status
+    global helper_percent
+
     global_error = 0    # remember if something went wrong
     actual_load = -2    # this is always smaller than max_load
     waiting_load = 0    # are we waiting for the load to drop?
@@ -343,8 +346,7 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
                                 last_status = None   # (only used in cdparanoia)
                                 exec((jack.helpers.helpers[exited_proc['prog']][
                                      'final_status_fkt']), globals(), locals())
-                            final_status = '' # FIXME
-                            jack.status.dae_stat_upd(num, final_status)
+                            jack.status.dae_stat_upd(num, helper_final_status)
                         if jack.status.enc_cache[num]:
                             jack.status.enc_stat_upd(
                                 num, jack.status.enc_cache[num])
@@ -422,17 +424,12 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
                         else:
                             exec((jack.helpers.helpers[i['prog']][
                                  'status_fkt']), globals(), locals())
-                        try:
-                            new_status
-                        except:
-                            debug("new_status not defined")
-                        else:
-                            if new_status:
-                                try:
-                                    jack.status.dae_stat_upd(
-                                        i['track'][NUM], ":DAE: " + new_status)
-                                except:
-                                    debug("error in dae_stat_upd")
+                        if helper_new_status:
+                            try:
+                                jack.status.dae_stat_upd(
+                                    i['track'][NUM], ":DAE: " + helper_new_status)
+                            except:
+                                debug("error in dae_stat_upd")
 
                 elif i['type'] == "encoder":
                     if len(i['buf']) == jack.helpers.helpers[i['prog']]['status_blocksize']:
@@ -497,11 +494,11 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
                     (i['percent'] // 100) * i['track'][LEN]
             elapsed = time.time() - global_start
             if global_blocks > 0:
-                percent = total_done // global_blocks
+                helper_percent = total_done // global_blocks
             else:
-                percent = 0
-            if percent > 0 and elapsed > 40:
-                eta = ((1 - percent) * elapsed // percent)
+                helper_percent = 0
+            if helper_percent > 0 and elapsed > 40:
+                eta = ((1 - helper_percent) * elapsed // helper_percent)
                 eta_hms = " ETA=%i:%02i:%02i" % (
                     eta // 3600, (eta % 3600) // 60, eta % 60)
             else:

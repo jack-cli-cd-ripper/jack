@@ -24,6 +24,9 @@ import jack.plugins
 
 from jack.globals import *
 
+helper_new_status = None
+helper_final_status = None
+helper_percent = None
 
 helpers = {
     'builtin': {
@@ -51,6 +54,7 @@ helpers = {
         'bitrate_factor': 1,
         'status_start': "%",
         'percent_fkt': r"""
+global helper_percent
 s = (i['buf'], '\r').split()
 if len(s) >= 2:
     s = s[-2]
@@ -60,11 +64,11 @@ y0 = s.find("[")
 y1 = s.find("%]")
 if y0 != -1 and y1 != -1:
     try:
-        percent = float(s[y0 + 1:y1])
+        helper_percent = float(s[y0 + 1:y1])
     except ValueError:
-        percent = 0
+        helper_percent = 0
 else:
-    percent = 0
+    helper_percent = 0
 """,
     },
 
@@ -77,14 +81,15 @@ else:
         'bitrate_factor': 1000,
         'status_start': "%",
         'percent_fkt': r"""
+global helper_percent
 s = (i['buf']).split('\r')
 if len(s) >= 4:
     s = s[-2]
     if s.find("%") >= 0:
         y = s.split(" ", 3)
-        percent = float(y[0]) / (i['track'][LEN] * CDDA_BLOCKSIZE / 2) * 100.0
+        helper_percent = float(y[0]) / (i['track'][LEN] * CDDA_BLOCKSIZE / 2) * 100.0
     else:
-        percent = 0
+        helper_percent = 0
 """,
     },
 
@@ -96,6 +101,7 @@ if len(s) >= 4:
         'bitrate_factor': 1000,
         'status_start': "%",
         'percent_fkt': r"""
+global helper_percent
 s = (i['buf']).split('\r')
 if len(s) >= 2: s = s[-2]
 if len(s) == 1: s = s[0]
@@ -103,9 +109,9 @@ if s.find("%") >= 0:
     y = s.split(" / ")
     y0 = ((y[0])[-1]).split()
     y1 = ((y[1])[0]).split()
-    percent=float(y0) / float(y1) * 100.0
+    helper_percent=float(y0) / float(y1) * 100.0
 else:
-    percent = 0
+    helper_percent = 0
 """,
     },
 
@@ -121,20 +127,21 @@ else:
         'bitrate_factor': 1,
         'status_start': "%",
         'percent_fkt': r"""
+global helper_percent
 s = (i['buf']).split('\r')
 if len(s) >= 2: s=s[-2]
 if len(s) == 1: s=s[0]
 if s.find("%") >= 0:       # status reporting starts here
     y = s.split("/")
     y1 = (y[1]).split("(")[0]
-    percent = float(y[0]) / float(y1) * 100.0
+    helper_percent = float(y[0]) / float(y1) * 100.0
 elif s.find("Frame:") >= 0:    # older versions, like 3.13
     y = s.split("/")
     y0 = (y[0]).split("[")[-1]
     y1 = (y[1]).split("]")[0]
-    percent = float(y0) / float(y1) * 100.0
+    helper_percent = float(y0) / float(y1) * 100.0
 else:
-    percent = 0
+    helper_percent = 0
 """,
     },
 
@@ -150,6 +157,7 @@ else:
         'bitrate_factor': 1,
         'status_start': "%",
         'percent_fkt': r"""
+global helper_percent
 s = (i['buf']).split('\r')
 if len(s) >= 2: s=s[-2]
 if len(s) == 1: s=s[0]
@@ -158,9 +166,9 @@ if s.find("%") >= 0: # status reporting starts here
     y = s.split("/")
     y0 = (y[0]).split("{")[-1]
     y1 = (y[1]).split("}")[0]
-    percent = float(y0) / float(y1) * 100.0
+    helper_percent = float(y0) / float(y1) * 100.0
 else:
-    percent = 0
+    helper_percent = 0
 """,
     },
 
@@ -172,13 +180,14 @@ else:
         'bitrate_factor': 1000,
         'status_start': "%",
         'percent_fkt': r"""
+global helper_percent
 s = (i['buf']).split('\r')
 if len(s) >= 2: s=s[-2]
 if s.find("Status:") != -1:
     y = (s[8:]).split()
-    percent = float((y[0]).split('%')[0])
+    helper_percent = float((y[0]).split('%')[0])
 else:
-    percent = 0
+    helper_percent = 0
 """,
     },
 
@@ -194,16 +203,17 @@ else:
         'bitrate_factor': 1,
         'status_start': "%",
         'percent_fkt': r"""
+global helper_percent
 s = (i['buf']).split('\r')
 if len(s) >= 2: s = s[-2]
 if s.find("ETA:") != -1:
     y = (s.split('%')[0]).strip()
     if len(y) == 0:
-        percent = 0
+        helper_percent = 0
     else:
-        percent = float(y)
+        helper_percent = float(y)
 else:
-    percent = 0
+    helper_percent = 0
 """,
     },
 
@@ -215,6 +225,7 @@ else:
         'status_blocksize': 160,
         'status_start': "%",
         'percent_fkt': r"""
+global helper_percent
 s = (i['buf']).split('\r')
 if len (s) >= 2: s = s[-2]
 if len (s) == 1: s = s[0]
@@ -222,11 +233,11 @@ y0 = s.rfind(": ")
 y1 = s.find ("%", y0)
 if y0 != -1 and y1 != -1:
     try:
-        percent = float(s[y0 + 1:y1])
+        helper_percent = float(s[y0 + 1:y1])
     except ValueError:
-        percent = 0
+        helper_percent = 0
 else:
-    percent = 0
+    helper_percent = 0
 """,
     },
 
@@ -239,14 +250,15 @@ else:
         'status_blocksize': 160,
         'status_start': "-.-",
         'percent_fkt': r"""
+global helper_percent
 s = (i['buf']).split('\r')
 if len(s) >= 3:
     s = s[-3]
     s = s.strip().split()
     if len(s) >= 3 and s[2] == "kbps" and s[0] != "-.-":
-        percent = float(s[0])
+        helper_percent = float(s[0])
     else:
-        percent = 0
+        helper_percent = 0
 """,
     },
 
@@ -258,26 +270,29 @@ if len(s) >= 3:
         'status_blocksize': 500,
         'status_start': "%",
         'status_fkt': r"""
+global helper_new_status
 # (== PROGRESS == [                              | 013124 00 ] == :^D * ==)
 # (== PROGRESS == [                       >      .| 011923 00 ] == :-) . ==)
 tmp = (i['buf']).split("\r")
 if len(tmp) >= 2:
     tmp = tmp[-2] + " "
-    new_status = tmp[17:48] + tmp[49:69] # 68->69 because of newer version
+    helper_new_status = tmp[17:48] + tmp[49:69] # 68->69 because of newer version
 else:
-    new_status = "Cannot parse status"
+    helper_new_status = "Cannot parse status"
 """,
         'otf-status_fkt': r"""
+global helper_new_status
 buf = i['buf']
 tmp = buf.split("\n")
-new_status = ""
+helper_new_status = ""
 if len(tmp) >= 2:
     tmp = (tmp[-2]).split(" @ ")
     if tmp[0] == "##: -2 [wrote]":
-        percent = (float(tmp[1]) - (i['track'][START] * CDDA_BLOCKSIZE / 2.0)) / (i['track'][LEN] * CDDA_BLOCKSIZE / 2.0) * 100.0
-        new_status = "[otf - reading, %2i%%]" % percent
+        helper_percent = (float(tmp[1]) - (i['track'][START] * CDDA_BLOCKSIZE / 2.0)) / (i['track'][LEN] * CDDA_BLOCKSIZE / 2.0) * 100.0
+        helper_new_status = "[otf - reading, %2i%%]" % helper_percent
 """,
         'final_status_fkt': r"""
+global helper_final_status
 last_status="0123456789012345 [ -- error decoding status --  ]" # fallback
 if 0 and cf['_debug']: # disabled for now
     import jack.version
@@ -290,10 +305,11 @@ for tmp in tmps:
     if tmp.find("PROGRESS") != -1:
         last_status = tmp
         break
-final_status = ("%sx" % jack.functions.pprint_speed(speed)) + last_status[16:48] + "]"
+helper_final_status = ("%sx" % jack.functions.pprint_speed(speed)) + last_status[16:48] + "]"
 """,
         'otf-final_status_fkt': r"""
-final_status = "[otf - done]"
+global helper_final_status
+helper_final_status = "[otf - done]"
 """,
         # 'toc': 1,  # we can't generate correct freedb IDs with cdparanoia.
         'toc_cmd': "cdparanoia -d %d -Q 2>&1",
@@ -338,12 +354,13 @@ for l in p.readlines():
         'status_blocksize': 200,
         'status_start': "percent_done:",
         'status_fkt': r"""
+global helper_new_status
 tmp = (i['buf']).split("\r")
 if len(tmp) >= 2:
     tmp = tmp[-2].lstrip()
     pct = tmp.find("%")
     if pct == -1:
-        new_status = "waiting..."
+        helper_new_status = "waiting..."
     else:
         # A normal line when it's ripping looks like this:
         #   7%
@@ -352,16 +369,17 @@ if len(tmp) >= 2:
         info = tmp[:pct+1]
         error = info + "cdda2wav:"
         if tmp == info:
-            new_status = "ripping: " + info
+            helper_new_status = "ripping: " + info
         elif tmp.startswith(error):
-            new_status = "Error: " + tmp[len(error):].lstrip()
+            helper_new_status = "Error: " + tmp[len(error):].lstrip()
         else:
-            new_status = "Cannot parse status"
+            helper_new_status = "Cannot parse status"
 else:
-    new_status = "Cannot parse status"
+    helper_new_status = "Cannot parse status"
 """,
         'final_status_fkt': r"""
-final_status = ("%s" % jack.functions.pprint_speed(speed)) + "x [ DAE done with cdda2wav       ]"
+global helper_final_status
+helper_final_status = ("%s" % jack.functions.pprint_speed(speed)) + "x [ DAE done with cdda2wav       ]"
 """,
         'toc': 1,
         'toc_cmd': "cdda2wav --no-infofile -D %d -J -v toc --gui 2>&1",
@@ -456,17 +474,19 @@ if new_c2w and len(new_lengths) == len(new_starts) - 1:
         'status_blocksize': 100,
         'status_start': "total:",
         'status_fkt': r"""
+global helper_new_status
 tmp = (i['buf']).split("\r")
 if len(tmp) >= 2:
     if (tmp[-2]).find('total:') != -1:
-        new_status = (tmp[-2]).strip()
+        helper_new_status = (tmp[-2]).strip()
     else:
-        new_status = "waiting..."
+        helper_new_status = "waiting..."
 else:
-    new_status = "Cannot parse status"
+    helper_new_status = "Cannot parse status"
 """,
         'final_status_fkt': r"""
-final_status = ("%s" % jack.functions.pprint_speed(speed)) + "x [ DAE done with dagrab         ]"
+global helper_final_status
+helper_final_status = ("%s" % jack.functions.pprint_speed(speed)) + "x [ DAE done with dagrab         ]"
 """,
         'toc': 1,
         'toc_cmd': "dagrab -d %d -i 2>&1",
@@ -497,14 +517,16 @@ while l:
         'status_blocksize': 100,
         'status_start': "total:",
         'status_fkt': r"""
+global helper_new_status
 x = (i['buf']).split('\r')[-2]
 if x.find('total:') != -1:
-    new_status = ((i['buf']).split('\r')[-2]).strip()
+    helper_new_status = ((i['buf']).split('\r')[-2]).strip()
 else:
-    new_status = "waiting..."
+    helper_new_status = "waiting..."
 """,
         'final_status_fkt': r"""
-final_status = ("%s" % jack.functions.pprint_speed(speed)) + "x [ DAE done with tosha          ]"
+global helper_final_status
+helper_final_status = ("%s" % jack.functions.pprint_speed(speed)) + "x [ DAE done with tosha          ]"
 """,
         'toc': 1,
         'toc_cmd': "tosha -d %d -iq 2>&1",
