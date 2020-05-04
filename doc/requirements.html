@@ -1,9 +1,12 @@
-<!--#include virtual="/include/head.html" -->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+
 <HEAD>
 <TITLE>Jack's system requirements</TITLE>
+<LINK REL=STYLESHEET HREF="mine.css">
 <LINK REV=MADE href=mailto:zarne@users.sf.net>
 </HEAD>
-<BODY BGCOLOR=#072387 TEXT=#d0d840 LINK=#f0a840 VLINK=a06820>
+<BODY BGCOLOR=#072387 TEXT=#d0d840 LINK=#f0a840 VLINK=#b07830>
 <CENTER>
     <A href=index.html><IMG src="main.gif" height=32></A>
     <A href=download.html><IMG src="download.gif" height=32></A>
@@ -13,50 +16,53 @@
     <A href=usage.html><IMG src="usage.gif" height=32></A>
     <A href=links.html><IMG src="links.gif" height=32></A>
 </CENTER>
-
 <TABLE width=100%><TR><TD valign=bottom>
-<H3><U>System requirements for Jack</U></H3>
+<H1>System requirements for Jack</H1>
 <TD valign=bottom>
 <IMG SRC="jack-logo.jpg" align=right alt="Jack" height=50 width=101></TR>
 </TABLE>
-
 Jack has been developed using Linux, but I think it should work with other unices, too, as long as it resembles posix (has ptys, ...). If it doesn't work, tell me!
 <P>
 In order to run Jack, you <B>must</B> have the following installed:
 <UL>
-<LI>python 1.5.2: with earlier versions freedb query and ripping-from-image
-will not work. You also need the following modules (they are all part of the
-python source distribution but some may not be installed by default, since
-Version 2 Jack no longer needs threads; it's now a lot easier to get is to
-work.):
- <UL><LI><B>termios</B>
+<LI>python: at least version 2.2. You also need the following modules (they are all part of the
+python source distribution but some may not be installed by default:
+ <UL><LI>termios
      <LI>sndhdr
      <LI>urllib
      <LI>pty
      <LI>wav
  </UL>
  If it doesn't run, check these first!
-<LI>Ben Gertzfield's <A href=http://csl.cse.ucsc.edu/~ben/python/>ID3 module</A> WARNING: version 0.5 is buggy, use at least 0.6. No need to download it, I packaged it with jack.
-<LI><A href=http://www.xiph.org/paranoia/>cdparanoia</A> or <A href=http://dorifer.heim3.tu-clausthal.de/~olli/tosha/>tosha</A> for audio extraction
-<LI>df (comes with any unix)
+<LI>Ben Gertzfield's <A href="http://id3-py.sourceforge.net/">ID3 module</A>.
 </UL>
-You will also have to install at least one of these MP3 encoders:
+<H3>Supported DAE utils (ripper):</H3>
 <UL>
-<LI><A href=http://home8.swipnet.se/~w-82625/encoder/>bladeenc</A>
-<LI><A href=http://www.sulaco.org/mp3/>lame</A>
+<LI><A href="http://www.xiph.org/paranoia/">cdparanoia</A>
+<LI><A href="http://www.fokus.fhg.de/research/cc/glone/employees/joerg.schilling/private/cdrecord.html">cdda2wav</A>
+<LI><A href="http://vertigo.fme.vutbr.cz/~stibor/authors.html">dagrab</A>
+<LI><A href="http://cdrdao.sourceforge.net/">cdrdao</A> (jack supports ripping from an cdrdao-generated disk-image)
+<LI><A href="http://www.freshports.org/audio/tosha/">tosha</A>
+</UL>
+<H3>Supported audio encoders:</H3>
+<UL>
+<LI><A href="http://www.vorbis.com/">ogg vorbis</A>
+<LI><A href="http://lame.sourceforge.net/">lame</A>
+<LI><A href="http://homepage1.nifty.com/herumi/gogo_e.html">GOGO-no-coda</A>
+<LI><A href="http://flac.sourceforge.net/">FLAC</A>, the Free Lossless Audio Codec
+<LI><A href="http://www.musepack-source.de/english/">musepack</A> a.k.a. MPC
 <LI>mp3enc
+<LI>xing mp3 encoder
 <LI>l3enc
+<LI><A href="http://bladeenc.mp3.no/">bladeenc</A>
 </UL>
 
-Optional:
+<H3>Optional:</H3>
 <UL>
-<LI>a patched <A href=cursesmodule-with-resizeterm-1.5b2.tar.gz>cursesmodule</A>,
-if you want to use the new curses pseudographical mode
-<LI><A href=http://www.cs.vu.nl/~bernsti/xtermset/>xtermset</A>
-<LI><A href=http://www.ping.de/sites/daneb/cdrdao.html>cdrdao</A>
+<LI><A href="http://pyid3lib.sourceforge.net/">pyid3lib</A> for ID3v2 support
+<LI><A href="http://www.andrewchatham.com/pyogg/">pyogg and pyvorbis</A> for tagging ogg vorbis files
+<LI><A href="http://freshmeat.net/projects/xtermset/">xtermset</A>
 </UL>
-Wanna go <A href=index.html>home</A>?
-
 <HR>
 <HRULE>
 <A NAME="BOTTOM"></A>
@@ -65,7 +71,7 @@ Wanna go <A href=index.html>home</A>?
 &#169; Arne Zellentin,
 <A HREF="mailto:zarne@users.sf.net">zarne@users.sf.net</A>
 </SMALL></ADDRESS>
-<SMALL>(changed: 19-Aug-99)</SMALL>
+<SMALL>(changed: Sunday, 28-Nov-2004 18:48:03 CET)</SMALL>
 </body>
 </html>
 

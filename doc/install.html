@@ -1,6 +1,9 @@
-<!--#include virtual="/include/head.html" -->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+
 <HEAD>
 <TITLE>Jack installation instructions</TITLE>
+<LINK REL=STYLESHEET HREF="mine.css">
 <LINK REV=MADE href=mailto:zarne@users.sf.net>
 </HEAD>
 <BODY BGCOLOR=#072387 TEXT=#d0d840 LINK=#f0a840 VLINK=a06820>
@@ -16,25 +19,26 @@
 </CENTER>
 
 <TABLE width=100%><TR><TD valign=bottom>
-<H3><U>Installation instructions for Jack</U></H3>
+<H1>Installation instructions for Jack</H1>
 <TD valign=bottom>
 <IMG SRC="jack-logo.jpg" align=right alt="Jack" height=50 width=101></TR>
 </TABLE>
 
 <UL>
 <LI><A href=download.html>download jack</A>.
-<LI>uncompress it: <PRE>$ gunzip jack-*.tar.gz</PRE>
-<LI>untar it: <PRE>$ tar xvf jack-*.tar</PRE>
-<LI>change directory: <PRE>$ cd jack-*</PRE>
+<LI>uncompress it: <PRE>$ gunzip jack-[VERSION].tar.gz</PRE>
+<LI>untar it: <PRE>$ tar xvf jack-[VERSION].tar</PRE>
+<LI>change directory: <PRE>$ cd jack-[VERSION]</PRE>
 <LI>follow instructions from file "<A href=INSTALL>INSTALL</A>"
-<LI>if this is your first installation of jack, run it once, it will create a new personal preferences file in your homedir
-<LI>customize it using your favorite editor:
-<PRE>$ vi $HOME/.jackrc</PRE>
+<LI>run
+<PRE>    $ jack --help</PRE>
+or
+<PRE>    $ jack --longhelp</PRE>
+or read the supplied manpage.
 <LI>you may want to enable proxy support via the http_proxy environment
 variable
-<PRE>$ http_proxy=http://cache.sld.tld:3128/
-$ export http_proxy</PRE>
-This is a great addition to your .bashrc or whatever you are using!
+<PRE>    $ http_proxy=http://cache.sld.tld:3128/
+   $ export http_proxy</PRE>
 </UL>
 Wanna go <A href=index.html>home</A> or on to the <A href=usage.html>usage information</A>?
 
@@ -45,7 +49,7 @@ Wanna go <A href=index.html>home</A> or on to the <A href=usage.html>usage infor
 &#169; Arne Zellentin,
 <A HREF="mailto:zarne@users.sf.net">zarne@users.sf.net</A>
 </SMALL></ADDRESS>
-<SMALL>(changed: 19-Aug-99)</SMALL>
+<SMALL>(changed: Sunday, 12-Oct-2003 16:17:15 CEST)</SMALL>
 
 </body>
 </html>

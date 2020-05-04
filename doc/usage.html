@@ -1,6 +1,9 @@
-<!--#include virtual="/include/head.html" -->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+
 <HEAD>
 <TITLE>Jack Usage</TITLE>
+<LINK REL=STYLESHEET HREF="mine.css">
 <LINK REV=MADE href=mailto:zarne@users.sf.net>
 </HEAD>
 <BODY BGCOLOR=#072387 TEXT=#d0d840 LINK=#f0a840 VLINK=a06820>
@@ -15,304 +18,1729 @@
 </CENTER>
 
 <TABLE width=100%><TR><TD valign=bottom>
-<H3><U>Usage information for Jack</U></H3>
+<H1>Usage information for Jack</H1>
 <TD valign=bottom>
 <IMG SRC="jack-logo.jpg" align=right alt="Jack" height=50 width=101></TR>
 </TABLE>
+This is just the manpage, converted to HTML.
 
-Jack is mostly command line-driven, but there are some options which can only
-be set by editing the preferences file, typically named $HOME/.jackrc. This
-file is python code executed at startup so be careful. Invoke Jack with -h for
-a short description of the command line options.
-<P>
-If you get bored reading documentation, check out the <A href=examples.html>application examples</A>!
+<!-- Creator     : groff version 1.18.1 -->
+<!-- CreationDate: Sun Nov 28 18:07:19 2004 -->
+<hr>Nav:
+<a href="#NAME">NAME</a>
+<a href="#SYNOPSIS">SYNOPSIS</a>
+<a href="#DESCRIPTION">DESCRIPTION</a>
+<a href="#OPTIONS">OPTIONS</a>
+<a href="#EXAMPLES">EXAMPLES</a>
+<a href="#FILES">FILES</a>
+<a href="#AUTHOR">AUTHOR</a>
+<a href="#SEE ALSO">SEE ALSO</a><br>
 
-<P>
-<H4>Important things to configure in this file:</H4>
-<TABLE border cellpadding=3>
-<TR><TD>rename_fmt
-<TD>with this variable you can determine how jack will rename your MP3s after a
-freedb query. Use "%02i" for track number, "%a" for artist, "%l" for album name
-and "%t" for track title. Example: "%02i.%a (%l) - %t" which would result in
-"01.Artist (Album) - Track title.mp3"
-</TR>
+<hr>
+<a name="NAME"></a>
+<h2>NAME</h2>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p>Jack &minus; rip and encode CDs with one command</p>
+</td>
+</table>
+<a name="SYNOPSIS"></a>
+<h2>SYNOPSIS</h2>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>jack</b> [<i>options</i>]</p>
+</td>
+</table>
+<a name="DESCRIPTION"></a>
+<h2>DESCRIPTION</h2>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>Jack</b> transforms your audio-CDs to MP3 or Ogg
+Vorbis files. It uses several helper programs in order to
+achieve things like ripping, encoding and ID3-tagging.
+Ripping is either done via <b>cdparanoia</b> (in which case
+the ripping status is displayed by Jack as well) or
+<b>cdda2wav.</b> Jack works with several encoders, namely
+<b>oggenc, lame, gogo, bladeenc, l3enc, mp3enc</b> and
+<b>xing.</b> Any time during operation (and even when
+everything is finished and the original CD lost) you can let
+Jack look up the track names at <b>freedb.org</b> and rename
+the tracks accordingly. ID3-tagging of MP3s (or insertion of
+equivalent comment fields in Ogg Vorbis files) is performed
+as well.</p>
+<!-- INDENTATION -->
+<p>If no freedb-lookup has been performed, Jack drops all
+files in a directory <b>~/jack/jack-xxxxxxxx</b>, with
+<b>xxxxxxxx</b> representing the CD&rsquo;s CDDB/freedb disc
+ID. This directory is renamed by Jack when the appropriate
+information is known.</p>
+<!-- INDENTATION -->
+<p>Most options like ripper, encoder, preferred
+freedb-Server, directory and MP3-filename format, etc. can
+be user defined by changing the defaults in
+<b>/etc/jackrc</b> or by saving them to
+<b>~/.jack3rc</b>.</p>
+<!-- INDENTATION -->
+<p>While Jack is running, these keyboard commands are
+available:</p></td>
+</table>
+<!-- TABS -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="4" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="8%">
 
-<TR><TD>rename_fmt_va
-<TD>same as above for "various artists" CDs. For normal CDs I use "%02i.%t.mp3" while I use ""%02i.%a - %t" for VA CDs.
-</TR>
+<p><b>q</b> or <b>Q</b></p>
+</td>
+<td width="1%"></td>
+<td width="67%">
 
-<TR><TD>dir_template
-<TD>if rename_dir is set, use this format for naming directories. Again, %a is substituted by the artist, %l is the album's name. I use "%a - %l" but "%a/%l"
-is also common, every artist then has his own subdir.
-</TR>
+<p>quit</p>
+</td>
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="8%">
 
-<TR><TD>my_mail<TD>be sure to set your e-mail address if you are planning to submit
-<A href=http://www.freedb.org>freedb</A> entries. Otherwise you won't get
-feedback.
-</TR>
-<TR><TD>xtermset_enable
-<TD>I no longer use this since there is now a curses mode. Only set this if you have <A
-href=http://www.cs.vu.nl/~bernsti/xtermset/>xtermset</A> installed.
-When enabled, Jack can - when running in an xterm - adjust the
-size so all track information is visible. In addition, the xterm is deiconified
-when all is done.
-</TR>
-</TABLE>
-<P>
+<p><b>p</b> or <b>P</b></p>
+</td>
+<td width="1%"></td>
+<td width="67%">
 
-Everything else is controlled by the command line, try jack --help for a quick summary. You can still change the defaults by editing your .jackrc!
+<p>disable ripping (for example, if you need the CD
+drive)</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="20%"></td>
+<td width="79%">
+<p><b>p</b> or <b>P</b> (again) or <b>c</b> or
+<b>C</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="32%"></td>
+<td width="67%">
+<p>resume ripping</p>
+</td>
+</table>
+<!-- TABS -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="5" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="8%">
 
-<H4>Command line options:</H4>
-<TABLE table border cellpadding=3>
-<TR><TD>-t, --tracks &lt;tracks&gt;
-<TD>limit ripping and encoding to the specified
-tracks, use comma to seperate track. Ranges are also possible; 5-9 is
-equivalent to 5,6,7,8,9; 12- is like specifying track 12,...,last_track. The
-default is to process the whole CD, I do not know why you would want an
-incomplete rip, but be my guest.
-</TR>
+<p><b>e</b> or <b>E</b></p>
+</td>
+<td width="13%"></td>
+<td width="39%">
 
-<TR><TD>-b, --bitrate &lt;bitrate&gt;
-<TD>bitrate of the resulting MP3 in kbit/s, default is 160.
-</TR>
+<p>pause/continue all encoders</p>
+</td>
+<td width="16%">
+</td>
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="8%">
 
-<TR><TD>-v, --vbr
-<TD>Generate variable bitrate MP3s, only on encoders which support this. Default is no.
-</TR>
+<p><b>r</b> or <b>R</b></p>
+</td>
+<td width="13%"></td>
+<td width="39%">
 
-<TR><TD>-e, --encoders &lt;num_encoders&gt;
-<TD>encode how many MP3s in parallel. If
-you have a SMP machine or simply want to stress your system, you can have Jack
-encode several MP3s at once. Default is the number of CPUs I have, which is
-one.
-</TR>
+<p>pause/continue all rippers.</p>
+</td>
+<td width="16%">
+</td>
+</table>
+<a name="OPTIONS"></a>
+<h2>OPTIONS</h2>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p>Different options need different data-types as
+arguments:</p>
+</td>
+</table>
+<!-- TABS -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="4" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="8%">
 
-<TR><TD>--otf
-<TD>On-the-fly operation. Only on some encoders/rippers. Do not create WAVs, pipe ripper output through the encoder. Default is no as it's a torture for the CDROM drive (IMHO).
-</TR>
+<p><b>bool</b></p>
+</td>
+<td width="1%"></td>
+<td width="77%">
 
-<TR><TD>-E, --encoder-name &lt;encoder_name&gt;
-<TD>choose which MP3 encoder to use,
-valid choices are: blade, lame, l3enc, mp3enc. Note that you may have to install
-the encoder.
-</TR>
+<p>can be &quot;yes&quot; or &quot;no&quot;, like in
+<b>&minus;&minus;vbr=yes</b></p>
+</td>
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="8%">
 
-<TR><TD>-n, --nice &lt;nice_lvl&gt;
-<TD>nice-level with which the encoders are
-started. Default is 12 which shouldn't hurt your system much.
-</TR>
+<p><b>string</b></p>
+</td>
+<td width="1%"></td>
+<td width="77%">
 
-<TR><TD>-l, --max-load &lt;max_load&gt;
-<TD>only start new encoders if your system's load is below (max_load + num_encoders). If the load is too high, encoding operation is suspended until above criterium is satisfied.
-</TR>
+<p>can be anything, like in
+<b>&minus;&minus;rename&minus;fmt</b> &quot;%n.%t&quot;</p>
+</td>
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="8%">
 
-<TR><TD>-a, --read-ahead &lt;read_ahead&gt;
-<TD>read how many WAVs in advance. At most read_ahead +
-num_encoders WAVs are ripped before a track has completely been encoded. Default is 99 which will
-read the whole CD, provided there is enough disk space.
-</TR>
+<p><b>int</b></p>
+</td>
+<td width="1%"></td>
+<td width="77%">
 
-<TR><TD>-r, --reorder
-<TD>optimize track-order for disk space. This can save you some
-peak disk space during the encoding process; this may make it possible to do a
-CD which would otherwise fail to be encoded.
-</TR>
+<p>an integer number, like in <b>&minus;&minus;bitrate
+192</b> (or <b>&minus;&minus;bitrate=192</b> )</p>
+</td>
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="8%">
 
-<TR><TD>-s, --space &lt;free_space&gt;
-<TD>forcably set usable diskspace, in bytes. This option lets you
-limit the disk space Jack uses, maybe you need it for something else? Be
-careful: if set too high, ripping and encoding will probably fail. The default
-is to look how much is free and to use this value.
-</TR>
+<p><b>list</b></p>
+</td>
+<td width="1%"></td>
+<td width="77%">
 
-<TR><TD>-o, --overwrite
-<TD>overwrite existing WAVs and MP3s, i.e. do not check if
-already ripped WAVs or an already encoded MP3s seem to be ok. Use this if you
-<I>know</I> something went wrong last time. This is off by default.
-</TR>
+<p>multiple strings, delimited by the final &quot;;&quot;.
+Example: <b>&minus;&minus;guess&minus;toc file1.mp3
+file2.mp3 ... fileN.mp3</b> \;</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p>Jack understands the following options:</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;&minus;append-year=bool</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>if known, append the year to dir in the format &quot;
+(%y)&quot;</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;b, &minus;&minus;bitrate int</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>target bitrate (in kbit/s, default is 160).</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;&minus;char-filter string</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>convert file names using a python method</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;&minus;charset string</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>charset of freedb data (default &quot;latin-1&quot;).</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;c, &minus;&minus;check-toc</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>compare toc-file and cd-toc, then exit. Jack caches the
+TOC of a CD in a file (&quot;jack.toc&quot;). If you want to
+know if the inserted CD matches the toc-file in the current
+directory, use this option.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;C, &minus;&minus;claim-dir</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>rename directories even if they were was not created by
+Jack.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;&minus;cont-failed-query</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>continue without freedb data if query fails.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;D, &minus;&minus;create-dirs</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>tells Jack to create sub-directories in which Jack puts
+all the files for the current CD. If no freedb data is
+available, i.e. when not using <b>-Q</b> , these directories
+will be named &quot;jack-xxxxxxxx&quot; where
+&quot;xxxxxxxx&quot; stands for the CD&rsquo;s freedb-id.
+Otherwise dir_template (see above) will be used. This option
+is turned on by default.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;&minus;device string</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>The device-name of your cdrom-drive. The default is
+<b>/dev/cdrom</b></p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;&minus;dir-template string</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>if directories are renamed, this is the format used
+(default &quot;%a/%l&quot;)</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;d, &minus;&minus;dont-work</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>don&rsquo;t do DAE or encoding. This may be useful if you
+only want to do a freedb query.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;&minus;edit-cddb</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>open an editor to change the CDDB information which has
+been obtained previously (only useful with -Q).</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;&minus;encoder-name, -E string</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>use which encoder (default &quot;oggenc&quot;)</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;e, &minus;&minus;encoders int</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>encode how many files in parallel. If you have a SMP
+machine or simply want to stress your system, you can have
+Jack encode several files at once.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;x, &minus;&minus;exec</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>run predefined command when finished.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;&minus;extt-is-artist</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>the artist is contained in the EXTT fields. The EXTT
+fields are lines in the freedb file which contain additional
+data for each track. As it&rsquo;s the submitting
+user&rsquo;s choice what to use them for, Jack can&rsquo;t
+determine by itself what they were intended for. You have to
+provide this information.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;&minus;extt-is-title</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>the track title is contained in the EXTT fields.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;&minus;extt-is-comment</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>a track comment is contained in the EXTT fields.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;&minus;force</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>do not ask. Like when deleting incomplete files.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;f, &minus;&minus;from-tocfile
+string</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>rip from a cdrdao created CD image on hd. The specified
+toc-file contains the name of the image file. Use
+<b>&minus;F</b> if jack can&rsquo;t find the image file.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;F, &minus;&minus;from-image string</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>read audio data from image file. Like
+<b>&minus;&minus;from-tocfile</b>, but the image itself is
+specified instead of the tocfile. If you do not have a
+toc-file (or don&rsquo;t specify a toc-file), the TOC is
+read from the CD itself.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;g, &minus;&minus;guess-toc list</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>make up a TOC from the MP3 file given in mp3_files.
+Format is <b>track_01.mp3 ... track_nn.mp3 ;</b> Note that
+the trailing &quot; <b>;</b> &quot; is only necessary if you
+want to append more options to your command line. You can
+use it to do a freedb query based on MP3s alone - no need
+for the CD. Very useful if you have no idea which CD the
+MP3s are from. The MP3s must be given in the same order as
+they were on their CD. The generated TOC file is similar,
+but not identical to the TOC of the CD - do not submit
+these!</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;G, &minus;&minus;id3-genre string</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>set ID3 genre. Use &rsquo;help&rsquo; to get a list of
+all known genres. (You can also specify the ID3v1 genre as
+an int)</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;Y, &minus;&minus;id3-year int</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>set ID3 year.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;h, &minus;&minus;help</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>Show summary of options.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;k, &minus;&minus;keep-wavs</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>do not delete WAVs after encoding them.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;m, &minus;&minus;mail-submit</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>submit freedb entry via e-mail. HTTP submission is
+preferred. You will have to enter the category of the
+CD.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;l, &minus;&minus;max-load int</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>only start new encoders if your system&rsquo;s load is
+below (max_load + num_encoders). If the load is too high,
+encoding operation is suspended until above criterion is
+satisfied.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;&minus;multi-mode</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>try to query freedb for all dirs in searchdirs which have
+no freedb data.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;&minus;my-mail string</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>your e-mail address, needed for freedb submissions.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;n, &minus;&minus;nice int</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>nice-level with which the encoders are started. Default
+is 12 which shouldn&rsquo;t hurt your system much.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;&minus;no-various</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>use this if freedb data says it&rsquo;s &quot;Various
+Artists&quot; but you want the normal renaming scheme, e.g.
+if Jack can&rsquo;t separate artist and track title.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;o, &minus;&minus;overwrite</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>overwrite existing files, i.e. do not check if already
+ripped WAVs or an already encoded file seem to be OK. Use
+this if you <b>know</b> something went wrong last time. This
+is off by default.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;O, &minus;&minus;only-dae</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>only produce WAVs, implies
+<b>&minus;&minus;keep-wavs.</b> This is off by default.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;&minus;otf=bool</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>On-the-fly operation. Only on some encoders/rippers. Do
+not create WAVs, pipe ripper output through the encoder.
+Default is no as it&rsquo;s a torture for the CDROM
+drive.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;o, &minus;&minus;overwrite=bool</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>overwrite existing files.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;&minus;quality int</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>vbr encoding quality. -1 is lowest, 10 highest (default
+6). You can also specify a float.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;q, &minus;&minus;query</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>do freedb query when all is done. This is useful if Jack
+was previously run without a freedb query. If all tracks are
+done you don&rsquo;t even have to have a CD inserted as the
+TOC is cached by Jack. After having finished ripping and
+encoding, Jack will rename the files and tag them.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
 
-<TR><TD>-O, --only-dae
-<TD>only produce WAVs, implies --keep-wavs. This is off by default.
-</TR>
+<p><b>&minus;&minus;query&minus;if&minus;needed=bool</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>like &minus;&minus;query-now, but only if freedb data
+hasn&rsquo;t been successfully queried before.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;Q, &minus;&minus;query-now</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>do freedb query when starting. Use this if you are
+connected to the Internet when starting Jack. Know that the
+query may need user-interaction. After having finished
+ripping and encoding, Jack will rename the files and tag
+them using Ben Gertzfield&rsquo;s ID3.py module.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;a, &minus;&minus;read-ahead int</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>read how many WAVs in advance. At most read_ahead +
+num_encoders WAVs are ripped before a track has completely
+been encoded. Default is 99 which will read the whole CD,
+provided there is enough disk space.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;&minus;remove-files</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>have Jack remove its temp jack*-files. Be careful -
+don&rsquo;t delete them too early!</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;R, &minus;&minus;rename</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>rename and tag files according to freedb file. On
+startup, Jack creates a blank freedb entry file (except if
+<b>&minus;&minus;query-now</b> is used, then the file is
+queried from your freedb server). If you have changed its
+contents (e.g. because the CD was unknown to freedb) and
+want to rename and tag your MP3s accordingly, use this
+option. Give all other needed options too, like
+<b>&minus;t</b> , <b>&minus;E</b> , ...</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;&minus;rename-dir=bool</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>rename directory as well (default).</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;&minus;rename-fmt string</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>format of normal files (default &quot;%n - %t&quot;)</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;&minus;rename-fmt-va string</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>format of Various Artists files (default &quot;%n - %a -
+%t&quot;)</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;r, &minus;&minus;reorder=bool</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>optimize track-order for disk space. This can save you
+some peak disk space during the encoding process; this may
+make it possible to do a CD which would otherwise fail to be
+encoded.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;&minus;replacement-chars list</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>unusable chars are replaced by the corresponding list
+item (default &quot;%&quot;).</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;&minus;ripper string</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>which program to use for extracting the audio data
+(default &quot;cdparanoia&quot;).</p>
+</td>
+</table>
+<!-- TABS -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="5" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="8%">
 
-<TR><TD>-k, --keep-wavs
-<TD>do not delete WAVs after encoding them. Maybe you still
-need them.
-</TR>
+<p><b>&minus;&minus;save</b></p>
+</td>
+<td width="13%"></td>
+<td width="60%">
 
-<TR><TD>-f, --from-tocfile &lt;toc_file&gt;
-<TD>rip from CD image on hd. This option is a
-somewhat special option. There are two reasons for it's existance:
-<UL>
-<LI>When I copy a CD for my car stereo, most of the time I also want to
-have it as MP3s. To copy a CD, I use the exellent tool <A href=http://www.ping.de/sites/daneb/cdrdao.html>cdrdao</A>. This works best
-when having the whole CD in a single WAV file, which I call the image. It also
-needs a so-called toc-file containing the track, pregap, index, CD-TEXT, ...
-information. If I use this image as the source, I do not have to rip the CD a
-second time. My cdrom probably likes that.
+<p>save options to <i>~/.jack3rc</i> file and exit.</p>
+</td>
+<td width="5%">
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;&minus;scan-dirs int</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>Scan this many levels from the current working directory
+for a matching toc-file (0 to disable, default 2).</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;&minus;search list</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>add these directories to the list of directories searched
+when looking for the workdir (default &quot;.&quot;).</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;&minus;server string</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>which freedb server to use. Don&rsquo;t forget to set
+your HTTP proxy. Currently either &quot;freedb&quot;
+(default) or &quot;freedb-de&quot;.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;&minus;silent-mode=bool</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>be quiet (no screen output).</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;s, &minus;&minus;space int</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>forcibly set usable disk space, in bytes. This option
+lets you limit the disk space Jack uses, maybe you need it
+for something else? Be careful: if set too high or too low,
+ripping and encoding will probably fail. The default is to
+look how much is free and to use this value.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;&minus;submit</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>submit freedb entry via HTTP. You will have to enter the
+category of the CD.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;S, &minus;&minus;swab=bool</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>swap byte order from image file. As cdrdao momentarily
+only outputs &quot;raw&quot; .cdr files, you quite likely
+want to swap the byte order. Try this option if your WAVs
+and encoded files contain only noise. This is on by default
+as cdrdao currently generates .cdr files that are
+&quot;wrong&quot;.</p>
+</td>
+</table>
+<!-- TABS -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="5" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="8%">
 
-<LI>same cdrdao has a great way of doing a bit-wise exact copy of the CD using
-special Plextor-commands. This is superiour to cdparanoia as "bad" samples can
-be detected and - hopefully - repaired.
-</UL>
-The specified toc-file contains the name of the image file.
-</TR>
+<p><b>&minus;&minus;todo</b></p>
+</td>
+<td width="13%"></td>
+<td width="50%">
 
-<TR><TD>-F, --from-image &lt;image_file&gt;
-<TD>read audio data from image file. Like --from-tocfile, but
-the image itself is specified instead of the tocfile. Use this if you do not
-have a toc-file; the TOC is the read from the CD itself.
-</TR>
-
-<TR><TD>-S, --swab
-<TD>swap byteorder from image file. As cdrdao momentarily only
-outputs "raw" .cdr files, you quite likely want to swap the byteorder. Try this
-option if your WAVs and MP3s contain only noise (no, not the noise I call
-music, the pseudo-random one). This is on by default as cdrdao currently
-generates .cdr files that are "wrong".
-</TR>
-
-<TR><TD>-c, --check-toc
-<TD>compare toc-file and cd-toc, then exit. Jack caches the
-TOC of a CD in a file ("jack.toc"). If you want to know if the inserted CD
-matches the toc-file in the current directory, use this option.
-</TR>
-
-<TR><TD>-g, --guess-toc &lt;mp3_files&gt;
-<TD>make up a TOC from the MP3 file given in mp3_files. Format is:
-<PRE>track_01.mp3 ... track_nn.mp3 ;</PRE>
-Note that the trailing ";" is only necessary if you want to append more options
-to your command line. This option makes me especially proud. You can use it to
-do a freedb query based on MP3s alone - no need for the CD. Very useful if you
-have no idea which CD the MP3s are from. The MP3s must be given in the same
-order as they were on their CD. The generated TOC file is similar, but not
-identical to the TOC of the CD - do not
-submit these!
-</TR>
-
-<TR><TD>--various
-<TD>when parsing freedb data, jack assumes that if the disc's
-artist is set to "Various Artists" the track titles have the format "[artist] -
-[title]". If the disc title is set to something else and you still want above
-behaviour, use --various.  You can use --various=no if the FreeDB data says
-"Various Artists" but you want the normal renaming scheme, e.g. if Jack
-can't seperate artist and track title.
-</TR>
-
-<TR><TD>--remove
-<TD>have jack remove it's temp files. See below for details on these
-files. Be careful - don't delete them too early!
-</TR>
-
-<TR><TD>--upd-progress
-<TD>have jack re-create it's temp files. Use this if you deleted them too early.
-</TR>
-
-<TR><TD>-d, --dont-work
-<TD>don't do DAE or encoding. This may be useful if you only want to
-do a freedb query.
-</TR>
-
-<TR><TD>-D, --create-dirs
-<TD>tells Jack to create sub-directories in which Jack puts all the files
-for the current CD. If no freedb data is available, i.e. when not using -Q,
-these directorys will be named "jack-xxxxxxxx" where "xxxxxxxx" stands for the
-CD's freedb-id. Otherwise dir_template (see above) will be used.
-</TR>
-
-<TR><TD>--todo
-<TD>print what would be done and exit.
-</TR>
-
-</TABLE>
-<P>
-<H4>The following options are needed for <A href=www.freedb.org>freedb</A> queries:</H4>
-<TABLE border cellpadding=3>
-<TR><TD>-q, --query
-<TD>do freedb query when all is done. This is useful if Jack was prior run
-without a freedb query. If all tracks are done you don't even have to have a CD
-inserted as the TOC is cached by Jack. After having finished ripping and
-encoding, Jack will rename the MP3s and tag them using Ben Gertzfield's ID3.py
-module
-
-</TR>
-
-<TR><TD>-Q, --query-now
-<TD>do freedb query when starting. Use this if you are
-connected to the internet when starting jack. Know that the query may need
-user-interaction. After having finished ripping and encoding, Jack will rename
-the MP3s and tag them using Ben Gertzfield's ID3.py module
-</TR>
-
-<TR><TD>-R, --rename-only
-<TD>rename and tag files according to freedb file. On startup, Jack
-creates a blank freedb entry file (except if --query-now is used, then the file
-is queried from your freedb server). If you have changed it's contents (e.g.
-because the CD was unknown to freedb) and want to rename and tag your MP3s
-accordingly, use this option.
-</TR>
-
-<TR><TD>-u, --undo-rename
-<TD>undo file renaming and exit. If you don't like how jack renamed your files, use this option to restore the previous state. Note that ID3 tags are not restored.
-</TR>
-
-<TR><TD>-m, --mail-submit
-<TD>submit freedb entry via e-mail. HTTP submission is
-preferred but while freedb only supports submission by e-mail you have to use
-this. You will have to enter the category of the CD.
-</TR>
-
-<TR><TD>-M, --mail-address &lt;submit_addr&gt;
-<TD>when submitting a database entry via e-mail, use this
-option to specify the address the entry is mailed to. Default is
-freedb-submit@freedb.org.
-</TR>
-
-<TR><TD>--my-email &lt;your_mail&gt;
-<TD>use this to specify which e-mail address submission results are
-mailed to. Please use your real e-mail address.
-</TR>
-
-<TR><TD>--submit
-<TD>submit freedb entry via HTTP. You will have to enter the category
-of the CD. At the moment, this does not work with freedb. Or with a buggy
-urllib.
-</TR>
-
-<TR><TD>--server &lt;freedb_server&gt;
-<TD>which freedb server to use. Don't forget to set your proxy.
-Default server is freedb.freedb.org.
-</TR>
-
-<TR><TD>--force
-<TD>do not ask. Like when deleting incomplete (?!) files.
-</TR>
-
-</TABLE>
-<P>
-Jack creates a couple of files when running:
-<TABLE cellpadding=3>
-<TR><TD><LI>jack.toc
-<TD>The CD TOC (Table Of Contents) is cached here. Will be re-created
-if deleted but be careful to insert the matching CD!
-</TR>
-<TR><TD><LI>jack.freedb
-<TD>when you are not telling jack to do a freedb query, this file
-is created as a freedb template file which you can fill out yourself. When
-using --query or --query-now it is filled with the query-result. Existing files
-are backed up as jack.freedb.bak.
-</TR>
-<TR><TD><LI>jack.progress
-<TD>Status (main) screen output is cached here. When resuming
-work, previously finished processes' output is still displayed. Jack also uses
-this file to mark ripping/encoding steps as done, so if you delete this file,
-everything is done again!
-</TR>
-</TABLE>
-Do not delete these files too early, this may case frustration!
-<P>
-Wanna go <A href=index.html>home</A> or do you wanna know <A href=install.html>how to install Jack</A>?
-
+<p>print what would be done and exit.</p>
+</td>
+<td width="16%">
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;t, &minus;&minus;tracks string</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>limit ripping and encoding to the specified tracks, use
+comma to separate tracks. Ranges are also possible; 5-9 is
+equivalent to 5,6,7,8,9; 12- is like specifying track
+12,...,last_track. The default is to process the whole
+CD.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;u, &minus;&minus;undo-rename</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>undo file renaming and exit. If you don&rsquo;t like how
+Jack renamed your files, use this option to restore the
+previous state. Several levels of undo are possible. Note
+that ID3 tags are not restored.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;&minus;unusable-chars list</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>characters which can&rsquo;t be used in filenames
+(default &quot;/&quot;).</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;&minus;upd-progress</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>have Jack re-create its temp files. Use this if you
+deleted them too early.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;&minus;update-freedb, -U</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>update the freedb info and exit.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;v, &minus;&minus;vbr=bool</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>Generate variable bitrate files, only on encoders which
+support this. Default is no.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;&minus;various=bool</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>when parsing freedb data, Jack assumes that if the
+disc&acute;s artist is set to &quot;Various&quot; the track
+titles have the format &quot;[artist] - [title]&quot;. If
+the disc title is set to something else and you still want
+the above behaviour, use <b>&minus;&minus;various.</b></p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;&minus;various-swap</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>exchange artist and title, many freedb entries have them
+wrong.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;&minus;wait=bool</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>wait for key press before quitting.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;w, &minus;&minus;workdir string</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>where to create directories and put the files.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;&minus;write&minus;id3v1=bool</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>write a smart id3v1 tag to the encoded file.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;&minus;write&minus;id3v2=bool</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>write an id3v1 and an id3v2 tag to the encoded file.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;&minus;write-m3u</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>create a playlist in .m3u format. This has bugs,
+don&rsquo;t rely on it.</p>
+</td>
+</table>
+<a name="EXAMPLES"></a>
+<h2>EXAMPLES</h2>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p>Insert a CD, fire up jack:</p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="20%"></td>
+<td width="79%">
+<p>jack</p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p>Now watch it work. It&rsquo;s fun for a while. After
+having finished, you have the following files on your HD:
+track_01.mp3, track_02.mp3, ..., track_nn.mp3 plus jack.toc,
+jack.freedb, jack.progress. The last three are used to store
+the state jack is in so it can resume work when
+interrupted.</p>
+<!-- INDENTATION -->
+<p>Jack will create a directory called jack-xxxxxxxx for
+you, there it stores all the file for the CD whose id is
+xxxxxxxx. After a freedb query this directory is renamed to
+something human readable, like &quot;Artist -
+Title&quot;.</p>
+<!-- INDENTATION -->
+<p>When jack is interrupted, call it again using the same
+command line as before to resume work, in this case</p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="20%"></td>
+<td width="79%">
+<p>jack</p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p>Now let&rsquo;s try a freedb query:</p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="20%"></td>
+<td width="79%">
+<p>jack -q</p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p>when successful the files are now renamed to something
+more readable and have been ID3 tagged accordingly.
+jack.freedb contains the queried freedb entry, the original
+file has been backed up to jack.freedb.bak.</p>
+<!-- INDENTATION -->
+<p>All in one: query, rip, encode, cleanup:</p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="20%"></td>
+<td width="79%">
+<p>jack -Q --remove-files</p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p>Editing / normalizing / stripping the WAV files before
+encoding:</p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="20%"></td>
+<td width="79%">
+<p>jack -O --remove-files ; gnoise *wav ; jack -g *wav ;
+jack</p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p>Just replace gnoise by the operation you&rsquo;d like to
+perform.</p>
+</td>
+</table>
+<a name="FILES"></a>
+<h2>FILES</h2>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><i>/etc/jackrc</i></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>Site-wide configuration file.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><i>~/.jack3rc</i></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="21%"></td>
+<td width="77%">
+<p>User-specific configuration file. Use the
+<b>&minus;&minus;save</b> option to save your configuration
+to this file.</p>
+</td>
+</table>
+<a name="AUTHOR"></a>
+<h2>AUTHOR</h2>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p>Arne Zellentin &lt;zarne@users.sf.net&gt; is the author
+of Jack.</p>
+</td>
+</table>
+<a name="SEE ALSO"></a>
+<h2>SEE ALSO</h2>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>cdparanoia</b>(1), <b>cdda2wav</b>(1),
+<b>oggenc</b>(1) and <b>lame</b>(1)</p>
+</td>
+</table>
 <HR>
 <SMALL>"All trademarks are owned by their owners" or whatever I have to state.</SMALL>
 <A NAME="BOTTOM"></A>
@@ -320,7 +1748,7 @@ Wanna go <A href=index.html>home</A> or do you wanna know <A href=install.html>h
 &#169; Arne Zellentin,
 <A HREF="mailto:zarne@users.sf.net">zarne@users.sf.net</A>
 </SMALL></ADDRESS>
-<SMALL>(changed: 19-Aug-99)</SMALL>
+<SMALL>(changed: Sunday, 28-Nov-2004 18:43:38 CET)</SMALL>
 
 </body>
 </html>
