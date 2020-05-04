@@ -56,14 +56,6 @@ except:
     cdrom = dummy_cdrom()
 
 try:
-    import pyogg.vorbis
-except:
-    print("Please install the PyOgg module available at")
-    print("https://pypi.org/project/PyOgg/")
-    print("Without it, you'll not be able to tag OGG tracks.")
-    pyogg = None
-
-try:
     import mutagen.flac as flac
 except ImportError:
     flac = None
@@ -72,3 +64,8 @@ try:
     import mutagen.mp4 as mp4
 except ImportError:
     mp4 = None
+
+try:
+    import mutagen.oggvorbis as oggvorbis
+except ImportError:
+    oggvorbis = None

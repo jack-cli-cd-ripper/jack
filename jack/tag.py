@@ -30,7 +30,7 @@ import jack.utils
 import jack.misc
 import jack.m3u
 
-from jack.init import pyogg
+from jack.init import oggvorbis
 from jack.init import eyed3
 from jack.init import flac
 from jack.init import mp4
@@ -187,6 +187,7 @@ def tag(freedb_rename):
                         print()
                         print("Please install the Mutagen module available at")
                         print("https://mutagen.readthedocs.io/")
+                        print("Without it, you'll not be able to tag FLAC tracks.")
                 elif jack.helpers.helpers[cf['_encoder']]['target'] == "m4a":
                     if mp4:
                         m4a = mp4.MP4(mp3name)
@@ -208,18 +209,37 @@ def tag(freedb_rename):
                         print("https://mutagen.readthedocs.io/")
                         print("Without it, you'll not be able to tag AAC tracks.")
                 elif jack.helpers.helpers[cf['_encoder']]['target'] == "ogg":
-                    vf = pyogg.VorbisFile(mp3name)
-                    oggi = vf.comment()
-                    oggi.clear()
-                    oggi.add_tag('ALBUM', a_title)
-                    oggi.add_tag('TRACKNUMBER', repr(i[NUM]))
-                    oggi.add_tag('TITLE', t_name)
-                    oggi.add_tag('ARTIST', t_artist)
-                    if cf['_id3_genre'] != -1:
-                        oggi.add_tag('GENRE', id3genres[cf['_id3_genre']])
-                    if cf['_id3_year'] != -1:
-                        oggi.add_tag('DATE', repr(cf['_id3_year']))
-                    oggi.write_to(mp3name)
+                    if oggvorbis:
+                        f = oggvorbis.OggVorbis(mp3name)
+                        if f.tags is None:
+                            f.add_vorbiscomment()
+                        f.tags['ALBUM'] = a_title
+                        f.tags['TRACKNUMBER'] = str(i[NUM])
+                        f.tags['TRACKTOTAL'] = str(len(jack.ripstuff.all_tracks_orig))
+                        f.tags['TITLE'] = t_name
+                        f.tags['ARTIST'] = t_artist
+                        if cf['_id3_genre'] != -1:
+                            f.tags['GENRE'] = id3genres[cf['_id3_genre']]
+                        if cf['_id3_year'] != -1:
+                            f.tags['DATE'] = str(cf['_id3_year'])
+                        if cf['_various']:
+                            f.tags['COMPILATION'] = "1"
+                        else:
+                            if 'COMPILATION' in f.tags:
+                                del f.tags['COMPILATION']
+                        if discnum:
+                            f.tags['DISCNUMBER'] = discnum
+                        else:
+                            if 'DISCNUMBER' in f.tags:
+                                del f.tags['DISCNUMBER']
+                            if 'DISCTOTAL' in f.tags:
+                                del f.tags['DISCTOTAL']
+                        f.save()
+                    else:
+                        print()
+                        print("Please install the Mutagen module available at")
+                        print("https://mutagen.readthedocs.io/")
+                        print("Without it, you'll not be able to tag OGG tracks.")
             if freedb_rename:
                 newname = jack.freedb.filenames[i[NUM]]
                 if i[NAME] != newname:
