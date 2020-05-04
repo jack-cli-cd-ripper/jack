@@ -58,5 +58,13 @@ targets = {
         'can_pretag': 0,
         'can_posttag': 0,
         'file_extension': ".mpc"
+    },
+    'm4a': {
+        'can_cbr': 1,
+        'can_vbr': 1,
+        'can_id3': 0,
+        'can_pretag': 1,
+        'can_posttag': 0, # not yet
+        'file_extension': ".m4a"
     }
 }

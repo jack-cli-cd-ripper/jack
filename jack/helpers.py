@@ -261,7 +261,29 @@ if len(s) >= 3:
         helper_percent = 0
 """,
     },
-
+    'fdkaac': {
+        'type': "encoder",
+        'target': "m4a",
+        'can_tag': 1,
+        'cmd': "fdkaac --silent --bitrate-mode 0 --bitrate 64 --title %t --artist %a --track %n --album %l --genre %g --date %y -o %o %i",
+        'vbr-cmd': "fdkaac --silent --bitrate-mode 5 --title %t --artist %a --track %n --album %l --genre %g --date %y -o %o %i",
+        'tags': {
+            'm4a': {
+                'track': "--title %s",
+                'artist': "--artist %s",
+                'number': "--track %s",
+                'album': "--album %s",
+                'genre': "--genre %s",
+                'date': "--date %s",
+            },
+        },
+        'status_blocksize': 160,
+        'bitrate_factor': 1,
+        'percent_fkt': r"""
+global helper_percent
+helper_percent = 0
+""",
+    },
     'cdparanoia': {
         'filters': [[r'\n', r'\r'], [r'(\r)+', r'\r'], [r'(Done\.\r)+', r'Done.\r']],
         'type': "ripper",
