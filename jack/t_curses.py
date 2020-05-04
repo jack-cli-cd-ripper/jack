@@ -33,16 +33,9 @@ from jack.globals import *
 enabled = None
 
 try:
-    from jack_curses import endwin, resizeterm, A_REVERSE, newwin, newpad, initscr, noecho, cbreak, echo, nocbreak, error
+    from curses import endwin, resizeterm, A_REVERSE, newwin, newpad, initscr, noecho, cbreak, echo, nocbreak, error
 except ImportError:
-    warning("jack_curses module not found, trying normal curses...")
-    try:
-        from curses import endwin, A_REVERSE, newwin, newpad, initscr, noecho, cbreak, echo, nocbreak, error
-
-        def resizeterm(y, x):
-            pass
-    except ImportError:
-        print("curses module not found or too old, please install it (see README)")
+    print("curses module not found or too old, please install it (see README)")
 
 
 # screen objects
