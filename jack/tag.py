@@ -33,6 +33,7 @@ import jack.m3u
 from jack.init import pyogg
 from jack.init import eyed3
 from jack.init import flac
+from jack.init import mp4
 from jack.globals import *
 
 track_names = None
@@ -186,7 +187,26 @@ def tag(freedb_rename):
                         print()
                         print("Please install the Mutagen module available at")
                         print("https://mutagen.readthedocs.io/")
-                        print("Without it, you'll not be able to tag FLAC tracks.")
+                elif jack.helpers.helpers[cf['_encoder']]['target'] == "m4a":
+                    if mp4:
+                        m4a = mp4.MP4(mp3name)
+                        m4a.tags['\xa9nam'] = [t_name]
+                        m4a.tags['\xa9alb'] = [a_title]
+                        m4a.tags['\xa9ART'] = [t_artist]
+                        if cf['_id3_genre'] != -1:
+                            m4a.tags['\xa9gen'] = [id3genres[cf['_id3_genre']]]
+                        if cf['_id3_year'] != -1:
+                            m4a.tags['\xa9day'] = [str(cf['_id3_year'])]
+                        m4a.tags['cpil'] = bool(cf['_various'])
+                        m4a.tags['trkn'] = [(i[NUM], len(jack.ripstuff.all_tracks_orig))]
+                        if discnum:
+                            m4a.tags['disk'] = [(discnum, 0)]
+                        m4a.save()
+                    else:
+                        print()
+                        print("Please install the Mutagen module available at")
+                        print("https://mutagen.readthedocs.io/")
+                        print("Without it, you'll not be able to tag AAC tracks.")
                 elif jack.helpers.helpers[cf['_encoder']]['target'] == "ogg":
                     vf = pyogg.VorbisFile(mp3name)
                     oggi = vf.comment()

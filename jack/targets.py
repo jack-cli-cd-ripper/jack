@@ -64,7 +64,7 @@ targets = {
         'can_vbr': 1,
         'can_id3': 0,
         'can_pretag': 1,
-        'can_posttag': 0, # not yet
+        'can_posttag': 1,
         'file_extension': ".m4a"
     }
 }

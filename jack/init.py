@@ -67,3 +67,8 @@ try:
     import mutagen.flac as flac
 except ImportError:
     flac = None
+
+try:
+    import mutagen.mp4 as mp4
+except ImportError:
+    mp4 = None
