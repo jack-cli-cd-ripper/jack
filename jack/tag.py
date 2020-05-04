@@ -185,7 +185,7 @@ def tag(freedb_rename):
                     else:
                         print()
                         print("Please install the Mutagen module available at")
-                        print("http://www.sacredchao.net/quodlibet/wiki/Development/Mutagen")
+                        print("https://mutagen.readthedocs.io/")
                         print("Without it, you'll not be able to tag FLAC tracks.")
                 elif jack.helpers.helpers[cf['_encoder']]['target'] == "ogg":
                     vf = pyogg.VorbisFile(mp3name)

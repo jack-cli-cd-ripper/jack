@@ -35,13 +35,13 @@ except:
 try:
     import eyed3.id3
 except:
-    print("Please install the eyeD3 module available from http://eyed3.nicfit.net/")
+    print("Please install the eyeD3 module available from https://eyed3.readthedocs.io/")
     sys.exit(1)
 
 try:
     import cdrom
 except:
-    print("Please install the CDDB module available at http://cddb-py.sourceforge.net")
+    print("Please install the CDDB module available at https://github.com/berhoel/cddb-py/")
     print("Without it, you'll not be able to rip from CDs.")
 
     # want to see my favorite ugly hack of the day?
@@ -58,7 +58,9 @@ except:
 try:
     import pyogg.vorbis
 except:
-    warning("pyogg module not installed, ogg support disabled")
+    print("Please install the PyOgg module available at")
+    print("https://pypi.org/project/PyOgg/")
+    print("Without it, you'll not be able to tag OGG tracks.")
     pyogg = None
 
 try:
