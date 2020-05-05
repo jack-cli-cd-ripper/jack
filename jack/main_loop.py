@@ -454,7 +454,7 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
                             # None, i['percent'])
 
                 elif i['type'] == "image_reader":
-                    line = (jack.status.get_2_line(i['buf'], default="")).strip()
+                    line = str(jack.status.get_2_line(i['buf'], default="")).strip()
                     if line:
                         jack.status.dae_stat_upd(i['track'][NUM], line)
                         if line.startswith("Error"):

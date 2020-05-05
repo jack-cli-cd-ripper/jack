@@ -290,7 +290,7 @@ def dae_stat_upd(num, string, reverse=-1):
     else:
         try:
             status_pad.addstr(map_track_num[num], 0, (jack.ripstuff.printable_names[
-                              num] + ": " + jack.status.dae_status[num] + " " + jack.status.enc_status[num]))
+                              num] + ": " + str(jack.status.dae_status[num]) + " " + str(jack.status.enc_status[num])))
         except error:
             pass
 

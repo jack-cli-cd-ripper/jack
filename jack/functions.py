@@ -483,7 +483,7 @@ def progress(track, what="error", data="error", data2=None):
         error("illegal progress entry:" + repr(track) + " (" + repr(type(track)) + ")")
     progress_changed = 1
     f = codecs.open(cf['_progress_file'], "a", "utf-8")
-    f.write(first + cf['_progr_sep'] + what + cf['_progr_sep'] + data)
+    f.write(first + cf['_progr_sep'] + what + cf['_progr_sep'] + str(data))
     if data2:
         f.write(cf['_progr_sep'] + data2)
     f.write("\n")

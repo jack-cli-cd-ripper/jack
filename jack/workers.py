@@ -327,11 +327,11 @@ def ripread(track, offset=0):
             posix._exit(3)
 
         else:
-            f = open(cf['_image_file'], 'r')
+            f = open(cf['_image_file'], 'rb')
 
             # set up output wav file:
 
-            wav = wave.open(track[NAME] + ".wav", 'w')
+            wav = wave.open(track[NAME] + ".wav", 'wb')
             wav.setnchannels(2)
             wav.setsampwidth(2)
             wav.setframerate(44100)
