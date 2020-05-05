@@ -879,11 +879,11 @@ def do_freedb_submit(file, cd_id, cat=None):
 
         type, proxy = splittype(proxy)
         host, selector2 = splithost(proxy)
-        h = http.client.HTTP(host)
+        h = http.client.HTTPConnection(host)
         h.putrequest('POST', 'http://' + freedb_servers[
                      cf['_freedb_server']]['host'] + selector)
     else:
-        h = http.client.HTTP(freedb_servers[cf['_freedb_server']]['host'])
+        h = http.client.HTTPConnection(freedb_servers[cf['_freedb_server']]['host'])
         h.putrequest('POST', '/~cddb/submit.cgi')
     h.putheader('Category', cat)
     h.putheader('Discid', cd_id)
@@ -917,14 +917,11 @@ def do_freedb_submit(file, cd_id, cat=None):
 
     print()
 
-    err, msg, headers = h.getreply()
-    f = h.getfile()
-    if proxy:
-        if err != 200:
-            error("proxy: " + repr(err) + " " + msg + f.read())
-        else:
-            buf = f.readline()
-            err, msg = buf[0:3], buf[4:]
+    response = h.getresponse()
+    err = response.status
+    msg = response.reason
+    headers = response.getheaders()
+    buf = response.read()
 
     # lets see if it worked:
     if err == 404:
