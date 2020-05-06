@@ -1,4 +1,4 @@
-# -*- coding: iso-8859-15 -*-
+# -*- coding: utf-8 -*-
 # jack.config.py: default config settings for
 # jack - extract audio from a CD and encode it using 3rd party software
 # Copyright (C) 2002-2004  Arne Zellentin <zarne@users.sf.net>
@@ -208,7 +208,7 @@ replacement_chars = "_"
 
 example 2: replace umlauts by an alternate representation and kill some
             special characters:
-unusable_chars = "‰ˆ¸ƒ÷‹ﬂ?*^()[]{}"
+unusable_chars = "√§√∂√º√Ñ√ñ√ú√ü?*^()[]{}"
 replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
         'long': 'AUTO',
     },

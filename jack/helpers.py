@@ -1,4 +1,4 @@
-# -*- coding: iso-8859-15 -*-
+# -*- coding: utf-8 -*-
 # jack.helpers: helper applications for
 # jack - extract audio from a CD and encode it using 3rd party software
 # Copyright (C) 1999-2004  Arne Zellentin <zarne@users.sf.net>
@@ -145,7 +145,7 @@ else:
 """,
     },
 
-    'gogo': {  # Thanks to José Antonio Pérez Sánchez for the vbr and otf presets
+    'gogo': {  # Thanks to JosÃ© Antonio PÃ©rez SÃ¡nchez for the vbr and otf presets
         'type': "encoder",
         'target': "mp3",
         'inverse-quality': 1,

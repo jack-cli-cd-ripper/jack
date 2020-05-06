@@ -1,4 +1,4 @@
-# -*- coding: iso-8859-15 -*-
+# -*- coding: utf-8 -*-
 # jack.plugins: plugin architecture for
 # jack - extract audio from a CD and encode it using 3rd party software
 # Copyright (C) 2004  Arne Zellentin <zarne@users.sf.net>
