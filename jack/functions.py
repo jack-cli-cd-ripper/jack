@@ -161,7 +161,7 @@ def guesstoc(names):
         if i_ext == ".MP3":
             x = jack.mp3.mp3format(i)
             if not x:
-                error("could not get MP3 info for file \"%x\"" % i)
+                error("could not get MP3 info for file \"%s\"" % i)
             blocks = int(x['length'] * CDDA_BLOCKS_PER_SECOND + 0.5)
             erg.append([num, blocks, start, 0, 0, 2, 1, x['bitrate'], i_name])
             progr.append(
