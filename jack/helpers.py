@@ -562,12 +562,11 @@ while l:
     l = p.readline()
 """,
     },
-
-    'CDDB.py': {
+    'libdiscid': {
         'type': "toc-reader",
         'toc': 1,
         'toc_fkt': r"""
-import cdrom
+import libdiscid
 if not os.path.exists(cf['_cd_device']):
     error("Device %s does not exist!" % cf['_cd_device'])
 if not os.access(cf['_cd_device'], os.R_OK):
@@ -575,18 +574,14 @@ if not os.access(cf['_cd_device'], os.R_OK):
 if not stat.S_ISBLK(os.stat(cf['_cd_device'])[stat.ST_MODE]):
     error("Device %s is not a block device!" % cf['_cd_device'])
 try:
-    device = cdrom.open(cf['_cd_device'])
-    (first, last) = cdrom.toc_header(device)
-except cdrom.error as m:
-    error("Access of CD device %s resulted in error: %s" % (cf['_cd_device'], m[1]))
+    disc = libdiscid.read(device=cf['_cd_device'], features=0)
+except libdiscid.exceptions.DiscError as m:
+    error("Access of CD device %s resulted in error: %s" % (cf['_cd_device'], m))
 
-toc = []
-for i in range(first, last + 1):
-    (min, sec, frame) = cdrom.toc_entry(device, i)
-    toc.append(min * 60 * 75 + sec * 75 + frame)
-(min, sec, frame) = cdrom.leadout(device)
-device.close()
-toc.append(min * 60 * 75 + sec * 75 + frame)
+toc = list(disc.track_offsets)
+toc.append(disc.leadout_track)
+first = disc.first_track
+last = disc.last_track
 for i in range(first, last + 1):
     erg.append([i, toc[i - first + 1] - toc[i - first], toc[i - first] - MSF_OFFSET, 0, 0, 2, 1, cf['_bitrate'], cf['_name'] % i])
 """,

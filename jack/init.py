@@ -39,21 +39,10 @@ except:
     sys.exit(1)
 
 try:
-    import cdrom
+    import libdiscid
 except:
-    print("Please install the CDDB module available at https://github.com/berhoel/cddb-py/")
+    print("Please install the libdiscid module available at https://pythonhosted.org/python-libdiscid/")
     print("Without it, you'll not be able to rip from CDs.")
-
-    # want to see my favorite ugly hack of the day?
-    class dummy_cdrom:
-
-        def __init__(self):
-            pass
-
-        def open(self, dummy=None):
-            print("Cannot access cdrom device while the CDDB module is not installed. See above.")
-            sys.exit(1)
-    cdrom = dummy_cdrom()
 
 try:
     import mutagen.flac as flac

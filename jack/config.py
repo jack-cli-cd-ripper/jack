@@ -491,7 +491,7 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
     },
     'toc_prog': {
         'type': str,
-        'val': "CDDB.py",
+        'val': "libdiscid",
         'doc': "use which helper program to read cd's toc",
     },
     # prefs0 -- FREEDB stuff ###
