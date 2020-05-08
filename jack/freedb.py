@@ -393,20 +393,20 @@ def freedb_query(cd_id, tracks, file):
             freedb_cat = buf[1]
         elif buf[0:3] == "202":
             if cf['_cont_failed_query']:
-                warning(buf + f.read() + " How about trying another --server?")
+                warning(buf + f.read().decode(cf['_charset']) + " How about trying another --server?")
                 err = 1
                 return err
             else:
-                error(buf + f.read() + " How about trying another --server?")
+                error(buf + f.read().decode(cf['_charset']) + " How about trying another --server?")
         else:
             if cf['_cont_failed_query']:
                 warning(
-                    buf + f.read() + " --don't know what to do, aborting query.")
+                    buf + f.read().decode(cf['_charset']) + " --don't know what to do, aborting query.")
                 err = 1
                 return err
             else:
                 error(
-                    buf + f.read() + " --don't know what to do, aborting query.")
+                    buf + f.read().decode(cf['_charset']) + " --don't know what to do, aborting query.")
 
         cmd = "cmd=cddb read " + freedb_cat + " " + cd_id
         url = "http://" + freedb_servers[cf['_freedb_server']][
@@ -429,13 +429,13 @@ def freedb_query(cd_id, tracks, file):
             err = 0
         else:
             print(buf.rstrip())
-            print(f.read())
+            print(f.read().decode(cf['_charset']))
             warning("could not query freedb entry")
             err = 1
         f.close()
     else:
         print(buf.rstrip())
-        print(f.read())
+        print(f.read().decode(cf['_charset']))
         warning("could not check freedb category")
         err = 2
     f.close()
