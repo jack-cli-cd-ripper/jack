@@ -33,16 +33,21 @@ except:
     from FCNTL import O_NONBLOCK
 
 try:
+    import libdiscid
+except:
+    print("Please install the libdiscid module available at https://pythonhosted.org/python-libdiscid/")
+    print("Without it, you'll not be able to rip from CDs.")
+
+try:
     import eyed3.id3
 except:
     print("Please install the eyeD3 module available from https://eyed3.readthedocs.io/")
     sys.exit(1)
 
 try:
-    import libdiscid
-except:
-    print("Please install the libdiscid module available at https://pythonhosted.org/python-libdiscid/")
-    print("Without it, you'll not be able to rip from CDs.")
+    import mutagen.mp3 as mp3
+except ImportError:
+    mp3 = None
 
 try:
     import mutagen.flac as flac
