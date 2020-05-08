@@ -37,6 +37,8 @@ import jack.misc
 from jack.version import prog_version, prog_name
 from jack.globals import *
 
+import libdiscid
+
 names_available = None          # freedb info is available
 dir_created = None              # dirs are only renamed if we have created them
 NUM, LEN, START, COPY, PRE, CH, RIP, RATE, NAME = list(range(9))
@@ -222,15 +224,6 @@ def local_freedb(cd_id, freedb_dir, outfile="/tmp/testfilefreedb"):
     return 1
 
 
-def freedb_sum(n):
-    "belongs to freedb_id"
-    ret = 0
-    while n > 0:
-        ret = ret + (n % 10)
-        n = n // 10
-    return ret
-
-
 def freedb_id(tracks, warn=0):
     from jack.globals import START, MSF_OFFSET, CDDA_BLOCKS_PER_SECOND
     "calculate freedb (aka CDDB) disc-id"
@@ -239,17 +232,16 @@ def freedb_id(tracks, warn=0):
         if warn:
             warning("no tracks! No disc inserted? No/wrong ripper?")
         return 0
-    for i in tracks:
-        cdtoc.append(jack.functions.blockstomsf(i[START] + MSF_OFFSET))
-    cdtoc.append(jack.functions.blockstomsf(tracks[-1][START] + tracks[-1][LEN]))
 
-    n = t = 0
+    first_track = 1
+    track_offsets = []
     for i in tracks:
-        n = n + freedb_sum((i[START] + MSF_OFFSET) // CDDA_BLOCKS_PER_SECOND)
-    t = (tracks[-1][START] + tracks[-1][LEN]) // \
-        CDDA_BLOCKS_PER_SECOND - tracks[0][START] // CDDA_BLOCKS_PER_SECOND
+        track_offsets.append(i[START] + MSF_OFFSET)
+        last_track = i[NUM]
+        num_sectors = i[START] + i[LEN] + MSF_OFFSET
+    disc = libdiscid.put(first_track, last_track, num_sectors, track_offsets)
 
-    return "%08x" % ((n % 0xff << int(24)) | (t << 8) | (len(tracks)))
+    return disc.freedb_id
 
 
 def freedb_split(field, s, max=78):
