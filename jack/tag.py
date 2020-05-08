@@ -157,89 +157,71 @@ def tag(freedb_rename):
                             int(i[LEN] * 1000.0 / 75 + 0.5)
                         )
                 elif jack.helpers.helpers[cf['_encoder']]['target'] == "flac":
-                    if flac:
-                        f = flac.FLAC(mp3name)
-                        if f.vc is None:
-                            f.add_vorbiscomment()
-                        f.vc['ALBUM'] = a_title
-                        f.vc['TRACKNUMBER'] = str(i[NUM])
-                        f.vc['TRACKTOTAL'] = str(len(jack.ripstuff.all_tracks_orig))
-                        f.vc['TITLE'] = t_name
-                        f.vc['ARTIST'] = t_artist
-                        if cf['_id3_genre'] != -1:
-                            f.vc['GENRE'] = id3genres[cf['_id3_genre']]
-                        if cf['_id3_year'] != -1:
-                            f.vc['DATE'] = str(cf['_id3_year'])
-                        if cf['_various']:
-                            f.vc['COMPILATION'] = "1"
-                        else:
-                            if 'COMPILATION' in f.vc:
-                                del f.vc['COMPILATION']
-                        if discnum:
-                            f.vc['DISCNUMBER'] = discnum
-                        else:
-                            if 'DISCNUMBER' in f.vc:
-                                del f.vc['DISCNUMBER']
-                            if 'DISCTOTAL' in f.vc:
-                                del f.vc['DISCTOTAL']
-                        f.save()
+                    f = flac.FLAC(mp3name)
+                    if f.vc is None:
+                        f.add_vorbiscomment()
+                    f.vc['ALBUM'] = a_title
+                    f.vc['TRACKNUMBER'] = str(i[NUM])
+                    f.vc['TRACKTOTAL'] = str(len(jack.ripstuff.all_tracks_orig))
+                    f.vc['TITLE'] = t_name
+                    f.vc['ARTIST'] = t_artist
+                    if cf['_id3_genre'] != -1:
+                        f.vc['GENRE'] = id3genres[cf['_id3_genre']]
+                    if cf['_id3_year'] != -1:
+                        f.vc['DATE'] = str(cf['_id3_year'])
+                    if cf['_various']:
+                        f.vc['COMPILATION'] = "1"
                     else:
-                        print()
-                        print("Please install the Mutagen module available at")
-                        print("https://mutagen.readthedocs.io/")
-                        print("Without it, you'll not be able to tag FLAC tracks.")
+                        if 'COMPILATION' in f.vc:
+                            del f.vc['COMPILATION']
+                    if discnum:
+                        f.vc['DISCNUMBER'] = discnum
+                    else:
+                        if 'DISCNUMBER' in f.vc:
+                            del f.vc['DISCNUMBER']
+                        if 'DISCTOTAL' in f.vc:
+                            del f.vc['DISCTOTAL']
+                    f.save()
                 elif jack.helpers.helpers[cf['_encoder']]['target'] == "m4a":
-                    if mp4:
-                        m4a = mp4.MP4(mp3name)
-                        m4a.tags['\xa9nam'] = [t_name]
-                        m4a.tags['\xa9alb'] = [a_title]
-                        m4a.tags['\xa9ART'] = [t_artist]
-                        if cf['_id3_genre'] != -1:
-                            m4a.tags['\xa9gen'] = [id3genres[cf['_id3_genre']]]
-                        if cf['_id3_year'] != -1:
-                            m4a.tags['\xa9day'] = [str(cf['_id3_year'])]
-                        m4a.tags['cpil'] = bool(cf['_various'])
-                        m4a.tags['trkn'] = [(i[NUM], len(jack.ripstuff.all_tracks_orig))]
-                        if discnum:
-                            m4a.tags['disk'] = [(discnum, 0)]
-                        m4a.save()
-                    else:
-                        print()
-                        print("Please install the Mutagen module available at")
-                        print("https://mutagen.readthedocs.io/")
-                        print("Without it, you'll not be able to tag AAC tracks.")
+                    m4a = mp4.MP4(mp3name)
+                    m4a.tags['\xa9nam'] = [t_name]
+                    m4a.tags['\xa9alb'] = [a_title]
+                    m4a.tags['\xa9ART'] = [t_artist]
+                    if cf['_id3_genre'] != -1:
+                        m4a.tags['\xa9gen'] = [id3genres[cf['_id3_genre']]]
+                    if cf['_id3_year'] != -1:
+                        m4a.tags['\xa9day'] = [str(cf['_id3_year'])]
+                    m4a.tags['cpil'] = bool(cf['_various'])
+                    m4a.tags['trkn'] = [(i[NUM], len(jack.ripstuff.all_tracks_orig))]
+                    if discnum:
+                        m4a.tags['disk'] = [(discnum, 0)]
+                    m4a.save()
                 elif jack.helpers.helpers[cf['_encoder']]['target'] == "ogg":
-                    if oggvorbis:
-                        f = oggvorbis.OggVorbis(mp3name)
-                        if f.tags is None:
-                            f.add_vorbiscomment()
-                        f.tags['ALBUM'] = a_title
-                        f.tags['TRACKNUMBER'] = str(i[NUM])
-                        f.tags['TRACKTOTAL'] = str(len(jack.ripstuff.all_tracks_orig))
-                        f.tags['TITLE'] = t_name
-                        f.tags['ARTIST'] = t_artist
-                        if cf['_id3_genre'] != -1:
-                            f.tags['GENRE'] = id3genres[cf['_id3_genre']]
-                        if cf['_id3_year'] != -1:
-                            f.tags['DATE'] = str(cf['_id3_year'])
-                        if cf['_various']:
-                            f.tags['COMPILATION'] = "1"
-                        else:
-                            if 'COMPILATION' in f.tags:
-                                del f.tags['COMPILATION']
-                        if discnum:
-                            f.tags['DISCNUMBER'] = discnum
-                        else:
-                            if 'DISCNUMBER' in f.tags:
-                                del f.tags['DISCNUMBER']
-                            if 'DISCTOTAL' in f.tags:
-                                del f.tags['DISCTOTAL']
-                        f.save()
+                    f = oggvorbis.OggVorbis(mp3name)
+                    if f.tags is None:
+                        f.add_vorbiscomment()
+                    f.tags['ALBUM'] = a_title
+                    f.tags['TRACKNUMBER'] = str(i[NUM])
+                    f.tags['TRACKTOTAL'] = str(len(jack.ripstuff.all_tracks_orig))
+                    f.tags['TITLE'] = t_name
+                    f.tags['ARTIST'] = t_artist
+                    if cf['_id3_genre'] != -1:
+                        f.tags['GENRE'] = id3genres[cf['_id3_genre']]
+                    if cf['_id3_year'] != -1:
+                        f.tags['DATE'] = str(cf['_id3_year'])
+                    if cf['_various']:
+                        f.tags['COMPILATION'] = "1"
                     else:
-                        print()
-                        print("Please install the Mutagen module available at")
-                        print("https://mutagen.readthedocs.io/")
-                        print("Without it, you'll not be able to tag OGG tracks.")
+                        if 'COMPILATION' in f.tags:
+                            del f.tags['COMPILATION']
+                    if discnum:
+                        f.tags['DISCNUMBER'] = discnum
+                    else:
+                        if 'DISCNUMBER' in f.tags:
+                            del f.tags['DISCNUMBER']
+                        if 'DISCTOTAL' in f.tags:
+                            del f.tags['DISCTOTAL']
+                    f.save()
             if freedb_rename:
                 newname = jack.freedb.filenames[i[NUM]]
                 if i[NAME] != newname:

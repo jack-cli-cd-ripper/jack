@@ -36,7 +36,7 @@ try:
     import libdiscid
 except:
     print("Please install the libdiscid module available at https://pythonhosted.org/python-libdiscid/")
-    print("Without it, you'll not be able to rip from CDs.")
+    sys.exit(1)
 
 try:
     import eyed3.id3
@@ -46,20 +46,10 @@ except:
 
 try:
     import mutagen.mp3 as mp3
-except ImportError:
-    mp3 = None
-
-try:
     import mutagen.flac as flac
-except ImportError:
-    flac = None
-
-try:
     import mutagen.mp4 as mp4
-except ImportError:
-    mp4 = None
-
-try:
     import mutagen.oggvorbis as oggvorbis
-except ImportError:
-    oggvorbis = None
+except:
+    print("Please install the Mutagen module available at")
+    print("https://mutagen.readthedocs.io/")
+    sys.exit(1)
