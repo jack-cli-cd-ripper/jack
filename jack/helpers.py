@@ -265,8 +265,8 @@ if len(s) >= 3:
         'type': "encoder",
         'target': "m4a",
         'can_tag': 1,
-        'cmd': "fdkaac --silent --bitrate-mode 0 --bitrate 64 --title %t --artist %a --track %n --album %l --genre %g --date %y -o %o %i",
-        'vbr-cmd': "fdkaac --silent --bitrate-mode 5 --title %t --artist %a --track %n --album %l --genre %g --date %y -o %o %i",
+        'cmd': "fdkaac --bitrate-mode 0 --bitrate 64 --title %t --artist %a --track %n --album %l --genre %g --date %y -o %o %i",
+        'vbr-cmd': "fdkaac --bitrate-mode 5 --title %t --artist %a --track %n --album %l --genre %g --date %y -o %o %i",
         'tags': {
             'm4a': {
                 'track': "--title %s",
