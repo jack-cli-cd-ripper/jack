@@ -121,22 +121,7 @@ def tag(freedb_rename):
             else:
                 t_artist = a_artist
             t_name = track_names[i[NUM]][1]
-            t_comm = ""
             if not cf['_only_dae'] and cf['_set_id3tag']:
-                if len(t_name) > 30:
-                    if t_name.find("(") != -1 and t_name.find(")") != -1:
-                        # we only use the last comment
-                        t_comm = t_name.split("(")[-1]
-                        if t_comm[-1] == ")":
-                            t_comm = t_comm[:-1]
-                            if t_comm[-1] == " ":
-                                t_comm = t_comm[:-1]
-                            t_name2 = t_name.replace(" (" + t_comm + ") ", "")
-                            t_name2 = t_name2.replace(" (" + t_comm + ")", "")
-                            t_name2 = t_name2.replace("(" + t_comm + ") ", "")
-                            t_name2 = t_name2.replace("(" + t_comm + ")", "")
-                        else:
-                            t_comm = ""
                 if jack.helpers.helpers[cf['_encoder']]['target'] == "mp3":
                     _set_id3_tag(
                         mp3name, eyed3.id3.ID3_V2_4, 'utf-8', a_title,
