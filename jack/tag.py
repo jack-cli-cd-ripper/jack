@@ -138,24 +138,12 @@ def tag(freedb_rename):
                         else:
                             t_comm = ""
                 if jack.helpers.helpers[cf['_encoder']]['target'] == "mp3":
-                    if cf['_write_id3v2']:
-                        _set_id3_tag(
-                            mp3name, eyed3.id3.ID3_V2_4, 'utf-8', a_title,
-                            t_name, (
-                                i[NUM], len(jack.ripstuff.all_tracks_orig)),
-                            t_artist, cf['_id3_genre'], cf['_id3_year'], None,
-                            int(i[LEN] * 1000.0 / 75 + 0.5)
-                        )
-                    if cf['_write_id3v1']:
-                        # encoding ??
-                        _set_id3_tag(
-                            mp3name, eyed3.id3.ID3_V1_1, 'latin1',
-                            a_title, t_name,
-                            (i[NUM], len(jack.ripstuff.all_tracks_orig)),
-                            t_artist, cf['_id3_genre'], cf[
-                                '_id3_year'], t_comm,
-                            int(i[LEN] * 1000.0 / 75 + 0.5)
-                        )
+                    _set_id3_tag(
+                        mp3name, eyed3.id3.ID3_V2_4, 'utf-8', a_title,
+                        t_name, (i[NUM], len(jack.ripstuff.all_tracks_orig)),
+                        t_artist, cf['_id3_genre'], cf['_id3_year'], None,
+                        int(i[LEN] * 1000.0 / 75 + 0.5)
+                    )
                 elif jack.helpers.helpers[cf['_encoder']]['target'] == "flac":
                     f = flac.FLAC(mp3name)
                     if f.vc is None:
