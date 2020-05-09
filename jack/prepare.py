@@ -372,8 +372,6 @@ def init_status():
     status['all']['ren'] = []
     status['all']['patch'] = []
     status['all']['off'] = []
-    status['all']['id3_genre'] = ["-1", ]
-    status['all']['id3_year'] = ["-1", ]
     return status
 
 
@@ -502,27 +500,6 @@ def read_progress(status, todo):
     jack.status.extract(status)
 
     jack.freedb.dir_created = jack.progress.status_all['names'][-1]
-
-    jack.progress.status_all['id3_genre'] = int(
-        jack.progress.status_all['id3_genre'][-1])
-    jack.progress.status_all['id3_year'] = int(
-        jack.progress.status_all['id3_year'][-1])
-
-    if cf['_id3_genre'] == -1:
-        cf['_id3_genre'] = jack.progress.status_all['id3_genre']
-    else:
-        if cf['_id3_genre'] != jack.progress.status_all['id3_genre']:
-            jack.functions.progress("all", "id3_genre", repr(cf['_id3_genre']))
-
-    jack.tag.genretxt = ""
-    if cf['_id3_genre'] >= 0 and cf['_id3_genre'] < len(id3genres):
-        jack.tag.genretxt = id3genres[cf['_id3_genre']]
-
-    if cf['_id3_year'] == -1:
-        cf['_id3_year'] = jack.progress.status_all['id3_year']
-    else:
-        if cf['_id3_year'] != jack.progress.status_all['id3_year']:
-            jack.functions.progress("all", "id3_year", repr(cf['_id3_year']))
 
     return status
 

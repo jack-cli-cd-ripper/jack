@@ -490,35 +490,6 @@ def progress(track, what="error", data="error", data2=None):
     f.close()
 
 
-def check_genre_txt(genre):
-    if isinstance(genre, int):
-        if genre in range(0, 256):
-            return genre
-        else:
-            return None
-
-    elif isinstance(genre, str):
-        if genre.upper() == "HELP":
-            info("available genres: " + ([x for x in eyeD3.genres if x != 'Unknown']).join(", "))
-            sys.exit(0)
-        elif genre.upper() == "NONE":
-            return 255  # set genre to [unknown]
-        else:
-            try:
-                genre = int(genre)
-                genre = check_genre_txt(genre)
-                if isinstance(genre, int):
-                    return genre
-            except:
-                for i in range(len(id3genres)):
-                    if genre.upper() == id3genres[i].upper():
-                        return i
-
-    import jack.version
-    error("illegal genre. Try '" + jack.version.prog_name +
-          " --id3-genre help' for a list.")
-
-
 def check_file(num, i, ext):
     "Check if a song exists, either with a generic name or with the FreeDB name"
     if os.path.exists(i[NAME] + ext):

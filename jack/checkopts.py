@@ -66,12 +66,6 @@ def checkopts(cf, cf2):
         warning("--edit-cddb is obsolete, please use --edit-freedb")
         cf.rupdate({'edit_freedb': {'val': 1}}, "check")
 
-    if 'id3_genre_txt' in cf2:
-        genre = jack.functions.check_genre_txt(cf2['id3_genre_txt']['val'])
-        if genre != cf['_id3_genre']:
-            cf.rupdate({'id3_genre': {'val': genre}}, "check")
-        del genre
-
     if 'vbr' not in cf2:
         if 'bitrate' in cf2 and 'vbr_quality' in cf2:
             cf.rupdate({'vbr': {'val': 1}}, "check")

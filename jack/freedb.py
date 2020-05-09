@@ -155,18 +155,18 @@ def interpret_db_file(all_tracks, todo, freedb_form_file, verb, dirs=0, warn=Non
 
     if not err:
         cd = track_names[0]
-        year = genretxt = None
+        year = genre = None
         if len(cd) > 2:
             year = repr(cd[2])
         if len(cd) > 3:
-            genretxt = id3genres[cd[3]]
+            genre = repr(cd[3])
         filenames.append('')  # FIXME: possibly put the dir here, but in no
         # case remove this since people access filenames with i[NUM] which
         # starts at 1
         num = 1
         for i in track_names[1:]:
             replacelist = {"n": cf['_rename_num'] % num, "l": cd[1], "t": i[1],
-                           "y": year, "g": genretxt}
+                           "y": year, "g": genre}
             if cf['_various']:
                 replacelist["a"] = i[0]
                 newname = jack.misc.multi_replace(
@@ -278,8 +278,8 @@ def freedb_template(tracks, names="", revision=0):
             f.write(freedb_split("DTITLE", names[0][0] + " / " + names[0][1]))
     else:
         f.write("DTITLE=\n")
-    freedb_year, freedb_id3genre = -1, -1
-    if cf['_id3_genre'] >= 0 and cf['_id3_genre'] < len(id3genres) or cf['_id3_genre'] == 255:
+    freedb_year, freedb_id3genre = -1, None
+    if cf['_id3_genre']:
         freedb_id3genre = cf['_id3_genre']
     elif names and len(names[0]) == 4:
         freedb_id3genre = names[0][3]
@@ -291,8 +291,8 @@ def freedb_template(tracks, names="", revision=0):
         f.write("DYEAR=%d\n" % freedb_year)
     else:
         f.write("DYEAR=\n")
-    if freedb_id3genre >= 0:
-        f.write("DGENRE=%s\n" % id3genres[freedb_id3genre])
+    if freedb_id3genre:
+        f.write("DGENRE=%s\n" % freedb_id3genre)
     else:
         f.write("DGENRE=\n")
     for i in tracks:
@@ -547,28 +547,16 @@ def freedb_names(cd_id, tracks, todo, name, verb=0, warn=1):
         else:
             if year == 0:
                 warning("DYEAR should not be 0 but empty")
-    genre = -1
+    genre = None
     if 'DGENRE' in freedb:
-        try:
-            genre = int(freedb['DGENRE'])
-        except ValueError:
-            if freedb['DGENRE'].upper() in [x.upper() for x in id3genres]:
-                genre = [x.upper()
-                         for x in id3genres].index(freedb['DGENRE'].upper())
-                if cf['_id3_genre'] <= 0:
-                    cf['_id3_genre'] = genre
-                elif cf['_id3_genre'] != genre:
-                    warning("Specified and FreeDB genre differ (%s vs %s)" %
-                            (id3genres[cf['_id3_genre']], id3genres[genre]))
-        else:
-            warning("DGENRE should be a string, not an integer.")
+        genre = freedb['DGENRE']
     if 'EXTD' in freedb and 'DYEAR' not in freedb:
         extra_tag_pos = freedb['EXTD'].find("YEAR:")
         if extra_tag_pos >= 0:
             arg = freedb['EXTD'][extra_tag_pos + 5:].lstrip().split()[0]
             if arg.isdigit():
                 year = int(arg)
-    if genre != -1:
+    if genre:
         names[0].extend([year, genre])
     elif year != -1:
         names[0].extend([year])

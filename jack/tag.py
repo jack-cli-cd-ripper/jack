@@ -38,7 +38,6 @@ from jack.globals import *
 
 track_names = None
 locale_names = None
-genretxt = None
 
 a_artist = None
 a_title = None
@@ -54,12 +53,7 @@ def _set_id3_tag(
     tag.title = t_name
     tag.track_num = track_num
     tag.artist = t_artist
-
-    old_genre = tag.genre
-    if genre != -1:
-        tag.genre = genre
-    elif old_genre == None:
-        tag.genre = 255
+    tag.genre = genre
 
     if year != -1:
         tag.release_date = year
@@ -107,7 +101,7 @@ def tag(freedb_rename):
         # use freedb year and genre data if available
         if cf['_id3_year'] == -1 and len(track_names[0]) >= 3:
             cf['_id3_year'] = track_names[0][2]
-        if cf['_id3_genre'] == -1 and len(track_names[0]) == 4:
+        if cf['_id3_genre'] == None and len(track_names[0]) == 4:
             cf['_id3_genre'] = track_names[0][3]
 
         print("Tagging", end=' ')
@@ -138,8 +132,8 @@ def tag(freedb_rename):
                     f.vc['TRACKTOTAL'] = str(len(jack.ripstuff.all_tracks_orig))
                     f.vc['TITLE'] = t_name
                     f.vc['ARTIST'] = t_artist
-                    if cf['_id3_genre'] != -1:
-                        f.vc['GENRE'] = id3genres[cf['_id3_genre']]
+                    if cf['_id3_genre']:
+                        f.vc['GENRE'] = cf['_id3_genre']
                     if cf['_id3_year'] != -1:
                         f.vc['DATE'] = str(cf['_id3_year'])
                     if cf['_various']:
@@ -160,8 +154,8 @@ def tag(freedb_rename):
                     m4a.tags['\xa9nam'] = [t_name]
                     m4a.tags['\xa9alb'] = [a_title]
                     m4a.tags['\xa9ART'] = [t_artist]
-                    if cf['_id3_genre'] != -1:
-                        m4a.tags['\xa9gen'] = [id3genres[cf['_id3_genre']]]
+                    if cf['_id3_genre']:
+                        m4a.tags['\xa9gen'] = [cf['_id3_genre']]
                     if cf['_id3_year'] != -1:
                         m4a.tags['\xa9day'] = [str(cf['_id3_year'])]
                     m4a.tags['cpil'] = bool(cf['_various'])
@@ -178,8 +172,8 @@ def tag(freedb_rename):
                     f.tags['TRACKTOTAL'] = str(len(jack.ripstuff.all_tracks_orig))
                     f.tags['TITLE'] = t_name
                     f.tags['ARTIST'] = t_artist
-                    if cf['_id3_genre'] != -1:
-                        f.tags['GENRE'] = id3genres[cf['_id3_genre']]
+                    if cf['_id3_genre']:
+                        f.tags['GENRE'] = cf['_id3_genre']
                     if cf['_id3_year'] != -1:
                         f.tags['DATE'] = str(cf['_id3_year'])
                     if cf['_various']:
@@ -238,13 +232,10 @@ def tag(freedb_rename):
             print("All done.", end=' ')
         if cf['_set_id3tag'] and cf['_id3_year'] != -1:
             print("Year: %4i" % cf['_id3_year'], end=' ')
-            if cf['_id3_genre'] == -1:
+            if cf['_id3_genre']:
                 print()
-        if cf['_set_id3tag'] and cf['_id3_genre'] != -1:
-            if cf['_id3_genre'] < 0 or cf['_id3_genre'] > len(id3genres):
-                print("Genre: [unknown]")
-            else:
-                print("Genre: %s" % id3genres[cf['_id3_genre']])
+        if cf['_set_id3tag'] and cf['_id3_genre']:
+            print("Genre: %s" % cf['_id3_genre'])
         if cf['_vbr'] and not cf['_only_dae']:
             print("Avg. bitrate: %03.0fkbit" % ((total_size * 0.008) / (total_length / 75)))
         else:

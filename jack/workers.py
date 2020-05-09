@@ -137,16 +137,11 @@ def start_new_encoder(track, encoder):
                         args.append(jack.tag.track_names[0][1])
                     else:
                         args.append("")
-                elif i == "%G":
-                    if cf['_id3_genre'] >= 0:
+                elif i == "%g":
+                    if cf['_id3_genre']:
                         args.append(cf['_id3_genre'])
                     else:
-                        args.append('255')
-                elif i == "%g":
-                    if cf['_id3_genre'] >= 0:
-                        args.append(jack.tag.genretxt)
-                    else:
-                        args.append('Unknown')
+                        args.append("")
                 elif i == "%y":
                     if cf['_id3_year'] > 0:
                         args.append(repr(cf['_id3_year']))
