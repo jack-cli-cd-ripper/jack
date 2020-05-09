@@ -310,11 +310,7 @@ def freedb_template(tracks, names="", revision=0):
                     freedb_split("TTITLE" + repr(i[NUM] - 1), names[i[NUM]][1]))
         else:
             f.write("TTITLE" + repr(i[NUM] - 1) + "=\n")
-    if freedb_year >= 0 or freedb_id3genre >= 0:
-        f.write("EXTD=\\nYEAR: %4s  ID3G: %3s\n" %
-                (freedb_year, freedb_id3genre))
-    else:
-        f.write("EXTD=\n")
+    f.write("EXTD=\n")
     for i in tracks:
         f.write("EXTT" + repr(i[NUM] - 1) + "=\n")
     f.write("PLAYORDER=\n")
@@ -572,12 +568,6 @@ def freedb_names(cd_id, tracks, todo, name, verb=0, warn=1):
             arg = freedb['EXTD'][extra_tag_pos + 5:].lstrip().split()[0]
             if arg.isdigit():
                 year = int(arg)
-    if 'EXTD' in freedb and 'DGENRE' not in freedb:
-        extra_tag_pos = freedb['EXTD'].find("ID3G:")
-        if extra_tag_pos >= 0:
-            arg = freedb['EXTD'][extra_tag_pos + 5:].lstrip().split()[0]
-            if arg.isdigit():
-                genre = int(arg)
     if genre != -1:
         names[0].extend([year, genre])
     elif year != -1:
