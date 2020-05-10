@@ -24,7 +24,7 @@ import fcntl
 import sys
 
 import jack.ripstuff
-import jack.freedb
+import jack.metadata
 
 from jack.globals import *
 
@@ -105,7 +105,7 @@ def xtermset_enable():
         want_y = len(jack.ripstuff.all_tracks_todo_sorted) + 3
         if term_type == "curses":
             want_y = want_y - 1
-        if jack.freedb.names_available:
+        if jack.metadata.names_available:
             want_y = want_y + 1
         want_y += 7  # for the help panel
         if (size_x, size_y) != (want_x, want_y):

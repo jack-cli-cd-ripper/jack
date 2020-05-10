@@ -21,7 +21,7 @@ import sys
 
 from jack.globals import *
 import jack.helpers
-import jack.freedb
+import jack.metadata
 
 
 def load_plugin(name, structure):
@@ -39,10 +39,10 @@ def load_plugin(name, structure):
     return tmp
 
 
-def import_freedb_servers():
-    if cf['_freedb_server'].startswith("plugin_"):
-        tmp = load_plugin(cf['_freedb_server'], "plugin_freedb_servers")
-        jack.freedb.freedb_servers[cf['_freedb_server']] = tmp
+def import_metadata_servers():
+    if cf['_metadata_server'].startswith("plugin_"):
+        tmp = load_plugin(cf['_metadata_server'], "plugin_metadata_servers")
+        jack.metadata.metadata_servers[cf['_metadata_server']] = tmp
 
 
 def import_helpers():

@@ -25,7 +25,7 @@ import jack.functions
 import jack.ripstuff
 import jack.targets
 import jack.helpers
-import jack.freedb
+import jack.metadata
 import jack.utils
 import jack.misc
 import jack.m3u
@@ -64,7 +64,7 @@ def _set_id3_tag(
     tag.save(mp3file, version, encoding=encoding)
 
 
-def tag(freedb_rename):
+def tag(metadata_rename):
     global a_artist, a_title
 
     ext = jack.targets.targets[
@@ -81,7 +81,7 @@ def tag(freedb_rename):
         cf['_set_id3tag'] = 0
 
     # maybe export?
-    if jack.freedb.names_available:
+    if jack.metadata.names_available:
         a_artist = track_names[0][0]  # unicode
         a_title = track_names[0][1]  # unicode
 
@@ -96,9 +96,9 @@ def tag(freedb_rename):
             elif discnum == "Two" or discnum == "two" or discnum == "B":
                 discnum = "2"
 
-    if cf['_set_id3tag'] or freedb_rename:
+    if cf['_set_id3tag'] or metadata_rename:
         jack.m3u.init()
-        # use freedb year and genre data if available
+        # use metadata year and genre data if available
         if cf['_id3_year'] == -1 and len(track_names[0]) >= 3:
             cf['_id3_year'] = track_names[0][2]
         if cf['_id3_genre'] == None and len(track_names[0]) == 4:
@@ -189,8 +189,8 @@ def tag(freedb_rename):
                         if 'DISCTOTAL' in f.tags:
                             del f.tags['DISCTOTAL']
                     f.save()
-            if freedb_rename:
-                newname = jack.freedb.filenames[i[NUM]]
+            if metadata_rename:
+                newname = jack.metadata.filenames[i[NUM]]
                 if i[NAME] != newname:
                     p_newname = newname
                     u_newname = newname
@@ -226,7 +226,7 @@ def tag(freedb_rename):
         print()
 
     if not cf['_silent_mode']:
-        if jack.freedb.names_available:
+        if jack.metadata.names_available:
             print("Done with \"" + a_artist + " - " + a_title + "\".")
         else:
             print("All done.", end=' ')

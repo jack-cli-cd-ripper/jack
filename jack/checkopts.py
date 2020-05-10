@@ -27,7 +27,7 @@ import jack.plugins
 import jack.functions
 
 from jack.globals import *
-import jack.freedb
+import jack.metadata
 import jack.helpers
 
 # special option handling
@@ -50,7 +50,7 @@ def checkopts(cf, cf2):
 
     if 'query_when_ready' in cf2 and cf2['query_when_ready']['val']:
         cf.rupdate(
-            {'read_freedb_file': {'val': 1}, 'set_id3tag': {'val': 1}}, "check")
+            {'read_metadata_file': {'val': 1}, 'set_id3tag': {'val': 1}}, "check")
 
     if 'query_on_start' in cf2 and cf2['query_on_start']['val']:
         cf.rupdate({'set_id3tag': {'val': 1}}, "check")
@@ -58,13 +58,13 @@ def checkopts(cf, cf2):
     if 'create_dirs' in cf2 and cf2['create_dirs']['val']:
         cf.rupdate({'rename_dir': {'val': 1}}, "check")
 
-    if 'freedb_rename' in cf2 and cf2['freedb_rename']['val']:
+    if 'metadata_rename' in cf2 and cf2['metadata_rename']['val']:
         cf.rupdate(
-            {'read_freedb_file': {'val': 1}, 'set_id3tag': {'val': 1}}, "check")
+            {'read_metadata_file': {'val': 1}, 'set_id3tag': {'val': 1}}, "check")
 
     if 'edit_cddb' in cf2:
-        warning("--edit-cddb is obsolete, please use --edit-freedb")
-        cf.rupdate({'edit_freedb': {'val': 1}}, "check")
+        warning("--edit-cddb is obsolete, please use --edit-metadata")
+        cf.rupdate({'edit_metadata': {'val': 1}}, "check")
 
     if 'vbr' not in cf2:
         if 'bitrate' in cf2 and 'vbr_quality' in cf2:
@@ -81,14 +81,14 @@ def checkopts(cf, cf2):
 
 def consistency_check(cf):
 
-    # set plugins path and import freedb_server plugin
+    # set plugins path and import metadata_server plugin
     sys.path.extend(list(map(expand, cf['_plugin_path'])))
-    jack.plugins.import_freedb_servers()
+    jack.plugins.import_metadata_servers()
 
-    # check freedb server
-    if 'freedb_server' in cf:
-        if cf['freedb_server']['val'] not in jack.freedb.freedb_servers:
-            error("unknown server, choose one: " + repr(list(jack.freedb.freedb_servers.keys())))
+    # check metadata server
+    if 'metadata_server' in cf:
+        if cf['metadata_server']['val'] not in jack.metadata.metadata_servers:
+            error("unknown server, choose one: " + repr(list(jack.metadata.metadata_servers.keys())))
 
     # check dir_template and scan_dirs
     if len(cf['_dir_template'].split(os.path.sep)) > cf['_scan_dirs']:

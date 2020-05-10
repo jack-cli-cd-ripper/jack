@@ -75,7 +75,7 @@ def rename_path(old, new):
         if type(i) != list:
             error("invalid type for rename_path: " + repr(i))
 
-    # weed out empty dirs (which are technically illegal on freedb but exist)
+    # weed out empty dirs (which are technically illegal on metadata but exist)
     tmp = []
     for i in new:
         if i:

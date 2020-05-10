@@ -187,7 +187,7 @@ helper_final_status = ("%sx" % jack.functions.pprint_speed(speed)) + last_status
 global helper_final_status
 helper_final_status = "[otf - done]"
 """,
-        # 'toc': 1,  # we can't generate correct freedb IDs with cdparanoia.
+        # 'toc': 1,  # we can't generate correct metadata IDs with cdparanoia.
         'toc_cmd': "cdparanoia -d %d -Q 2>&1",
         # The output from cdparanoia which we parse looks like this:
 

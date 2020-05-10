@@ -16,7 +16,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-import jack.freedb
+import jack.metadata
 
 import locale
 import unicodedata
@@ -60,7 +60,7 @@ def gen_printable_names(track_names, todo):
     for i in range(CDDA_MAXTRACKS):
         printable_names.append("")
 
-    if jack.freedb.names_available and cf['_show_names']:
+    if jack.metadata.names_available and cf['_show_names']:
         if cf['_various']:
             max_name_len = max(
                 [len(track_names[x[NUM]][0] + " - " + track_names[x[NUM]][1]) for x in todo])
@@ -80,7 +80,7 @@ def gen_printable_names(track_names, todo):
             len_tmp = i[LEN] // CDDA_BLOCKS_PER_SECOND
             len_tmp = ("%02i:%02i") % (len_tmp // 60, len_tmp % 60)
 
-        if jack.freedb.names_available and cf['_show_names']:
+        if jack.metadata.names_available and cf['_show_names']:
             if cf['_show_time']:
                 tmp = "%02i %5s " % (i[NUM], len_tmp)
             else:

@@ -32,7 +32,7 @@ import jack.utils
 import jack.toc
 import jack.mp3
 import jack.helpers
-import jack.freedb
+import jack.metadata
 
 from jack.globals import *
 from jack.init import oggvorbis
@@ -494,8 +494,8 @@ def check_file(num, i, ext):
     "Check if a song exists, either with a generic name or with the FreeDB name"
     if os.path.exists(i[NAME] + ext):
         return i[NAME]
-    elif jack.freedb.names_available:
-        s = jack.freedb.filenames[num]
+    elif jack.metadata.names_available:
+        s = jack.metadata.filenames[num]
         if os.path.exists(s + ext):
             return s
     return None

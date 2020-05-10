@@ -31,7 +31,7 @@ import jack.utils
 import jack.ripstuff
 import jack.targets
 import jack.helpers
-import jack.freedb
+import jack.metadata
 import jack.status
 import jack.encstuff
 import jack.misc
@@ -112,7 +112,7 @@ def find_workdir():
                     jack_dirs.append(i)
                     file_toc, dummy, dummy = jack.functions.cdrdao_gettoc(
                         os.path.join(i, cf['_toc_file']))
-                    if jack.freedb.freedb_id(jack.ripstuff.all_tracks) == jack.freedb.freedb_id(file_toc):
+                    if jack.metadata.metadata_id(jack.ripstuff.all_tracks) == jack.metadata.metadata_id(file_toc):
                         possible_dirs.append(i)
 
             if cf['_multi_mode']:
@@ -127,9 +127,9 @@ def find_workdir():
                 for i in unique_dirs:
                     jack.ripstuff.all_tracks, dummy, track1_offset = jack.functions.cdrdao_gettoc(
                         os.path.join(i, cf['_toc_file']))
-                    err, jack.tag.track_names, jack.tag.locale_names, cd_id, revision = freedb_names(jack.freedb.freedb_id(
-                        jack.ripstuff.all_tracks), jack.ripstuff.all_tracks, jack.ripstuff.all_tracks, os.path.join(i, cf['_freedb_form_file']), verb=0, warn=0)
-                    if err or cf['_force']:  # this means freedb data is not there yet
+                    err, jack.tag.track_names, jack.tag.locale_names, cd_id, revision = metadata_names(jack.metadata.metadata_id(
+                        jack.ripstuff.all_tracks), jack.ripstuff.all_tracks, jack.ripstuff.all_tracks, os.path.join(i, cf['_metadata_form_file']), verb=0, warn=0)
+                    if err or cf['_force']:  # this means metadata is not there yet
                         info("matching dir found: %d" % i)
                         pid = os.fork()
                         if pid == CHILD:
@@ -165,22 +165,22 @@ def find_workdir():
                         os.makedirs(cf['_base_dir'])
                     os.chdir(cf['_base_dir'])
                     dir_name = jack.version.prog_name + "-" + \
-                        jack.freedb.freedb_id(jack.ripstuff.all_tracks, warn=0)
+                        jack.metadata.metadata_id(jack.ripstuff.all_tracks, warn=0)
                     if not os.path.exists(dir_name) and not os.path.isdir(dir_name):
                         os.mkdir(dir_name)
                     os.chdir(dir_name)
-                    jack.freedb.dir_created = dir_name
+                    jack.metadata.dir_created = dir_name
                     jack.functions.progress(
-                        "all", "mkdir", jack.freedb.dir_created)
+                        "all", "mkdir", jack.metadata.dir_created)
 
         if not cf['_multi_mode']:
             if not os.path.exists(cf['_toc_file']):
                 jack.functions.cdrdao_puttoc(
-                    cf['_toc_file'], jack.ripstuff.all_tracks, jack.freedb.freedb_id(jack.ripstuff.all_tracks))
-                jack.freedb.freedb_template(
-                    jack.ripstuff.all_tracks)  # generate freedb form if tocfile is created
-            if not os.path.exists(cf['_freedb_form_file']):
-                jack.freedb.freedb_template(jack.ripstuff.all_tracks)
+                    cf['_toc_file'], jack.ripstuff.all_tracks, jack.metadata.metadata_id(jack.ripstuff.all_tracks))
+                jack.metadata.metadata_template(
+                    jack.ripstuff.all_tracks)  # generate metadata form if tocfile is created
+            if not os.path.exists(cf['_metadata_form_file']):
+                jack.metadata.metadata_template(jack.ripstuff.all_tracks)
         else:
             break
     return toc_just_read
@@ -226,7 +226,7 @@ def read_toc_file():
 
         if not os.path.exists(cf['_def_toc']):
             jack.functions.cdrdao_puttoc(
-                cf['_def_toc'], jack.ripstuff.all_tracks, jack.freedb.freedb_id(jack.ripstuff.all_tracks))
+                cf['_def_toc'], jack.ripstuff.all_tracks, jack.metadata.metadata_id(jack.ripstuff.all_tracks))
 
         # if image_file is not set (-F), we can guess it from image_toc_file
         if not cf['_image_file'] and not cf['_rip_from_device']:
@@ -496,38 +496,38 @@ def read_progress(status, todo):
     # extract status from read progress data
     jack.status.extract(status)
 
-    jack.freedb.dir_created = jack.progress.status_all['names'][-1]
+    jack.metadata.dir_created = jack.progress.status_all['names'][-1]
 
     return status
 
 
 def query_on_start(todo):
     info("querying...")
-    if jack.freedb.freedb_query(jack.freedb.freedb_id(jack.ripstuff.all_tracks), jack.ripstuff.all_tracks, cf['_freedb_form_file']):
+    if jack.metadata.metadata_query(jack.metadata.metadata_id(jack.ripstuff.all_tracks), jack.ripstuff.all_tracks, cf['_metadata_form_file']):
         if cf['_cont_failed_query']:
 
-            x = input("\nfreedb search failed, continue? (y/N) ") + "x"
+            x = input("\nmetadata search failed, continue? (y/N) ") + "x"
             if not x or x[0].upper() != "Y":
                 sys.exit(0)
-            if not cf['_edit_freedb']:
+            if not cf['_edit_metadata']:
                 x = input(
-                    "\nDo you want to edit the freedb data?  (y/N) ") + "x"
+                    "\nDo you want to edit the metadata file?  (y/N) ") + "x"
                 if x and x[0].upper() == "Y":
-                    cf['_edit_freedb'] = 1
+                    cf['_edit_metadata'] = 1
                 else:
                     cf['_query_on_start'] = 0
         else:
             jack.display.exit()
 
-    if cf['_edit_freedb']:
-        file = cf['_freedb_form_file']
+    if cf['_edit_metadata']:
+        file = cf['_metadata_form_file']
         bakfile = file + ".bak"
         if os.path.exists(file):
             try:
                 shutil.copyfile(file, bakfile)
             except IOError:
                 pass
-        jack.utils.ex_edit(cf['_freedb_form_file'])
+        jack.utils.ex_edit(cf['_metadata_form_file'])
         if os.path.exists(bakfile):
             try:
                 f = open(file, "r")
@@ -546,14 +546,14 @@ def query_on_start(todo):
                     print(pdiff)
 
     if cf['_query_on_start']:
-        err, jack.tag.track_names, jack.tag.locale_names, freedb_rename, revision = jack.freedb.interpret_db_file(
-            jack.ripstuff.all_tracks, todo, cf['_freedb_form_file'], verb=cf['_query_on_start'], dirs=1)
+        err, jack.tag.track_names, jack.tag.locale_names, metadata_rename, revision = jack.metadata.interpret_db_file(
+            jack.ripstuff.all_tracks, todo, cf['_metadata_form_file'], verb=cf['_query_on_start'], dirs=1)
         if err:
             error(
-                "query on start failed to give a good freedb file, aborting.")
+                "query on start failed to give a good metadata file, aborting.")
     else:
-        err, jack.tag.track_names, jack.tag.locale_names, freedb_rename, revision = jack.freedb.interpret_db_file(
-            jack.ripstuff.all_tracks, todo, cf['_freedb_form_file'], verb=cf['_query_on_start'], warn=cf['_query_on_start'])
+        err, jack.tag.track_names, jack.tag.locale_names, metadata_rename, revision = jack.metadata.interpret_db_file(
+            jack.ripstuff.all_tracks, todo, cf['_metadata_form_file'], verb=cf['_query_on_start'], warn=cf['_query_on_start'])
         # If the FreeDB query failed and the FreeDB data cannot be parsed,
         # don't tag the files.  However, if the FreeDB data can be parsed
         # even though the query failed assume that the query worked and
@@ -562,7 +562,7 @@ def query_on_start(todo):
             cf['_set_id3tag'] = 0
         else:
             cf['_query_on_start'] = 1
-    return freedb_rename
+    return metadata_rename
 
 
 def undo_rename(status, todo):
@@ -579,7 +579,7 @@ def undo_rename(status, todo):
 
         # undo dir renaming
         cwd = os.getcwd()
-        if jack.freedb.dir_created and jack.utils.check_path(jack.freedb.dir_created, cwd) and dir_too:
+        if jack.metadata.dir_created and jack.utils.check_path(jack.metadata.dir_created, cwd) and dir_too:
             new_name, old_name = jack.progress.status_all['names'][-2:]
             jack.utils.rename_path(old_name, new_name)    # this changes cwd!
             info("cwd now " + os.getcwd())

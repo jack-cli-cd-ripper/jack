@@ -24,7 +24,7 @@ import signal
 import jack.ripstuff
 import jack.term
 import jack.children
-import jack.freedb
+import jack.metadata
 import jack.functions
 import jack.globals
 import jack.tag
@@ -57,11 +57,11 @@ def init():
         + " reorder" * cf['_reorder'] \
         + " read-ahead=" + repr(cf['_read_ahead']) \
         + " keep-wavs" * cf['_keep_wavs'] \
-        + " id=" + jack.freedb.freedb_id(jack.ripstuff.all_tracks) \
+        + " id=" + jack.metadata.metadata_id(jack.ripstuff.all_tracks) \
         + (" len=%02i:%02i" % (global_total // jack.globals.CDDA_BLOCKS_PER_SECOND // 60, global_total // jack.globals.CDDA_BLOCKS_PER_SECOND % 60)) \
         + " | press Q to quit"
     jack.term.tmod.extra_lines = 2
-    if jack.freedb.names_available:
+    if jack.metadata.names_available:
         jack.term.tmod.extra_lines = jack.term.tmod.extra_lines + 1
         if jack.term.term_type == "curses":
             discname = jack.tag.locale_names[0][

@@ -1,4 +1,4 @@
-# jack.freedb: freedb server for use in
+# jack.metadata: metadata server for use in
 # jack - extract audio from a CD and encode it using 3rd party software
 # Copyright (C) 1999-2003  Arne Zellentin <zarne@users.sf.net>
 
@@ -39,16 +39,16 @@ from jack.globals import *
 
 import libdiscid
 
-names_available = None          # freedb info is available
+names_available = None          # metadata info is available
 dir_created = None              # dirs are only renamed if we have created them
 NUM, LEN, START, COPY, PRE, CH, RIP, RATE, NAME = list(range(9))
-freedb_inexact_match = -1
+metadata_inexact_match = -1
 filenames = []
 
 # Warning: code duplication.  Make a function through which information can
 # be requested, and let it fall back to generic information (e.g. my_mail,
 # mail, id) and only require individual entries to have 'host').  FIXME
-freedb_servers = {
+metadata_servers = {
     'freedb': {
         'host': "freedb.freedb.org",
         'id': prog_name + " " + prog_version,
@@ -56,18 +56,18 @@ freedb_servers = {
 }
 
 
-def interpret_db_file(all_tracks, todo, freedb_form_file, verb, dirs=0, warn=None):
-    "read freedb file and rename dir(s)"
+def interpret_db_file(all_tracks, todo, metadata_form_file, verb, dirs=0, warn=None):
+    "read metadata file and rename dir(s)"
     global names_available, dir_created
-    freedb_rename = 0
+    metadata_rename = 0
     if warn == None:
-        err, track_names, locale_names, cd_id, revision = freedb_names(
-            freedb_id(all_tracks), all_tracks, todo, freedb_form_file, verb=verb)
+        err, track_names, locale_names, cd_id, revision = metadata_names(
+            metadata_id(all_tracks), all_tracks, todo, metadata_form_file, verb=verb)
     else:
-        err, track_names, locale_names, cd_id, revision = freedb_names(
-            freedb_id(all_tracks), all_tracks, todo, freedb_form_file, verb=verb, warn=warn)
+        err, track_names, locale_names, cd_id, revision = metadata_names(
+            metadata_id(all_tracks), all_tracks, todo, metadata_form_file, verb=verb, warn=warn)
     if (not err) and dirs:
-        freedb_rename = 1
+        metadata_rename = 1
 
 # The user wants us to use the current dir, unconditionally.
 
@@ -127,22 +127,22 @@ def interpret_db_file(all_tracks, todo, freedb_form_file, verb, dirs=0, warn=Non
             num += 1
         names_available = 1
     else:
-        freedb_rename = 0
-    return err, track_names, locale_names, freedb_rename, revision
+        metadata_rename = 0
+    return err, track_names, locale_names, metadata_rename, revision
 # / end of interpret_db_file /#
 
 
-def local_freedb(cd_id, freedb_dir, outfile="/tmp/testfilefreedb"):
-    "Use file from local freedb directory"
+def local_metadata(cd_id, metadata_dir, outfile="/tmp/testfilemetadata"):
+    "Use file from local metadata directory"
     # Moritz Moeller-Herrmann kindly provided this functionality.
-    if not os.path.isdir(freedb_dir):
-        error("freedb directory not found")
-    if not os.access(freedb_dir, 5):
-        error("freedb directory access not permitted")
-    cat = [freedb_dir]  # category listing
-    for entry in os.listdir(freedb_dir):
-        if os.path.isdir(os.path.join(freedb_dir, entry)):
-            cat.append(os.path.join(freedb_dir, entry))
+    if not os.path.isdir(metadata_dir):
+        error("metadata directory not found")
+    if not os.access(metadata_dir, 5):
+        error("metadata directory access not permitted")
+    cat = [metadata_dir]  # category listing
+    for entry in os.listdir(metadata_dir):
+        if os.path.isdir(os.path.join(metadata_dir, entry)):
+            cat.append(os.path.join(metadata_dir, entry))
     for musicdir in cat:
         for m in os.listdir(musicdir):
             if m == cd_id:
@@ -158,13 +158,13 @@ def local_freedb(cd_id, freedb_dir, outfile="/tmp/testfilefreedb"):
                 inf.close()
                 outf.close()
                 return 0
-    print("No local matching freedb entry found")
+    print("No local matching metadata entry found")
     return 1
 
 
-def freedb_id(tracks, warn=0):
+def metadata_id(tracks, warn=0):
     from jack.globals import START, MSF_OFFSET, CDDA_BLOCKS_PER_SECOND
-    "calculate freedb (aka CDDB) disc-id"
+    "calculate metadata (aka CDDB) disc-id"
     cdtoc = []
     if not tracks:
         if warn:
@@ -182,7 +182,7 @@ def freedb_id(tracks, warn=0):
     return disc.freedb_id
 
 
-def freedb_split(field, s, max=78):
+def metadata_split(field, s, max=78):
     "split a field into multiple lines of 78 char max."
     x = ""
     s = field + "=" + s
@@ -192,11 +192,11 @@ def freedb_split(field, s, max=78):
     return x + s + "\n"
 
 
-def freedb_template(tracks, names="", revision=0):
-    "generate a freedb submission template"
-    if os.path.exists(cf['_freedb_form_file']):
-        os.rename(cf['_freedb_form_file'], cf['_freedb_form_file'] + ".bak")
-    f = open(cf['_freedb_form_file'], "w")
+def metadata_template(tracks, names="", revision=0):
+    "generate a metadata submission template"
+    if os.path.exists(cf['_metadata_form_file']):
+        os.rename(cf['_metadata_form_file'], cf['_metadata_form_file'] + ".bak")
+    f = open(cf['_metadata_form_file'], "w")
     f.write("# xmcd CD database file\n#\n# Track frame offsets:\n")
     for i in tracks:
         f.write("#       " + repr(i[START] + MSF_OFFSET) + "\n")
@@ -204,40 +204,40 @@ def freedb_template(tracks, names="", revision=0):
             (MSF_OFFSET + tracks[-1][START] + tracks[-1][LEN]) // CDDA_BLOCKS_PER_SECOND))
     f.write(" seconds\n#\n# Revision: %i\n" % revision)
     f.write("# Submitted via: " + prog_name + " " + prog_version + "\n#\n")
-    f.write("DISCID=" + freedb_id(tracks) + "\n")
+    f.write("DISCID=" + metadata_id(tracks) + "\n")
     if names:
         if names[1][0]:  # various
             if names[0][0].upper().find("VARIOUS") >= 0:
-                f.write(freedb_split("DTITLE", "Various / " + names[0][1]))
+                f.write(metadata_split("DTITLE", "Various / " + names[0][1]))
             else:
                 f.write(
-                    freedb_split("DTITLE", "Various / " + names[0][0] + " - " + names[0][1]))
+                    metadata_split("DTITLE", "Various / " + names[0][0] + " - " + names[0][1]))
         else:
-            f.write(freedb_split("DTITLE", names[0][0] + " / " + names[0][1]))
+            f.write(metadata_split("DTITLE", names[0][0] + " / " + names[0][1]))
     else:
         f.write("DTITLE=\n")
-    freedb_year, freedb_id3genre = -1, None
+    metadata_year, metadata_id3genre = -1, None
     if cf['_id3_genre']:
-        freedb_id3genre = cf['_id3_genre']
+        metadata_id3genre = cf['_id3_genre']
     elif names and len(names[0]) == 4:
-        freedb_id3genre = names[0][3]
+        metadata_id3genre = names[0][3]
     if cf['_id3_year'] >= 0:
-        freedb_year = cf['_id3_year']
+        metadata_year = cf['_id3_year']
     elif names and len(names[0]) == 4:
-        freedb_year = names[0][2]
-    if freedb_year >= 0:
-        f.write("DYEAR=%d\n" % freedb_year)
+        metadata_year = names[0][2]
+    if metadata_year >= 0:
+        f.write("DYEAR=%d\n" % metadata_year)
     else:
         f.write("DYEAR=\n")
-    if freedb_id3genre:
-        f.write("DGENRE=%s\n" % freedb_id3genre)
+    if metadata_id3genre:
+        f.write("DGENRE=%s\n" % metadata_id3genre)
     else:
         f.write("DGENRE=\n")
     for i in tracks:
         if names:
             if names[i[NUM]][0]:  # various
                 f.write(
-                    freedb_split("TTITLE" + repr(i[NUM] - 1),
+                    metadata_split("TTITLE" + repr(i[NUM] - 1),
                                  names[i[NUM]][0] +
                                  " - " +
                                  names[i[NUM]][1]
@@ -245,7 +245,7 @@ def freedb_template(tracks, names="", revision=0):
                 )
             else:
                 f.write(
-                    freedb_split("TTITLE" + repr(i[NUM] - 1), names[i[NUM]][1]))
+                    metadata_split("TTITLE" + repr(i[NUM] - 1), names[i[NUM]][1]))
         else:
             f.write("TTITLE" + repr(i[NUM] - 1) + "=\n")
     f.write("EXTD=\n")
@@ -254,9 +254,9 @@ def freedb_template(tracks, names="", revision=0):
     f.write("PLAYORDER=\n")
 
 
-def freedb_query(cd_id, tracks, file):
-    if cf['_freedb_dir']:
-        if local_freedb(cd_id, cf['_freedb_dir'], file) == 0:  # use local database (if any)
+def metadata_query(cd_id, tracks, file):
+    if cf['_metadata_dir']:
+        if local_metadata(cd_id, cf['_metadata_dir'], file) == 0:  # use local database (if any)
             return 0
 
     qs = "cmd=cddb query " + cd_id + " " + repr(len(tracks)) + " "  # query string
@@ -264,10 +264,10 @@ def freedb_query(cd_id, tracks, file):
         qs = qs + repr(i[START] + MSF_OFFSET) + " "
     qs = qs + repr((MSF_OFFSET + tracks[-1][START] + tracks[-1][LEN]) // CDDA_BLOCKS_PER_SECOND)
     hello = "hello=" + cf['_username'] + " " + cf[
-        '_hostname'] + " " + freedb_servers[cf['_freedb_server']]['id']
+        '_hostname'] + " " + metadata_servers[cf['_metadata_server']]['id']
     qs = urllib.parse.quote_plus(qs + "&" + hello + "&proto=6", "=&")
     url = "http://" + \
-        freedb_servers[cf['_freedb_server']]['host'] + "/~cddb/cddb.cgi?" + qs
+        metadata_servers[cf['_metadata_server']]['host'] + "/~cddb/cddb.cgi?" + qs
     if cf['_cont_failed_query']:
         try:
             f = urllib.request.urlopen(url)
@@ -281,8 +281,8 @@ def freedb_query(cd_id, tracks, file):
     if buf and buf[0:1] == "2":
         if buf[0:3] in ("210", "211"):  # Found inexact or multiple exact matches, list follows
             if buf[0:3] == "211":
-                global freedb_inexact_match
-                freedb_inexact_match = 1
+                global metadata_inexact_match
+                metadata_inexact_match = 1
             print("Found the following matches. Choose one:")
             num = 1
             matches = []
@@ -310,13 +310,13 @@ def freedb_query(cd_id, tracks, file):
 
             buf = matches[x - 1]
             buf = buf.split(" ", 2)
-            freedb_cat = buf[0]
+            metadata_cat = buf[0]
             cd_id = buf[1]
             err = 0
 
         elif buf[0:3] == "200":
             buf = buf.split()
-            freedb_cat = buf[1]
+            metadata_cat = buf[1]
         elif buf[0:3] == "202":
             if cf['_cont_failed_query']:
                 warning(buf + f.read().decode(cf['_charset']) + " How about trying another --server?")
@@ -334,8 +334,8 @@ def freedb_query(cd_id, tracks, file):
                 error(
                     buf + f.read().decode(cf['_charset']) + " --don't know what to do, aborting query.")
 
-        cmd = "cmd=cddb read " + freedb_cat + " " + cd_id
-        url = "http://" + freedb_servers[cf['_freedb_server']][
+        cmd = "cmd=cddb read " + metadata_cat + " " + cd_id
+        url = "http://" + metadata_servers[cf['_metadata_server']][
             'host'] + "/~cddb/cddb.cgi?" + urllib.parse.quote_plus(cmd + "&" + hello + "&proto=6", "=&")
         f = urllib.request.urlopen(url)
         buf = f.readline().decode(cf['_charset'])
@@ -350,30 +350,30 @@ def freedb_query(cd_id, tracks, file):
                     of.write(buf + "\n")
                 buf = f.readline().decode(cf['_charset'])
             of.close()
-            jack.functions.progress("all", "freedb_cat", freedb_cat)
-            jack.progress.status_all['freedb_cat'] = freedb_cat
+            jack.functions.progress("all", "metadata_cat", metadata_cat)
+            jack.progress.status_all['metadata_cat'] = metadata_cat
             err = 0
         else:
             print(buf.rstrip())
             print(f.read().decode(cf['_charset']))
-            warning("could not query freedb entry")
+            warning("could not query metadata entry")
             err = 1
         f.close()
     else:
         print(buf.rstrip())
         print(f.read().decode(cf['_charset']))
-        warning("could not check freedb category")
+        warning("could not check metadata category")
         err = 2
     f.close()
     return err
 
 
-def freedb_names(cd_id, tracks, todo, name, verb=0, warn=1):
+def metadata_names(cd_id, tracks, todo, name, verb=0, warn=1):
     "returns err, [(artist, albumname), (track_01-artist, track_01-name), ...], cd_id, revision"
     err = 0
     tracks_on_cd = tracks[-1][NUM]
-    freedb = {}
-    f = open(name, "r")  # first the freedb info is read in...
+    metadata = {}
+    f = open(name, "r")  # first the metadata info is read in...
     while 1:
         line = f.readline()
         if not line:
@@ -390,52 +390,52 @@ def freedb_names(cd_id, tracks, todo, name, verb=0, warn=1):
                 if buf.find("=") != -1:
                     buf = buf.split("=", 1)
                     if buf[1]:
-                        if buf[0] in freedb:
+                        if buf[0] in metadata:
                             if buf[0] == "DISCID":
-                                freedb[buf[0]] = freedb[buf[0]] + ',' + buf[1]
+                                metadata[buf[0]] = metadata[buf[0]] + ',' + buf[1]
                             else:
-                                freedb[buf[0]] = freedb[buf[0]] + buf[1]
+                                metadata[buf[0]] = metadata[buf[0]] + buf[1]
                         else:
-                            freedb[buf[0]] = buf[1]
+                            metadata[buf[0]] = buf[1]
                 continue
 
     for i in tracks:    # check that info is there for all tracks
-        if "TTITLE%i" % (i[NUM] - 1) not in freedb:   # -1 because freedb starts at 0
+        if "TTITLE%i" % (i[NUM] - 1) not in metadata:   # -1 because metadata starts at 0
             if i[NUM] in [x[NUM] for x in todo]:
                 err = 1
             if verb:
-                warning("no freedb info for track %02i (\"TTITLE%i\")" %
+                warning("no metadata info for track %02i (\"TTITLE%i\")" %
                         (i[NUM], i[NUM] - 1))
-            freedb["TTITLE%i" % (i[NUM] - 1)] = "[not set]"
+            metadata["TTITLE%i" % (i[NUM] - 1)] = "[not set]"
 
-    for i in list(freedb.keys()):  # check that there is no extra info
+    for i in list(metadata.keys()):  # check that there is no extra info
         if i[0:6] == "TTITLE":
             if int(i[6:]) > tracks_on_cd - 1:
                 err = 2
                 if verb:
-                    warning("extra freedb info for track %02i (\"%s\"), cd has only %02i tracks." %
+                    warning("extra metadata info for track %02i (\"%s\"), cd has only %02i tracks." %
                             (int(i[6:]) + 1, i, tracks_on_cd))
 
-    if "DTITLE" not in freedb:
+    if "DTITLE" not in metadata:
         err = 3
         if verb:
             warning(
-                "freedb entry doesn't contain disc title info (\"DTITLE\").")
-        freedb['DTITLE'] = "[not set]"
+                "metadata entry doesn't contain disc title info (\"DTITLE\").")
+        metadata['DTITLE'] = "[not set]"
 
-    if "DISCID" not in freedb:
+    if "DISCID" not in metadata:
         err = 4
         if verb:
-            warning("freedb entry doesn't contain disc id info (\"DISCID\").")
+            warning("metadata entry doesn't contain disc id info (\"DISCID\").")
         read_id = "00000000"
     else:
-        read_id = freedb['DISCID']
-        read_ids = freedb['DISCID'].split(",")
+        read_id = metadata['DISCID']
+        read_ids = metadata['DISCID'].split(",")
         id_matched = 0
         for i in read_ids:
             if i == cd_id:
                 id_matched = 1
-        if not id_matched and warn and freedb_inexact_match < 1:
+        if not id_matched and warn and metadata_inexact_match < 1:
             print("Warning: CD signature ID and ID from FreeDB file do not match.")
             print("         CD signature: " + cd_id)
             print("         FreeDB ID:    " + ",".join(read_ids))
@@ -451,10 +451,10 @@ def freedb_names(cd_id, tracks, todo, name, verb=0, warn=1):
                     warning("the disc's id is not 8-digit hex (\"DISCID\").")
                 err = 5
 
-    if 'PLAYORDER' in freedb:
-        jack.playorder.order = freedb('PLAYORDER')
+    if 'PLAYORDER' in metadata:
+        jack.playorder.order = metadata('PLAYORDER')
 
-    dtitle = freedb['DTITLE']
+    dtitle = metadata['DTITLE']
     dtitle = dtitle.replace(" / ", "/")    # kill superflous slashes
     dtitle = dtitle.replace("/ ", "/")
     dtitle = dtitle.replace(" /", "/")
@@ -471,9 +471,9 @@ def freedb_names(cd_id, tracks, todo, name, verb=0, warn=1):
 
     names = [dtitle.split("/", 1)]
     year = -1
-    if 'DYEAR' in freedb:
+    if 'DYEAR' in metadata:
         try:
-            year = int(freedb['DYEAR'])
+            year = int(metadata['DYEAR'])
             if cf['_id3_year'] <= 0:
                 cf['_id3_year'] = year
             elif cf['_id3_year'] != year:
@@ -481,17 +481,17 @@ def freedb_names(cd_id, tracks, todo, name, verb=0, warn=1):
                         (cf['_id3_year'], year))
         except ValueError:
             warning("DYEAR has to be an integer but it's the string '%s'" %
-                    freedb['DYEAR'])
+                    metadata['DYEAR'])
         else:
             if year == 0:
                 warning("DYEAR should not be 0 but empty")
     genre = None
-    if 'DGENRE' in freedb:
-        genre = freedb['DGENRE']
-    if 'EXTD' in freedb and 'DYEAR' not in freedb:
-        extra_tag_pos = freedb['EXTD'].find("YEAR:")
+    if 'DGENRE' in metadata:
+        genre = metadata['DGENRE']
+    if 'EXTD' in metadata and 'DYEAR' not in metadata:
+        extra_tag_pos = metadata['EXTD'].find("YEAR:")
         if extra_tag_pos >= 0:
-            arg = freedb['EXTD'][extra_tag_pos + 5:].lstrip().split()[0]
+            arg = metadata['EXTD'][extra_tag_pos + 5:].lstrip().split()[0]
             if arg.isdigit():
                 year = int(arg)
     if genre:
@@ -512,8 +512,8 @@ def freedb_names(cd_id, tracks, todo, name, verb=0, warn=1):
 
     if cf['_various'] and cf['_extt_is_artist']:
         for i in range(tracks_on_cd):
-            if freedb['EXTT' + repr(i)]:
-                names.append([freedb['EXTT' + repr(i)], freedb['TTITLE' + repr(i)]])
+            if metadata['EXTT' + repr(i)]:
+                names.append([metadata['EXTT' + repr(i)], metadata['TTITLE' + repr(i)]])
             else:
                 err = 8
                 if verb:
@@ -521,8 +521,8 @@ def freedb_names(cd_id, tracks, todo, name, verb=0, warn=1):
 
     elif cf['_various'] and cf['_extt_is_title']:
         for i in range(tracks_on_cd):
-            if freedb['EXTT' + repr(i)]:
-                names.append([freedb['TTITLE' + repr(i)], freedb['EXTT' + repr(i)]])
+            if metadata['EXTT' + repr(i)]:
+                names.append([metadata['TTITLE' + repr(i)], metadata['EXTT' + repr(i)]])
             else:
                 err = 8
                 if verb:
@@ -540,7 +540,7 @@ def freedb_names(cd_id, tracks, todo, name, verb=0, warn=1):
         # first generate a list of track titles
 
         for i in range(tracks_on_cd):
-            titles.append(freedb['TTITLE' + repr(i)])
+            titles.append(metadata['TTITLE' + repr(i)])
 
         # now try to find a string common to all titles with length 3...1
 
@@ -662,18 +662,18 @@ def freedb_names(cd_id, tracks, todo, name, verb=0, warn=1):
             err = 7
             if verb:
                 warning("could not separate artist and title in all TTITLEs. Try setting freedb_pedantic = 0 or use --various=no. Maybe additional information is contained in the EXTT fields. check %s and use either --extt-is-artist or --extt-is-title." %
-                        cf['_freedb_form_file'])
+                        cf['_metadata_form_file'])
     else:
         for i in range(tracks_on_cd):
-            buf = freedb['TTITLE' + repr(i)]
+            buf = metadata['TTITLE' + repr(i)]
             names.append(["", buf])
 
     # append the EXTT fields to the track names
     if cf['_extt_is_comment']:
         for i in range(len(names[1:])):
-            if 'EXTT' + repr(i) in freedb and freedb['EXTT' + repr(i)]:
+            if 'EXTT' + repr(i) in metadata and metadata['EXTT' + repr(i)]:
                 names[i + 1][1] = names[i + 1][
-                    1] + " (%s)" % freedb['EXTT' + repr(i)]
+                    1] + " (%s)" % metadata['EXTT' + repr(i)]
             else:
                 print("Warning: track %i (starting at 0) has no EXTT entry." % i)
 

@@ -1,4 +1,4 @@
-# jack.playorder: use the PLAYORDER field in freedb data for
+# jack.playorder: use the PLAYORDER field in metadata for
 # jack - tag audio from a CD and encode it using 3rd party software
 # Copyright (C) 1999-2003  Arne Zellentin <zarne@users.sf.net>
 
