@@ -244,8 +244,8 @@ else:
         'type': "encoder",
         'target': "m4a",
         'can_tag': 1,
-        'cmd': "fdkaac --bitrate-mode 0 --bitrate 64 -o %o %i",
-        'vbr-cmd': "fdkaac --bitrate-mode 5 -o %o %i",
+        'cmd': "fdkaac --bitrate-mode 0 --bitrate %r -o %o %i",
+        'vbr-cmd': "fdkaac --bitrate-mode %q -o %o %i",
         'status_blocksize': 160,
         'bitrate_factor': 1,
         'percent_fkt': r"""
