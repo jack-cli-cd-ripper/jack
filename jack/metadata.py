@@ -45,14 +45,16 @@ NUM, LEN, START, COPY, PRE, CH, RIP, RATE, NAME = list(range(9))
 metadata_inexact_match = -1
 filenames = []
 
-# Warning: code duplication.  Make a function through which information can
-# be requested, and let it fall back to generic information (e.g. my_mail,
-# mail, id) and only require individual entries to have 'host').  FIXME
 metadata_servers = {
     'freedb': {
         'host': "freedb.freedb.org",
         'id': prog_name + " " + prog_version,
+        'api': "cddb",
     },
+    'musicbrainz': {
+        'host': "default",
+        'id': prog_name + " " + prog_version,
+        'api': "musicbrainzngs",
 }
 
 
