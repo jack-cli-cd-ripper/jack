@@ -119,12 +119,6 @@ cf = jack.misc.dict2({
         'usage': "XXX todo!!! disable default proxy (environment variable \"http_proxy\") for freedb queries",
         'long': 'AUTO',
     },
-    'my_mail': {
-        'type': str,
-        'val': "@",
-        'usage': "your e-mail address, needed for freedb submissions",
-        'long': 'AUTO',
-    },
     'rename_fmt': {
         'type': str,
         'val': "%a - %l - %n - %t",

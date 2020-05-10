@@ -112,29 +112,6 @@ def consistency_check(cf):
         cf['hostname']['val'] = os.uname()[1]
         debug("hostname is " + cf['_hostname'])
 
-    # check for e-mail address
-    if len(jack.freedb.freedb_servers[cf['_freedb_server']]['my_mail']) <= 3 or jack.freedb.freedb_servers[cf['freedb_server']['val']]['my_mail'] == "default":
-        tmp_mail = jack.freedb.freedb_servers[
-            cf['freedb_server']['val']]['my_mail']
-        tmp_mail2 = cf['_my_mail']
-        if len(cf['_my_mail']) <= 3 or cf['_my_mail'] == "default" or cf['_my_mail'].find("@") < 1:
-            env = os.getenv("EMAIL")
-            if env:
-                jack.freedb.freedb_servers[
-                    cf['freedb_server']['val']]['my_mail'] = env
-            else:
-                jack.freedb.freedb_servers[cf['freedb_server']['val']][
-                    'my_mail'] = cf['username']['val'] + "@" + cf['hostname']['val']
-            if len(cf['my_mail']['history']) > 1:
-                warning("illegal mail address changed to " +
-                        jack.freedb.freedb_servers[cf['freedb_server']['val']]['my_mail'])
-        else:
-            jack.freedb.freedb_servers[
-                cf['freedb_server']['val']]['my_mail'] = cf['_my_mail']
-        debug("mail is " + jack.freedb.freedb_servers[cf['freedb_server']['val']][
-              'my_mail'] + ", was " + tmp_mail + " / " + tmp_mail2)
-        del tmp_mail, tmp_mail2
-
     # if cf.has_key('charset'):
     #    if not cf['char_filter']['val']:
     #        warning("charset has no effect without a char_filter")
