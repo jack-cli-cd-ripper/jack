@@ -164,7 +164,7 @@ def local_metadata(cd_id, metadata_dir, outfile="/tmp/testfilemetadata"):
 
 def metadata_id(tracks, warn=0):
     from jack.globals import START, MSF_OFFSET, CDDA_BLOCKS_PER_SECOND
-    "calculate metadata (aka CDDB) disc-id"
+    "calculate disc-id for FreeDB or MusicBrainz"
     cdtoc = []
     if not tracks:
         if warn:

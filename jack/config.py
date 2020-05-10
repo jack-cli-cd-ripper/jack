@@ -526,10 +526,16 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
         'val': 0,
         'long': 'AUTO',
     },
+    'edit_freedb': {
+        # For backwards compatibility only, use edit_metadata instead!
+        'type': 'toggle',
+        'val': 0,
+        'long': 'AUTO',
+    },
     'edit_metadata': {
         'type': 'toggle',
         'val': 0,
-        'usage': "edit CDDB information before using it",
+        'usage': "edit metadata information before using it",
         'long': 'AUTO',
     },
     'various': {

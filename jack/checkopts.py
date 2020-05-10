@@ -66,6 +66,10 @@ def checkopts(cf, cf2):
         warning("--edit-cddb is obsolete, please use --edit-metadata")
         cf.rupdate({'edit_metadata': {'val': 1}}, "check")
 
+    if 'edit_freedb' in cf2:
+        warning("--edit-freedb is obsolete, please use --edit-metadata")
+        cf.rupdate({'edit_metadata': {'val': 1}}, "check")
+
     if 'vbr' not in cf2:
         if 'bitrate' in cf2 and 'vbr_quality' in cf2:
             cf.rupdate({'vbr': {'val': 1}}, "check")
