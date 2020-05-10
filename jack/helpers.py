@@ -71,50 +71,6 @@ else:
     helper_percent = 0
 """,
     },
-
-    'mp3enc': {
-        'type': "encoder",
-        'target': "mp3",
-        'cmd': "mp3enc -v -qual 9 -br %r -if %i -of %o",
-        'otf-cmd': "mp3enc -v -qual 9 -br %r -sti -be -of %o",
-        'status_blocksize': 99,
-        'bitrate_factor': 1000,
-        'status_start': "%",
-        'percent_fkt': r"""
-global helper_percent
-s = (i['buf']).split('\r')
-if len(s) >= 4:
-    s = s[-2]
-    if s.find("%") >= 0:
-        y = s.split(" ", 3)
-        helper_percent = float(y[0]) / (i['track'][LEN] * CDDA_BLOCKSIZE / 2) * 100.0
-    else:
-        helper_percent = 0
-""",
-    },
-
-    'l3enc': {
-        'type': "encoder",
-        'target': "mp3",
-        'cmd': "l3enc -hq -br %r %i %o",
-        'status_blocksize': 99,
-        'bitrate_factor': 1000,
-        'status_start': "%",
-        'percent_fkt': r"""
-global helper_percent
-s = (i['buf']).split('\r')
-if len(s) >= 2: s = s[-2]
-if len(s) == 1: s = s[0]
-if s.find("%") >= 0:
-    y = s.split(" / ")
-    y0 = ((y[0])[-1]).split()
-    y1 = ((y[1])[0]).split()
-    helper_percent=float(y0) / float(y1) * 100.0
-else:
-    helper_percent = 0
-""",
-    },
-
     'lame': {
         'type': "encoder",
         'target': "mp3",
@@ -144,79 +100,6 @@ else:
     helper_percent = 0
 """,
     },
-
-    'gogo': {  # Thanks to José Antonio Pérez Sánchez for the vbr and otf presets
-        'type': "encoder",
-        'target': "mp3",
-        'inverse-quality': 1,
-        'cmd': "gogo %i %o -b %r",
-        'vbr-cmd': "gogo %i %o -v %q",
-        'otf-cmd': "gogo stdin %o -b %r",
-        'vbr-otf-cmd': "gogo stdin %o -v %q",
-        'status_blocksize': 160,
-        'bitrate_factor': 1,
-        'status_start': "%",
-        'percent_fkt': r"""
-global helper_percent
-s = (i['buf']).split('\r')
-if len(s) >= 2: s=s[-2]
-if len(s) == 1: s=s[0]
-if s.find("%") >= 0: # status reporting starts here
-    s = replace(s, "\000", " ")
-    y = s.split("/")
-    y0 = (y[0]).split("{")[-1]
-    y1 = (y[1]).split("}")[0]
-    helper_percent = float(y0) / float(y1) * 100.0
-else:
-    helper_percent = 0
-""",
-    },
-
-    'bladeenc': {
-        'type': "encoder",
-        'target': "mp3",
-        'cmd': "bladeenc %i %o -br %r",
-        'status_blocksize': 180,
-        'bitrate_factor': 1000,
-        'status_start': "%",
-        'percent_fkt': r"""
-global helper_percent
-s = (i['buf']).split('\r')
-if len(s) >= 2: s=s[-2]
-if s.find("Status:") != -1:
-    y = (s[8:]).split()
-    helper_percent = float((y[0]).split('%')[0])
-else:
-    helper_percent = 0
-""",
-    },
-
-    # xing  definitions kindly provided by Sebastian Weber
-    'xing': {
-        'type': "encoder",
-        'target': "mp3",
-        'cmd': "xingmp3enc -B %r %i %o",
-        'vbr-cmd': "xingmp3enc -V 100 %i %o",
-        'otf-cmd': "xingmp3enc -b %r -- %o",
-        'vbr-otf-cmd': "xingmp3enc -V 100 -- %o",
-        'status_blocksize': 160,
-        'bitrate_factor': 1,
-        'status_start': "%",
-        'percent_fkt': r"""
-global helper_percent
-s = (i['buf']).split('\r')
-if len(s) >= 2: s = s[-2]
-if s.find("ETA:") != -1:
-    y = (s.split('%')[0]).strip()
-    if len(y) == 0:
-        helper_percent = 0
-    else:
-        helper_percent = float(y)
-else:
-    helper_percent = 0
-""",
-    },
-
     'flac': {
         'type': "encoder",
         'target': "flac",
