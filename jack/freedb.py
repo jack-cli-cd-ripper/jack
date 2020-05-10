@@ -52,8 +52,6 @@ freedb_servers = {
     'freedb': {
         'host': "freedb.freedb.org",
         'id': prog_name + " " + prog_version,
-        'mail': "freedb-submit@freedb.org",
-        'my_mail': "default"
     },
 }
 
@@ -466,7 +464,7 @@ def freedb_names(cd_id, tracks, todo, name, verb=0, warn=1):
     if dtitle.find("/") == -1:
         if cf['_various'] == 1:
             dtitle = "Various/" + dtitle
-            warning("bad disc title, using %s. Please fix and submit." %
+            warning("bad disc title, using %s. Please fix." %
                     dtitle)
         else:
             dtitle = "(unknown artist)/" + dtitle
@@ -727,135 +725,8 @@ def choose_cat(cat=["blues", "classical", "country", "data", "folk", "jazz", "mi
     return cat[x - 1]
 
 
-def do_freedb_submit(file, cd_id, cat=None):
-    import http.client
-
-    if not cat:
-        hello = "hello=" + cf['_username'] + " " + cf[
-            '_hostname'] + " " + prog_name + " " + prog_version
-        print("Info: querying categories...")
-        url = "http://" + freedb_servers[cf['_freedb_server']][
-            'host'] + "/~cddb/cddb.cgi?" + urllib.parse.quote_plus("cmd=cddb lscat" + "&" + hello + "&proto=6", "=&")
-        f = urllib.request.urlopen(url)
-        buf = f.readline().decode(cf['_charset'])
-        if buf[0:3] == "500":
-            print("Info: LSCAT failed, using builtin categories...")
-            cat = choose_cat()
-
-        elif buf[0:3] == "210":
-            cat = []
-            while 1:
-                buf = f.readline().decode(cf['_charset'])
-                if not buf:
-                    break
-                buf = buf.rstrip()
-                if buf != ".":
-                    cat.append(buf)
-            f.close()
-            cat = choose_cat(cat)
-
-        else:
-            error("LSCAT failed: " + buf.rstrip() + f.read())
-
-    print("OK, using category `" + cat + "'.")
-    email = freedb_servers[cf['_freedb_server']]['my_mail']
-    print("Your e-mail address is needed to send error messages to you.")
-    x = input("enter your e-mail-address [" + email + "]: ")
-    if x:
-        email = x
-
-    info("Submitting...")
-    selector = '/~cddb/submit.cgi'
-    proxy = ""
-    if 'http_proxy' in os.environ:
-        proxy = os.environ['http_proxy']
-
-        def splittype(url):
-            import re
-            _typeprog = re.compile('^([^/:]+):')
-            match = _typeprog.match(url)
-            if match:
-                    scheme = match.group(1)
-                    return scheme, url[len(scheme) + 1:]
-            return None, url
-
-        def splithost(url):
-            import re
-            _hostprog = re.compile('^//([^/]+)(.*)$')
-            match = _hostprog.match(url)
-            if match:
-                return match.group(1, 2)
-            return None, url
-
-        type, proxy = splittype(proxy)
-        host, selector2 = splithost(proxy)
-        h = http.client.HTTPConnection(host)
-        h.putrequest('POST', 'http://' + freedb_servers[
-                     cf['_freedb_server']]['host'] + selector)
-    else:
-        h = http.client.HTTPConnection(freedb_servers[cf['_freedb_server']]['host'])
-        h.putrequest('POST', '/~cddb/submit.cgi')
-    h.putheader('Category', cat)
-    h.putheader('Discid', cd_id)
-    h.putheader('User-Email', email)
-    if cf['_debug']:
-        debug(
-            "will submit in test-mode, changes are not applied and you'll get an email which contains the data you submitted.")
-        h.putheader('Submit-Mode', 'test')
-    else:
-        h.putheader('Submit-Mode', 'submit')
-    h.putheader('Charset', 'UTF-8')
-    if cf['_debug']:
-        h.putheader(
-            'X-Cddbd-Note', 'Submission will not be applied to database if --debug is on.')
-    else:
-        h.putheader('X-Cddbd-Note', 'data submitted with ' +
-                    prog_name + ' (http://jack.sf.net)')
-    h.putheader('Content-Length', str(jack.utils.filesize(file)))
-    h.endheaders()
-    # The user just wrote the file with a text editor so we assume that it
-    # is in their locale.
-    f = codecs.open(file, "r")
-    try:
-        text = f.read()
-    except UnicodeDecodeError:
-        print("The freedb file does not match your current locale. Please convert it")
-        print("to " + locale.getpreferredencoding() + " manually.")
-        sys.exit(1)
-    h.send(text.encode("utf-8"))
-    f.close()
-
-    print()
-
-    response = h.getresponse()
-    err = response.status
-    msg = response.reason
-    headers = response.getheaders()
-    buf = response.read()
-
-    # lets see if it worked:
-    if err == 404:
-        print("This server doesn't seem to support database submission via http.")
-        print("consider submitting via mail (" + progname + " -m). full error:\n")
-    print(err, msg)
-
-
-def do_freedb_mailsubmit(file, cd_id, cat=None):
-    warning(
-        "Support for freedb submission via e-mail may be dropped in future versions. Please begin to use HTTP to submit your entries (--submit)")
-    sendmail = '/usr/lib/sendmail -t'
-    # sendmail = 'cat > /tmp/jack.test.mailsubmit'
-    if not cat:
-        cat = choose_cat()
-    print("OK, using `" + cat + "'.")
-    if (freedb_servers[cf['_freedb_server']]['my_mail']).find("@") >= 1 and len(freedb_servers[cf['_freedb_server']]['my_mail']) > 3:
-        return os.system("( echo 'To: " + freedb_servers[cf['_freedb_server']]['mail'] + "'; echo From: '" + freedb_servers[cf['_freedb_server']]['my_mail'] + "'; echo 'Subject: cddb " + cat + " " + cd_id + "' ; cat '" + file + "' ) | " + sendmail)
-    else:
-        print("please set your e-mail address. aborting...")
-
-
 def update_revision(file):
-    "Update the revision (and submitted-via) information in a FreeDB template"
+    "Update the revision information in a FreeDB template"
 
     re_revision = re.compile(r"^#\s*Revision:\s*(\d+)")
     re_agent = re.compile(r"^#\s*Submitted via:")

@@ -109,7 +109,7 @@ if cf['_check_toc']:
     sys.exit(0)
 
 ### read and interpret toc_file
-is_submittable, track1_offset = jack.prepare.read_toc_file()
+track1_offset = jack.prepare.read_toc_file()
 
 ### make sure we have a freedb file
 if not os.path.exists(cf['_freedb_form_file']):
@@ -141,11 +141,6 @@ todo = jack.prepare.gen_todo()
 if len(todo) == 0:
     error("nothing to do. bye.")
 
-### submit freedb data on user's request
-if cf['_freedb_submit'] or cf['_freedb_mailsubmit']:
-    jack.prepare.freedb_submit()
-    sys.exit(0)
-
 ### do query on start
 freedb_rename = 0
 if cf['_query_if_needed']:
@@ -160,7 +155,7 @@ if cf['_update_freedb']:
         err, jack.tag.track_names, jack.tag.locale_names, freedb_rename, revision = jack.freedb.interpret_db_file(jack.ripstuff.all_tracks, todo, cf['_freedb_form_file'], verb = 1, dirs = 0)
     jack.freedb.freedb_template(jack.ripstuff.all_tracks, jack.tag.track_names, revision + 1)
     jack.utils.ex_edit(cf['_freedb_form_file'])
-    info("now submit your changes if you like, using the option --submit (via http POST). Don't forget to activate your changes locally with -R")
+    info("Don't forget to activate your changes locally with -R")
     sys.exit(0)
 
 ### update progress file at user's request (operation mode)

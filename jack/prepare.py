@@ -216,9 +216,7 @@ def check_toc():
 
 def read_toc_file():
     "read and interpret toc_file"
-    global is_submittable
 
-    is_submittable = 0
     if os.path.exists(cf['_toc_file']):
         if cf['_image_toc_file']:
             cf['_toc_file'] = cf['_image_toc_file']
@@ -237,8 +235,7 @@ def read_toc_file():
         if cf['_rip_from_device']:
             cf['_image_file'] = ""
 
-        is_submittable = 1
-    return is_submittable, track1_offset
+    return track1_offset
 
 
 def filter_tracks(toc_just_read, status):
@@ -504,25 +501,6 @@ def read_progress(status, todo):
     return status
 
 
-def freedb_submit(cat=None):
-    "submit freedb data on user's request"
-    if not is_submittable:
-        error("can't submit in current state, please fix jack.freedb")
-
-    err, jack.tag.track_names, jack.tag.locale_names, cd_id, revision = jack.freedb.freedb_names(jack.freedb.freedb_id(
-        jack.ripstuff.all_tracks), jack.ripstuff.all_tracks, jack.ripstuff.all_tracks, cf['_freedb_form_file'], verb=1)
-    if err:
-        error("invalid freedb file")
-    else:
-        if cf['_freedb_mailsubmit']:
-            jack.freedb.do_freedb_mailsubmit(
-                cf['_freedb_form_file'], cd_id, cat)
-        else:
-            jack.freedb.do_freedb_submit(cf['_freedb_form_file'], cd_id, cat)
-
-    # (9) do query on start
-
-
 def query_on_start(todo):
     info("querying...")
     if jack.freedb.freedb_query(jack.freedb.freedb_id(jack.ripstuff.all_tracks), jack.ripstuff.all_tracks, cf['_freedb_form_file']):
@@ -566,12 +544,6 @@ def query_on_start(todo):
                     print("You made the following changes to the FreeDB file:")
                     print()
                     print(pdiff)
-                    x = input(
-                        "Would you like to submit these changes to the FreeDB server? (y/N) ")
-                    if x and x[0].upper() == "Y":
-                        jack.freedb.update_revision(file)
-                        freedb_submit(
-                            jack.progress.status_all.get('freedb_cat', None))
 
     if cf['_query_on_start']:
         err, jack.tag.track_names, jack.tag.locale_names, freedb_rename, revision = jack.freedb.interpret_db_file(
