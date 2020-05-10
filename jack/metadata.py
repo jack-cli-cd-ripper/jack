@@ -27,7 +27,6 @@ import tempfile
 import shutil
 import re
 
-import jack.playorder
 import jack.functions
 import jack.progress
 import jack.utils
@@ -452,9 +451,6 @@ def metadata_names(cd_id, tracks, todo, name, verb=0, warn=1):
                 if verb:
                     warning("the disc's id is not 8-digit hex (\"DISCID\").")
                 err = 5
-
-    if 'PLAYORDER' in metadata:
-        jack.playorder.order = metadata('PLAYORDER')
 
     dtitle = metadata['DTITLE']
     dtitle = dtitle.replace(" / ", "/")    # kill superflous slashes

@@ -23,7 +23,6 @@ import sys
 import difflib
 import shutil
 
-import jack.playorder
 import jack.functions
 import jack.progress
 import jack.version
@@ -271,7 +270,7 @@ def filter_tracks(toc_just_read, status):
 def gen_todo():
     "parse tracks from argv, generate todo"
 
-    if not cf['_tracks'] and not jack.playorder.order:
+    if not cf['_tracks']:
         todo = []
         for i in jack.ripstuff.all_tracks:
             if i[NUM] in datatracks:
@@ -286,8 +285,6 @@ def gen_todo():
         tlist = []
         if cf['_tracks']:
             tracks = (cf['_tracks']).split(",")
-        else:
-            tracks = jack.playorder.order.split(",")
         for k in tracks:
             if k.find('-') >= 0:
                 k = k.split('-')
