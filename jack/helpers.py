@@ -129,6 +129,8 @@ else:
         'can_tag': 1,
         'cmd': "fdkaac --bitrate-mode 0 --bitrate %r -o %o %i",
         'vbr-cmd': "fdkaac --bitrate-mode %q -o %o %i",
+        'otf-cmd': "fdkaac --bitrate-mode 0 --bitrate %r -o %o -",
+        'vbr-otf-cmd': "fdkaac --bitrate-mode %q -o %o -",
         'status_blocksize': 160,
         'bitrate_factor': 1,
         'percent_fkt': r"""
