@@ -240,27 +240,6 @@ else:
     helper_percent = 0
 """,
     },
-
-    'mppenc': {
-        'type': "encoder",
-        'target': "mpc",
-        'can_tag': 0,
-        'vbr-cmd': "mppenc --standard %i %o",
-        # 'vbr-otf-cmd': "mppenc --standard - %o", # doesn't work, needs WAVE
-        'status_blocksize': 160,
-        'status_start': "-.-",
-        'percent_fkt': r"""
-global helper_percent
-s = (i['buf']).split('\r')
-if len(s) >= 3:
-    s = s[-3]
-    s = s.strip().split()
-    if len(s) >= 3 and s[2] == "kbps" and s[0] != "-.-":
-        helper_percent = float(s[0])
-    else:
-        helper_percent = 0
-""",
-    },
     'fdkaac': {
         'type': "encoder",
         'target': "m4a",
