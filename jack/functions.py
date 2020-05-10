@@ -491,7 +491,7 @@ def progress(track, what="error", data="error", data2=None):
 
 
 def check_file(num, i, ext):
-    "Check if a song exists, either with a generic name or with the FreeDB name"
+    "Check if a song exists, either with a generic name or with the metadata name"
     if os.path.exists(i[NAME] + ext):
         return i[NAME]
     elif jack.metadata.names_available:

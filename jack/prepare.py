@@ -541,7 +541,7 @@ def query_on_start(todo):
                 b.close()
                 if pdiff:
                     print()
-                    print("You made the following changes to the FreeDB file:")
+                    print("You made the following changes to the metadata file:")
                     print()
                     print(pdiff)
 
@@ -554,8 +554,8 @@ def query_on_start(todo):
     else:
         err, jack.tag.track_names, jack.tag.locale_names, metadata_rename, revision = jack.metadata.interpret_db_file(
             jack.ripstuff.all_tracks, todo, cf['_metadata_form_file'], verb=cf['_query_on_start'], warn=cf['_query_on_start'])
-        # If the FreeDB query failed and the FreeDB data cannot be parsed,
-        # don't tag the files.  However, if the FreeDB data can be parsed
+        # If the metadata query failed and the metadata cannot be parsed,
+        # don't tag the files.  However, if the metdata can be parsed
         # even though the query failed assume that the query worked and
         # do the tagging (the user might have edited the file by hand).
         if cf['_cont_failed_query'] and err:
