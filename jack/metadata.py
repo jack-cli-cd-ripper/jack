@@ -57,6 +57,22 @@ metadata_servers = {
     },
 }
 
+metadata_apis = {
+    'cddb': {
+        'form_file_extension': ".freedb",
+    },
+    'musicbrainzngs': {
+        'form_file_extension': ".musicbrainz",
+    },
+}
+
+def get_metadata_api():
+    "get the api used for the selected metadata server"
+    return jack.metadata.metadata_servers[cf['_metadata_server']['val']]['api']
+
+def get_metadata_form_file():
+    "get the filename for caching metadata"
+    return jack.version.prog_name + jack.metadata.metadata_apis[get_metadata_api()]['form_file_extension']
 
 def interpret_db_file(all_tracks, todo, metadata_form_file, verb, dirs=0, warn=None):
     "read metadata file and rename dir(s)"
@@ -196,9 +212,10 @@ def metadata_split(field, s, max=78):
 
 def metadata_template(tracks, names="", revision=0):
     "generate a metadata submission template"
-    if os.path.exists(cf['_metadata_form_file']):
-        os.rename(cf['_metadata_form_file'], cf['_metadata_form_file'] + ".bak")
-    f = open(cf['_metadata_form_file'], "w")
+    form_file = get_metadata_formfile()
+    if os.path.exists(form_file):
+        os.rename(form_file, form_file + ".bak")
+    f = open(form_file, "w")
     f.write("# xmcd CD database file\n#\n# Track frame offsets:\n")
     for i in tracks:
         f.write("#       " + repr(i[START] + MSF_OFFSET) + "\n")
@@ -661,7 +678,7 @@ def metadata_names(cd_id, tracks, todo, name, verb=0, warn=1):
             err = 7
             if verb:
                 warning("could not separate artist and title in all TTITLEs. Try setting freedb_pedantic = 0 or use --various=no. Maybe additional information is contained in the EXTT fields. check %s and use either --extt-is-artist or --extt-is-title." %
-                        cf['_metadata_form_file'])
+                        get_metadata_form_file())
     else:
         for i in range(tracks_on_cd):
             buf = metadata['TTITLE' + repr(i)]
