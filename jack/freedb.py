@@ -695,31 +695,3 @@ def freedb_names(cd_id, tracks, todo, name, verb=0, warn=1):
             t.append(x)
         locale_names.append(t)
     return err, names, locale_names, read_id, revision
-
-
-def choose_cat(cat=["blues", "classical", "country", "data", "folk", "jazz", "misc", "newage", "reggae", "rock", "soundtrack"]):
-    print("choose a category:")
-    cat.sort()
-    for i in range(0, len(cat)):
-        print("%2d" % (i + 1) + ".) " + cat[i])
-
-    x = -1
-    while x < 0 or x > len(cat):
-        if 'freedb_cat' in jack.progress.status_all and jack.progress.status_all['freedb_cat'][-1] in cat:
-            userinput = input(" 0.) none of the above (default='%s'): " %
-                              jack.progress.status_all['freedb_cat'][-1])
-            if not userinput:
-                x = cat.index(jack.progress.status_all['freedb_cat'][-1])
-                continue
-        else:
-            userinput = input(" 0.) none of the above: ")
-        try:
-            x = int(userinput)
-        except ValueError:
-            x = -1    # start the loop again
-
-        if not x:
-            print("ok, aborting.")
-            sys.exit(0)
-
-    return cat[x - 1]
