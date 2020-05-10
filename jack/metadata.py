@@ -54,6 +54,7 @@ metadata_servers = {
         'host': "default",
         'id': prog_name + " " + prog_version,
         'api': "musicbrainzngs",
+    },
 }
 
 
