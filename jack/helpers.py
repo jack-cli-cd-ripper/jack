@@ -246,16 +246,6 @@ else:
         'can_tag': 1,
         'cmd': "fdkaac --bitrate-mode 0 --bitrate 64 -o %o %i",
         'vbr-cmd': "fdkaac --bitrate-mode 5 -o %o %i",
-        'tags': {
-            'm4a': {
-                'track': "--title %s",
-                'artist': "--artist %s",
-                'number': "--track %s",
-                'album': "--album %s",
-                'genre': "--genre %s",
-                'date': "--date %s",
-            },
-        },
         'status_blocksize': 160,
         'bitrate_factor': 1,
         'percent_fkt': r"""
