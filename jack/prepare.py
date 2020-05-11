@@ -556,7 +556,7 @@ def query_on_start(todo):
         # even though the query failed assume that the query worked and
         # do the tagging (the user might have edited the file by hand).
         if cf['_cont_failed_query'] and err:
-            cf['_set_id3tag'] = 0
+            cf['_set_tag'] = 0
         else:
             cf['_query_on_start'] = 1
     return metadata_rename

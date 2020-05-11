@@ -50,17 +50,17 @@ def checkopts(cf, cf2):
 
     if 'query_when_ready' in cf2 and cf2['query_when_ready']['val']:
         cf.rupdate(
-            {'read_metadata_file': {'val': 1}, 'set_id3tag': {'val': 1}}, "check")
+            {'read_metadata_file': {'val': 1}, 'set_tag': {'val': 1}}, "check")
 
     if 'query_on_start' in cf2 and cf2['query_on_start']['val']:
-        cf.rupdate({'set_id3tag': {'val': 1}}, "check")
+        cf.rupdate({'set_tag': {'val': 1}}, "check")
 
     if 'create_dirs' in cf2 and cf2['create_dirs']['val']:
         cf.rupdate({'rename_dir': {'val': 1}}, "check")
 
     if 'metadata_rename' in cf2 and cf2['metadata_rename']['val']:
         cf.rupdate(
-            {'read_metadata_file': {'val': 1}, 'set_id3tag': {'val': 1}}, "check")
+            {'read_metadata_file': {'val': 1}, 'set_tag': {'val': 1}}, "check")
 
     if 'edit_cddb' in cf2:
         warning("--edit-cddb is obsolete, please use --edit-metadata")

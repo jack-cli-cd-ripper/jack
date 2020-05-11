@@ -235,21 +235,21 @@ def metadata_template(tracks, names="", revision=0):
             f.write(metadata_split("DTITLE", names[0][0] + " / " + names[0][1]))
     else:
         f.write("DTITLE=\n")
-    metadata_year, metadata_id3genre = -1, None
-    if cf['_id3_genre']:
-        metadata_id3genre = cf['_id3_genre']
+    metadata_year, metadata_genre = -1, None
+    if cf['_genre']:
+        metadata_genre = cf['_genre']
     elif names and len(names[0]) == 4:
-        metadata_id3genre = names[0][3]
-    if cf['_id3_year'] >= 0:
-        metadata_year = cf['_id3_year']
+        metadata_genre = names[0][3]
+    if cf['_year'] >= 0:
+        metadata_year = cf['_year']
     elif names and len(names[0]) == 4:
         metadata_year = names[0][2]
     if metadata_year >= 0:
         f.write("DYEAR=%d\n" % metadata_year)
     else:
         f.write("DYEAR=\n")
-    if metadata_id3genre:
-        f.write("DGENRE=%s\n" % metadata_id3genre)
+    if metadata_genre:
+        f.write("DGENRE=%s\n" % metadata_genre)
     else:
         f.write("DGENRE=\n")
     for i in tracks:
@@ -490,11 +490,11 @@ def metadata_names(cd_id, tracks, todo, name, verb=0, warn=1):
     if 'DYEAR' in metadata:
         try:
             year = int(metadata['DYEAR'])
-            if cf['_id3_year'] <= 0:
-                cf['_id3_year'] = year
-            elif cf['_id3_year'] != year:
+            if cf['_year'] <= 0:
+                cf['_year'] = year
+            elif cf['_year'] != year:
                 warning("Specified and FreeDB year differ (%d vs %d)" %
-                        (cf['_id3_year'], year))
+                        (cf['_year'], year))
         except ValueError:
             warning("DYEAR has to be an integer but it's the string '%s'" %
                     metadata['DYEAR'])

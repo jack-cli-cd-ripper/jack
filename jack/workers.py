@@ -138,13 +138,13 @@ def start_new_encoder(track, encoder):
                     else:
                         args.append("")
                 elif i == "%g":
-                    if cf['_id3_genre']:
-                        args.append(cf['_id3_genre'])
+                    if cf['_genre']:
+                        args.append(cf['_genre'])
                     else:
                         args.append("")
                 elif i == "%y":
-                    if cf['_id3_year'] > 0:
-                        args.append(repr(cf['_id3_year']))
+                    if cf['_year'] > 0:
+                        args.append(repr(cf['_year']))
                     else:
                         args.append('0')
                 else:

@@ -588,25 +588,25 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
         'long': 'rename',
         'short': 'R',
     },
-    'set_id3tag': {
+    'set_tag': {
         'type': 'toggle',
         'val': 0,
         'save': 0,
-        'doc': "set id3 tag info",
+        'doc': "set tag info",
     },
-    'id3_genre': {
+    'genre': {
         'type': str,
         'val': None,
         'save': 0,
-        'usage': "set ID3 year (0=don't set)",
+        'usage': "overrule genre from metadata",
         'long': 'AUTO',
         'short': 'G',
     },
-    'id3_year': {
+    'year': {
         'type': int,
         'val': -1,
         'save': 0,
-        'usage': "set ID3 year (0=don't set)",
+        'usage': "overrule year from metadata (0=don't set)",
         'long': 'AUTO',
         'short': 'Y',
     },
