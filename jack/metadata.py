@@ -200,7 +200,7 @@ def metadata_id(tracks, warn=0):
     return disc.freedb_id
 
 
-def metadata_split(field, s, max=78):
+def freedb_split(field, s, max=78):
     "split a field into multiple lines of 78 char max."
     x = ""
     s = field + "=" + s
@@ -227,12 +227,12 @@ def metadata_template(tracks, names="", revision=0):
     if names:
         if names[1][0]:  # various
             if names[0][0].upper().find("VARIOUS") >= 0:
-                f.write(metadata_split("DTITLE", "Various / " + names[0][1]))
+                f.write(freedb_split("DTITLE", "Various / " + names[0][1]))
             else:
                 f.write(
-                    metadata_split("DTITLE", "Various / " + names[0][0] + " - " + names[0][1]))
+                    freedb_split("DTITLE", "Various / " + names[0][0] + " - " + names[0][1]))
         else:
-            f.write(metadata_split("DTITLE", names[0][0] + " / " + names[0][1]))
+            f.write(freedb_split("DTITLE", names[0][0] + " / " + names[0][1]))
     else:
         f.write("DTITLE=\n")
     metadata_year, metadata_genre = -1, None
@@ -256,7 +256,7 @@ def metadata_template(tracks, names="", revision=0):
         if names:
             if names[i[NUM]][0]:  # various
                 f.write(
-                    metadata_split("TTITLE" + repr(i[NUM] - 1),
+                    freedb_split("TTITLE" + repr(i[NUM] - 1),
                                  names[i[NUM]][0] +
                                  " - " +
                                  names[i[NUM]][1]
@@ -264,7 +264,7 @@ def metadata_template(tracks, names="", revision=0):
                 )
             else:
                 f.write(
-                    metadata_split("TTITLE" + repr(i[NUM] - 1), names[i[NUM]][1]))
+                    freedb_split("TTITLE" + repr(i[NUM] - 1), names[i[NUM]][1]))
         else:
             f.write("TTITLE" + repr(i[NUM] - 1) + "=\n")
     f.write("EXTD=\n")
