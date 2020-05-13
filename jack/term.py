@@ -164,7 +164,7 @@ to convert /usr/include/asm/ioctls.h to IOCTLS.py and install it.""")
         data = " " * (winsize.itemsize * 4)
         data = fcntl.ioctl(sys.stdout.fileno(), TIOCGWINSZ, data)
         # unpack the data, I hope this is portable:
-        winsize.fromstring(data)
+        winsize.frombytes(data)
         new_y, new_x, xpixel, ypixel = winsize.tolist()
     except:
         can_getsize = 0

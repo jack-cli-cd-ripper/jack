@@ -143,7 +143,7 @@ def start_new_encoder(track, encoder):
                     else:
                         args.append("")
                 elif i == "%y":
-                    if cf['_year'] > 0:
+                    if cf['_year']:
                         args.append(repr(cf['_year']))
                     else:
                         args.append('0')

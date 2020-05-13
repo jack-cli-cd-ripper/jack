@@ -44,9 +44,7 @@ a_title = None
 discnum = None
 
 
-def _set_id3_tag(
-        mp3file, version, encoding, a_title, t_name, track_num, t_artist,
-        genre, year, comment, play_count):
+def _set_id3_tag(mp3file, version, encoding, a_title, t_name, track_num, t_artist, genre, year, comment, play_count):
     tag = eyed3.id3.Tag()
     tag.parse(mp3file)
     tag.album = a_title
@@ -54,9 +52,7 @@ def _set_id3_tag(
     tag.track_num = track_num
     tag.artist = t_artist
     tag.genre = genre
-
-    if year != -1:
-        tag.release_date = year
+    tag.release_date = year
     if comment:
         tag.comments.set(comment)
     tag.play_count = play_count
@@ -99,7 +95,7 @@ def tag(metadata_rename):
     if cf['_set_tag'] or metadata_rename:
         jack.m3u.init()
         # use metadata year and genre data if available
-        if cf['_year'] == -1 and len(track_names[0]) >= 3:
+        if cf['_year'] == None and len(track_names[0]) >= 3:
             cf['_year'] = track_names[0][2]
         if cf['_genre'] == None and len(track_names[0]) == 4:
             cf['_genre'] = track_names[0][3]
@@ -125,29 +121,32 @@ def tag(metadata_rename):
                     )
                 elif jack.helpers.helpers[cf['_encoder']]['target'] == "flac":
                     f = flac.FLAC(mp3name)
-                    if f.vc is None:
+                    if f.tags is None:
                         f.add_vorbiscomment()
-                    f.vc['ALBUM'] = a_title
-                    f.vc['TRACKNUMBER'] = str(i[NUM])
-                    f.vc['TRACKTOTAL'] = str(len(jack.ripstuff.all_tracks_orig))
-                    f.vc['TITLE'] = t_name
-                    f.vc['ARTIST'] = t_artist
+                    f.tags['ALBUM'] = a_title
+                    f.tags['TRACKNUMBER'] = str(i[NUM])
+                    f.tags['TRACKTOTAL'] = str(len(jack.ripstuff.all_tracks_orig))
+                    f.tags['TITLE'] = t_name
+                    f.tags['ARTIST'] = t_artist
                     if cf['_genre']:
-                        f.vc['GENRE'] = cf['_genre']
-                    if cf['_year'] != -1:
-                        f.vc['DATE'] = str(cf['_year'])
+                        f.tags['GENRE'] = cf['_genre']
+                    elif 'GENRE' in f.tags:
+                        del f.tags['GENRE']
+                    if cf['_year']:
+                        f.tags['DATE'] = cf['_year']
+                    elif 'DATE' in f.tags:
+                        del f.tags['DATE']
                     if cf['_various']:
-                        f.vc['COMPILATION'] = "1"
-                    else:
-                        if 'COMPILATION' in f.vc:
-                            del f.vc['COMPILATION']
+                        f.tags['COMPILATION'] = "1"
+                    elif 'COMPILATION' in f.tags:
+                        del f.tags['COMPILATION']
                     if discnum:
-                        f.vc['DISCNUMBER'] = discnum
+                        f.tags['DISCNUMBER'] = discnum
                     else:
-                        if 'DISCNUMBER' in f.vc:
-                            del f.vc['DISCNUMBER']
-                        if 'DISCTOTAL' in f.vc:
-                            del f.vc['DISCTOTAL']
+                        if 'DISCNUMBER' in f.tags:
+                            del f.tags['DISCNUMBER']
+                        if 'DISCTOTAL' in f.tags:
+                            del f.tags['DISCTOTAL']
                     f.save()
                 elif jack.helpers.helpers[cf['_encoder']]['target'] == "m4a":
                     m4a = mp4.MP4(mp3name)
@@ -156,8 +155,12 @@ def tag(metadata_rename):
                     m4a.tags['\xa9ART'] = [t_artist]
                     if cf['_genre']:
                         m4a.tags['\xa9gen'] = [cf['_genre']]
-                    if cf['_year'] != -1:
-                        m4a.tags['\xa9day'] = [str(cf['_year'])]
+                    elif '\xa9gen' in m4a.tags:
+                        del m4a.tags['\xa9gen']
+                    if cf['_year']:
+                        m4a.tags['\xa9day'] = [cf['_year']]
+                    elif '\xa9day' in m4a.tags:
+                        del m4a.tags['\xa9day']
                     m4a.tags['cpil'] = bool(cf['_various'])
                     m4a.tags['trkn'] = [(i[NUM], len(jack.ripstuff.all_tracks_orig))]
                     if discnum:
@@ -174,8 +177,12 @@ def tag(metadata_rename):
                     f.tags['ARTIST'] = t_artist
                     if cf['_genre']:
                         f.tags['GENRE'] = cf['_genre']
-                    if cf['_year'] != -1:
-                        f.tags['DATE'] = str(cf['_year'])
+                    elif 'GENRE' in f.tags:
+                        del f.tags['GENRE']
+                    if cf['_year']:
+                        f.tags['DATE'] = cf['_year']
+                    elif 'DATE' in f.tags:
+                        del f.tags['DATE']
                     if cf['_various']:
                         f.tags['COMPILATION'] = "1"
                     else:
@@ -230,10 +237,8 @@ def tag(metadata_rename):
             print("Done with \"" + a_artist + " - " + a_title + "\".")
         else:
             print("All done.", end=' ')
-        if cf['_set_tag'] and cf['_year'] != -1:
-            print("Year: %4i" % cf['_year'], end=' ')
-            if cf['_genre']:
-                print()
+        if cf['_set_tag'] and cf['_year']:
+            print("Year: %s" % cf['_year'])
         if cf['_set_tag'] and cf['_genre']:
             print("Genre: %s" % cf['_genre'])
         if cf['_vbr'] and not cf['_only_dae']:

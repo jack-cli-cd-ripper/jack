@@ -52,12 +52,14 @@ def init():
     global_total = jack.functions.tracksize(
         jack.ripstuff.all_tracks_todo_sorted)[jack.functions.BLOCKS]
 
+    api = jack.metadata.get_metadata_api(cf['_metadata_server'])
+    cd_id = jack.metadata.metadata_id(jack.ripstuff.all_tracks)
     options_string = "Options:" \
         + (" bitrate=%i" % cf['_bitrate']) * (not cf['_vbr']) + " vbr" * cf['_vbr'] \
         + " reorder" * cf['_reorder'] \
         + " read-ahead=" + repr(cf['_read_ahead']) \
         + " keep-wavs" * cf['_keep_wavs'] \
-        + " id=" + jack.metadata.metadata_id(jack.ripstuff.all_tracks) \
+        + " id=" + cd_id[api] \
         + (" len=%02i:%02i" % (global_total // jack.globals.CDDA_BLOCKS_PER_SECOND // 60, global_total // jack.globals.CDDA_BLOCKS_PER_SECOND % 60)) \
         + " | press Q to quit"
     jack.term.tmod.extra_lines = 2

@@ -22,9 +22,6 @@ import string
 import sys
 import os
 import locale
-#import codecs
-#import tempfile
-#import shutil
 import re
 import json
 import datetime
@@ -230,8 +227,6 @@ def musicbrainz_template(tracks, names="", revision=0):
 
 def freedb_template(tracks, names="", revision=0):
     "generate a freedb submission template"
-    if cf['_debug']:
-        print("freedb_template", tracks, "", 0)
     form_file = get_metadata_form_file(get_metadata_api(cf['_metadata_server']))
     if os.path.exists(form_file):
         os.rename(form_file, form_file + ".bak")
@@ -260,12 +255,12 @@ def freedb_template(tracks, names="", revision=0):
         freedb_genre = cf['_genre']
     elif names and len(names[0]) == 4:
         freedb_genre = names[0][3]
-    if cf['_year'] >= 0:
+    if cf['_year']:
         freedb_year = cf['_year']
     elif names and len(names[0]) == 4:
         freedb_year = names[0][2]
-    if freedb_year >= 0:
-        f.write("DYEAR=%d\n" % freedb_year)
+    if freedb_year:
+        f.write("DYEAR=%s\n" % freedb_year)
     else:
         f.write("DYEAR=\n")
     if freedb_genre:
@@ -314,12 +309,6 @@ def musicbrainz_query(cd_id, tracks, file):
         err = 1
         return err
 
-    if result.get("disc"):
-        print("artist:\t%s" % result["disc"]["release-list"][0]["artist-credit-phrase"])
-        print("title:\t%s" % result["disc"]["release-list"][0]["title"])
-    elif result.get("cdstub"):
-        print("cdstub")
-
     query_data = {
         'query_id': mb_id,
         'query_date': datetime.datetime.now().isoformat(),
@@ -329,16 +318,15 @@ def musicbrainz_query(cd_id, tracks, file):
 
     if os.path.exists(file):
         os.rename(file, file + ".bak")
+    # dump the result in json format
     of = open(file, "w")
     of.write(json.dumps(query_data, indent=4) + "\n")
     of.close()
 
-    err = 1
+    err = 0
     return err
 
 def freedb_query(cd_id, tracks, file):
-    if cf['_debug']:
-        print("freedb_query", cd_id, tracks, file)
     if cf['_freedb_dir']:
         if local_freedb(cd_id['cddb'], cf['_freedb_dir'], file) == 0:  # use local database (if any)
             return 0
@@ -463,32 +451,46 @@ def metadata_names(cd_id, tracks, todo, name, verb=0, warn=1):
 
 def musicbrainz_names(cd_id, tracks, todo, name, verb=0, warn=1):
     "returns err, [(artist, albumname), (track_01-artist, track_01-name), ...], cd_id, revision"
-    if cf['_debug']:
-        print("musicbrainz_names", cd_id, tracks, todo, name, 0, 1)
+
+    # safe fallbacks
+    album = "unknown album"
+    date = "1900-01-01"
+    genre = None    # MusicBrainz does not do genres
+    revision = 0    # FreeDB specific
+
     err = 0
-    a_artist = "a_artist"
-    album = "album"
-    year = 1962
-    genre = "genre"
-    read_id = cd_id
-    revision = 0
+    chosen_release = 0
+    chosen_disc = 0
+
+    # load the musicbrainz query data that was previously dumped as json data
+    f = open(name, "r")
+    query_data = json.loads(f.read())
+    f.close()
 
     names = []
-    names.append([a_artist, album, year, genre])
-    for track in tracks:
-        names.append(["t_artist %02d" % track[NUM], "t_title %02d" % track[NUM]]) 
-    locale_names = names
 
-    if cf['_debug']:
-        print("names", names)
-        print("locale_names", locale_names)
+    a_artist = query_data['result']['disc']['release-list'][chosen_release]['artist-credit-phrase']
+    date = query_data['result']['disc']['release-list'][chosen_release]['date']
+    read_id = query_data['result']['disc']['id']
+
+    for m in query_data['result']['disc']['release-list'][chosen_release]['medium-list']:
+        if  len(m['disc-list']) > 0 and 'id' in m['disc-list'][chosen_disc] and m['disc-list'][chosen_disc]['id'] == read_id:
+            album = m['title']
+            d_position = m['position']
+            names.append([a_artist, album, date, genre])
+            for t in m['track-list']:
+                t_position = t['position']
+                t_number = t['number']
+                t_title = t['recording']['title']
+                names.append([None, t_title])
+            break
+
+    locale_names = names
 
     return err, names, locale_names, read_id, revision
 
 def freedb_names(cd_id, tracks, todo, name, verb=0, warn=1):
     "returns err, [(artist, albumname), (track_01-artist, track_01-name), ...], cd_id, revision"
-    if cf['_debug']:
-        print("freedb_names", cd_id, tracks, todo, name, 0, 1)
     err = 0
     tracks_on_cd = tracks[-1][NUM]
     freedb = {}
@@ -586,33 +588,19 @@ def freedb_names(cd_id, tracks, todo, name, verb=0, warn=1):
             dtitle = "(unknown artist)/" + dtitle
 
     names = [dtitle.split("/", 1)]
-    year = -1
-    if 'DYEAR' in freedb:
-        try:
-            year = int(freedb['DYEAR'])
-            if cf['_year'] <= 0:
-                cf['_year'] = year
-            elif cf['_year'] != year:
-                warning("Specified and FreeDB year differ (%d vs %d)" %
-                        (cf['_year'], year))
-        except ValueError:
-            warning("DYEAR has to be an integer but it's the string '%s'" %
-                    freedb['DYEAR'])
-        else:
-            if year == 0:
-                warning("DYEAR should not be 0 but empty")
+    year = None
     genre = None
+    if 'DYEAR' in freedb:
+        year = freedb['DYEAR']
+        if cf['_year'] == None:
+            cf['_year'] = year
+        elif cf['_year'] != year:
+            warning("Specified and FreeDB year differ (%d vs %d)" % (cf['_year'], year))
     if 'DGENRE' in freedb:
         genre = freedb['DGENRE']
-    if 'EXTD' in freedb and 'DYEAR' not in freedb:
-        extra_tag_pos = freedb['EXTD'].find("YEAR:")
-        if extra_tag_pos >= 0:
-            arg = freedb['EXTD'][extra_tag_pos + 5:].lstrip().split()[0]
-            if arg.isdigit():
-                year = int(arg)
     if genre:
         names[0].extend([year, genre])
-    elif year != -1:
+    elif year:
         names[0].extend([year])
     if names[0][0] == "(unknown artist)":
         if verb:
@@ -809,7 +797,4 @@ def freedb_names(cd_id, tracks, todo, name, verb=0, warn=1):
             x = i[j]
             t.append(x)
         locale_names.append(t)
-    if cf['_debug']:
-        print("names", names)
-        print("locale_names", locale_names)
     return err, names, locale_names, read_id, revision

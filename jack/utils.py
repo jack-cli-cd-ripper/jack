@@ -193,7 +193,7 @@ def unusable_charmap(x):
 def mkdirname(names, template):
     "generate mkdir-able directory name(s)"
     year = genre = None
-    if cf['_year'] > 0:
+    if cf['_year']:
         year = repr(cf['_year'])
     if cf['_genre']:
         genre = cf['_genre']

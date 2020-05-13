@@ -37,6 +37,7 @@ import jack.metadata
 from jack.globals import *
 from jack.init import oggvorbis
 from jack.init import flac
+from jack.init import mp4
 
 progress_changed = None
 
@@ -227,6 +228,17 @@ def guesstoc(names):
                     [num, "enc", repr(bitrate), "[ s i m u l a t e d %3ikbit]" % bitrate])
             else:
                 error("The FLAC Python bindings are not installed.")
+        elif i_ext == ".M4A":
+            if mp4:
+                m4a = mp4.MP4(i)
+                length = mp4.info.length
+                bitrate = mp4.info.bitrate
+                blocks = int(length * CDDA_BLOCKS_PER_SECOND + 0.5)
+                erg.append([num, blocks, start, 0, 0, 2, 1, bitrate, i_name])
+                progr.append(
+                    [num, "dae", "  *   [          simulated           ]"])
+                progr.append(
+                    [num, "enc", repr(bitrate), "[ s i m u l a t e d %3ikbit]" % bitrate])
         else:
             error("don't know how to handle %s files." % i_ext)
         if cf['_name'] % num != i_name:

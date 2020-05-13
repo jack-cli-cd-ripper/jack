@@ -39,6 +39,7 @@ import jack.tag
 from jack.globals import *
 from jack.init import oggvorbis
 from jack.init import flac
+from jack.init import mp4
 
 global tracknum
 datatracks = []
@@ -399,6 +400,9 @@ def update_progress(status, todo):
                                 size * 8 * f.info.sample_rate // f.info.total_samples // 1000)
                         else:
                             temp_rate = 0
+                    elif ext.upper() == ".M4A" and mp4:
+                        m = mp4.MP4(filename + ext)
+                        temp_rate = mp4.info.bitrate
                     else:
                         error("don't know how to handle %s files." % ext)
                     status[num]['enc'] = repr(temp_rate) + cf[
