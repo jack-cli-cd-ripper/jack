@@ -385,10 +385,10 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
         'val': "play /usr/local/audio/error.wav",
         'doc': "example: this is played when an error occured",
     },
-    'metadata_dir': {
+    'freedb_dir': {
         'type': str,
         'val': "",
-        'doc': "change this to something like \"/var/spool/metadata\" and all queries will be done in this (local) directory; failed local queries will be done via network",
+        'doc': "change this to something like \"/var/spool/freedb\" and all queries will be done in this (local) directory; failed local queries will be done via network",
     },
     'freedb_pedantic': {
         'type': 'toggle',
@@ -652,11 +652,6 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
         'type': str,
         'val': jack.version.prog_name + ".toc",
         'doc': "the default name of the toc file",
-    },
-    'metadata_form_file': {
-        'type': str,
-        'val': jack.version.prog_name + ".freedb",
-        'doc': "name of submission template",
     },
     'out_file': {
         'type': str,

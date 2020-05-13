@@ -402,7 +402,7 @@ def cdrdao_puttoc(tocfile, tracks, cd_id):     # put toc to cdrdao toc-file
     "writes toc-file from tracks"
     f = open(tocfile, "w")
     f.write("CD_DA\n\n")
-    f.write("// DB-ID=" + cd_id + "\n\n")
+    f.write("// DB-ID=" + cd_id['cddb'] + "\n\n")
     for i in tracks:
         f.write("// Track " + repr(i[NUM]) + "\n")      # comments are cool
         if i[CH] in (2, 4):

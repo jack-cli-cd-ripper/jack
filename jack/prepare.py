@@ -49,6 +49,7 @@ def find_workdir():
     tries = 0
     toc_just_read = 0
     debug("multi_mode:" + repr(cf['_multi_mode']))
+    metadata_form_file = jack.metadata.get_metadata_form_file(jack.metadata.get_metadata_api(cf['_metadata_server']))
     while (not os.path.exists(cf['_toc_file'])) or cf['_multi_mode']:
         tries = tries + 1
         if tries > 2:
@@ -127,7 +128,7 @@ def find_workdir():
                     jack.ripstuff.all_tracks, dummy, track1_offset = jack.functions.cdrdao_gettoc(
                         os.path.join(i, cf['_toc_file']))
                     err, jack.tag.track_names, jack.tag.locale_names, cd_id, revision = metadata_names(jack.metadata.metadata_id(
-                        jack.ripstuff.all_tracks), jack.ripstuff.all_tracks, jack.ripstuff.all_tracks, os.path.join(i, cf['_metadata_form_file']), verb=0, warn=0)
+                        jack.ripstuff.all_tracks), jack.ripstuff.all_tracks, jack.ripstuff.all_tracks, os.path.join(i, metadata_form_file), verb=0, warn=0)
                     if err or cf['_force']:  # this means metadata is not there yet
                         info("matching dir found: %d" % i)
                         pid = os.fork()
@@ -178,7 +179,7 @@ def find_workdir():
                     cf['_toc_file'], jack.ripstuff.all_tracks, jack.metadata.metadata_id(jack.ripstuff.all_tracks))
                 jack.metadata.metadata_template(
                     jack.ripstuff.all_tracks)  # generate metadata form if tocfile is created
-            if not os.path.exists(cf['_metadata_form_file']):
+            if not os.path.exists(metadata_form_file):
                 jack.metadata.metadata_template(jack.ripstuff.all_tracks)
         else:
             break
@@ -500,7 +501,8 @@ def read_progress(status, todo):
 
 def query_on_start(todo):
     info("querying...")
-    if jack.metadata.metadata_query(jack.metadata.metadata_id(jack.ripstuff.all_tracks), jack.ripstuff.all_tracks, cf['_metadata_form_file']):
+    metadata_form_file = jack.metadata.get_metadata_form_file(jack.metadata.get_metadata_api(cf['_metadata_server']))
+    if jack.metadata.metadata_query(jack.metadata.metadata_id(jack.ripstuff.all_tracks), jack.ripstuff.all_tracks, metadata_form_file):
         if cf['_cont_failed_query']:
 
             x = input("\nmetadata search failed, continue? (y/N) ") + "x"
@@ -517,14 +519,14 @@ def query_on_start(todo):
             jack.display.exit()
 
     if cf['_edit_metadata']:
-        file = cf['_metadata_form_file']
+        file = metadata_form_file
         bakfile = file + ".bak"
         if os.path.exists(file):
             try:
                 shutil.copyfile(file, bakfile)
             except IOError:
                 pass
-        jack.utils.ex_edit(cf['_metadata_form_file'])
+        jack.utils.ex_edit(metadata_form_file)
         if os.path.exists(bakfile):
             try:
                 f = open(file, "r")
@@ -544,13 +546,13 @@ def query_on_start(todo):
 
     if cf['_query_on_start']:
         err, jack.tag.track_names, jack.tag.locale_names, metadata_rename, revision = jack.metadata.interpret_db_file(
-            jack.ripstuff.all_tracks, todo, cf['_metadata_form_file'], verb=cf['_query_on_start'], dirs=1)
+            jack.ripstuff.all_tracks, todo, metadata_form_file, verb=cf['_query_on_start'], dirs=1)
         if err:
             error(
                 "query on start failed to give a good metadata file, aborting.")
     else:
         err, jack.tag.track_names, jack.tag.locale_names, metadata_rename, revision = jack.metadata.interpret_db_file(
-            jack.ripstuff.all_tracks, todo, cf['_metadata_form_file'], verb=cf['_query_on_start'], warn=cf['_query_on_start'])
+            jack.ripstuff.all_tracks, todo, metadata_form_file, verb=cf['_query_on_start'], warn=cf['_query_on_start'])
         # If the metadata query failed and the metadata cannot be parsed,
         # don't tag the files.  However, if the metdata can be parsed
         # even though the query failed assume that the query worked and
