@@ -31,7 +31,8 @@ import jack.misc
 import jack.m3u
 
 from jack.init import oggvorbis
-from jack.init import eyed3
+from jack.init import mp3
+from jack.init import id3
 from jack.init import flac
 from jack.init import mp4
 from jack.globals import *
@@ -42,22 +43,6 @@ locale_names = None
 a_artist = None
 a_title = None
 discnum = None
-
-
-def _set_id3_tag(mp3file, version, encoding, a_title, t_name, track_num, t_artist, genre, year, comment, play_count):
-    tag = eyed3.id3.Tag()
-    tag.parse(mp3file)
-    tag.album = a_title
-    tag.title = t_name
-    tag.track_num = track_num
-    tag.artist = t_artist
-    tag.genre = genre
-    tag.release_date = year
-    if comment:
-        tag.comments.set(comment)
-    tag.play_count = play_count
-
-    tag.save(mp3file, version, encoding=encoding)
 
 
 def tag(metadata_rename):
@@ -76,7 +61,6 @@ def tag(metadata_rename):
     if cf['_set_tag'] and not jack.targets.targets[jack.helpers.helpers[cf['_encoder']]['target']]['can_posttag']:
         cf['_set_tag'] = 0
 
-    # maybe export?
     if jack.metadata.names_available:
         a_artist = track_names[0][0]  # unicode
         a_title = track_names[0][1]  # unicode
@@ -113,12 +97,18 @@ def tag(metadata_rename):
             t_name = track_names[i[NUM]][1]
             if not cf['_only_dae'] and cf['_set_tag']:
                 if jack.helpers.helpers[cf['_encoder']]['target'] == "mp3":
-                    _set_id3_tag(
-                        mp3name, eyed3.id3.ID3_V2_4, 'utf-8', a_title,
-                        t_name, (i[NUM], len(jack.ripstuff.all_tracks_orig)),
-                        t_artist, cf['_genre'], cf['_year'], None,
-                        int(i[LEN] * 1000.0 / 75 + 0.5)
-                    )
+                    track_info = "%s/%s" % (i[NUM], len(jack.ripstuff.all_tracks_orig))
+                    audio = mp3.MP3(mp3name)
+                    if audio.tags is None:
+                        audio.add_tags()
+                    tags = audio.tags
+                    tags.add(id3.TPE1(encoding=3, text=t_artist))
+                    tags.add(id3.TALB(encoding=3, text=a_title))
+                    tags.add(id3.TIT2(encoding=3, text=t_name))
+                    tags.add(id3.TRCK(encoding=3, text=track_info)),
+                    tags.add(id3.TCON(encoding=3, text=cf['_genre']))
+                    tags.add(id3.TDRL(encoding=3, text=cf['_year']))
+                    audio.save()
                 elif jack.helpers.helpers[cf['_encoder']]['target'] == "flac":
                     f = flac.FLAC(mp3name)
                     if f.tags is None:

@@ -39,13 +39,8 @@ except:
     sys.exit(1)
 
 try:
-    import eyed3.id3
-except:
-    print("Please install the eyeD3 module available from https://eyed3.readthedocs.io/")
-    sys.exit(1)
-
-try:
     import mutagen.mp3 as mp3
+    import mutagen.id3 as id3
     import mutagen.flac as flac
     import mutagen.mp4 as mp4
     import mutagen.oggvorbis as oggvorbis
