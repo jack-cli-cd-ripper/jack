@@ -83,6 +83,8 @@ def tag(metadata_rename):
             cf['_year'] = track_names[0][2]
         if cf['_genre'] == None and len(track_names[0]) == 4:
             cf['_genre'] = track_names[0][3]
+        if cf['_genre']:
+            cf['_genre'] = fix_genre_case(cf['_genre'])
 
         print("Tagging", end=' ')
         for i in jack.ripstuff.all_tracks_todo_sorted:
@@ -241,3 +243,12 @@ def tag(metadata_rename):
     if jack.m3u.wavm3u:
         os.environ["JACK_JUST_RIPPED"] = "\n".join(jack.m3u.wavm3u)
     jack.m3u.write()
+
+def fix_genre_case(genre):
+
+    from mutagen._constants import GENRES
+
+    for id3genre in GENRES:
+        if genre.upper() == id3genre.upper():
+            return id3genre
+    return genre
