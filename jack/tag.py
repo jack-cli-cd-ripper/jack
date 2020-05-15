@@ -98,7 +98,8 @@ def tag(metadata_rename):
                 t_artist = a_artist
             t_name = track_names[i[NUM]][1]
             if not cf['_only_dae'] and cf['_set_tag']:
-                if jack.helpers.helpers[cf['_encoder']]['target'] == "mp3":
+                target= jack.helpers.helpers[cf['_encoder']]['target']
+                if target == "mp3":
                     track_info = "%s/%s" % (i[NUM], len(jack.ripstuff.all_tracks_orig))
                     audio = mp3.MP3(mp3name)
                     if audio.tags is None:
@@ -111,8 +112,11 @@ def tag(metadata_rename):
                     tags.add(id3.TCON(encoding=3, text=cf['_genre']))
                     tags.add(id3.TDRL(encoding=3, text=cf['_year']))
                     audio.save()
-                elif jack.helpers.helpers[cf['_encoder']]['target'] == "flac":
-                    f = flac.FLAC(mp3name)
+                elif target == "flac" or target == "ogg":
+                    if target == "flac":
+                        f = flac.FLAC(mp3name)
+                    elif target == "ogg":
+                        f = oggvorbis.OggVorbis(mp3name)
                     if f.tags is None:
                         f.add_vorbiscomment()
                     f.tags['ALBUM'] = a_title
@@ -140,7 +144,7 @@ def tag(metadata_rename):
                         if 'DISCTOTAL' in f.tags:
                             del f.tags['DISCTOTAL']
                     f.save()
-                elif jack.helpers.helpers[cf['_encoder']]['target'] == "m4a":
+                elif target == "m4a":
                     m4a = mp4.MP4(mp3name)
                     m4a.tags['\xa9nam'] = [t_name]
                     m4a.tags['\xa9alb'] = [a_title]
@@ -158,36 +162,6 @@ def tag(metadata_rename):
                     if discnum:
                         m4a.tags['disk'] = [(discnum, 0)]
                     m4a.save()
-                elif jack.helpers.helpers[cf['_encoder']]['target'] == "ogg":
-                    f = oggvorbis.OggVorbis(mp3name)
-                    if f.tags is None:
-                        f.add_vorbiscomment()
-                    f.tags['ALBUM'] = a_title
-                    f.tags['TRACKNUMBER'] = str(i[NUM])
-                    f.tags['TRACKTOTAL'] = str(len(jack.ripstuff.all_tracks_orig))
-                    f.tags['TITLE'] = t_name
-                    f.tags['ARTIST'] = t_artist
-                    if cf['_genre']:
-                        f.tags['GENRE'] = cf['_genre']
-                    elif 'GENRE' in f.tags:
-                        del f.tags['GENRE']
-                    if cf['_year']:
-                        f.tags['DATE'] = cf['_year']
-                    elif 'DATE' in f.tags:
-                        del f.tags['DATE']
-                    if cf['_various']:
-                        f.tags['COMPILATION'] = "1"
-                    else:
-                        if 'COMPILATION' in f.tags:
-                            del f.tags['COMPILATION']
-                    if discnum:
-                        f.tags['DISCNUMBER'] = discnum
-                    else:
-                        if 'DISCNUMBER' in f.tags:
-                            del f.tags['DISCNUMBER']
-                        if 'DISCTOTAL' in f.tags:
-                            del f.tags['DISCTOTAL']
-                    f.save()
             if metadata_rename:
                 newname = jack.metadata.filenames[i[NUM]]
                 if i[NAME] != newname:
