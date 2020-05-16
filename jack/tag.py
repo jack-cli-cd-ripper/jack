@@ -62,9 +62,10 @@ def tag(metadata_rename):
         cf['_set_tag'] = 0
 
     if jack.metadata.names_available:
-        a_artist = track_names[0][0]  # unicode
-        a_title = track_names[0][1]  # unicode
+        a_artist = track_names[0][0]
+        a_title = track_names[0][1]
 
+        # FIXME this hack may have to become FreeDB specific
         r1 = re.compile(r'( \(disc[ ]*| \(side[ ]*| \(cd[^a-z0-9]*)([0-9]*|One|Two|A|B)([^a-z0-9])', re.IGNORECASE)
         mo = r1.search(a_title)
         discnum = None
@@ -105,12 +106,15 @@ def tag(metadata_rename):
                     if audio.tags is None:
                         audio.add_tags()
                     tags = audio.tags
+                    tags.add(id3.TPE2(encoding=3, text=a_artist))
                     tags.add(id3.TPE1(encoding=3, text=t_artist))
                     tags.add(id3.TALB(encoding=3, text=a_title))
                     tags.add(id3.TIT2(encoding=3, text=t_name))
                     tags.add(id3.TRCK(encoding=3, text=track_info)),
-                    tags.add(id3.TCON(encoding=3, text=cf['_genre']))
-                    tags.add(id3.TDRL(encoding=3, text=cf['_year']))
+                    if cf['_genre']:
+                        tags.add(id3.TCON(encoding=3, text=cf['_genre']))
+                    if cf['_year']:
+                        tags.add(id3.TDRL(encoding=3, text=cf['_year']))
                     audio.save()
                 elif target == "flac" or target == "ogg":
                     if target == "flac":
@@ -123,6 +127,7 @@ def tag(metadata_rename):
                     f.tags['TRACKNUMBER'] = str(i[NUM])
                     f.tags['TRACKTOTAL'] = str(len(jack.ripstuff.all_tracks_orig))
                     f.tags['TITLE'] = t_name
+                    f.tags['ALBUMARTIST'] = a_artist
                     f.tags['ARTIST'] = t_artist
                     if cf['_genre']:
                         f.tags['GENRE'] = cf['_genre']
@@ -148,6 +153,7 @@ def tag(metadata_rename):
                     m4a = mp4.MP4(mp3name)
                     m4a.tags['\xa9nam'] = [t_name]
                     m4a.tags['\xa9alb'] = [a_title]
+                    m4a.tags['aART'] = [a_artist]
                     m4a.tags['\xa9ART'] = [t_artist]
                     if cf['_genre']:
                         m4a.tags['\xa9gen'] = [cf['_genre']]

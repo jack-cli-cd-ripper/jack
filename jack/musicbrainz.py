@@ -45,7 +45,7 @@ def musicbrainz_query(cd_id, tracks, file):
     mb_id = cd_id['musicbrainzngs']
 
     try:
-        result = musicbrainzngs.get_releases_by_discid(mb_id, includes=["artists", "labels", "recordings"])
+        result = musicbrainzngs.get_releases_by_discid(mb_id, includes=["artists", "artist-credits", "labels", "recordings"])
     except musicbrainzngs.ResponseError:
         print("no match for", cd_id['musicbrainzngs'], "or bad response")
         err = 1
@@ -90,19 +90,22 @@ def musicbrainz_names(cd_id, tracks, todo, name, verb=0, warn=1):
     names = []
 
     a_artist = query_data['result']['disc']['release-list'][chosen_release]['artist-credit-phrase']
+    album = query_data['result']['disc']['release-list'][chosen_release]['title']
     date = query_data['result']['disc']['release-list'][chosen_release]['date']
     read_id = query_data['result']['disc']['id']
 
     for m in query_data['result']['disc']['release-list'][chosen_release]['medium-list']:
         if  len(m['disc-list']) > 0 and 'id' in m['disc-list'][chosen_disc] and m['disc-list'][chosen_disc]['id'] == read_id:
-            album = m['title']
+            if 'title' in m:
+                album = m['title']
             d_position = m['position']
             names.append([a_artist, album, date, genre])
             for t in m['track-list']:
+                t_artist = t['recording']['artist-credit-phrase']
+                t_title = t['recording']['title']
                 t_position = t['position']
                 t_number = t['number']
-                t_title = t['recording']['title']
-                names.append([None, t_title])
+                names.append([t_artist, t_title])
             break
 
     locale_names = names
