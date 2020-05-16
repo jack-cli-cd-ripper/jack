@@ -1,7 +1,5 @@
 # Jack
 
-[![Build Status](https://travis-ci.org/jack-cli-cd-ripper/jack.svg?branch=master)](https://travis-ci.org/jack-cli-cd-ripper/jack)
-
 Jack is command-line CD ripper. It extracts audio from a CD, encodes it using
 3rd party software and augment it with metadata from
 [CDDB](https://en.wikipedia.org/wiki/CDDB).

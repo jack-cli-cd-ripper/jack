@@ -1,7 +1,0 @@
-language: "python"
-python:
-   - "2.7"
-install:
-   - pip install pep8
-script: pep8 --ignore=E501,W604,W601,E721,E402,E711,E713,E741 --exclude ./cursesmodule/ .
-
