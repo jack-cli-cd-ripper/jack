@@ -20,6 +20,7 @@ import sys
 import os
 import json
 import datetime
+import re
 
 import jack.functions
 import jack.progress
@@ -40,6 +41,17 @@ def musicbrainz_template(tracks, names="", revision=0):
 
 def musicbrainz_query(cd_id, tracks, file):
 
+    # MusicBrainz does not support genres
+    # before we query MusicBrainz, try to retrieve the genre from jack.freedb or from the command line
+    genre = cf['_genre']
+    if genre == None:
+        freedb_form_file = jack.metadata.get_metadata_form_file('cddb')
+        if os.path.exists(freedb_form_file):
+            freedb_data = open(freedb_form_file).read()
+            mo = re.search(r"DGENRE=(.*)", freedb_data)
+            if mo:
+                genre = mo.group(1)
+
     musicbrainzngs.set_useragent(jack.version.prog_name, jack.version.prog_version, jack.version.prog_devemail)
 
     mb_id = cd_id['musicbrainzngs']
@@ -55,7 +67,8 @@ def musicbrainz_query(cd_id, tracks, file):
         'query_id': mb_id,
         'query_date': datetime.datetime.now().isoformat(),
         'prog_version': jack.version.prog_version,
-        'result': result
+        'genre': genre,
+        'result': result,
     }
 
     if os.path.exists(file):
@@ -72,10 +85,6 @@ def musicbrainz_query(cd_id, tracks, file):
 def musicbrainz_names(cd_id, tracks, todo, name, verb=0, warn=1):
     "returns err, [(artist, albumname), (track_01-artist, track_01-name), ...], cd_id, revision"
 
-    # safe fallbacks
-    album = "unknown album"
-    date = "1900-01-01"
-    genre = None    # MusicBrainz does not do genres
     revision = 0    # FreeDB specific
 
     err = 0
@@ -93,6 +102,7 @@ def musicbrainz_names(cd_id, tracks, todo, name, verb=0, warn=1):
     album = query_data['result']['disc']['release-list'][chosen_release]['title']
     date = query_data['result']['disc']['release-list'][chosen_release]['date']
     read_id = query_data['result']['disc']['id']
+    genre = query_data['genre']
 
     for m in query_data['result']['disc']['release-list'][chosen_release]['medium-list']:
         if  len(m['disc-list']) > 0 and 'id' in m['disc-list'][chosen_disc] and m['disc-list'][chosen_disc]['id'] == read_id:
