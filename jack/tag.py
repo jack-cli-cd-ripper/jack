@@ -48,8 +48,7 @@ discnum = None
 def tag(metadata_rename):
     global a_artist, a_title
 
-    ext = jack.targets.targets[
-        jack.helpers.helpers[cf['_encoder']]['target']]['file_extension']
+    ext = jack.targets.targets[jack.helpers.helpers[cf['_encoder']]['target']]['file_extension']
 
     if cf['_vbr'] and not cf['_only_dae']:
         total_length = 0
@@ -197,6 +196,17 @@ def tag(metadata_rename):
                         if cf['_keep_wavs']:
                             os.rename(wavname, newname + ".wav")
                             jack.m3u.add_wav(newname + ".wav")
+                        all_extensions = []
+                        for helper_key, helper_values in jack.helpers.helpers.items():
+                            if helper_values['type'] == 'encoder':
+                                target = helper_values['target']
+                                if target not in all_extensions:
+                                    all_extensions.append("." + target)
+                        for e in all_extensions:
+                            if e != ext:
+                                othername = i[NAME] + e
+                                if os.path.exists(othername):
+                                    os.rename(othername, newname + e)
                         jack.functions.progress(
                             i[NUM], "ren", "%s-->%s" % (i[NAME], u_newname))
                     elif cf['_silent_mode']:
