@@ -89,7 +89,7 @@ def freedb_template(tracks, names="", revision=0):
             (MSF_OFFSET + tracks[-1][START] + tracks[-1][LEN]) // CDDA_BLOCKS_PER_SECOND))
     f.write(" seconds\n#\n# Revision: %i\n" % revision)
     f.write("# Submitted via: " + prog_name + " " + prog_version + "\n#\n")
-    f.write("DISCID=" + metadata_id(tracks)['cddb'] + "\n")
+    f.write("DISCID=" + freedb_id(tracks)['cddb'] + "\n")
     if names:
         if names[1][0]:  # various
             if names[0][0].upper().find("VARIOUS") >= 0:
@@ -139,20 +139,20 @@ def freedb_template(tracks, names="", revision=0):
     f.write("PLAYORDER=\n")
 
 
-def freedb_query(cd_id, tracks, file):
+def freedb_query(cd_ids, tracks, file):
     if cf['_freedb_dir']:
-        if local_freedb(cd_id['cddb'], cf['_freedb_dir'], file) == 0:  # use local database (if any)
+        if local_freedb(cd_ids['cddb'], cf['_freedb_dir'], file) == 0:  # use local database (if any)
             return 0
 
-    qs = "cmd=cddb query " + cd_id['cddb'] + " " + repr(len(tracks)) + " "  # query string
+    qs = "cmd=cddb query " + cd_ids['cddb'] + " " + repr(len(tracks)) + " "  # query string
     for i in tracks:
         qs = qs + repr(i[START] + MSF_OFFSET) + " "
     qs = qs + repr((MSF_OFFSET + tracks[-1][START] + tracks[-1][LEN]) // CDDA_BLOCKS_PER_SECOND)
     hello = "hello=" + cf['_username'] + " " + cf[
-        '_hostname'] + " " + metadata_servers[cf['_metadata_server']]['id']
+        '_hostname'] + " " + jack.metadata.metadata_servers[cf['_metadata_server']]['id']
     qs = urllib.parse.quote_plus(qs + "&" + hello + "&proto=6", "=&")
     url = "http://" + \
-        metadata_servers[cf['_metadata_server']]['host'] + "/~cddb/cddb.cgi?" + qs
+        jack.metadata.metadata_servers[cf['_metadata_server']]['host'] + "/~cddb/cddb.cgi?" + qs
     if cf['_cont_failed_query']:
         try:
             f = urllib.request.urlopen(url)
@@ -196,7 +196,7 @@ def freedb_query(cd_id, tracks, file):
             buf = matches[x - 1]
             buf = buf.split(" ", 2)
             freedb_cat = buf[0]
-            freedb_id = buf[1]
+            cd_ids['cddb'] = buf[1]
             err = 0
 
         elif buf[0:3] == "200":
@@ -219,8 +219,8 @@ def freedb_query(cd_id, tracks, file):
                 error(
                     buf + f.read().decode(cf['_charset']) + " --don't know what to do, aborting query.")
 
-        cmd = "cmd=cddb read " + freedb_cat + " " + freedb_id
-        url = "http://" + metadata_servers[cf['_metadata_server']][
+        cmd = "cmd=cddb read " + freedb_cat + " " + cd_ids['cddb']
+        url = "http://" + jack.metadata.metadata_servers[cf['_metadata_server']][
             'host'] + "/~cddb/cddb.cgi?" + urllib.parse.quote_plus(cmd + "&" + hello + "&proto=6", "=&")
         f = urllib.request.urlopen(url)
         buf = f.readline().decode(cf['_charset'])
@@ -253,8 +253,8 @@ def freedb_query(cd_id, tracks, file):
     return err
 
 
-def freedb_names(cd_id, tracks, todo, name, verb=0, warn=1):
-    "returns err, [(artist, albumname), (track_01-artist, track_01-name), ...], cd_id, revision"
+def freedb_names(cd_ids, tracks, todo, name, verb=0, warn=1):
+    "returns err, [(artist, albumname), (track_01-artist, track_01-name), ...], cd_ids, revision"
     err = 0
     tracks_on_cd = tracks[-1][NUM]
     freedb = {}
@@ -318,11 +318,11 @@ def freedb_names(cd_id, tracks, todo, name, verb=0, warn=1):
         read_ids = freedb['DISCID'].split(",")
         id_matched = 0
         for i in read_ids:
-            if i == cd_id['cddb']:
+            if i == cd_ids['cddb']:
                 id_matched = 1
         if not id_matched and warn and freedb_inexact_match < 1:
             print("Warning: CD signature ID and ID from FreeDB file do not match.")
-            print("         CD signature: " + cd_id['cddb'])
+            print("         CD signature: " + cd_ids['cddb'])
             print("         FreeDB ID:    " + ",".join(read_ids))
         for i in read_ids:
             for j in i:
