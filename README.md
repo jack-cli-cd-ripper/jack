@@ -19,6 +19,7 @@ This fork intends to achieve the following:
 * add support for M4A, using fdkaac and mutagen - mostly done
 * encode to multiple formats - todo
 * encode from lossless to lossy formats - todo
+* automatically download and embed album art - todo
 * lots of cleanups and small changes - continuous process
 
 ## Usage
