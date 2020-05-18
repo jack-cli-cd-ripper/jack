@@ -78,7 +78,7 @@ def freedb_split(field, s, max=78):
 
 def freedb_template(tracks, names="", revision=0):
     "generate a freedb submission template"
-    form_file = get_metadata_form_file(get_metadata_api(cf['_metadata_server']))
+    form_file = jack.metadata.get_metadata_form_file(jack.metadata.get_metadata_api(cf['_metadata_server']))
     if os.path.exists(form_file):
         os.rename(form_file, form_file + ".bak")
     f = open(form_file, "w")
@@ -89,7 +89,7 @@ def freedb_template(tracks, names="", revision=0):
             (MSF_OFFSET + tracks[-1][START] + tracks[-1][LEN]) // CDDA_BLOCKS_PER_SECOND))
     f.write(" seconds\n#\n# Revision: %i\n" % revision)
     f.write("# Submitted via: " + prog_name + " " + prog_version + "\n#\n")
-    f.write("DISCID=" + freedb_id(tracks)['cddb'] + "\n")
+    f.write("DISCID=" + jack.metadata.metadata_id(tracks)['cddb'] + "\n")
     if names:
         if names[1][0]:  # various
             if names[0][0].upper().find("VARIOUS") >= 0:
@@ -529,7 +529,7 @@ def freedb_names(cd_ids, tracks, todo, name, verb=0, warn=1):
         else:
             err = 7
             if verb:
-                warning("could not separate artist and title in all TTITLEs. Try setting freedb_pedantic = 0 or use --various=no. Maybe additional information is contained in the EXTT fields. check %s and use either --extt-is-artist or --extt-is-title." % get_metadata_form_file("cddb"))
+                warning("could not separate artist and title in all TTITLEs. Try setting freedb_pedantic = 0 or use --various=no. Maybe additional information is contained in the EXTT fields. check %s and use either --extt-is-artist or --extt-is-title." % jack.metadata.get_metadata_form_file("cddb"))
     else:
         for i in range(tracks_on_cd):
             buf = freedb['TTITLE' + repr(i)]
