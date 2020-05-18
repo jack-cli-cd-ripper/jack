@@ -129,6 +129,11 @@ def musicbrainz_names(cd_id, tracks, todo, name, verb=0, warn=1):
     query_data = json.loads(f.read())
     f.close()
 
+    if 'cdstub' in query_data['result']:
+        error("musicbrainz returned a \"cdstub\" result instead of a \"disc\" result")
+    if not 'disc' in query_data['result']:
+        error("musicbrainz did not return a \"disc\" result")
+
     # user chose a specific release
     if 'chosen_release' in query_data and query_data['chosen_release']:
         chosen_release = int(query_data['chosen_release'])
