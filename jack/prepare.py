@@ -410,15 +410,44 @@ def update_progress(status, todo):
                     jack.functions.progress(num, "enc", status[num]['enc'])
 
 
+def guess_decode(bytes_string):
+
+    try:
+        decoded_string = bytes_string.decode("utf-8")
+    except:
+        try:
+            decoded_string = bytes_string.decode("latin1")
+        except:
+            print(bytes_string)
+            error("could not decode above data")
+    return decoded_string
+
+
 def read_progress(status, todo):
     "now read in the progress file"
 
+    # the progress file may contain multiple encodings
+    # a tune may be renamed from a latin encoded filename to a utf8 encoded filename
+    # in that case there will be single lines containing multiple encodings
+
     if os.path.exists(cf['_progress_file']):
-        f = open(cf['_progress_file'], "r")
+        f = open(cf['_progress_file'], "rb")
         while 1:
-            buf = f.readline()
-            if not buf:
+            rawbuf = f.readline()
+            if not rawbuf:
                 break
+
+            # first handle renames 
+            sep = cf['_progr_sep']
+            rawsep = sep.encode('utf-8')
+            splitline = rawbuf.split(rawsep, 3)
+            if splitline[1] == b'ren':
+                splitrename = splitline[2].split(b"-->")
+                oldname = guess_decode(splitrename[0])
+                newname = guess_decode(splitrename[1])
+                buf = splitline[0].decode('utf-8') + sep + "ren"  + sep + oldname + "-->" + newname
+            else:
+                buf = guess_decode(rawbuf)
 
             # strip doesn't work here as we may have trailing spaces
             buf = buf.replace("\n", "")

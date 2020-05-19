@@ -258,11 +258,19 @@ def freedb_names(cd_ids, tracks, todo, name, verb=0, warn=1):
     err = 0
     tracks_on_cd = tracks[-1][NUM]
     freedb = {}
-    f = open(name, "r")  # first the freedb info is read in...
+    f = open(name, "rb")  # first the freedb info is read in...
     while 1:
-        line = f.readline()
-        if not line:
+        bline = f.readline()
+        if not bline:
             break
+        try:
+            line = bline.decode("utf-8")
+        except:
+            try:
+                line = bline.decode("latin1")
+            except:
+                print(bline)
+                error("could not decode above line")
         line = line.replace("\n", "")
         # cannot use rstrip, we need trailing spaces
         line = line.replace("\r", "")
