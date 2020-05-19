@@ -76,6 +76,13 @@ def tag(metadata_rename):
             elif discnum == "Two" or discnum == "two" or discnum == "B":
                 discnum = "2"
 
+    all_targets = []
+    for helper_key, helper_values in jack.helpers.helpers.items():
+        if helper_values['type'] == 'encoder':
+            target = helper_values['target']
+            if target not in all_targets:
+                all_targets.append(target)
+
     if cf['_set_tag'] or metadata_rename:
         jack.m3u.init()
         # use metadata year and genre data if available
@@ -90,123 +97,133 @@ def tag(metadata_rename):
         for i in jack.ripstuff.all_tracks_todo_sorted:
             sys.stdout.write(".")
             sys.stdout.flush()
-            mp3name = i[NAME] + ext
-            wavname = i[NAME] + ".wav"
-            if track_names[i[NUM]][0]:
-                t_artist = track_names[i[NUM]][0]
-            else:
-                t_artist = a_artist
-            t_name = track_names[i[NUM]][1]
-            if not cf['_only_dae'] and cf['_set_tag']:
-                target= jack.helpers.helpers[cf['_encoder']]['target']
-                if target == "mp3":
-                    track_info = "%s/%s" % (i[NUM], len(jack.ripstuff.all_tracks_orig))
-                    audio = mp3.MP3(mp3name)
-                    if audio.tags is None:
-                        audio.add_tags()
-                    tags = audio.tags
-                    tags.add(id3.TPE2(encoding=3, text=a_artist))
-                    tags.add(id3.TPE1(encoding=3, text=t_artist))
-                    tags.add(id3.TALB(encoding=3, text=a_title))
-                    tags.add(id3.TIT2(encoding=3, text=t_name))
-                    tags.add(id3.TRCK(encoding=3, text=track_info)),
-                    if cf['_genre']:
-                        tags.add(id3.TCON(encoding=3, text=cf['_genre']))
-                    if cf['_year']:
-                        tags.add(id3.TDRL(encoding=3, text=cf['_year']))
-                    audio.save()
-                elif target == "flac" or target == "ogg":
-                    if target == "flac":
-                        f = flac.FLAC(mp3name)
-                    elif target == "ogg":
-                        f = oggvorbis.OggVorbis(mp3name)
-                    if f.tags is None:
-                        f.add_vorbiscomment()
-                    f.tags['ALBUM'] = a_title
-                    f.tags['TRACKNUMBER'] = str(i[NUM])
-                    f.tags['TRACKTOTAL'] = str(len(jack.ripstuff.all_tracks_orig))
-                    f.tags['TITLE'] = t_name
-                    f.tags['ALBUMARTIST'] = a_artist
-                    f.tags['ARTIST'] = t_artist
-                    if cf['_genre']:
-                        f.tags['GENRE'] = cf['_genre']
-                    elif 'GENRE' in f.tags:
-                        del f.tags['GENRE']
-                    if cf['_year']:
-                        f.tags['DATE'] = cf['_year']
-                    elif 'DATE' in f.tags:
-                        del f.tags['DATE']
-                    if cf['_various']:
-                        f.tags['COMPILATION'] = "1"
-                    elif 'COMPILATION' in f.tags:
-                        del f.tags['COMPILATION']
-                    if discnum:
-                        f.tags['DISCNUMBER'] = discnum
-                    else:
-                        if 'DISCNUMBER' in f.tags:
-                            del f.tags['DISCNUMBER']
-                        if 'DISCTOTAL' in f.tags:
-                            del f.tags['DISCTOTAL']
-                    f.save()
-                elif target == "m4a":
-                    m4a = mp4.MP4(mp3name)
-                    m4a.tags['\xa9nam'] = [t_name]
-                    m4a.tags['\xa9alb'] = [a_title]
-                    m4a.tags['aART'] = [a_artist]
-                    m4a.tags['\xa9ART'] = [t_artist]
-                    if cf['_genre']:
-                        m4a.tags['\xa9gen'] = [cf['_genre']]
-                    elif '\xa9gen' in m4a.tags:
-                        del m4a.tags['\xa9gen']
-                    if cf['_year']:
-                        m4a.tags['\xa9day'] = [cf['_year']]
-                    elif '\xa9day' in m4a.tags:
-                        del m4a.tags['\xa9day']
-                    m4a.tags['cpil'] = bool(cf['_various'])
-                    m4a.tags['trkn'] = [(i[NUM], len(jack.ripstuff.all_tracks_orig))]
-                    if discnum:
-                        m4a.tags['disk'] = [(discnum, 0)]
-                    m4a.save()
+
+            all_exts = [ext,]
+            for check_ext in all_targets:
+                check_ext = "." + check_ext
+                if check_ext == ext:
+                    continue
+                encname = i[NAME] + check_ext
+                if os.path.exists(encname):
+                    all_exts.append(check_ext)
+            
+            for cur_ext in all_exts:
+                target = cur_ext[1:]
+                encname = i[NAME] + cur_ext
+                wavname = i[NAME] + ".wav"
+                if track_names[i[NUM]][0]:
+                    t_artist = track_names[i[NUM]][0]
+                else:
+                    t_artist = a_artist
+                t_name = track_names[i[NUM]][1]
+                if not cf['_only_dae'] and cf['_set_tag']:
+                    if target == "mp3":
+                        track_info = "%s/%s" % (i[NUM], len(jack.ripstuff.all_tracks_orig))
+                        audio = mp3.MP3(encname)
+                        if audio.tags is None:
+                            audio.add_tags()
+                        tags = audio.tags
+                        tags.add(id3.TPE2(encoding=3, text=a_artist))
+                        tags.add(id3.TPE1(encoding=3, text=t_artist))
+                        tags.add(id3.TALB(encoding=3, text=a_title))
+                        tags.add(id3.TIT2(encoding=3, text=t_name))
+                        tags.add(id3.TRCK(encoding=3, text=track_info)),
+                        if cf['_genre']:
+                            tags.add(id3.TCON(encoding=3, text=cf['_genre']))
+                        if cf['_year']:
+                            tags.add(id3.TDRL(encoding=3, text=cf['_year']))
+                        audio.save()
+                    elif target == "flac" or target == "ogg":
+                        if target == "flac":
+                            f = flac.FLAC(encname)
+                        elif target == "ogg":
+                            f = oggvorbis.OggVorbis(encname)
+                        if f.tags is None:
+                            f.add_vorbiscomment()
+                        f.tags['ALBUM'] = a_title
+                        f.tags['TRACKNUMBER'] = str(i[NUM])
+                        f.tags['TRACKTOTAL'] = str(len(jack.ripstuff.all_tracks_orig))
+                        f.tags['TITLE'] = t_name
+                        f.tags['ALBUMARTIST'] = a_artist
+                        f.tags['ARTIST'] = t_artist
+                        if cf['_genre']:
+                            f.tags['GENRE'] = cf['_genre']
+                        elif 'GENRE' in f.tags:
+                            del f.tags['GENRE']
+                        if cf['_year']:
+                            f.tags['DATE'] = cf['_year']
+                        elif 'DATE' in f.tags:
+                            del f.tags['DATE']
+                        if cf['_various']:
+                            f.tags['COMPILATION'] = "1"
+                        elif 'COMPILATION' in f.tags:
+                            del f.tags['COMPILATION']
+                        if discnum:
+                            f.tags['DISCNUMBER'] = discnum
+                        else:
+                            if 'DISCNUMBER' in f.tags:
+                                del f.tags['DISCNUMBER']
+                            if 'DISCTOTAL' in f.tags:
+                                del f.tags['DISCTOTAL']
+                        f.save()
+                    elif target == "m4a":
+                        m4a = mp4.MP4(encname)
+                        m4a.tags['\xa9nam'] = [t_name]
+                        m4a.tags['\xa9alb'] = [a_title]
+                        m4a.tags['aART'] = [a_artist]
+                        m4a.tags['\xa9ART'] = [t_artist]
+                        if cf['_genre']:
+                            m4a.tags['\xa9gen'] = [cf['_genre']]
+                        elif '\xa9gen' in m4a.tags:
+                            del m4a.tags['\xa9gen']
+                        if cf['_year']:
+                            m4a.tags['\xa9day'] = [cf['_year']]
+                        elif '\xa9day' in m4a.tags:
+                            del m4a.tags['\xa9day']
+                        m4a.tags['cpil'] = bool(cf['_various'])
+                        m4a.tags['trkn'] = [(i[NUM], len(jack.ripstuff.all_tracks_orig))]
+                        if discnum:
+                            m4a.tags['disk'] = [(int(discnum), 0)]
+                        m4a.save()
             if metadata_rename:
                 newname = jack.metadata.filenames[i[NUM]]
+                encname = i[NAME] + ext
                 if i[NAME] != newname:
                     p_newname = newname
                     u_newname = newname
                     newname = newname
-                    p_mp3name = i[NAME]
+                    p_encname = i[NAME]
                     p_wavname = i[NAME]
                     ok = 1
                     if os.path.exists(newname + ext):
                         ok = 0
-                        print('NOT renaming "' + p_mp3name + '" to "' + p_newname + ext + '" because dest. exists.')
+                        print('NOT renaming "' + p_encname + '" to "' + p_newname + ext + '" because dest. exists.')
                         if cf['_keep_wavs']:
                             print('NOT renaming "' + p_wavname + '" to "' + p_newname + ".wav" + '" because dest. exists.')
                     elif cf['_keep_wavs'] and os.path.exists(newname + ".wav"):
                         ok = 0
                         print('NOT renaming "' + p_wavname + '" to "' + p_newname + ".wav" + '" because dest. exists.')
-                        print('NOT renaming "' + p_mp3name + '" to "' + p_newname + ext + '" because WAV dest. exists.')
+                        print('NOT renaming "' + p_encname + '" to "' + p_newname + ext + '" because WAV dest. exists.')
                     if ok:
                         if not cf['_only_dae']:
                             try:
-                                os.rename(mp3name, newname + ext)
+                                os.rename(encname, newname + ext)
                             except OSError:
                                 error('Cannot rename "%s" to "%s" (Filename is too long or has unusable characters)' %
-                                      (p_mp3name, p_newname + ext))
+                                      (p_encname, p_newname + ext))
                             jack.m3u.add(newname + ext)
                         if cf['_keep_wavs']:
                             os.rename(wavname, newname + ".wav")
                             jack.m3u.add_wav(newname + ".wav")
-                        all_extensions = []
-                        for helper_key, helper_values in jack.helpers.helpers.items():
-                            if helper_values['type'] == 'encoder':
-                                target = helper_values['target']
-                                if target not in all_extensions:
-                                    all_extensions.append("." + target)
-                        for e in all_extensions:
+                        for t in all_targets:
+                            e = "." + t
                             if e != ext:
                                 othername = i[NAME] + e
                                 if os.path.exists(othername):
-                                    os.rename(othername, newname + e)
+                                    if os.path.exists(newname + e):
+                                        print('NOT renaming "' + othername + '" to "' + newname + e + '" because dest. exists.')
+                                    else:
+                                        os.rename(othername, newname + e)
                         jack.functions.progress(
                             i[NUM], "ren", "%s-->%s" % (i[NAME], u_newname))
                     elif cf['_silent_mode']:
