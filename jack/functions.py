@@ -291,7 +291,7 @@ def real_cdrdao_gettoc(tocfile):     # get toc from cdrdao-style toc-file
         error("Can't open TOC file '%s': file does not exist." %
               os.path.abspath(tocfile))
     try:
-        f = open(tocfile, "r")
+        f = open(tocfile, "rb")
     except (IOError, OSError) as e:
         error("Can't open TOC file '%s': %s" % (os.path.abspath(tocfile), e))
 
@@ -316,7 +316,15 @@ def real_cdrdao_gettoc(tocfile):     # get toc from cdrdao-style toc-file
 
     num = 0
     while 1:
-        line = f.readline()
+        bline = f.readline()
+        try:
+            line = bline.decode("utf-8")
+        except:
+            try:
+                line = bline.decode("latin1")
+            except:
+                print(bline)
+                error("could not decode above data")
         if not line:
             if actual_track.channels not in [1, 2, 4]:
                 debug(
