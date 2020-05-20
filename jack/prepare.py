@@ -50,7 +50,8 @@ def find_workdir():
     tries = 0
     toc_just_read = 0
     debug("multi_mode:" + repr(cf['_multi_mode']))
-    metadata_form_file = jack.metadata.get_metadata_form_file(jack.metadata.get_metadata_api(cf['_metadata_server']))
+    api = jack.metadata.get_metadata_api(cf['_metadata_server'])
+    metadata_form_file = jack.metadata.get_metadata_form_file(api)
     while (not os.path.exists(cf['_toc_file'])) or cf['_multi_mode']:
         tries = tries + 1
         if tries > 2:
@@ -166,7 +167,7 @@ def find_workdir():
                         os.makedirs(cf['_base_dir'])
                     os.chdir(cf['_base_dir'])
                     dir_name = jack.version.prog_name + "-" + \
-                        jack.metadata.metadata_id(jack.ripstuff.all_tracks, warn=0)
+                        jack.metadata.metadata_id(jack.ripstuff.all_tracks, warn=0)[api]
                     if not os.path.exists(dir_name) and not os.path.isdir(dir_name):
                         os.mkdir(dir_name)
                     os.chdir(dir_name)
