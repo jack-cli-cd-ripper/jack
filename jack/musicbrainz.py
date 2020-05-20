@@ -51,6 +51,7 @@ def musicbrainz_query(cd_id, tracks, file):
             mo = re.search(r"DGENRE=(.*)", freedb_data)
             if mo:
                 genre = mo.group(1)
+                warning("imported genre '" + genre + "' from " + freedb_form_file)
 
     musicbrainzngs.set_useragent(jack.version.prog_name, jack.version.prog_version, jack.version.prog_devemail)
 
@@ -142,7 +143,10 @@ def musicbrainz_names(cd_id, tracks, todo, name, verb=0, warn=1):
 
     a_artist = query_data['result']['disc']['release-list'][chosen_release]['artist-credit-phrase']
     album = query_data['result']['disc']['release-list'][chosen_release]['title']
-    date = query_data['result']['disc']['release-list'][chosen_release]['date']
+    if 'date' in query_data['result']['disc']['release-list'][chosen_release]:
+        date = query_data['result']['disc']['release-list'][chosen_release]['date']
+    else:
+        warning("no date found in metadata")
     read_id = query_data['result']['disc']['id']
     genre = query_data['genre']
 
