@@ -171,7 +171,66 @@ cf = jack.misc.dict2({
     %a: artist
     %l: album title
     %g: album genre - individual track genres are unsupported
-    %y: album release year - individual track years are unsupported""",
+    %y: album release year - individual track years are unsupported
+    %d: disc number
+    %D: number of discs
+    %t: disc title""",
+        'long': 'AUTO',
+    },
+    'dir_multi_cd_template': {
+        'type': str,
+        'val': "%a/%l (CD %d)",
+        'usage': " dir_template, if album consists of multiple discs",
+        'doc': """specify how the resulting files are named:
+    %a: artist
+    %l: album title
+    %g: album genre - individual track genres are unsupported
+    %y: album release year - individual track years are unsupported
+    %d: disc number
+    %D: number of discs
+    %t: disc title""",
+        'long': 'AUTO',
+    },
+    'dir_multi_cd_unknown_number_template': {
+        'type': str,
+        'val': "%a/%l (CD %d)",
+        'usage': " dir_template, if album consists of multiple discs, and the number of discs is unknown",
+        'doc': """specify how the resulting files are named:
+    %a: artist
+    %l: album title
+    %g: album genre - individual track genres are unsupported
+    %y: album release year - individual track years are unsupported
+    %d: disc number
+    %D: number of discs
+    %t: disc title""",
+        'long': 'AUTO',
+    },
+    'dir_titled_cd_template': {
+        'type': str,
+        'val': "%a/%l (CD %d: %t)",
+        'usage': " dir_template, if album consists of multiple discs, and the current disc has a title",
+        'doc': """specify how the resulting files are named:
+    %a: artist
+    %l: album title
+    %g: album genre - individual track genres are unsupported
+    %y: album release year - individual track years are unsupported
+    %d: disc number
+    %D: number of discs
+    %t: disc title""",
+        'long': 'AUTO',
+    },
+    'dir_titled_cd_unknown_number_template': {
+        'type': str,
+        'val': "%a/%l (CD %d: %t)",
+        'usage': " dir_template, if album consists of an unknown number of multiple discs, and the current disc has a title",
+        'doc': """specify how the resulting files are named:
+    %a: artist
+    %l: album title
+    %g: album genre - individual track genres are unsupported
+    %y: album release year - individual track years are unsupported
+    %d: disc number
+    %D: number of discs
+    %t: disc title""",
         'long': 'AUTO',
     },
     'char_filter': {

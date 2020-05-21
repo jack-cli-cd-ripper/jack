@@ -197,9 +197,37 @@ def mkdirname(names, template):
         year = repr(cf['_year'])
     if cf['_genre']:
         genre = cf['_genre']
+    medium_position = None
+    medium_count = None
+    medium_title = None
+
+    if len(names[0]) >= 7:
+        medium_position = names[0][4]
+        medium_count = names[0][5]
+        medium_title = names[0][6]
+
     replacelist = {"a": names[0][0],
                    "l": names[0][1],
-                   "y": year, "g": genre}
+                   "y": year,
+                   "g": genre,
+                   "d": medium_position,
+                   "D": medium_count,
+                   "t": medium_title}
+
+    if medium_count and int(medium_count) != 1:
+        if int(medium_count) > 1:
+            if medium_title:
+                template = cf['_dir_titled_cd_template']
+            else:
+                template = cf['_dir_multi_cd_template']
+        else:
+            if medium_title:
+                template = cf['_dir_titled_cd_unknown_number_template']
+            else:
+                template = cf['_dir_multi_cd_unknown_number_template']
+
+    cf['_dir_template'] = template
+
     # Process substitution patterns from dir_template
     subst = template.split(os.path.sep)
     dirs = []

@@ -79,7 +79,8 @@ def musicbrainz_query(cd_id, tracks, file):
                     description += " (" + rel['packaging'] + ")"
                 if 'country' in rel:
                     description += " (" + rel['country'] + ")"
-                description += " [" + rel['date'] + "]"
+                if 'medium-count' in rel and int(rel['medium-count']) > 1:
+                    description += " (" + rel['medium-count'] + " CD's)"
                 print("%2i" % num + ".) " + description)
                 num = num + 1
             x = -1
@@ -122,8 +123,6 @@ def musicbrainz_names(cd_id, tracks, todo, name, verb=0, warn=1):
     revision = 0    # FreeDB specific
 
     err = 0
-    chosen_release = 0
-    chosen_disc = 0
 
     # load the musicbrainz query data that was previously dumped as json data
     f = open(name, "r")
@@ -136,6 +135,7 @@ def musicbrainz_names(cd_id, tracks, todo, name, verb=0, warn=1):
         error("musicbrainz did not return a \"disc\" result")
 
     # user chose a specific release
+    chosen_release = 0
     if 'chosen_release' in query_data and query_data['chosen_release']:
         chosen_release = int(query_data['chosen_release'])
 
@@ -151,23 +151,24 @@ def musicbrainz_names(cd_id, tracks, todo, name, verb=0, warn=1):
     genre = query_data['genre']
 
 
+    medium_count = query_data['result']['disc']['release-list'][chosen_release]['medium-count']
     for medium in query_data['result']['disc']['release-list'][chosen_release]['medium-list']:
         for disc in medium['disc-list']:
             if disc['id'] == read_id:
+                medium_title = None
                 if 'title' in medium:
-                    album = medium['title']
-                d_position = medium['position']
-                names.append([a_artist, album, date, genre])
+                    medium_title = medium['title']
+                medium_position = medium['position']
+                names.append([a_artist, album, date, genre, medium_position, medium_count, medium_title])
                 for track in medium['track-list']:
                     t_artist = track['recording']['artist-credit-phrase']
                     t_title = track['recording']['title']
-                    t_position = track['position']
-                    t_number = track['number']
                     names.append([t_artist, t_title])
                 break
 
     if len(names) == 0:
-        error("error interpreting musicbrainz result")
+        print("error interpreting musicbrainz result")
+        err = 1
 
     locale_names = names
 
