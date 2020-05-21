@@ -201,13 +201,15 @@ def mkdirname(names, template):
     medium_count = None
     medium_title = None
 
+    artist = names[0][0]
+    album_title = names[0][1]
     if len(names[0]) >= 7:
         medium_position = names[0][4]
         medium_count = names[0][5]
         medium_title = names[0][6]
 
-    replacelist = {"a": names[0][0],
-                   "l": names[0][1],
+    replacelist = {"a": artist,
+                   "l": album_title,
                    "y": year,
                    "g": genre,
                    "d": medium_position,
@@ -216,12 +218,12 @@ def mkdirname(names, template):
 
     if medium_count and int(medium_count) != 1:
         if int(medium_count) > 1:
-            if medium_title:
+            if medium_title and medium_title != album_title:
                 template = cf['_dir_titled_cd_template']
             else:
                 template = cf['_dir_multi_cd_template']
         else:
-            if medium_title:
+            if medium_title and medium_title != album_title:
                 template = cf['_dir_titled_cd_unknown_number_template']
             else:
                 template = cf['_dir_multi_cd_unknown_number_template']

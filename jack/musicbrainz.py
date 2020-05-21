@@ -79,8 +79,10 @@ def musicbrainz_query(cd_id, tracks, file):
                     description += " (" + rel['packaging'] + ")"
                 if 'country' in rel:
                     description += " (" + rel['country'] + ")"
-                if 'medium-count' in rel and int(rel['medium-count']) > 1:
-                    description += " (" + rel['medium-count'] + " CD's)"
+                if 'date' in rel:
+                    description += " [" + rel['date'] + "]"
+                if 'medium-count' in rel and rel['medium-count'] > 1:
+                    description += " (" + str(rel['medium-count']) + " CD's)"
                 print("%2i" % num + ".) " + description)
                 num = num + 1
             x = -1
@@ -146,6 +148,7 @@ def musicbrainz_names(cd_id, tracks, todo, name, verb=0, warn=1):
     if 'date' in query_data['result']['disc']['release-list'][chosen_release]:
         date = query_data['result']['disc']['release-list'][chosen_release]['date']
     else:
+        date = None
         warning("no date found in metadata")
     read_id = query_data['result']['disc']['id']
     genre = query_data['genre']
