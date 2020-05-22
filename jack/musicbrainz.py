@@ -161,7 +161,7 @@ def musicbrainz_names(cd_id, tracks, todo, name, verb=0, warn=1):
                 medium_title = None
                 if 'title' in medium:
                     medium_title = medium['title']
-                medium_position = medium['position']
+                medium_position = int(medium['position'])
                 names.append([a_artist, album, date, genre, medium_position, medium_count, medium_title])
                 for track in medium['track-list']:
                     t_artist = track['recording']['artist-credit-phrase']

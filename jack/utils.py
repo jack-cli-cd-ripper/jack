@@ -212,11 +212,11 @@ def mkdirname(names, template):
                    "l": album_title,
                    "y": year,
                    "g": genre,
-                   "d": medium_position,
-                   "D": medium_count,
+                   "d": str(medium_position),
+                   "D": str(medium_count),
                    "t": medium_title}
 
-    if medium_count and int(medium_count) != 1:
+    if medium_count and medium_count != 1:
         if int(medium_count) > 1:
             if medium_title and medium_title != album_title:
                 template = cf['_dir_titled_cd_template']

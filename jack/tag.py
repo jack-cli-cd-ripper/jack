@@ -42,11 +42,14 @@ locale_names = None
 
 a_artist = None
 a_title = None
-discnum = None
 
 
 def tag(metadata_rename):
     global a_artist, a_title
+
+    medium_position = 0
+    medium_count = 0
+    medium_tagging = False
 
     ext = jack.targets.targets[jack.helpers.helpers[cf['_encoder']]['target']]['file_extension']
 
@@ -63,18 +66,13 @@ def tag(metadata_rename):
     if jack.metadata.names_available:
         a_artist = track_names[0][0]
         a_title = track_names[0][1]
+        medium_position = track_names[0][4]
+        medium_count = track_names[0][5]
 
-        # FIXME this hack may have to become FreeDB specific
-        r1 = re.compile(r'( \(disc[ ]*| \(side[ ]*| \(cd[^a-z0-9]*)([0-9]*|One|Two|A|B)([^a-z0-9])', re.IGNORECASE)
-        mo = r1.search(a_title)
-        discnum = None
-        if mo != None:
-            discnum = a_title[mo.start(2):mo.end(2)].lstrip("0")
-            a_title = a_title[0:mo.start(1)]
-            if discnum == "One" or discnum == "one" or discnum == "A":
-                discnum = "1"
-            elif discnum == "Two" or discnum == "two" or discnum == "B":
-                discnum = "2"
+        if medium_count == -1 or medium_count > 1:
+            medium_tagging = True
+            if medium_count == -1:
+                medium_count = 0
 
     all_targets = []
     for helper_key, helper_values in jack.helpers.helpers.items():
@@ -119,6 +117,7 @@ def tag(metadata_rename):
                 if not cf['_only_dae'] and cf['_set_tag']:
                     if target == "mp3":
                         track_info = "%s/%s" % (i[NUM], len(jack.ripstuff.all_tracks_orig))
+                        disc_info = "%s/%s" % (medium_position, medium_count)
                         audio = mp3.MP3(encname)
                         if audio.tags is None:
                             audio.add_tags()
@@ -127,11 +126,13 @@ def tag(metadata_rename):
                         tags.add(id3.TPE1(encoding=3, text=t_artist))
                         tags.add(id3.TALB(encoding=3, text=a_title))
                         tags.add(id3.TIT2(encoding=3, text=t_name))
-                        tags.add(id3.TRCK(encoding=3, text=track_info)),
+                        tags.add(id3.TRCK(encoding=3, text=track_info))
                         if cf['_genre']:
                             tags.add(id3.TCON(encoding=3, text=cf['_genre']))
                         if cf['_year']:
                             tags.add(id3.TDRL(encoding=3, text=cf['_year']))
+                        if medium_tagging:
+                            tags.add(id3.TPOS(encoding=3, text=disc_info))
                         audio.save()
                     elif target == "flac" or target == "ogg":
                         if target == "flac":
@@ -158,13 +159,10 @@ def tag(metadata_rename):
                             f.tags['COMPILATION'] = "1"
                         elif 'COMPILATION' in f.tags:
                             del f.tags['COMPILATION']
-                        if discnum:
-                            f.tags['DISCNUMBER'] = discnum
-                        else:
-                            if 'DISCNUMBER' in f.tags:
-                                del f.tags['DISCNUMBER']
-                            if 'DISCTOTAL' in f.tags:
-                                del f.tags['DISCTOTAL']
+                        if medium_tagging:
+                            f.tags['DISCNUMBER'] = str(medium_position)
+                            if medium_count:
+                                f.tags['DISCTOTAL'] = str(medium_count)
                         f.save()
                     elif target == "m4a":
                         m4a = mp4.MP4(encname)
@@ -182,8 +180,8 @@ def tag(metadata_rename):
                             del m4a.tags['\xa9day']
                         m4a.tags['cpil'] = bool(cf['_various'])
                         m4a.tags['trkn'] = [(i[NUM], len(jack.ripstuff.all_tracks_orig))]
-                        if discnum:
-                            m4a.tags['disk'] = [(int(discnum), 0)]
+                        if medium_tagging:
+                            m4a.tags['disk'] = [(medium_position, medium_count)]
                         m4a.save()
             if metadata_rename:
                 newname = jack.metadata.filenames[i[NUM]]

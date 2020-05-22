@@ -19,6 +19,7 @@
 import string
 import sys
 import os
+import re
 
 import jack.functions
 import jack.progress
@@ -193,3 +194,29 @@ def metadata_names(cd_id, tracks, todo, name, verb=0, warn=1):
         return jack.musicbrainz.musicbrainz_names(cd_id, tracks, todo, name, verb=0, warn=1)
     else:
         error("unknown api %s", api)
+
+def split_albumtitle(album_title):
+    '''split legacy album title into real album title and medium numbers and medium title, compatible to MusicBrainz'''
+
+    # for instance: David Guetta's "Nothing but the Beat (Disc 1: Vocal Album)" should be split
+    # into album title "Nothing but the Beat", medium position 1, medium count -1 (unknown), medium title "Vocal Album"
+    # More commonly: Coldplay's "Live In Buenos Aires (CD 2)" should split into "Live In Buenos Aires", 2, -1, None
+
+    # FIXME, medium title extraction is not yet implented
+
+    r1 = re.compile(r'( \(disc[ ]*| \(side[ ]*| \(cd[^a-z0-9]*)([0-9]*|One|Two|A|B)([^a-z0-9])', re.IGNORECASE)
+    mo = r1.search(album_title)
+    medium_position = None
+    if mo != None:
+        medium_position = album_title[mo.start(2):mo.end(2)].lstrip("0")
+        album_title = album_title[0:mo.start(1)]
+        if medium_position == "One" or medium_position == "one" or medium_position == "A":
+            medium_position = "1"
+        elif medium_position == "Two" or medium_position == "two" or medium_position == "B":
+            medium_position = "2"
+        return album_title, int(medium_position), -1, None
+
+    return album_title, 0, 0, None
+
+# user says additional info is in the EXTT fields
+

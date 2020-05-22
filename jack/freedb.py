@@ -359,7 +359,7 @@ def freedb_names(cd_ids, tracks, todo, name, verb=0, warn=1):
         else:
             dtitle = "(unknown artist)/" + dtitle
 
-    names = [dtitle.split("/", 1)]
+    album_artist, album_title = dtitle.split("/", 1)
     year = None
     genre = None
     if 'DYEAR' in freedb:
@@ -370,10 +370,13 @@ def freedb_names(cd_ids, tracks, todo, name, verb=0, warn=1):
             warning("Specified and FreeDB year differ (%d vs %d)" % (cf['_year'], year))
     if 'DGENRE' in freedb:
         genre = freedb['DGENRE']
-    if genre:
-        names[0].extend([year, genre])
-    elif year:
-        names[0].extend([year])
+
+    # extract disc number from album title
+    album_title, medium_position, medium_count, medium_title = jack.metadata.split_albumtitle(album_title)
+
+    names = []
+    names.append([album_artist, album_title, year, genre, medium_position, medium_count, medium_title])
+
     if names[0][0] == "(unknown artist)":
         if verb:
             warning(
@@ -383,8 +386,6 @@ def freedb_names(cd_ids, tracks, todo, name, verb=0, warn=1):
     if names[0][0].upper() in ("VARIOUS", "VARIOUS ARTISTS", "SAMPLER", "COMPILATION", "DIVERSE", "V.A.", "VA"):
         if not cf['_various'] and not ['argv', False] in cf['various']['history']:
             cf['_various'] = 1
-
-# user says additional info is in the EXTT fields
 
     if cf['_various'] and cf['_extt_is_artist']:
         for i in range(tracks_on_cd):
