@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # jack.tag: name information (ID3 among others) stuff for
 # jack - tag audio from a CD and encode it using 3rd party software
 # Copyright (C) 1999-2003  Arne Zellentin <zarne@users.sf.net>
@@ -166,18 +167,18 @@ def tag(metadata_rename):
                         f.save()
                     elif target == "m4a":
                         m4a = mp4.MP4(encname)
-                        m4a.tags['\xa9nam'] = [t_name]
-                        m4a.tags['\xa9alb'] = [a_title]
+                        m4a.tags['©nam'] = [t_name]
+                        m4a.tags['©alb'] = [a_title]
                         m4a.tags['aART'] = [a_artist]
-                        m4a.tags['\xa9ART'] = [t_artist]
+                        m4a.tags['©ART'] = [t_artist]
                         if cf['_genre']:
-                            m4a.tags['\xa9gen'] = [cf['_genre']]
-                        elif '\xa9gen' in m4a.tags:
-                            del m4a.tags['\xa9gen']
+                            m4a.tags['©gen'] = [cf['_genre']]
+                        elif '©gen' in m4a.tags:
+                            del m4a.tags['©gen']
                         if cf['_year']:
-                            m4a.tags['\xa9day'] = [cf['_year']]
-                        elif '\xa9day' in m4a.tags:
-                            del m4a.tags['\xa9day']
+                            m4a.tags['©day'] = [cf['_year']]
+                        elif '©day' in m4a.tags:
+                            del m4a.tags['©day']
                         m4a.tags['cpil'] = bool(cf['_various'])
                         m4a.tags['trkn'] = [(i[NUM], len(jack.ripstuff.all_tracks_orig))]
                         if medium_tagging:
