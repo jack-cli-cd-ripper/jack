@@ -153,6 +153,9 @@ def musicbrainz_names(cd_id, tracks, todo, name, verb=0, warn=1):
     read_id = query_data['result']['disc']['id']
     genre = query_data['genre']
 
+    if a_artist.upper() in ("VARIOUS", "VARIOUS ARTISTS", "SAMPLER", "COMPILATION", "DIVERSE", "V.A.", "VA"):
+        if not cf['_various'] and not ['argv', False] in cf['various']['history']:
+            cf['_various'] = 1
 
     medium_count = query_data['result']['disc']['release-list'][chosen_release]['medium-count']
     for medium in query_data['result']['disc']['release-list'][chosen_release]['medium-list']:

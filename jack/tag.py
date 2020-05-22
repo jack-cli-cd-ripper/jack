@@ -123,15 +123,16 @@ def tag(metadata_rename):
                         if audio.tags is None:
                             audio.add_tags()
                         tags = audio.tags
-                        tags.add(id3.TPE2(encoding=3, text=a_artist))
+                        if not cf['_various']:
+                            tags.add(id3.TPE2(encoding=3, text=a_artist))
                         tags.add(id3.TPE1(encoding=3, text=t_artist))
                         tags.add(id3.TALB(encoding=3, text=a_title))
                         tags.add(id3.TIT2(encoding=3, text=t_name))
-                        tags.add(id3.TRCK(encoding=3, text=track_info))
                         if cf['_genre']:
                             tags.add(id3.TCON(encoding=3, text=cf['_genre']))
                         if cf['_year']:
                             tags.add(id3.TDRL(encoding=3, text=cf['_year']))
+                        tags.add(id3.TRCK(encoding=3, text=track_info))
                         if medium_tagging:
                             tags.add(id3.TPOS(encoding=3, text=disc_info))
                         audio.save()
@@ -142,12 +143,13 @@ def tag(metadata_rename):
                             f = oggvorbis.OggVorbis(encname)
                         if f.tags is None:
                             f.add_vorbiscomment()
-                        f.tags['ALBUM'] = a_title
-                        f.tags['TRACKNUMBER'] = str(i[NUM])
-                        f.tags['TRACKTOTAL'] = str(len(jack.ripstuff.all_tracks_orig))
-                        f.tags['TITLE'] = t_name
-                        f.tags['ALBUMARTIST'] = a_artist
+                        if not cf['_various']:
+                            f.tags['ALBUMARTIST'] = a_artist
+                        elif 'ALBUMARTIST' in f.tags:
+                            del f.tags['ALBUMARTIST']
                         f.tags['ARTIST'] = t_artist
+                        f.tags['ALBUM'] = a_title
+                        f.tags['TITLE'] = t_name
                         if cf['_genre']:
                             f.tags['GENRE'] = cf['_genre']
                         elif 'GENRE' in f.tags:
@@ -156,21 +158,26 @@ def tag(metadata_rename):
                             f.tags['DATE'] = cf['_year']
                         elif 'DATE' in f.tags:
                             del f.tags['DATE']
-                        if cf['_various']:
-                            f.tags['COMPILATION'] = "1"
-                        elif 'COMPILATION' in f.tags:
-                            del f.tags['COMPILATION']
+                        f.tags['TRACKNUMBER'] = str(i[NUM])
+                        f.tags['TRACKTOTAL'] = str(len(jack.ripstuff.all_tracks_orig))
                         if medium_tagging:
                             f.tags['DISCNUMBER'] = str(medium_position)
                             if medium_count:
                                 f.tags['DISCTOTAL'] = str(medium_count)
+                        if cf['_various']:
+                            f.tags['COMPILATION'] = "1"
+                        elif 'COMPILATION' in f.tags:
+                            del f.tags['COMPILATION']
                         f.save()
                     elif target == "m4a":
                         m4a = mp4.MP4(encname)
-                        m4a.tags['©nam'] = [t_name]
-                        m4a.tags['©alb'] = [a_title]
-                        m4a.tags['aART'] = [a_artist]
+                        if not cf['_various']:
+                            m4a.tags['aART'] = [a_artist]
+                        elif 'aART' in m4a.tags:
+                            del m4a.tags['aART']
                         m4a.tags['©ART'] = [t_artist]
+                        m4a.tags['©alb'] = [a_title]
+                        m4a.tags['©nam'] = [t_name]
                         if cf['_genre']:
                             m4a.tags['©gen'] = [cf['_genre']]
                         elif '©gen' in m4a.tags:
@@ -179,10 +186,10 @@ def tag(metadata_rename):
                             m4a.tags['©day'] = [cf['_year']]
                         elif '©day' in m4a.tags:
                             del m4a.tags['©day']
-                        m4a.tags['cpil'] = bool(cf['_various'])
                         m4a.tags['trkn'] = [(i[NUM], len(jack.ripstuff.all_tracks_orig))]
                         if medium_tagging:
                             m4a.tags['disk'] = [(medium_position, medium_count)]
+                        m4a.tags['cpil'] = bool(cf['_various'])
                         m4a.save()
             if metadata_rename:
                 newname = jack.metadata.filenames[i[NUM]]
