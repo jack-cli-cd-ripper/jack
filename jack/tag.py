@@ -137,6 +137,7 @@ def tag(metadata_rename):
                         tags.add(id3.TRCK(encoding=3, text=track_info))
                         if medium_tagging:
                             tags.add(id3.TPOS(encoding=3, text=medium_info))
+                        extended_tag(m4a.tags, "m4a")
                         audio.save()
                     elif target == "flac" or target == "ogg":   # both vorbis tags
                         if target == "flac":
@@ -163,6 +164,7 @@ def tag(metadata_rename):
                                 f.tags['DISCTOTAL'] = str(medium_count)
                         if cf['_various']:
                             f.tags['COMPILATION'] = "1"
+                        extended_tag(f.tags, "vorbis")
                         f.save()
                     elif target == "m4a":
                         m4a = mp4.MP4(encname)
@@ -184,6 +186,7 @@ def tag(metadata_rename):
                         if medium_tagging:
                             m4a.tags['disk'] = [(medium_position, medium_count)]
                         m4a.tags['cpil'] = bool(cf['_various'])
+                        extended_tag(m4a.tags, "m4a")
                         m4a.save()
             if metadata_rename:
                 newname = jack.metadata.filenames[i[NUM]]
@@ -259,3 +262,641 @@ def fix_genre_case(genre):
         if genre.upper() == id3genre.upper():
             return id3genre
     return genre
+
+
+def extended_tag(taghandle, tagtype):
+
+    mb_tag_map = [
+        {
+                "internalname": "album",
+                "name": "Album",
+                "mp3": "TALB",
+                "vorbis": "ALBUM",
+                "m4a": "©alb"
+        },
+        {
+                "internalname": "albumsort",
+                "name": "Album Sort Order",
+                "mp3": "TSOA",
+                "vorbis": "ALBUMSORT",
+                "m4a": "soal"
+        },
+        {
+                "internalname": "title",
+                "name": "Track Title",
+                "mp3": "TIT2",
+                "vorbis": "TITLE",
+                "m4a": "©nam"
+        },
+        {
+                "internalname": "titlesort",
+                "name": "Track Title Sort Order",
+                "mp3": "TSOT",
+                "vorbis": "TITLESORT",
+                "m4a": "sonm"
+        },
+        {
+                "internalname": "work",
+                "name": "Work Title",
+                "mp3": "TIT1",
+                "vorbis": "WORK",
+                "m4a": "©wrk"
+        },
+        {
+                "internalname": "artist",
+                "name": "Artist",
+                "mp3": "TPE1",
+                "vorbis": "ARTIST",
+                "m4a": "©ART"
+        },
+        {
+                "internalname": "artistsort",
+                "name": "Artist Sort Order",
+                "mp3": "TSOP",
+                "vorbis": "ARTISTSORT",
+                "m4a": "soar"
+        },
+        {
+                "internalname": "albumartist",
+                "name": "Album Artist",
+                "mp3": "TPE2",
+                "vorbis": "ALBUMARTIST",
+                "m4a": "aART"
+        },
+        {
+                "internalname": "albumartistsort",
+                "name": "Album Artist Sort Order",
+                "mp3": "TSO2",
+                "vorbis": "ALBUMARTISTSORT",
+                "m4a": "soaa"
+        },
+        {
+                "internalname": "artists",
+                "name": "Artists",
+                "mp3": "TXXX:Artists",
+                "vorbis": "ARTISTS",
+                "m4a": "----:com.apple.iTunes:ARTISTS"
+        },
+        {
+                "internalname": "date",
+                "name": "Release Date",
+                "mp3": "TDRC",
+                "vorbis": "DATE",
+                "m4a": "©day"
+        },
+        {
+                "internalname": "originalalbum",
+                "name": "Original Album",
+                "mp3": "TOAL",
+                "vorbis": None,
+                "m4a": None
+        },
+        {
+                "internalname": "originalartist",
+                "name": "Original Artist",
+                "mp3": "TOPE",
+                "vorbis": None,
+                "m4a": None
+        },
+        {
+                "internalname": "originaldate",
+                "name": "Original Release Date",
+                "mp3": "TDOR",
+                "vorbis": "ORIGINALDATE",
+                "m4a": None
+        },
+        {
+                "internalname": "originalyear",
+                "name": "Original Release Year",
+                "mp3": None,
+                "vorbis": "ORIGINALYEAR",
+                "m4a": None
+        },
+        {
+                "internalname": "originalfilename",
+                "name": "Original Filename",
+                "mp3": "TOFN",
+                "vorbis": "ORIGINALFILENAME",
+                "m4a": None
+        },
+        {
+                "internalname": "composer",
+                "name": "Composer",
+                "mp3": "TCOM",
+                "vorbis": "COMPOSER",
+                "m4a": "©wrt"
+        },
+        {
+                "internalname": "composersort",
+                "name": "Composer Sort Order",
+                "mp3": "TSOC",
+                "vorbis": "COMPOSERSORT",
+                "m4a": "soco"
+        },
+        {
+                "internalname": "lyricist",
+                "name": "Lyricist",
+                "mp3": "TEXT",
+                "vorbis": "LYRICIST",
+                "m4a": "----:com.apple.iTunes:LYRICIST"
+        },
+        {
+                "internalname": "writer",
+                "name": "Writer",
+                "mp3": "TXXX:Writer",
+                "vorbis": "WRITER",
+                "m4a": ""
+        },
+        {
+                "internalname": "conductor",
+                "name": "Conductor",
+                "mp3": "TPE3",
+                "vorbis": "CONDUCTOR",
+                "m4a": "----:com.apple.iTunes:CONDUCTOR"
+        },
+        {
+                "internalname": "performer:instrument",
+                "name": "Performer [instrument]",
+                "mp3": "TMCL:instrument",
+                "vorbis": "PERFORMER={artist} (instrument)",
+                "m4a": ""
+        },
+        {
+                "internalname": "remixer",
+                "name": "Remixer",
+                "mp3": "TPE4",
+                "vorbis": "REMIXER",
+                "m4a": "----:com.apple.iTunes:REMIXER"
+        },
+        {
+                "internalname": "arranger",
+                "name": "Arranger",
+                "mp3": "TIPL:arranger",
+                "vorbis": "ARRANGER",
+                "m4a": ""
+        },
+        {
+                "internalname": "engineer",
+                "name": "Engineer",
+                "mp3": "TIPL:engineer",
+                "vorbis": "ENGINEER",
+                "m4a": "----:com.apple.iTunes:ENGINEER"
+        },
+        {
+                "internalname": "producer",
+                "name": "Producer",
+                "mp3": "TIPL:producer",
+                "vorbis": "PRODUCER",
+                "m4a": "----:com.apple.iTunes:PRODUCER"
+        },
+        {
+                "internalname": "djmixer",
+                "name": "Mix-DJ",
+                "mp3": "TIPL:DJ-mix",
+                "vorbis": "DJMIXER",
+                "m4a": "----:com.apple.iTunes:DJMIXER"
+        },
+        {
+                "internalname": "mixer",
+                "name": "Mixer",
+                "mp3": "TIPL:mix",
+                "vorbis": "MIXER",
+                "m4a": "----:com.apple.iTunes:MIXER"
+        },
+        {
+                "internalname": "label",
+                "name": "Record Label",
+                "mp3": "TPUB",
+                "vorbis": "LABEL",
+                "m4a": "----:com.apple.iTunes:LABEL"
+        },
+        {
+                "internalname": "movement",
+                "name": "Movement",
+                "mp3": "MVNM",
+                "vorbis": "MOVEMENTNAME",
+                "m4a": "©mvn"
+        },
+        {
+                "internalname": "movementnumber",
+                "name": "Movement Number",
+                "mp3": "MVIN",
+                "vorbis": "MOVEMENT",
+                "m4a": "mvi"
+        },
+        {
+                "internalname": "movementtotal",
+                "name": "Movement Count",
+                "mp3": "MVIN",
+                "vorbis": "MOVEMENTTOTAL",
+                "m4a": "mvc"
+        },
+        {
+                "internalname": "showmovement",
+                "name": "Show Work & Movement",
+                "mp3": "TXXX:SHOWMOVEMENT",
+                "vorbis": "SHOWMOVEMENT",
+                "m4a": "shwm"
+        },
+        {
+                "internalname": "grouping",
+                "name": "Grouping",
+                "mp3": "GRP1",
+                "vorbis": "GROUPING",
+                "m4a": "©grp"
+        },
+        {
+                "internalname": "subtitle",
+                "name": "Subtitle",
+                "mp3": "TIT3",
+                "vorbis": "SUBTITLE",
+                "m4a": "----:com.apple.iTunes:SUBTITLE"
+        },
+        {
+                "internalname": "discsubtitle",
+                "name": "Disc Subtitle",
+                "mp3": "TSST",
+                "vorbis": "DISCSUBTITLE",
+                "m4a": "----:com.apple.iTunes:DISCSUBTITLE"
+        },
+        {
+                "internalname": "tracknumber",
+                "name": "Track Number",
+                "mp3": "TRCK",
+                "vorbis": "TRACKNUMBER",
+                "m4a": "trkn"
+        },
+        {
+                "internalname": "totaltracks",
+                "name": "Total Tracks",
+                "mp3": "TRCK",
+                "vorbis": "TRACKTOTAL and TOTALTRACKS",
+                "m4a": "trkn"
+        },
+        {
+                "internalname": "discnumber",
+                "name": "Disc Number",
+                "mp3": "TPOS",
+                "vorbis": "DISCNUMBER",
+                "m4a": "disk"
+        },
+        {
+                "internalname": "totaldiscs",
+                "name": "Total Discs",
+                "mp3": "TPOS",
+                "vorbis": "DISCTOTAL and TOTALDISCS",
+                "m4a": "disk"
+        },
+        {
+                "internalname": "compilation",
+                "name": "Compilation (iTunes)",
+                "mp3": "TCMP",
+                "vorbis": "COMPILATION",
+                "m4a": "cpil"
+        },
+        {
+                "internalname": "comment:description",
+                "name": "Comment",
+                "mp3": "COMM:description",
+                "vorbis": "COMMENT",
+                "m4a": "©cmt"
+        },
+        {
+                "internalname": "genre",
+                "name": "Genre",
+                "mp3": "TCON",
+                "vorbis": "GENRE",
+                "m4a": "©gen"
+        },
+        {
+                "internalname": "_rating",
+                "name": "Rating",
+                "mp3": "POPM",
+                "vorbis": "RATING:user@email",
+                "m4a": None
+        },
+        {
+                "internalname": "bpm",
+                "name": "BPM",
+                "mp3": "TBPM",
+                "vorbis": "BPM",
+                "m4a": "tmpo"
+        },
+        {
+                "internalname": "mood",
+                "name": "Mood",
+                "mp3": "TMOO",
+                "vorbis": "MOOD",
+                "m4a": "----:com.apple.iTunes:MOOD"
+        },
+        {
+                "internalname": "lyrics:description",
+                "name": "Lyrics",
+                "mp3": "USLT:description",
+                "vorbis": "LYRICS",
+                "m4a": "©lyr"
+        },
+        {
+                "internalname": "media",
+                "name": "Media",
+                "mp3": "TMED",
+                "vorbis": "MEDIA",
+                "m4a": "----:com.apple.iTunes:MEDIA"
+        },
+        {
+                "internalname": "catalognumber",
+                "name": "Catalog Number",
+                "mp3": "TXXX:CATALOGNUMBER",
+                "vorbis": "CATALOGNUMBER",
+                "m4a": "----:com.apple.iTunes:CATALOGNUMBER"
+        },
+        {
+                "internalname": "show",
+                "name": "Show Name",
+                "mp3": None,
+                "vorbis": None,
+                "m4a": "tvsh"
+        },
+        {
+                "internalname": "showsort",
+                "name": "Show Name Sort Order",
+                "mp3": None,
+                "vorbis": None,
+                "m4a": "sosn"
+        },
+        {
+                "internalname": "podcast",
+                "name": "Podcast",
+                "mp3": None,
+                "vorbis": None,
+                "m4a": "pcst"
+        },
+        {
+                "internalname": "podcasturl",
+                "name": "Podcast URL",
+                "mp3": None,
+                "vorbis": None,
+                "m4a": "purl"
+        },
+        {
+                "internalname": "releasestatus",
+                "name": "Release Status",
+                "mp3": "TXXX:MusicBrainz Album Status",
+                "vorbis": "RELEASESTATUS",
+                "m4a": "----:com.apple.iTunes:MusicBrainz Album Status"
+        },
+        {
+                "internalname": "releasetype",
+                "name": "Release Type",
+                "mp3": "TXXX:MusicBrainz Album Type",
+                "vorbis": "RELEASETYPE",
+                "m4a": "----:com.apple.iTunes:MusicBrainz Album Type"
+        },
+        {
+                "internalname": "releasecountry",
+                "name": "Release Country",
+                "mp3": "TXXX:MusicBrainz Album Release Country",
+                "vorbis": "RELEASECOUNTRY",
+                "m4a": "----:com.apple.iTunes:MusicBrainz Album Release Country"
+        },
+        {
+                "internalname": "script",
+                "name": "Script",
+                "mp3": "TXXX:SCRIPT",
+                "vorbis": "SCRIPT",
+                "m4a": "----:com.apple.iTunes:SCRIPT"
+        },
+        {
+                "internalname": "language",
+                "name": "Language",
+                "mp3": "TLAN",
+                "vorbis": "LANGUAGE",
+                "m4a": "----:com.apple.iTunes:LANGUAGE"
+        },
+        {
+                "internalname": "copyright",
+                "name": "Copyright",
+                "mp3": "TCOP",
+                "vorbis": "COPYRIGHT",
+                "m4a": "cprt"
+        },
+        {
+                "internalname": "license",
+                "name": "License",
+                "mp3": "WCOP",
+                "vorbis": "LICENSE",
+                "m4a": "----:com.apple.iTunes:LICENSE"
+        },
+        {
+                "internalname": "encodedby",
+                "name": "Encoded By",
+                "mp3": "TENC",
+                "vorbis": "ENCODEDBY",
+                "m4a": "©too"
+        },
+        {
+                "internalname": "encodersettings",
+                "name": "Encoder Settings",
+                "mp3": "TSSE",
+                "vorbis": "ENCODERSETTINGS",
+                "m4a": None
+        },
+        {
+                "internalname": "gapless",
+                "name": "Gapless Playback",
+                "mp3": None,
+                "vorbis": None,
+                "m4a": "pgap"
+        },
+        {
+                "internalname": "barcode",
+                "name": "Barcode",
+                "mp3": "TXXX:BARCODE",
+                "vorbis": "BARCODE",
+                "m4a": "----:com.apple.iTunes:BARCODE"
+        },
+        {
+                "internalname": "isrc",
+                "name": "ISRC",
+                "mp3": "TSRC",
+                "vorbis": "ISRC",
+                "m4a": "----:com.apple.iTunes:ISRC"
+        },
+        {
+                "internalname": "asin",
+                "name": "ASIN",
+                "mp3": "TXXX:ASIN",
+                "vorbis": "ASIN",
+                "m4a": "----:com.apple.iTunes:ASIN"
+        },
+        {
+                "internalname": "musicbrainz_recordingid",
+                "name": "MusicBrainz Recording Id",
+                "mp3": "UFID://musicbrainz.org",
+                "vorbis": "MUSICBRAINZ_TRACKID",
+                "m4a": "----:com.apple.iTunes:MusicBrainz Track Id"
+        },
+        {
+                "internalname": "musicbrainz_trackid",
+                "name": "MusicBrainz Track Id",
+                "mp3": "TXXX:MusicBrainz Release Track Id",
+                "vorbis": "MUSICBRAINZ_RELEASETRACKID",
+                "m4a": "----:com.apple.iTunes:MusicBrainz Release Track Id"
+        },
+        {
+                "internalname": "musicbrainz_albumid",
+                "name": "MusicBrainz Release Id",
+                "mp3": "TXXX:MusicBrainz Album Id",
+                "vorbis": "MUSICBRAINZ_ALBUMID",
+                "m4a": "----:com.apple.iTunes:MusicBrainz Album Id"
+        },
+        {
+                "internalname": "musicbrainz_originalalbumid",
+                "name": "MusicBrainz Original Release Id",
+                "mp3": "TXXX:MusicBrainz Original Album Id",
+                "vorbis": "MUSICBRAINZ_ORIGINALALBUMID",
+                "m4a": "----:com.apple.iTunes:MusicBrainz Original Album Id"
+        },
+        {
+                "internalname": "musicbrainz_artistid",
+                "name": "MusicBrainz Artist Id",
+                "mp3": "TXXX:MusicBrainz Artist Id",
+                "vorbis": "MUSICBRAINZ_ARTISTID",
+                "m4a": "----:com.apple.iTunes:MusicBrainz Artist Id"
+        },
+        {
+                "internalname": "musicbrainz_originalartistid",
+                "name": "MusicBrainz Original Artist Id",
+                "mp3": "TXXX:MusicBrainz Original Artist Id",
+                "vorbis": "MUSICBRAINZ_ORIGINALARTISTID",
+                "m4a": "----:com.apple.iTunes:MusicBrainz Original Artist Id"
+        },
+        {
+                "internalname": "musicbrainz_albumartistid",
+                "name": "MusicBrainz Release Artist Id",
+                "mp3": "TXXX:MusicBrainz Album Artist Id",
+                "vorbis": "MUSICBRAINZ_ALBUMARTISTID",
+                "m4a": "----:com.apple.iTunes:MusicBrainz Album Artist Id"
+        },
+        {
+                "internalname": "musicbrainz_releasegroupid",
+                "name": "MusicBrainz Release Group Id",
+                "mp3": "TXXX:MusicBrainz Release Group Id",
+                "vorbis": "MUSICBRAINZ_RELEASEGROUPID",
+                "m4a": "----:com.apple.iTunes:MusicBrainz Release Group Id"
+        },
+        {
+                "internalname": "musicbrainz_workid",
+                "name": "MusicBrainz Work Id",
+                "mp3": "TXXX:MusicBrainz Work Id",
+                "vorbis": "MUSICBRAINZ_WORKID",
+                "m4a": "----:com.apple.iTunes:MusicBrainz Work Id"
+        },
+        {
+                "internalname": "musicbrainz_trmid",
+                "name": "MusicBrainz TRM Id",
+                "mp3": "TXXX:MusicBrainz TRM Id",
+                "vorbis": "MUSICBRAINZ_TRMID",
+                "m4a": "----:com.apple.iTunes:MusicBrainz TRM Id"
+        },
+        {
+                "internalname": "musicbrainz_discid",
+                "name": "MusicBrainz Disc Id",
+                "mp3": "TXXX:MusicBrainz Disc Id",
+                "vorbis": "MUSICBRAINZ_DISCID",
+                "m4a": "----:com.apple.iTunes:MusicBrainz Disc Id"
+        },
+        {
+                "internalname": "acoustid_id",
+                "name": "AcoustID",
+                "mp3": "TXXX:Acoustid Id",
+                "vorbis": "ACOUSTID_ID",
+                "m4a": "----:com.apple.iTunes:Acoustid Id"
+        },
+        {
+                "internalname": "acoustid_fingerprint",
+                "name": "AcoustID Fingerprint",
+                "mp3": "TXXX:Acoustid Fingerprint",
+                "vorbis": "ACOUSTID_FINGERPRINT",
+                "m4a": "----:com.apple.iTunes:Acoustid Fingerprint"
+        },
+        {
+                "internalname": "musicip_puid",
+                "name": "MusicIP PUID",
+                "mp3": "TXXX:MusicIP PUID",
+                "vorbis": "MUSICIP_PUID",
+                "m4a": "----:com.apple.iTunes:MusicIP PUID"
+        },
+        {
+                "internalname": "musicip_fingerprint",
+                "name": "MusicIP Fingerprint",
+                "mp3": "TXXX:MusicMagic Fingerprint",
+                "vorbis": "FINGERPRINT=MusicMagic Fingerprint",
+                "m4a": "----:com.apple.iTunes:fingerprint"
+        },
+        {
+                "internalname": "website",
+                "name": "Website (official artist website)",
+                "mp3": "WOAR",
+                "vorbis": "WEBSITE",
+                "m4a": None
+        },
+        {
+                "internalname": "key",
+                "name": "Initial key",
+                "mp3": "TKEY",
+                "vorbis": "KEY",
+                "m4a": "----:com.apple.iTunes:initialkey"
+        },
+        {
+                "internalname": "replaygain_album_gain",
+                "name": "ReplayGain Album Gain",
+                "mp3": "TXXX:REPLAYGAIN_ALBUM_GAIN",
+                "vorbis": "REPLAYGAIN_ALBUM_GAIN",
+                "m4a": "----:com.apple.iTunes:REPLAYGAIN_ALBUM_GAIN"
+        },
+        {
+                "internalname": "replaygain_album_peak",
+                "name": "ReplayGain Album Peak",
+                "mp3": "TXXX:REPLAYGAIN_ALBUM_PEAK",
+                "vorbis": "REPLAYGAIN_ALBUM_PEAK",
+                "m4a": "----:com.apple.iTunes:REPLAYGAIN_ALBUM_PEAK"
+        },
+        {
+                "internalname": "replaygain_album_range",
+                "name": "ReplayGain Album Range",
+                "mp3": "TXXX:REPLAYGAIN_ALBUM_RANGE",
+                "vorbis": "REPLAYGAIN_ALBUM_RANGE",
+                "m4a": "----:com.apple.iTunes:REPLAYGAIN_ALBUM_RANGE"
+        },
+        {
+                "internalname": "replaygain_track_gain",
+                "name": "ReplayGain Track Gain",
+                "mp3": "TXXX:REPLAYGAIN_TRACK_GAIN",
+                "vorbis": "REPLAYGAIN_TRACK_GAIN",
+                "m4a": "----:com.apple.iTunes:REPLAYGAIN_TRACK_GAIN"
+        },
+        {
+                "internalname": "replaygain_track_peak",
+                "name": "ReplayGain Track Peak",
+                "mp3": "TXXX:REPLAYGAIN_TRACK_PEAK",
+                "vorbis": "REPLAYGAIN_TRACK_PEAK",
+                "m4a": "----:com.apple.iTunes:REPLAYGAIN_TRACK_PEAK"
+        },
+        {
+                "internalname": "replaygain_track_range",
+                "name": "ReplayGain Track Range",
+                "mp3": "TXXX:REPLAYGAIN_TRACK_RANGE",
+                "vorbis": "REPLAYGAIN_TRACK_RANGE",
+                "m4a": "----:com.apple.iTunes:REPLAYGAIN_TRACK_RANGE"
+        },
+        {
+                "internalname": "replaygain_reference_loudness",
+                "name": "ReplayGain Reference Loudness",
+                "mp3": "TXXX:REPLAYGAIN_REFERENCE_LOUDNESS",
+                "vorbis": None,
+                "m4a": None
+        }
+    ]
+
+    return
