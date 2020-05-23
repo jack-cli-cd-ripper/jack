@@ -97,6 +97,9 @@ def tag(metadata_rename):
             sys.stdout.write(".")
             sys.stdout.flush()
 
+            track_position = i[NUM]
+            track_count = len(jack.ripstuff.all_tracks_orig)
+
             all_exts = [ext,]
             for check_ext in all_targets:
                 check_ext = "." + check_ext
@@ -117,11 +120,12 @@ def tag(metadata_rename):
                 t_name = track_names[i[NUM]][1]
                 if not cf['_only_dae'] and cf['_set_tag']:
                     if target == "mp3":
-                        track_info = "%s/%s" % (i[NUM], len(jack.ripstuff.all_tracks_orig))
-                        disc_info = "%s/%s" % (medium_position, medium_count)
+                        track_info = "%s/%s" % (track_position, track_count)
+                        medium_info = "%s/%s" % (medium_position, medium_count)
                         audio = mp3.MP3(encname)
-                        if audio.tags is None:
+                        if audio.tags == None:
                             audio.add_tags()
+                        # FIXME delete old tags
                         tags = audio.tags
                         if not cf['_various']:
                             tags.add(id3.TPE2(encoding=3, text=a_artist))
@@ -134,59 +138,53 @@ def tag(metadata_rename):
                             tags.add(id3.TDRL(encoding=3, text=cf['_year']))
                         tags.add(id3.TRCK(encoding=3, text=track_info))
                         if medium_tagging:
-                            tags.add(id3.TPOS(encoding=3, text=disc_info))
+                            tags.add(id3.TPOS(encoding=3, text=medium_info))
                         audio.save()
-                    elif target == "flac" or target == "ogg":
+                    elif target == "flac" or target == "ogg":   # both vorbis tags
                         if target == "flac":
                             f = flac.FLAC(encname)
                         elif target == "ogg":
                             f = oggvorbis.OggVorbis(encname)
-                        if f.tags is None:
+                        if f.tags == None:
                             f.add_vorbiscomment()
+                        # delete old tags
+                        for tag in f.tags:
+                            del tag
                         if not cf['_various']:
                             f.tags['ALBUMARTIST'] = a_artist
-                        elif 'ALBUMARTIST' in f.tags:
-                            del f.tags['ALBUMARTIST']
                         f.tags['ARTIST'] = t_artist
                         f.tags['ALBUM'] = a_title
                         f.tags['TITLE'] = t_name
                         if cf['_genre']:
                             f.tags['GENRE'] = cf['_genre']
-                        elif 'GENRE' in f.tags:
-                            del f.tags['GENRE']
                         if cf['_year']:
                             f.tags['DATE'] = cf['_year']
-                        elif 'DATE' in f.tags:
-                            del f.tags['DATE']
-                        f.tags['TRACKNUMBER'] = str(i[NUM])
-                        f.tags['TRACKTOTAL'] = str(len(jack.ripstuff.all_tracks_orig))
+                        f.tags['TRACKNUMBER'] = str(track_position)
+                        f.tags['TRACKTOTAL'] = str(track_count)
                         if medium_tagging:
                             f.tags['DISCNUMBER'] = str(medium_position)
                             if medium_count:
                                 f.tags['DISCTOTAL'] = str(medium_count)
                         if cf['_various']:
                             f.tags['COMPILATION'] = "1"
-                        elif 'COMPILATION' in f.tags:
-                            del f.tags['COMPILATION']
                         f.save()
                     elif target == "m4a":
                         m4a = mp4.MP4(encname)
+                        # delete old tags
+                        keeptags = ['©too', '----:com.apple.iTunes:iTunSMPB'] # set by fdkaac
+                        for tag in m4a.tags:
+                            if tag not in keeptags:
+                                del tag
                         if not cf['_various']:
                             m4a.tags['aART'] = [a_artist]
-                        elif 'aART' in m4a.tags:
-                            del m4a.tags['aART']
                         m4a.tags['©ART'] = [t_artist]
                         m4a.tags['©alb'] = [a_title]
                         m4a.tags['©nam'] = [t_name]
                         if cf['_genre']:
                             m4a.tags['©gen'] = [cf['_genre']]
-                        elif '©gen' in m4a.tags:
-                            del m4a.tags['©gen']
                         if cf['_year']:
                             m4a.tags['©day'] = [cf['_year']]
-                        elif '©day' in m4a.tags:
-                            del m4a.tags['©day']
-                        m4a.tags['trkn'] = [(i[NUM], len(jack.ripstuff.all_tracks_orig))]
+                        m4a.tags['trkn'] = [(track_position, track_count)]
                         if medium_tagging:
                             m4a.tags['disk'] = [(medium_position, medium_count)]
                         m4a.tags['cpil'] = bool(cf['_various'])
