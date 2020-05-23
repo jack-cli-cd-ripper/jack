@@ -147,9 +147,7 @@ def tag(metadata_rename):
                             f = oggvorbis.OggVorbis(encname)
                         if f.tags == None:
                             f.add_vorbiscomment()
-                        # delete old tags
-                        for tag in f.tags:
-                            del tag
+                        f.delete() # delete old tags
                         if not cf['_various']:
                             f.tags['ALBUMARTIST'] = a_artist
                         f.tags['ARTIST'] = t_artist
@@ -172,9 +170,9 @@ def tag(metadata_rename):
                         m4a = mp4.MP4(encname)
                         # delete old tags
                         keeptags = ['©too', '----:com.apple.iTunes:iTunSMPB'] # set by fdkaac
-                        for tag in m4a.tags:
+                        for tag in list(m4a.tags):
                             if tag not in keeptags:
-                                del tag
+                                m4a.tags.pop(tag)
                         if not cf['_various']:
                             m4a.tags['aART'] = [a_artist]
                         m4a.tags['©ART'] = [t_artist]
