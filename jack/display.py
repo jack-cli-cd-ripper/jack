@@ -49,8 +49,7 @@ def init():
     global discname
     global old_tc
 
-    global_total = jack.functions.tracksize(
-        jack.ripstuff.all_tracks_todo_sorted)[jack.functions.BLOCKS]
+    global_total = jack.functions.tracksize(jack.ripstuff.all_tracks_todo_sorted)[jack.functions.BLOCKS]
 
     api = jack.metadata.get_metadata_api(cf['_metadata_server'])
     cd_id = jack.metadata.metadata_id(jack.ripstuff.all_tracks)

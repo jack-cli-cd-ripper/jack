@@ -90,8 +90,7 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
             this_is_ok = 1
             if pause:
                 this_is_ok = 0
-                jack.status.dae_stat_upd(
-                    dae_queue[0][NUM], "Paused. Press 'c' to continue.")
+                jack.status.dae_stat_upd(dae_queue[0][NUM], "Paused. Press 'c' to continue.")
             elif cf['_rip_from_device']:
                 all_tracks_on_cd = jack.functions.gettoc(cf['_toc_prog'])
                 if not jack.utils.cmp_toc_cd(jack.ripstuff.all_tracks_orig, all_tracks_on_cd, what=(NUM, LEN)):
@@ -357,8 +356,7 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
                             space = space + jack.functions.tracksize(track)[WAV]
 
                 else:
-                    error(
-                        "child process of unknown type (" + exited_proc['type'] + ") exited")
+                    error("child process of unknown type (" + exited_proc['type'] + ") exited")
                 if global_error:
                     jack.display.smile = " :-["
 
@@ -393,8 +391,7 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
                         i['percent'] = tmp_d['percent']
                         if i['percent'] > 0:
                             i['elapsed'] = time.time() - i['start_time']
-                            speed = ((i['track'][LEN] / float(CDDA_BLOCKS_PER_SECOND)) * (
-                                i['percent'] // 100)) // i['elapsed']
+                            speed = ((i['track'][LEN] / float(CDDA_BLOCKS_PER_SECOND)) * (i['percent'] // 100)) // i['elapsed']
                             eta = (100 - i['percent']) * i['elapsed'] // i['percent']
                             eta_ms = "%02i:%02i" % (eta // 60, eta % 60)
                             jack.status.enc_stat_upd(i['track'][NUM], '%2i%% done, ETA:%6s, %sx' % (i['percent'], eta_ms, jack.functions.pprint_speed(speed)))

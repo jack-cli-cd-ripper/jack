@@ -95,8 +95,7 @@ def enable():
     stdscr.leaveok(0)
 
     # build the pad
-    pad_height, pad_width = len(
-        jack.ripstuff.all_tracks_todo_sorted), jack.ripstuff.max_name_len + 72
+    pad_height, pad_width = len(jack.ripstuff.all_tracks_todo_sorted), jack.ripstuff.max_name_len + 72
     status_pad = newpad(pad_height, pad_width)
     usage_win = newwin(usage_win_height, usage_win_width, 0, 0)
     map_track_num = {}

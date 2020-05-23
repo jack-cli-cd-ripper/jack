@@ -128,8 +128,7 @@ def consistency_check(cf):
             elif type(r) == str:
                 r = r + r[-1]
             else:
-                error("unsupported type: " + repr(type(
-                    cf['replacement_chars']['val'][-1])))
+                error("unsupported type: " + repr(type(cf['replacement_chars']['val'][-1])))
         cf.rupdate({'replacement_chars': {'val': r}}, "check")
         del u, r
     elif len(cf['_replacement_chars']) > len(cf['_unusable_chars']):

@@ -107,8 +107,7 @@ def find_workdir():
             for i in dirs:
                 if os.path.exists(os.path.join(i, cf['_toc_file'])):
                     jack_dirs.append(i)
-                    file_toc, dummy, dummy = jack.functions.cdrdao_gettoc(
-                        os.path.join(i, cf['_toc_file']))
+                    file_toc, dummy, dummy = jack.functions.cdrdao_gettoc(os.path.join(i, cf['_toc_file']))
                     if jack.metadata.metadata_id(jack.ripstuff.all_tracks) == jack.metadata.metadata_id(file_toc):
                         possible_dirs.append(i)
 
@@ -150,8 +149,7 @@ def find_workdir():
                     unique_dirs.append(possible_dirs[i])
                     info("matching dir found: " + possible_dirs[i])
             if len(unique_dirs) > 1:
-                error(
-                    "found more than one workdir, change to the correct one.")
+                error("found more than one workdir, change to the correct one.")
             elif len(unique_dirs) == 1:
                 os.chdir(unique_dirs[0])
             else:
@@ -189,8 +187,7 @@ def check_toc():
     if cf['_check_toc']:
         cd_toc = jack.functions.gettoc(cf['_toc_prog'])
         if os.path.exists(cf['_toc_file']):
-            file_toc, dummy, dummy = jack.functions.cdrdao_gettoc(
-                cf['_toc_file'])
+            file_toc, dummy, dummy = jack.functions.cdrdao_gettoc(cf['_toc_file'])
         else:
             print("no toc-file named " + cf['_toc_file'] + " found, exiting.")
             jack.display.exit()
@@ -766,8 +763,7 @@ def check_space(space, wavs_todo, mp3s_todo):
             else:
                 will_work = 0
                 # this is quite dirty
-                space_needed = jack.functions.tracksize(
-                    i)[ENC] - space + freeable_space
+                space_needed = jack.functions.tracksize(i)[ENC] - space + freeable_space
                 break
 
     if (space + freeable_space < space_needed or not will_work) and not cf['_dont_work']:

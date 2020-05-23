@@ -84,8 +84,7 @@ def freedb_template(tracks, names=""):
     f.write("# xmcd CD database file\n#\n# Track frame offsets:\n")
     for i in tracks:
         f.write("#       " + repr(i[START] + MSF_OFFSET) + "\n")
-    f.write("#\n# Disc length: " + repr(
-            (MSF_OFFSET + tracks[-1][START] + tracks[-1][LEN]) // CDDA_BLOCKS_PER_SECOND))
+    f.write("#\n# Disc length: " + repr((MSF_OFFSET + tracks[-1][START] + tracks[-1][LEN]) // CDDA_BLOCKS_PER_SECOND))
     f.write(" seconds\n#\n# Revision: 0\n")
     f.write("# Submitted via: " + prog_name + " " + prog_version + "\n#\n")
     f.write("DISCID=" + jack.metadata.metadata_id(tracks)['cddb'] + "\n")

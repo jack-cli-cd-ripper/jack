@@ -226,11 +226,9 @@ def tag(metadata_rename):
                                         print('NOT renaming "' + othername + '" to "' + newname + e + '" because dest. exists.')
                                     else:
                                         os.rename(othername, newname + e)
-                        jack.functions.progress(
-                            i[NUM], "ren", "%s-->%s" % (i[NAME], u_newname))
+                        jack.functions.progress(i[NUM], "ren", "%s-->%s" % (i[NAME], u_newname))
                     elif cf['_silent_mode']:
-                        jack.functions.progress(
-                            i[NUM], "err", "while renaming track")
+                        jack.functions.progress(i[NUM], "err", "while renaming track")
         print()
 
     if not cf['_silent_mode']:
