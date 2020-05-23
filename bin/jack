@@ -153,8 +153,8 @@ if cf['_query_on_start']:
 ### update metadata dbfile
 if cf['_update_metadata']:
     if not jack.tag.track_names:
-        err, jack.tag.track_names, jack.tag.locale_names, metadata_rename, revision = jack.metadata.interpret_db_file(jack.ripstuff.all_tracks, todo, metadata_form_file, verb = 1, dirs = 0)
-    jack.metadata.metadata_template(jack.ripstuff.all_tracks, jack.tag.track_names, revision + 1)
+        err, jack.tag.track_names, metadata_rename = jack.metadata.interpret_db_file(jack.ripstuff.all_tracks, todo, metadata_form_file, verb = 1, dirs = 0)
+    jack.metadata.metadata_template(jack.ripstuff.all_tracks, jack.tag.track_names)
     jack.utils.ex_edit(metadata_form_file)
     info("Don't forget to activate your changes locally with -R")
     sys.exit(0)
@@ -255,7 +255,7 @@ if cf['_query_when_ready']:
         jack.display.exit()
 
 if cf['_query_when_ready'] or cf['_read_metadata_file'] or cf['_query_on_start']:
-    err, jack.tag.track_names, jack.tag.locale_names, metadata_rename, revision = jack.metadata.interpret_db_file(jack.ripstuff.all_tracks, todo, metadata_form_file, verb = 1, dirs = 1)
+    err, jack.tag.track_names, metadata_rename = jack.metadata.interpret_db_file(jack.ripstuff.all_tracks, todo, metadata_form_file, verb = 1, dirs = 1)
     if err:
         error("could not read metadata file")
 
