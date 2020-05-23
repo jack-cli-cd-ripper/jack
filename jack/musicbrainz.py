@@ -34,7 +34,7 @@ from jack.globals import *
 import musicbrainzngs
 
 
-def musicbrainz_template(tracks, names="", revision=0):
+def musicbrainz_template(tracks, names=""):
     "for now no need to create musicbrainz templates"
     pass
 
@@ -120,9 +120,7 @@ def musicbrainz_query(cd_id, tracks, file):
 
 
 def musicbrainz_names(cd_id, tracks, todo, name, verb=0, warn=1):
-    "returns err, [(artist, albumname), (track_01-artist, track_01-name), ...], cd_id, revision"
-
-    revision = 0    # FreeDB specific
+    "returns err, [(artist, albumname), (track_01-artist, track_01-name), ...], cd_id"
 
     err = 0
 
@@ -176,6 +174,4 @@ def musicbrainz_names(cd_id, tracks, todo, name, verb=0, warn=1):
         print("error interpreting musicbrainz result")
         err = 1
 
-    locale_names = names
-
-    return err, names, locale_names, read_id, revision
+    return err, names, read_id

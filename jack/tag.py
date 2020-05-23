@@ -19,7 +19,6 @@
 
 import os
 import sys
-import locale
 import re
 
 import jack.functions
@@ -39,7 +38,6 @@ from jack.init import mp4
 from jack.globals import *
 
 track_names = None
-locale_names = None
 
 a_artist = None
 a_title = None

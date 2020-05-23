@@ -38,5 +38,3 @@ def debug(x):
     jack.generic.warning(x)
 """
 
-# globals
-revision = 0                        # initial revision of freedb data

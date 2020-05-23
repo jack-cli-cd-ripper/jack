@@ -74,10 +74,10 @@ def interpret_db_file(all_tracks, todo, metadata_form_file, verb, dirs=0, warn=N
     global names_available, dir_created
     metadata_rename = 0
     if warn == None:
-        err, track_names, locale_names, cd_id, revision = metadata_names(
+        err, track_names, cd_id = metadata_names(
             metadata_id(all_tracks), all_tracks, todo, metadata_form_file, verb=verb)
     else:
-        err, track_names, locale_names, cd_id, revision = metadata_names(
+        err, track_names, cd_id = metadata_names(
             metadata_id(all_tracks), all_tracks, todo, metadata_form_file, verb=verb, warn=warn)
     if (not err) and dirs:
         metadata_rename = 1
@@ -141,7 +141,7 @@ def interpret_db_file(all_tracks, todo, metadata_form_file, verb, dirs=0, warn=N
         names_available = 1
     else:
         metadata_rename = 0
-    return err, track_names, locale_names, metadata_rename, revision
+    return err, track_names, metadata_rename
 # / end of interpret_db_file /#
 
 
@@ -166,12 +166,12 @@ def metadata_id(tracks, warn=0):
     return cd_id
 
 
-def metadata_template(tracks, names="", revision=0):
+def metadata_template(tracks, names=""):
     api = get_metadata_api(cf['_metadata_server'])
     if api == 'cddb':
-        return jack.freedb.freedb_template(tracks, names="", revision=0)
+        return jack.freedb.freedb_template(tracks, names="")
     elif api == 'musicbrainzngs':
-        return jack.musicbrainz.musicbrainz_template(tracks, names="", revision=0)
+        return jack.musicbrainz.musicbrainz_template(tracks, names="")
     else:
         error("unknown api %s", api)
 

@@ -21,7 +21,6 @@ import urllib.request, urllib.parse, urllib.error
 import string
 import sys
 import os
-import locale
 import re
 
 import jack.functions
@@ -76,7 +75,7 @@ def freedb_split(field, s, max=78):
     return x + s + "\n"
 
 
-def freedb_template(tracks, names="", revision=0):
+def freedb_template(tracks, names=""):
     "generate a freedb submission template"
     form_file = jack.metadata.get_metadata_form_file(jack.metadata.get_metadata_api(cf['_metadata_server']))
     if os.path.exists(form_file):
@@ -87,7 +86,7 @@ def freedb_template(tracks, names="", revision=0):
         f.write("#       " + repr(i[START] + MSF_OFFSET) + "\n")
     f.write("#\n# Disc length: " + repr(
             (MSF_OFFSET + tracks[-1][START] + tracks[-1][LEN]) // CDDA_BLOCKS_PER_SECOND))
-    f.write(" seconds\n#\n# Revision: %i\n" % revision)
+    f.write(" seconds\n#\n# Revision: 0\n")
     f.write("# Submitted via: " + prog_name + " " + prog_version + "\n#\n")
     f.write("DISCID=" + jack.metadata.metadata_id(tracks)['cddb'] + "\n")
     if names:
@@ -254,7 +253,7 @@ def freedb_query(cd_ids, tracks, file):
 
 
 def freedb_names(cd_ids, tracks, todo, name, verb=0, warn=1):
-    "returns err, [(artist, albumname), (track_01-artist, track_01-name), ...], cd_ids, revision"
+    "returns err, [(artist, albumname), (track_01-artist, track_01-name), ...], cd_ids"
     err = 0
     tracks_on_cd = tracks[-1][NUM]
     freedb = {}
@@ -275,8 +274,6 @@ def freedb_names(cd_ids, tracks, todo, name, verb=0, warn=1):
         # cannot use rstrip, we need trailing spaces
         line = line.replace("\r", "")
         # I consider "\r"s as bugs in db info
-        if jack.functions.starts_with(line, "# Revision:"):
-            revision = int(line[11:])
         for i in ["DISCID", "DTITLE", "DYEAR", "DGENRE", "TTITLE", "EXTD", "EXTT", "PLAYORDER"]:
             if jack.functions.starts_with(line, i):
                 buf = line
@@ -553,21 +550,4 @@ def freedb_names(cd_ids, tracks, todo, name, verb=0, warn=1):
             else:
                 print("Warning: track %i (starting at 0) has no EXTT entry." % i)
 
-    locale_names = []
-    # clean up a bit and create names for the appropriate locale:
-    # FIXME: this for loop doesn't actually change the variable names at all!
-    for i in names:
-        t = []
-        for j in [0, 1]:
-            if i[j]:
-                i[j] = (i[j]).strip()
-                while (i[j]).find("    ") != -1:
-                    i[j] = (i[j]).replace("    ", " ")
-                while i[j][0] == '"' and i[j][-1] == '"':
-                    i[j] = i[j][1:-1]
-                while i[j][0] == '"' and (i[j][1:]).find('"') != -1:
-                    i[j] = (i[j][1:]).replace('"', '', 1)
-            x = i[j]
-            t.append(x)
-        locale_names.append(t)
-    return err, names, locale_names, read_id, revision
+    return err, names, read_id

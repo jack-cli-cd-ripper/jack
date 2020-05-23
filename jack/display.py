@@ -66,10 +66,10 @@ def init():
     if jack.metadata.names_available:
         jack.term.tmod.extra_lines = jack.term.tmod.extra_lines + 1
         if jack.term.term_type == "curses":
-            discname = jack.tag.locale_names[0][
-                0] + " - " + jack.tag.locale_names[0][1]
+            discname = jack.tag.track_names[0][
+                0] + " - " + jack.tag.track_names[0][1]
         else:
-            options_string = center_line(jack.tag.locale_names[0][0] + " - " + jack.tag.locale_names[0][
+            options_string = center_line(jack.tag.track_names[0][0] + " - " + jack.tag.track_names[0][
                                          1], fill="- ", fill_r=" -", width=jack.term.size_x) + "\n" + center_line(options_string, fill=" ", fill_r=" ", width=jack.term.size_x)
 
 

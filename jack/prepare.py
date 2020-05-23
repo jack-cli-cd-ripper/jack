@@ -129,7 +129,7 @@ def find_workdir():
                 for i in unique_dirs:
                     jack.ripstuff.all_tracks, dummy, track1_offset = jack.functions.cdrdao_gettoc(
                         os.path.join(i, cf['_toc_file']))
-                    err, jack.tag.track_names, jack.tag.locale_names, cd_id, revision = metadata_names(jack.metadata.metadata_id(
+                    err, jack.tag.track_names, cd_id = metadata_names(jack.metadata.metadata_id(
                         jack.ripstuff.all_tracks), jack.ripstuff.all_tracks, jack.ripstuff.all_tracks, os.path.join(i, metadata_form_file), verb=0, warn=0)
                     if err or cf['_force']:  # this means metadata is not there yet
                         info("matching dir found: %d" % i)
@@ -579,13 +579,13 @@ def query_on_start(todo):
                     print(pdiff)
 
     if cf['_query_on_start']:
-        err, jack.tag.track_names, jack.tag.locale_names, metadata_rename, revision = jack.metadata.interpret_db_file(
+        err, jack.tag.track_names, metadata_rename = jack.metadata.interpret_db_file(
             jack.ripstuff.all_tracks, todo, metadata_form_file, verb=cf['_query_on_start'], dirs=1)
         if err:
             error(
                 "query on start failed to give a good metadata file, aborting.")
     else:
-        err, jack.tag.track_names, jack.tag.locale_names, metadata_rename, revision = jack.metadata.interpret_db_file(
+        err, jack.tag.track_names, metadata_rename = jack.metadata.interpret_db_file(
             jack.ripstuff.all_tracks, todo, metadata_form_file, verb=cf['_query_on_start'], warn=cf['_query_on_start'])
         # If the metadata query failed and the metadata cannot be parsed,
         # don't tag the files.  However, if the metdata can be parsed
