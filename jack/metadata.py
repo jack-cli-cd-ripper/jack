@@ -187,13 +187,34 @@ def metadata_query(cd_id, tracks, file):
 
 
 def metadata_names(cd_id, tracks, todo, name, verb=0, warn=1):
-    api = get_metadata_api(cf['_metadata_server'])
-    if api == 'cddb':
-        return jack.freedb.freedb_names(cd_id, tracks, todo, name, verb=0, warn=1)
-    elif api == 'musicbrainzngs':
-        return jack.musicbrainz.musicbrainz_names(cd_id, tracks, todo, name, verb=0, warn=1)
+    prefer_api = get_metadata_api(cf['_metadata_server'])
+    apis = {}
+    for api in ['cddb', 'musicbrainzngs']:
+        form_file = get_metadata_form_file(api)
+        if os.path.exists(form_file):
+            mtime = os.path.getmtime(form_file)
+        else:
+            mtime = 0
+        apis[api] = {"form_file": form_file, "mtime": mtime}
+
+    if apis['cddb']['mtime'] > apis['musicbrainzngs']['mtime']:
+        newest_api = 'cddb'
     else:
-        error("unknown api %s", api)
+        newest_api = 'musicbrainzngs'
+    newest_form_file = get_metadata_form_file(newest_api)
+
+    if apis['cddb']['mtime'] and apis['musicbrainzngs']['mtime']:
+        info("Both " + apis['cddb']['form_file'] + " and " + apis['musicbrainzngs']['form_file'] +
+            " exist. Using " + get_metadata_form_file(newest_api) + " because it is newer")
+
+    if prefer_api != newest_api:
+        warning("preferred api is " + prefer_api + ", but using " + newest_form_file)
+    
+    if newest_api == 'cddb':
+        return jack.freedb.freedb_names(cd_id, tracks, todo, newest_form_file, verb=0, warn=1)
+    else:
+        return jack.musicbrainz.musicbrainz_names(cd_id, tracks, todo, newest_form_file, verb=0, warn=1)
+
 
 def split_albumtitle(album_title):
     '''split legacy album title into real album title and medium numbers and medium title, compatible to MusicBrainz'''
