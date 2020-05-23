@@ -139,11 +139,9 @@ def sig_winch_handler(sig, frame):
     resizeterm(jack.term.size_y, jack.term.size_x)
     pad_y, pad_x = pad_disp_start_y, pad_disp_start_x
     pad_start_y, pad_start_x = extra_lines - 1, 0
-    pad_end_y = min(extra_lines - 1 + pad_height,
-                    jack.term.size_y - 2 - splash_reserve)
+    pad_end_y = min(extra_lines - 1 + pad_height, jack.term.size_y - 2 - splash_reserve)
     pad_end_x = min(jack.term.size_x, pad_width) - 1
-    pad_missing_y = max(
-        pad_height - (jack.term.size_y - extra_lines - splash_reserve), 0)
+    pad_missing_y = max(pad_height - (jack.term.size_y - extra_lines - splash_reserve), 0)
     pad_missing_x = max(pad_width - jack.term.size_x, 0)
     if pad_missing_y >= pad_height:
         pad_start_y = 0
@@ -168,40 +166,29 @@ def sig_winch_handler(sig, frame):
         scroll_keys = scroll_keys + " "
     if extra_lines < jack.term.size_y:
         if jack.display.discname:
-            stdscr.addstr(
-                0, 0, (jack.display.center_line(jack.display.options_string + " [" + scroll_keys + "]", fill=" ", width=jack.term.size_x))[:jack.term.size_x], A_REVERSE)
-            stdscr.addstr(
-                1, 0, jack.display.center_line(
-                    jack.display.discname, fill="- ",
-                    fill_r=" -", width=jack.term.size_x)[:jack.term.size_x], A_REVERSE)
+            stdscr.addstr(0, 0, (jack.display.center_line(jack.display.options_string + " [" + scroll_keys + "]", fill=" ", width=jack.term.size_x))[:jack.term.size_x], A_REVERSE)
+            stdscr.addstr(1, 0, jack.display.center_line( jack.display.discname, fill="- ", fill_r=" -", width=jack.term.size_x)[:jack.term.size_x], A_REVERSE)
         else:
-            stdscr.addstr(0, 0, (jack.display.options_string + " " * (jack.term.size_x - len(
-                jack.display.options_string) - (0 + 4)) + scroll_keys)[:jack.term.size_x], A_REVERSE)
+            stdscr.addstr(0, 0, (jack.display.options_string + " " * (jack.term.size_x - len(jack.display.options_string) - (0 + 4)) + scroll_keys)[:jack.term.size_x], A_REVERSE)
 
         if jack.display.special_line:
             spec_pos = 1
             if jack.display.discname:
                 spec_pos = 2
-            stdscr.addstr(spec_pos, 0, jack.display.center_line(
-                jack.display.special_line, fill=" ", width=jack.term.size_x)[:jack.term.size_x], A_REVERSE)
+            stdscr.addstr(spec_pos, 0, jack.display.center_line(jack.display.special_line, fill=" ", width=jack.term.size_x)[:jack.term.size_x], A_REVERSE)
 
         if jack.display.bottom_line:
-            stdscr.addstr(jack.term.size_y - 1, 0, (jack.display.bottom_line + " " * (
-                jack.term.size_x - len(jack.display.bottom_line) - 1))[:jack.term.size_x - 1], A_REVERSE)
+            stdscr.addstr(jack.term.size_y - 1, 0, (jack.display.bottom_line + " " * (jack.term.size_x - len(jack.display.bottom_line) - 1))[:jack.term.size_x - 1], A_REVERSE)
 
         stdscr.refresh()
 
-        usage_win_y, usage_win_x = jack.term.size_y - \
-            usage_win_height - 1, int ((jack.term.size_x - usage_win_width) // 2)
+        usage_win_y, usage_win_x = jack.term.size_y - usage_win_height - 1, int ((jack.term.size_x - usage_win_width) // 2)
         if usage_win_y > extra_lines and usage_win_x > 0 and jack.term.size_y > extra_lines + 2 + usage_win_height and jack.term.size_x > usage_win_width:
             del usage_win
-            usage_win = newwin(
-                usage_win_height, usage_win_width, usage_win_y, usage_win_x)
+            usage_win = newwin(usage_win_height, usage_win_width, usage_win_y, usage_win_x)
             usage_win.box()
-            usage_win.addstr(1, 2, "* * * " + jack.version.prog_name + " " +
-                             jack.version.prog_version + " " + jack.version.prog_copyright + " * * *")
-            usage_win.addstr(
-                2, 2, "use cursor keys or hjkl to scroll status info")
+            usage_win.addstr(1, 2, "* * * " + jack.version.prog_name + " " + jack.version.prog_version + " " + jack.version.prog_copyright + " * * *")
+            usage_win.addstr(2, 2, "use cursor keys or hjkl to scroll status info")
             usage_win.addstr(3, 2, "press P to disable/continue ripping,")
             usage_win.addstr(4, 2, "      E to pause/continue all encoders or")
             usage_win.addstr(5, 2, "      R to pause/continue all rippers.")
@@ -212,8 +199,7 @@ def sig_winch_handler(sig, frame):
             enc_stat_upd(i[NUM], jack.status.enc_status[i[NUM]])
 
         if pad_start_y < pad_end_y:
-            status_pad.refresh(
-                pad_y, pad_x, pad_start_y, pad_start_x, pad_end_y, pad_end_x)
+            status_pad.refresh(pad_y, pad_x, pad_start_y, pad_start_x, pad_end_y, pad_end_x)
     signal.signal(signal.SIGWINCH, sig_winch_handler)
 # / end of sig_winch_handler(sig, frame) /#
 
@@ -237,11 +223,9 @@ def move_pad(cmd):
 
 
 def disp_bottom_line(bottom_line):
-    stdscr.addstr(jack.term.size_y - 1, 0, (bottom_line + " " *
-                  (jack.term.size_x - len(bottom_line)))[:jack.term.size_x - 1], A_REVERSE)
+    stdscr.addstr(jack.term.size_y - 1, 0, (bottom_line + " " * (jack.term.size_x - len(bottom_line)))[:jack.term.size_x - 1], A_REVERSE)
     if pad_start_y < pad_end_y:
-        status_pad.refresh(
-            pad_y, pad_x, pad_start_y, pad_start_x, pad_end_y, pad_end_x)
+        status_pad.refresh(pad_y, pad_x, pad_start_y, pad_start_x, pad_end_y, pad_end_x)
     stdscr.refresh()
 
 
@@ -266,8 +250,7 @@ def update(special_line, bottom_line):
 
 
 def enc_stat_upd(num, string):
-    status_pad.addstr(
-        map_track_num[num], jack.ripstuff.max_name_len + 40, " " + jack.status.enc_status[num])
+    status_pad.addstr(map_track_num[num], jack.ripstuff.max_name_len + 40, " " + jack.status.enc_status[num])
     status_pad.clrtoeol()
 
 
@@ -275,22 +258,18 @@ def dae_stat_upd(num, string, reverse=-1):
     track = jack.ripstuff.all_tracks[num - 1]
     if reverse >= 0:
         split_point = int(6.5 + reverse / 100.0 * 32)
-        front = jack.ripstuff.printable_names[
-            num] + ": " + jack.status.dae_status[num][:6]
+        front = jack.ripstuff.printable_names[num] + ": " + jack.status.dae_status[num][:6]
         middle = jack.status.dae_status[num][6:split_point]
-        end = jack.status.dae_status[num][
-            split_point:] + " " + jack.status.enc_status[num]
+        end = jack.status.dae_status[num][split_point:] + " " + jack.status.enc_status[num]
         try:
             status_pad.addstr(map_track_num[num], 0, front)
-            status_pad.addstr(
-                map_track_num[num], len(front), middle, A_REVERSE)
+            status_pad.addstr(map_track_num[num], len(front), middle, A_REVERSE)
             status_pad.addstr(map_track_num[num], len(front + middle), end)
         except error:
             pass
     else:
         try:
-            status_pad.addstr(map_track_num[num], 0, (jack.ripstuff.printable_names[
-                              num] + ": " + str(jack.status.dae_status[num]) + " " + str(jack.status.enc_status[num])))
+            status_pad.addstr(map_track_num[num], 0, (jack.ripstuff.printable_names[num] + ": " + str(jack.status.dae_status[num]) + " " + str(jack.status.enc_status[num])))
         except error:
             pass
 

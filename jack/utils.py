@@ -90,23 +90,19 @@ def rename_path(old, new):
             try:
                 os.mkdir(i)
             except OSError:
-                error(
-                    'Cannot create directory "%s" (Filename is too long or has unusable characters)' % i)
+                error('Cannot create directory "%s" (Filename is too long or has unusable characters)' % i)
         if os.path.isdir(i):
             os.chdir(i)
         else:
-            error("could not create or change to " +
-                  i + " from " + os.getcwd())
+            error("could not create or change to " + i + " from " + os.getcwd())
 
     last_of_new = new[-1]
     if os.path.exists(last_of_new):
-        error("destination directory already exists: " +
-              os.path.join(*[cf['_base_dir']] + new))
+        error("destination directory already exists: " + os.path.join(*[cf['_base_dir']] + new))
     try:
         os.rename(cwd, last_of_new)
     except OSError:
-        error('Cannot rename "%s" to "%s" (Filename is too long or has unusable characters)' %
-              (cwd, last_of_new))
+        error('Cannot rename "%s" to "%s" (Filename is too long or has unusable characters)' % (cwd, last_of_new))
     os.chdir(last_of_new)
 
     # now remove empty "orphan" dirs
@@ -234,13 +230,11 @@ def mkdirname(names, template):
     subst = template.split(os.path.sep)
     dirs = []
     for i in subst:
-        x = jack.misc.multi_replace(
-            i, replacelist, "dir_template", unusable_charmap, warn=2)
+        x = jack.misc.multi_replace(i, replacelist, "dir_template", unusable_charmap, warn=2)
         exec("x = x" + cf['_char_filter'])
         dirs.append(x)
     if cf['_append_year'] and year:
-        dirs[-1] += jack.misc.multi_replace(
-            cf['_append_year'], replacelist, "append-year", warn=1)
+        dirs[-1] += jack.misc.multi_replace(cf['_append_year'], replacelist, "append-year", warn=1)
     return dirs, os.path.join(*dirs)
 
 

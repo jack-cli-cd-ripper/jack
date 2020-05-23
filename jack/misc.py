@@ -41,12 +41,10 @@ def multi_replace(s, rules, where, filter=id, warn=0):
     pattern = [x[0] for x in s[s.find("%"):].split("%") if x]
     for p in pattern:
         if p not in rules:
-            warn and do_warn(
-                "Unknown pattern %%%c is used in %s." % (p, where))
+            warn and do_warn("Unknown pattern %%%c is used in %s." % (p, where))
         else:
             if not rules[p]:
-                warn and do_warn(
-                    "%%%c is not set but used in %s." % (p, where))
+                warn and do_warn("%%%c is not set but used in %s." % (p, where))
             else:
                 s = s.replace("%%%c" % p, filter(rules[p]))
     return s

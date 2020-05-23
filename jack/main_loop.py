@@ -64,10 +64,8 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
     rot_count = 0
     global_done = 0
     first_encoder = 1
-    ext = jack.targets.targets[
-        jack.helpers.helpers[cf['_encoder']]['target']]['file_extension']
-    global_blocks = jack.functions.tracksize(wavs_todo)[
-        BLOCKS] + jack.functions.tracksize(mp3s_todo)[BLOCKS]
+    ext = jack.targets.targets[jack.helpers.helpers[cf['_encoder']]['target']]['file_extension']
+    global_blocks = jack.functions.tracksize(wavs_todo)[BLOCKS] + jack.functions.tracksize(mp3s_todo)[BLOCKS]
 
     #
     # MAIN LOOP ###
@@ -100,61 +98,47 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
                     while dae_queue:
                         track = dae_queue[0]
                         dae_queue = dae_queue[1:]
-                        jack.status.dae_stat_upd(
-                            track[NUM], "Wrong disc - aborting this track")
+                        jack.status.dae_stat_upd(track[NUM], "Wrong disc - aborting this track")
                     global_error = global_error + 1
                     this_is_ok = 0
             if this_is_ok:
                 if cf['_only_dae']:
-                    space_waiting = space_waiting + \
-                        jack.functions.tracksize(dae_queue[0])[WAV]
+                    space_waiting = space_waiting + jack.functions.tracksize(dae_queue[0])[WAV]
                     space = space - jack.functions.tracksize(dae_queue[0])[WAV]
                 elif cf['_otf']:
-                    space_waiting = space_waiting + \
-                        jack.functions.tracksize(dae_queue[0])[ENC]
+                    space_waiting = space_waiting + jack.functions.tracksize(dae_queue[0])[ENC]
                     space = space - jack.functions.tracksize(dae_queue[0])[ENC]
                 else:
-                    space_waiting = space_waiting + \
-                        jack.functions.tracksize(dae_queue[0])[BOTH]
-                    space = space - \
-                        jack.functions.tracksize(dae_queue[0])[BOTH]
+                    space_waiting = space_waiting + jack.functions.tracksize(dae_queue[0])[BOTH]
+                    space = space - jack.functions.tracksize(dae_queue[0])[BOTH]
                 dae_running = dae_running + 1
                 track = dae_queue[0]
                 dae_queue = dae_queue[1:]
                 if cf['_otf']:
                     # note: image_reader can't do otf at the moment.
-                    jack.status.dae_stat_upd(
-                        track[NUM], ":DAE: waiting for status report...")
+                    jack.status.dae_stat_upd(track[NUM], ":DAE: waiting for status report...")
                     if cf['_encoder'] in ("lame", "gogo", "flac", "mppenc"):
-                        jack.status.enc_stat_upd(
-                            track[NUM], "[no otf status for %s]" % cf['_encoder'])
+                        jack.status.enc_stat_upd(track[NUM], "[no otf status for %s]" % cf['_encoder'])
                     else:
-                        jack.status.enc_stat_upd(
-                            track[NUM], "waiting for encoder.")
+                        jack.status.enc_stat_upd(track[NUM], "waiting for encoder.")
                     enc_running = enc_running + 1
                     if first_encoder:
                         first_encoder = 0
                         global_start = time.time()
-                    data = jack.workers.start_new_otf(
-                        track, cf['_ripper'], cf['_encoder'])
+                    data = jack.workers.start_new_otf(track, cf['_ripper'], cf['_encoder'])
                     jack.children.children.append(data['rip'])
                     jack.children.children.append(data['enc'])
                 else:
                     if jack.status.enc_status[track[NUM]]:
-                        jack.status.enc_cache[
-                            track[NUM]] = jack.status.enc_status[track[NUM]]
+                        jack.status.enc_cache[track[NUM]] = jack.status.enc_status[track[NUM]]
                         jack.status.enc_stat_upd(track[NUM], "[...]")
-                    jack.status.dae_stat_upd(
-                        track[NUM], ":DAE: waiting for status report...")
+                    jack.status.dae_stat_upd(track[NUM], ":DAE: waiting for status report...")
                     if cf['_rip_from_device']:
-                        jack.children.children.append(
-                            jack.workers.start_new_ripper(track, cf['_ripper']))
+                        jack.children.children.append(jack.workers.start_new_ripper(track, cf['_ripper']))
                     elif cf['_image_file']:
-                        jack.children.children.append(
-                            jack.workers.ripread(track, track1_offset))
+                        jack.children.children.append(jack.workers.ripread(track, track1_offset))
                     else:
-                        jack.status.dae_stat_upd(
-                            track[NUM], ":?AE: don't know how to rip this!")
+                        jack.status.dae_stat_upd(track[NUM], ":?AE: don't know how to rip this!")
 
         # start new encoder subprocess
 
@@ -167,10 +151,8 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
                     enc_running = enc_running + 1
                     track = enc_queue[0]
                     enc_queue = enc_queue[1:]
-                    jack.status.enc_stat_upd(
-                        track[NUM], "waiting for encoder...")
-                    jack.children.children.append(
-                        jack.workers.start_new_encoder(track, cf['_encoder']))
+                    jack.status.enc_stat_upd(track[NUM], "waiting for encoder...")
+                    jack.children.children.append(jack.workers.start_new_encoder(track, cf['_encoder']))
                     if first_encoder:
                         first_encoder = 0
                         global_start = time.time()
@@ -183,8 +165,7 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
         for i in jack.children.children:
             readfd.append(i['fd'])
         try:
-            rfd, wfd, xfd = select.select(
-                readfd, [], [], cf['_update_interval'])
+            rfd, wfd, xfd = select.select(readfd, [], [], cf['_update_interval'])
         except:
             rfd, wfd, xfd = [], [], []
             jack.term.tmod.sig_winch_handler(None, None)
@@ -250,8 +231,7 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
                         x = x + xchar
                         read_chars = read_chars + 1
                         try:
-                            rfd2, wfd2, xfd2 = select.select(
-                                [i['fd']], [], [], 0.0)
+                            rfd2, wfd2, xfd2 = select.select([i['fd']], [], [], 0.0)
                         except:
                             rfd2, wfd2, xfd2 = [], [], []
                             jack.term.tmod.sig_winch_handler(None, None)
@@ -264,22 +244,19 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
                     for fil in jack.helpers.helpers[i['prog']]['filters']:
                         i['buf'] = fil[0].sub(fil[1], i['buf'])
 
-                i['buf'] = i['buf'][
-                    -jack.helpers.helpers[i['prog']]['status_blocksize']:]
+                i['buf'] = i['buf'][-jack.helpers.helpers[i['prog']]['status_blocksize']:]
 
         # check for exiting child processes
         if jack.children.children:
             respid, res = os.waitpid(-1, os.WNOHANG)
             if respid != 0:
-                last_update = last_update - \
-                    cf['_update_interval']  # ensure info is printed
+                last_update = last_update - cf['_update_interval']  # ensure info is printed
                 new_ch = []
                 exited_proc = []
                 for i in jack.children.children:
                     if i['pid'] == respid:
                         if exited_proc != []:
-                            error(
-                                "pid " + repr(respid) + " found at multiple child processes")
+                            error("pid " + repr(respid) + " found at multiple child processes")
                         exited_proc = i
                     else:
                         new_ch.append(i)
@@ -291,16 +268,14 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
                     x = exited_proc['file'].read()
                 except (IOError, ValueError):
                     pass
-                exited_proc['buf'] = (exited_proc['buf'] + x)[
-                    -jack.helpers.helpers[exited_proc['prog']]['status_blocksize']:]
+                exited_proc['buf'] = (exited_proc['buf'] + x)[-jack.helpers.helpers[exited_proc['prog']]['status_blocksize']:]
                 exited_proc['file'].close()
 
                 global_error = global_error + res
                 track = exited_proc['track']
                 num = track[NUM]
                 stop_time = time.time()
-                speed = (track[LEN] / float(CDDA_BLOCKS_PER_SECOND)) / (
-                    stop_time - exited_proc['start_time'])
+                speed = (track[LEN] / float(CDDA_BLOCKS_PER_SECOND)) / (stop_time - exited_proc['start_time'])
 
                 if exited_proc['type'] in ("ripper", "image_reader"):
                     dae_running = dae_running - 1
@@ -311,59 +286,45 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
                             if os.path.exists(track[NAME] + ".wav"):
                                 if jack.functions.tracksize(track)[WAV] != jack.utils.filesize(track[NAME] + ".wav"):
                                     res = 242
-                                    jack.status.dae_stat_upd(
-                                        num, jack.status.get_2_line(exited_proc['buf']))
+                                    jack.status.dae_stat_upd(num, jack.status.get_2_line(exited_proc['buf']))
                             else:
-                                jack.status.dae_stat_upd(
-                                    num, jack.status.get_2_line(exited_proc['buf']))
+                                jack.status.dae_stat_upd(num, jack.status.get_2_line(exited_proc['buf']))
                                 res = 243
                             global_error = global_error + res
                     if res and not cf['_sloppy']:
                         if os.path.exists(track[NAME] + ".wav"):
                             os.remove(track[NAME] + ".wav")
-                            space = space + \
-                                jack.functions.tracksize(track)[WAV]
+                            space = space + jack.functions.tracksize(track)[WAV]
                             if cf['_otf']:
                                 os.kill(exited_proc['otf-pid'], signal.SIGTERM)
                                 if os.path.exists(track[NAME] + ext):
                                     os.remove(track[NAME] + ext)
-                                space = space + \
-                                    jack.functions.tracksize(track)[ENC]
+                                space = space + jack.functions.tracksize(track)[ENC]
                             if not cf['_otf'] and not cf['_only_dae'] and track not in jack.encstuff.mp3s_ready:
-                                space = space + \
-                                    jack.functions.tracksize(track)[ENC]
-                            jack.status.dae_stat_upd(
-                                num, 'DAE failed with status ' + repr(res) + ", wav removed.")
+                                space = space + jack.functions.tracksize(track)[ENC]
+                            jack.status.dae_stat_upd(num, 'DAE failed with status ' + repr(res) + ", wav removed.")
                     else:
                         if exited_proc['type'] == "image_reader":
-                            jack.status.dae_stat_upd(
-                                num, jack.status.get_2_line(exited_proc['buf']))
+                            jack.status.dae_stat_upd(num, jack.status.get_2_line(exited_proc['buf']))
                         else:
                             if exited_proc['otf'] and 'otf-final_status_fkt' in jack.helpers.helpers[exited_proc['prog']]:
-                                exec((jack.helpers.helpers[exited_proc['prog']][
-                                     'otf-final_status_fkt']), globals(), locals())
+                                exec((jack.helpers.helpers[exited_proc['prog']]['otf-final_status_fkt']), globals(), locals())
                             else:
                                 last_status = None   # (only used in cdparanoia)
-                                exec((jack.helpers.helpers[exited_proc['prog']][
-                                     'final_status_fkt']), globals(), locals())
+                                exec((jack.helpers.helpers[exited_proc['prog']]['final_status_fkt']), globals(), locals())
                             jack.status.dae_stat_upd(num, helper_final_status)
                         if jack.status.enc_cache[num]:
-                            jack.status.enc_stat_upd(
-                                num, jack.status.enc_cache[num])
+                            jack.status.enc_stat_upd(num, jack.status.enc_cache[num])
                             jack.status.enc_cache[num] = ""
-                        jack.functions.progress(
-                            num, "dae", jack.status.dae_status[num])
+                        jack.functions.progress(num, "dae", jack.status.dae_status[num])
                         if not cf['_otf'] and not cf['_only_dae'] and track not in jack.encstuff.mp3s_ready:
                             if waiting_space:
                                 mp3s_todo.append(track)
-                                space = space + \
-                                    jack.functions.tracksize(track)[ENC]
+                                space = space + jack.functions.tracksize(track)[ENC]
                             else:
-                                jack.status.enc_stat_upd(
-                                    num, 'waiting for encoder.')
+                                jack.status.enc_stat_upd(num, 'waiting for encoder.')
                                 enc_queue.append(track)
-                    space_waiting = space_waiting - \
-                        jack.functions.tracksize(track)[WAV]
+                    space_waiting = space_waiting - jack.functions.tracksize(track)[WAV]
 
                 elif exited_proc['type'] == "encoder":
                     enc_running = enc_running - 1
@@ -373,10 +334,8 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
                         res = 242
                         global_error = global_error + res
                     if res:
-                        global_blocks = global_blocks - \
-                            exited_proc['track'][LEN]
-                        global_start = global_start + \
-                            exited_proc['elapsed'] // (enc_running + 1)
+                        global_blocks = global_blocks - exited_proc['track'][LEN]
+                        global_start = global_start + exited_proc['elapsed'] // (enc_running + 1)
                         if global_start > time.time():
                             global_start = time.time()
                         if os.path.exists(track[NAME] + ext):
@@ -384,23 +343,18 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
                             # space...
                             os.remove(track[NAME] + ext)
                         space = space + jack.functions.tracksize(track)[ENC]
-                        jack.status.enc_stat_upd(
-                            num, 'coding failed, err#' + repr(res))
+                        jack.status.enc_stat_upd(num, 'coding failed, err#' + repr(res))
                     else:
                         global_done = global_done + exited_proc['track'][LEN]
                         if cf['_vbr']:
-                            rate = int(
-                                (jack.utils.filesize(track[NAME] + ext) * 0.008) / (track[LEN] / 75.0))
+                            rate = int((jack.utils.filesize(track[NAME] + ext) * 0.008) / (track[LEN] / 75.0))
                         else:
                             rate = track[RATE]
-                        jack.status.enc_stat_upd(
-                            num, "[coding @" + '%s' % jack.functions.pprint_speed(speed) + "x done, %dkbit" % rate)
-                        jack.functions.progress(
-                            num, "enc", repr(rate), jack.status.enc_status[num])
+                        jack.status.enc_stat_upd(num, "[coding @" + '%s' % jack.functions.pprint_speed(speed) + "x done, %dkbit" % rate)
+                        jack.functions.progress(num, "enc", repr(rate), jack.status.enc_status[num])
                         if not cf['_otf'] and not cf['_keep_wavs']:
                             os.remove(track[NAME] + ".wav")
-                            space = space + \
-                                jack.functions.tracksize(track)[WAV]
+                            space = space + jack.functions.tracksize(track)[WAV]
 
                 else:
                     error(
@@ -419,15 +373,12 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
                 if i['type'] == "ripper":
                     if len(i['buf']) == jack.helpers.helpers[i['prog']]['status_blocksize']:
                         if i['otf'] and 'otf-status_fkt' in jack.helpers.helpers[i['prog']]:
-                            exec((jack.helpers.helpers[i['prog']][
-                                 'otf-status_fkt']), globals(), locals())
+                            exec((jack.helpers.helpers[i['prog']]['otf-status_fkt']), globals(), locals())
                         else:
-                            exec((jack.helpers.helpers[i['prog']][
-                                 'status_fkt']), globals(), locals())
+                            exec((jack.helpers.helpers[i['prog']]['status_fkt']), globals(), locals())
                         if helper_new_status:
                             try:
-                                jack.status.dae_stat_upd(
-                                    i['track'][NUM], ":DAE: " + helper_new_status)
+                                jack.status.dae_stat_upd(i['track'][NUM], ":DAE: " + helper_new_status)
                             except:
                                 debug("error in dae_stat_upd")
 
@@ -435,8 +386,7 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
                     if len(i['buf']) == jack.helpers.helpers[i['prog']]['status_blocksize']:
                         tmp_d = {'i': i.copy(), 'percent': 0}
                         try:
-                            exec((jack.helpers.helpers[i['prog']][
-                                 'percent_fkt']), globals(), tmp_d)
+                            exec((jack.helpers.helpers[i['prog']]['percent_fkt']), globals(), tmp_d)
                         except:
                             tmp_d['percent'] = 0
                             debug("error in percent_fkt of %s." % repr(i))
@@ -445,11 +395,9 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
                             i['elapsed'] = time.time() - i['start_time']
                             speed = ((i['track'][LEN] / float(CDDA_BLOCKS_PER_SECOND)) * (
                                 i['percent'] // 100)) // i['elapsed']
-                            eta = (100 - i['percent']) * i[
-                                'elapsed'] // i['percent']
+                            eta = (100 - i['percent']) * i['elapsed'] // i['percent']
                             eta_ms = "%02i:%02i" % (eta // 60, eta % 60)
-                            jack.status.enc_stat_upd(i['track'][NUM], '%2i%% done, ETA:%6s, %sx' % (
-                                i['percent'], eta_ms, jack.functions.pprint_speed(speed)))
+                            jack.status.enc_stat_upd(i['track'][NUM], '%2i%% done, ETA:%6s, %sx' % (i['percent'], eta_ms, jack.functions.pprint_speed(speed)))
                             # jack.term.tmod.dae_stat_upd(i['track'][NUM],
                             # None, i['percent'])
 
@@ -490,8 +438,7 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
 
             total_done = global_done
             for i in jack.children.children:
-                total_done = total_done + \
-                    (i['percent'] // 100) * i['track'][LEN]
+                total_done = total_done + (i['percent'] // 100) * i['track'][LEN]
             elapsed = time.time() - global_start
             if global_blocks > 0:
                 helper_percent = total_done // global_blocks
@@ -499,8 +446,7 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
                 helper_percent = 0
             if helper_percent > 0 and elapsed > 40:
                 eta = ((1 - helper_percent) * elapsed // helper_percent)
-                eta_hms = " ETA=%i:%02i:%02i" % (
-                    eta // 3600, (eta % 3600) // 60, eta % 60)
+                eta_hms = " ETA=%i:%02i:%02i" % (eta // 3600, (eta % 3600) // 60, eta % 60)
             else:
                 eta_hms = ""
 
@@ -521,15 +467,11 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
                 if blocked > 5:
                     space = jack.functions.df() - cf['_keep_free']
             elif waiting_load and waiting_space >= 2:
-                jack.display.special_line = " ...waiting for load (%.2f)" % actual_load + ") < %.2f" % cf[
-                    '_max_load'] + " and for " + jack.functions.pprint_i(space_adjust, "%i %sBytes") + " to be freed... "
+                jack.display.special_line = " ...waiting for load (%.2f)" % actual_load + ") < %.2f" % cf['_max_load'] + " and for " + jack.functions.pprint_i(space_adjust, "%i %sBytes") + " to be freed... "
             elif waiting_space >= 2:
-                jack.display.special_line = " ...waiting for " + \
-                    jack.functions.pprint_i(
-                        space_adjust, "%i %sBytes") + " to be freed.... "
+                jack.display.special_line = " ...waiting for " + jack.functions.pprint_i(space_adjust, "%i %sBytes") + " to be freed.... "
             elif waiting_load:
-                jack.display.special_line = " ...waiting for load (%.2f) to drop below %.2f..." % (
-                    actual_load, cf['_max_load'])
+                jack.display.special_line = " ...waiting for load (%.2f) to drop below %.2f..." % (actual_load, cf['_max_load'])
             else:
                 jack.display.special_line = None
 
@@ -544,8 +486,7 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
                 + " errors: " + repr(global_error) \
                 + jack.display.smile + print_flags
 
-            jack.term.tmod.update(
-                jack.display.special_line, jack.display.bottom_line)
+            jack.term.tmod.update(jack.display.special_line, jack.display.bottom_line)
 
     return global_error
 

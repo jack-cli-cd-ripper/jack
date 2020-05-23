@@ -57,8 +57,7 @@ def find_workdir():
         if tries > 2:
             break
         if cf['_guess_mp3s']:
-            jack.ripstuff.all_tracks = jack.functions.guesstoc(
-                cf['_guess_mp3s'])
+            jack.ripstuff.all_tracks = jack.functions.guesstoc(cf['_guess_mp3s'])
         else:
             if cf['_multi_mode']:
                 debug("multimode all_tracks reset")
@@ -67,17 +66,13 @@ def find_workdir():
                 if cf['_image_toc_file']:
                     # put the absolute path in the variable since we'll change
                     # cwd soon
-                    cf['_image_toc_file'] = os.path.abspath(
-                        cf['_image_toc_file'])
-                    jack.ripstuff.all_tracks, dummy, dummy = jack.functions.cdrdao_gettoc(
-                        cf['_image_toc_file'])
+                    cf['_image_toc_file'] = os.path.abspath(cf['_image_toc_file'])
+                    jack.ripstuff.all_tracks, dummy, dummy = jack.functions.cdrdao_gettoc(cf['_image_toc_file'])
                 else:
                     if cf['_image_file']:
-                        warning(
-                            "No TOC file for image '%s' specified, reading TOC from CD device." % cf['_image_file'])
+                        warning("No TOC file for image '%s' specified, reading TOC from CD device." % cf['_image_file'])
                         cf['_image_file'] = os.path.abspath(cf['_image_file'])
-                    jack.ripstuff.all_tracks = jack.functions.gettoc(
-                        cf['_toc_prog'])
+                    jack.ripstuff.all_tracks = jack.functions.gettoc(cf['_toc_prog'])
                     toc_just_read = 1
 
             if cf['_scan_dirs']:
@@ -127,8 +122,7 @@ def find_workdir():
                     if not found:
                         unique_dirs.append(jack_dirs[i])
                 for i in unique_dirs:
-                    jack.ripstuff.all_tracks, dummy, track1_offset = jack.functions.cdrdao_gettoc(
-                        os.path.join(i, cf['_toc_file']))
+                    jack.ripstuff.all_tracks, dummy, track1_offset = jack.functions.cdrdao_gettoc(os.path.join(i, cf['_toc_file']))
                     err, jack.tag.track_names, cd_id = metadata_names(jack.metadata.metadata_id(
                         jack.ripstuff.all_tracks), jack.ripstuff.all_tracks, jack.ripstuff.all_tracks, os.path.join(i, metadata_form_file), verb=0, warn=0)
                     if err or cf['_force']:  # this means metadata is not there yet
@@ -166,21 +160,17 @@ def find_workdir():
                     if not os.path.exists(cf['_base_dir']):
                         os.makedirs(cf['_base_dir'])
                     os.chdir(cf['_base_dir'])
-                    dir_name = jack.version.prog_name + "-" + \
-                        jack.metadata.metadata_id(jack.ripstuff.all_tracks, warn=0)[api]
+                    dir_name = jack.version.prog_name + "-" + jack.metadata.metadata_id(jack.ripstuff.all_tracks, warn=0)[api]
                     if not os.path.exists(dir_name) and not os.path.isdir(dir_name):
                         os.mkdir(dir_name)
                     os.chdir(dir_name)
                     jack.metadata.dir_created = dir_name
-                    jack.functions.progress(
-                        "all", "mkdir", jack.metadata.dir_created)
+                    jack.functions.progress("all", "mkdir", jack.metadata.dir_created)
 
         if not cf['_multi_mode']:
             if not os.path.exists(cf['_toc_file']):
-                jack.functions.cdrdao_puttoc(
-                    cf['_toc_file'], jack.ripstuff.all_tracks, jack.metadata.metadata_id(jack.ripstuff.all_tracks))
-                jack.metadata.metadata_template(
-                    jack.ripstuff.all_tracks)  # generate metadata form if tocfile is created
+                jack.functions.cdrdao_puttoc(cf['_toc_file'], jack.ripstuff.all_tracks, jack.metadata.metadata_id(jack.ripstuff.all_tracks))
+                jack.metadata.metadata_template(jack.ripstuff.all_tracks)  # generate metadata form if tocfile is created
             if not os.path.exists(metadata_form_file):
                 jack.metadata.metadata_template(jack.ripstuff.all_tracks)
         else:
@@ -223,12 +213,10 @@ def read_toc_file():
         if cf['_image_toc_file']:
             cf['_toc_file'] = cf['_image_toc_file']
 
-        jack.ripstuff.all_tracks, new_image_file, track1_offset = jack.functions.cdrdao_gettoc(
-            cf['_toc_file'])
+        jack.ripstuff.all_tracks, new_image_file, track1_offset = jack.functions.cdrdao_gettoc(cf['_toc_file'])
 
         if not os.path.exists(cf['_def_toc']):
-            jack.functions.cdrdao_puttoc(
-                cf['_def_toc'], jack.ripstuff.all_tracks, jack.metadata.metadata_id(jack.ripstuff.all_tracks))
+            jack.functions.cdrdao_puttoc(cf['_def_toc'], jack.ripstuff.all_tracks, jack.metadata.metadata_id(jack.ripstuff.all_tracks))
 
         # if image_file is not set (-F), we can guess it from image_toc_file
         if not cf['_image_file'] and not cf['_rip_from_device']:
@@ -248,26 +236,20 @@ def filter_tracks(toc_just_read, status):
         ripper_tracks = jack.functions.gettoc(cf['_ripper'])
         if ripper_tracks != jack.ripstuff.all_tracks:
             for i in range(len(jack.ripstuff.all_tracks)):
-                rtn = jack.utils.has_track(
-                    ripper_tracks, jack.ripstuff.all_tracks[i][NUM])
+                rtn = jack.utils.has_track(ripper_tracks, jack.ripstuff.all_tracks[i][NUM])
                 if rtn >= 0:
                     for j in range(6):
                         # "NUM LEN START COPY PRE CH" (not: "RIP RATE NAME")
                         if ripper_tracks[rtn][j] != jack.ripstuff.all_tracks[i][j]:
-                            jack.functions.progress(i + 1, "patch", "%s %d -> %d" % (
-                                fields[j], jack.ripstuff.all_tracks[i][j], ripper_tracks[rtn][j]))
-                            jack.ripstuff.all_tracks[i][
-                                j] = ripper_tracks[rtn][j]
-                            debug("Track %02d %s" % (i + 1, fields[j]) + repr(jack.ripstuff.all_tracks[i][
-                                  j]) + " != " + repr(ripper_tracks[rtn][j]) + " (trusting %s; to the right)" % cf['_ripper'])
+                            jack.functions.progress(i + 1, "patch", "%s %d -> %d" % (fields[j], jack.ripstuff.all_tracks[i][j], ripper_tracks[rtn][j]))
+                            jack.ripstuff.all_tracks[i][j] = ripper_tracks[rtn][j]
+                            debug("Track %02d %s" % (i + 1, fields[j]) + repr(jack.ripstuff.all_tracks[i][ j]) + " != " + repr(ripper_tracks[rtn][j]) + " (trusting %s; to the right)" % cf['_ripper'])
                 else:
                     jack.functions.progress(i + 1, "off", "non-audio")
                     datatracks.append(i + 1)
-                    info("Track %02d not found by %s. Treated as non-audio." %
-                         (i + 1, cf['_ripper']))
+                    info("Track %02d not found by %s. Treated as non-audio." % (i + 1, cf['_ripper']))
     if not toc_just_read:
-        datatracks += [x for x in list(status.keys()) if status[
-            x]["off"] and status[x]["off"] == ["non-audio"]]
+        datatracks += [x for x in list(status.keys()) if status[x]["off"] and status[x]["off"] == ["non-audio"]]
 
 
 def gen_todo():
@@ -291,18 +273,15 @@ def gen_todo():
         for k in tracks:
             if k.find('-') >= 0:
                 k = k.split('-')
-                lower_limit = jack.misc.safe_int(
-                    k[0], "Track '%s' is not a number." % k[0])
+                lower_limit = jack.misc.safe_int(k[0], "Track '%s' is not a number." % k[0])
                 if k[1]:
-                    upper_limit = jack.misc.safe_int(
-                        k[1], "Track '%s' is not a number." % k[1])
+                    upper_limit = jack.misc.safe_int(k[1], "Track '%s' is not a number." % k[1])
                 else:
                     upper_limit = len(jack.ripstuff.all_tracks)
                 for j in range(lower_limit, upper_limit + 1):
                     tlist.append(j)
             else:
-                track = jack.misc.safe_int(
-                    k, "Track '%s' is not a number." % k)
+                track = jack.misc.safe_int(k, "Track '%s' is not a number." % k)
                 tlist.append(track)
 
         # uniq the track list
@@ -331,13 +310,11 @@ def gen_todo():
         for k in tlist:
             if continuous:
                 if k < 1 or k > len(audiotracks):
-                    warning('This CD has audio tracks 1-%d.  Ignoring request for track %d.' %
-                            (len(audiotracks), k))
+                    warning('This CD has audio tracks 1-%d. Ignoring request for track %d.' % (len(audiotracks), k))
                     continue
             else:
                 if k < 1 or k > len(jack.ripstuff.all_tracks):
-                    warning('This CD has tracks 1-%d.  Ignoring request for track %d.' %
-                            (len(jack.ripstuff.all_tracks), k))
+                    warning('This CD has tracks 1-%d.  Ignoring request for track %d.' % (len(jack.ripstuff.all_tracks), k))
                     continue
             if jack.ripstuff.all_tracks[k - 1][CH] == 2:
                 todo.append(jack.ripstuff.all_tracks[k - 1])
@@ -373,8 +350,7 @@ def init_status():
 
 
 def update_progress(status, todo):
-    ext = jack.targets.targets[
-        jack.helpers.helpers[cf['_encoder']]['target']]['file_extension']
+    ext = jack.targets.targets[jack.helpers.helpers[cf['_encoder']]['target']]['file_extension']
     "update progress file at user's request (operation mode)"
 
     if cf['_upd_progress']:
@@ -382,8 +358,7 @@ def update_progress(status, todo):
             num = i[NUM]
             if not status[num]['dae']:
                 if os.path.exists(i[NAME] + ".wav"):
-                    status[num][
-                        'dae'] = "  *   [          simulated           ]"
+                    status[num]['dae'] = "  *   [          simulated           ]"
                     jack.functions.progress(num, "dae", status[num]['dae'])
             if not status[num]['enc']:
                 if os.path.exists(i[NAME] + ext):
@@ -397,8 +372,7 @@ def update_progress(status, todo):
                         f = flac.FLAC(filename + ext)
                         size = os.path.getsize(filename + ext)
                         if f.info and size:
-                            temp_rate = int(
-                                size * 8 * f.info.sample_rate // f.info.total_samples // 1000)
+                            temp_rate = int(size * 8 * f.info.sample_rate // f.info.total_samples // 1000)
                         else:
                             temp_rate = 0
                     elif ext.upper() == ".M4A" and mp4:
@@ -406,8 +380,7 @@ def update_progress(status, todo):
                         temp_rate = mp4.info.bitrate
                     else:
                         error("don't know how to handle %s files." % ext)
-                    status[num]['enc'] = repr(temp_rate) + cf[
-                        '_progr_sep'] + "[simulated]"
+                    status[num]['enc'] = repr(temp_rate) + cf['_progr_sep'] + "[simulated]"
                     jack.functions.progress(num, "enc", status[num]['enc'])
 
 
@@ -517,13 +490,11 @@ def read_progress(status, todo):
                 if tracknum[i][fields.index(p_what)] == p_from:
                     tracknum[i][fields.index(p_what)] = p_to
                 else:
-                    error("illegal patch %s. " % j, + "Track %02d: %s is %d" %
-                          (i, p_what, todo[jack.utils.has_track(todo, i)][fields.index(p_what)]))
+                    error("illegal patch %s. " % j, + "Track %02d: %s is %d" % (i, p_what, todo[jack.utils.has_track(todo, i)][fields.index(p_what)]))
 
         if status[i]['off']:
             if jack.utils.has_track(jack.ripstuff.all_tracks_todo_sorted, i) >= 0:
-                del jack.ripstuff.all_tracks_todo_sorted[
-                    jack.utils.has_track(jack.ripstuff.all_tracks_todo_sorted, i)]
+                del jack.ripstuff.all_tracks_todo_sorted[jack.utils.has_track(jack.ripstuff.all_tracks_todo_sorted, i)]
 
     # extract status from read progress data
     jack.status.extract(status)
@@ -543,8 +514,7 @@ def query_on_start(todo):
             if not x or x[0].upper() != "Y":
                 sys.exit(0)
             if not cf['_edit_metadata']:
-                x = input(
-                    "\nDo you want to edit the metadata file?  (y/N) ") + "x"
+                x = input("\nDo you want to edit the metadata file?  (y/N) ") + "x"
                 if x and x[0].upper() == "Y":
                     cf['_edit_metadata'] = 1
                 else:
@@ -568,8 +538,7 @@ def query_on_start(todo):
             except IOError:
                 print("Could not open jack.freedb or jack.freedb.bak for comparison")
             else:
-                pdiff = "".join(difflib.unified_diff(
-                    b.readlines(), f.readlines(), bakfile, file))
+                pdiff = "".join(difflib.unified_diff(b.readlines(), f.readlines(), bakfile, file))
                 f.close()
                 b.close()
                 if pdiff:
@@ -579,14 +548,11 @@ def query_on_start(todo):
                     print(pdiff)
 
     if cf['_query_on_start']:
-        err, jack.tag.track_names, metadata_rename = jack.metadata.interpret_db_file(
-            jack.ripstuff.all_tracks, todo, metadata_form_file, verb=cf['_query_on_start'], dirs=1)
+        err, jack.tag.track_names, metadata_rename = jack.metadata.interpret_db_file(jack.ripstuff.all_tracks, todo, metadata_form_file, verb=cf['_query_on_start'], dirs=1)
         if err:
-            error(
-                "query on start failed to give a good metadata file, aborting.")
+            error("query on start failed to give a good metadata file, aborting.")
     else:
-        err, jack.tag.track_names, metadata_rename = jack.metadata.interpret_db_file(
-            jack.ripstuff.all_tracks, todo, metadata_form_file, verb=cf['_query_on_start'], warn=cf['_query_on_start'])
+        err, jack.tag.track_names, metadata_rename = jack.metadata.interpret_db_file(jack.ripstuff.all_tracks, todo, metadata_form_file, verb=cf['_query_on_start'], warn=cf['_query_on_start'])
         # If the metadata query failed and the metadata cannot be parsed,
         # don't tag the files.  However, if the metdata can be parsed
         # even though the query failed assume that the query worked and
@@ -599,8 +565,7 @@ def query_on_start(todo):
 
 
 def undo_rename(status, todo):
-    ext = jack.targets.targets[
-        jack.helpers.helpers[cf['_encoder']]['target']]['file_extension']
+    ext = jack.targets.targets[jack.helpers.helpers[cf['_encoder']]['target']]['file_extension']
     "undo renaming (operation mode)"
     maxnames = max([len(x['names']) for x in list(status.values())])
     if len(jack.progress.status_all['names']) >= maxnames:
@@ -648,8 +613,7 @@ def what_todo(space, todo):
     wavs_todo = []
     mp3s_todo = []
     remove_q = []
-    ext = jack.targets.targets[
-        jack.helpers.helpers[cf['_encoder']]['target']]['file_extension']
+    ext = jack.targets.targets[jack.helpers.helpers[cf['_encoder']]['target']]['file_extension']
 
     for track in todo:
         wavs_todo.append(track)
@@ -672,13 +636,11 @@ def what_todo(space, todo):
             elif not cf['_vbr'] and jack.utils.filesize(mp3) <= jack.functions.tracksize(track)[ENC] * 0.99:  # found by trial'n'err
                 space = space + jack.utils.filesize(mp3)
                 remove_q.append(mp3)
-                jack.status.enc_status[track[NUM]] = "encoded file too small by " + jack.functions.pprint_i(
-                    jack.functions.tracksize(track)[ENC] - jack.utils.filesize(mp3)) + "."
+                jack.status.enc_status[track[NUM]] = "encoded file too small by " + jack.functions.pprint_i(jack.functions.tracksize(track)[ENC] - jack.utils.filesize(mp3)) + "."
             elif not cf['_vbr'] and jack.utils.filesize(mp3) >= jack.functions.tracksize(track)[ENC] * 1.05:  # found by trial'n'err
                 space = space + jack.utils.filesize(mp3)
                 remove_q.append(mp3)
-                jack.status.enc_status[track[NUM]] = "enc. file too large by " + jack.functions.pprint_i(
-                    jack.utils.filesize(mp3) - jack.functions.tracksize(track)[ENC]) + "."
+                jack.status.enc_status[track[NUM]] = "enc. file too large by " + jack.functions.pprint_i(jack.utils.filesize(mp3) - jack.functions.tracksize(track)[ENC]) + "."
             else:
                 mp3s_todo.remove(track)
                 jack.encstuff.mp3s_ready.append(track)
@@ -693,34 +655,29 @@ def what_todo(space, todo):
             if cf['_overwrite']:
                 space = space + jack.utils.filesize(wav)
                 remove_q.append(wav)
-                jack.status.dae_status[
-                    track[NUM]] = "Existing WAV will be overwritten."
+                jack.status.dae_status[track[NUM]] = "Existing WAV will be overwritten."
             elif jack.utils.filesize(wav) == jack.functions.tracksize(track)[WAV] and jack.status.dae_status[track[NUM]]:
                 wavs_todo.remove(track)
                 jack.ripstuff.wavs_ready.append(track)
             elif jack.utils.filesize(wav) == jack.functions.tracksize(track)[WAV]:
                 space = space + jack.utils.filesize(wav)
                 remove_q.append(wav)
-                jack.status.dae_status[
-                    track[NUM]] = " ---- [Existing WAV not done by jack.]"
+                jack.status.dae_status[track[NUM]] = " ---- [Existing WAV not done by jack.]"
                 if jack.status.enc_status[track[NUM]] == "[file lost-doing again]":
                     jack.status.enc_status[track[NUM]] = ""
             else:
                 space = space + jack.utils.filesize(wav)
                 remove_q.append(wav)
-                jack.status.dae_status[
-                    track[NUM]] = " ---- [Existing WAV was not complete.]"
+                jack.status.dae_status[track[NUM]] = " ---- [Existing WAV was not complete.]"
                 if jack.status.enc_status[track[NUM]] == "[file lost-doing again]":
                     jack.status.enc_status[track[NUM]] = ""
         else:
             if jack.status.dae_status[track[NUM]]:
                 if jack.status.enc_status[track[NUM]] == "[file lost-doing again]":
-                    jack.status.dae_status[
-                        track[NUM]] = " ---- [    both lost, doing again    ]"
+                    jack.status.dae_status[track[NUM]] = " ---- [    both lost, doing again    ]"
                     jack.status.enc_status[track[NUM]] = ""
                 elif cf['_keep_wavs'] or track not in jack.encstuff.mp3s_ready:
-                    jack.status.dae_status[
-                        track[NUM]] = " ---- [ WAV lost, doing again        ]"
+                    jack.status.dae_status[track[NUM]] = " ---- [ WAV lost, doing again        ]"
 
     if cf['_only_dae']:
         cf['_keep_wavs'] = 1
@@ -805,9 +762,7 @@ def check_space(space, wavs_todo, mp3s_todo):
         for i in mp3s_todo:
             if space + freeable_space > jack.functions.tracksize(i)[ENC]:
                 if not cf['_keep_wavs']:
-                    freeable_space = freeable_space + \
-                        jack.functions.tracksize(i)[
-                            WAV] - jack.functions.tracksize(i)[ENC]
+                    freeable_space = freeable_space + jack.functions.tracksize(i)[WAV] - jack.functions.tracksize(i)[ENC]
             else:
                 will_work = 0
                 # this is quite dirty

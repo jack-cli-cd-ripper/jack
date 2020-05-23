@@ -74,11 +74,9 @@ def interpret_db_file(all_tracks, todo, metadata_form_file, verb, dirs=0, warn=N
     global names_available, dir_created
     metadata_rename = 0
     if warn == None:
-        err, track_names, cd_id = metadata_names(
-            metadata_id(all_tracks), all_tracks, todo, metadata_form_file, verb=verb)
+        err, track_names, cd_id = metadata_names(metadata_id(all_tracks), all_tracks, todo, metadata_form_file, verb=verb)
     else:
-        err, track_names, cd_id = metadata_names(
-            metadata_id(all_tracks), all_tracks, todo, metadata_form_file, verb=verb, warn=warn)
+        err, track_names, cd_id = metadata_names(metadata_id(all_tracks), all_tracks, todo, metadata_form_file, verb=verb, warn=warn)
     if (not err) and dirs:
         metadata_rename = 1
 
@@ -90,8 +88,7 @@ def interpret_db_file(all_tracks, todo, metadata_form_file, verb, dirs=0, warn=N
             cf['_claim_dir'] = 0
 
         if cf['_rename_dir'] and dir_created:
-            new_dirs, new_dir = jack.utils.mkdirname(
-                track_names, cf['_dir_template'])
+            new_dirs, new_dir = jack.utils.mkdirname(track_names, cf['_dir_template'])
             old_dir = os.getcwd()
             old_dirs = jack.utils.split_dirname(old_dir)
             dirs_created = jack.utils.split_dirname(dir_created)
@@ -116,24 +113,20 @@ def interpret_db_file(all_tracks, todo, metadata_form_file, verb, dirs=0, warn=N
         # starts at 1
         num = 1
         for i in track_names[1:]:
-            replacelist = {"n": cf['_rename_num'] % num, "l": cd[1], "t": i[1],
-                           "y": year, "g": genre}
+            replacelist = {"n": cf['_rename_num'] % num, "l": cd[1], "t": i[1], "y": year, "g": genre}
             if cf['_various']:
                 replacelist["a"] = i[0]
-                newname = jack.misc.multi_replace(
-                    cf['_rename_fmt_va'], replacelist, "rename_fmt_va", warn=(num == 1))
+                newname = jack.misc.multi_replace(cf['_rename_fmt_va'], replacelist, "rename_fmt_va", warn=(num == 1))
             else:
                 replacelist["a"] = cd[0]
-                newname = jack.misc.multi_replace(
-                    cf['_rename_fmt'], replacelist, "rename_fmt", warn=(num == 1))
+                newname = jack.misc.multi_replace(cf['_rename_fmt'], replacelist, "rename_fmt", warn=(num == 1))
             exec("newname = newname" + cf['_char_filter'])
             for char_i in range(len(cf['_unusable_chars'])):
                 try:
                     a = str(cf['_unusable_chars'][char_i])
                     b = str(cf['_replacement_chars'][char_i])
                 except UnicodeDecodeError:
-                    warning("Cannot substitute unusable character %d."
-                            % (char_i + 1))
+                    warning("Cannot substitute unusable character %d." % (char_i + 1))
                 else:
                     newname = newname.replace(a, b)
             filenames.append(newname)
@@ -204,8 +197,7 @@ def metadata_names(cd_id, tracks, todo, name, verb=0, warn=1):
     newest_form_file = get_metadata_form_file(newest_api)
 
     if apis['cddb']['mtime'] and apis['musicbrainzngs']['mtime']:
-        info("Both " + apis['cddb']['form_file'] + " and " + apis['musicbrainzngs']['form_file'] +
-            " exist. Using " + get_metadata_form_file(newest_api) + " because it is newer")
+        info("Both " + apis['cddb']['form_file'] + " and " + apis['musicbrainzngs']['form_file'] + " exist. Using " + get_metadata_form_file(newest_api) + " because it is newer")
 
     if prefer_api != newest_api:
         warning("preferred api is " + prefer_api + ", but using " + newest_form_file)

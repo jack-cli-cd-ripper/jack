@@ -34,8 +34,7 @@ def load_plugin(name, structure):
     try:
         exec((get_statement), locals())
     except KeyError:
-        error("Plugin %s doesn't have an appropriate helper definition." %
-              name)
+        error("Plugin %s doesn't have an appropriate helper definition." % name)
     return tmp
 
 

@@ -35,12 +35,10 @@ import jack.helpers
 
 def checkopts(cf, cf2):
     if 'image_file' in cf2:
-        cf.rupdate(
-            {'rip_from_device': {'val': 0}, 'read_ahead': {'val': 1}}, "check")
+        cf.rupdate({'rip_from_device': {'val': 0}, 'read_ahead': {'val': 1}}, "check")
 
     if 'image_toc_file' in cf2:
-        cf.rupdate(
-            {'rip_from_device': {'val': 0}, 'read_ahead': {'val': 1}}, "check")
+        cf.rupdate({'rip_from_device': {'val': 0}, 'read_ahead': {'val': 1}}, "check")
 
     if 'space_from_argv' in cf2:
         cf.rupdate({'space_set_from_argv': {'val': 1}}, "check")
@@ -49,8 +47,7 @@ def checkopts(cf, cf2):
         cf.rupdate({'encoders': {'val': 0}}, "check")
 
     if 'query_when_ready' in cf2 and cf2['query_when_ready']['val']:
-        cf.rupdate(
-            {'read_metadata_file': {'val': 1}, 'set_tag': {'val': 1}}, "check")
+        cf.rupdate({'read_metadata_file': {'val': 1}, 'set_tag': {'val': 1}}, "check")
 
     if 'query_on_start' in cf2 and cf2['query_on_start']['val']:
         cf.rupdate({'set_tag': {'val': 1}}, "check")
@@ -59,8 +56,7 @@ def checkopts(cf, cf2):
         cf.rupdate({'rename_dir': {'val': 1}}, "check")
 
     if 'metadata_rename' in cf2 and cf2['metadata_rename']['val']:
-        cf.rupdate(
-            {'read_metadata_file': {'val': 1}, 'set_tag': {'val': 1}}, "check")
+        cf.rupdate({'read_metadata_file': {'val': 1}, 'set_tag': {'val': 1}}, "check")
 
     if 'edit_cddb' in cf2:
         warning("--edit-cddb is obsolete, please use --edit-metadata")
@@ -96,10 +92,8 @@ def consistency_check(cf):
 
     # check dir_template and scan_dirs
     if len(cf['_dir_template'].split(os.path.sep)) > cf['_scan_dirs']:
-        warning("dir-template consists of more sub-paths (%i) than scan-dirs (%i). Jack may not find the workdir next time it is run. (Auto-raised)" %
-                (len(cf['_dir_template'].split(os.path.sep)), cf['_scan_dirs']))
-        cf.rupdate(
-            {'scan_dirs': {'val': len(cf['_dir_template'].split(os.path.sep))}}, "check")
+        warning("dir-template consists of more sub-paths (%i) than scan-dirs (%i). Jack may not find the workdir next time it is run. (Auto-raised)" % (len(cf['_dir_template'].split(os.path.sep)), cf['_scan_dirs']))
+        cf.rupdate({'scan_dirs': {'val': len(cf['_dir_template'].split(os.path.sep))}}, "check")
 
     # check for unsername
     if cf['username']['val'] == None:
@@ -179,8 +173,7 @@ def consistency_check(cf):
         cf.rupdate({'otf': {'val': 0}}, "check")
 
     if cf['_otf'] and cf['_keep_wavs']:
-        warning(
-            "disabling on-the-fly operation because we want to keep the wavs")
+        warning("disabling on-the-fly operation because we want to keep the wavs")
         cf.rupdate({'otf': {'val': 0}}, "check")
 
     if cf['_otf'] and cf['_image_file']:
@@ -188,25 +181,20 @@ def consistency_check(cf):
         cf.rupdate({'otf': {'val': 0}}, "check")
 
     if cf['_vbr'] and 'vbr-cmd' not in jack.helpers.helpers[cf['_encoder']]:
-        warning("disabling VBR because " +
-                cf['_encoder'] + " doesn't support it.")
+        warning("disabling VBR because " + cf['_encoder'] + " doesn't support it.")
         cf.rupdate({'vbr': {'val': 0}}, "check")
 
     if cf['_otf']:
         for i in (cf['_ripper'], cf['_encoder']):
             if ('vbr-' * cf['_vbr'] * (i == cf['_encoder'])) + 'otf-cmd' not in jack.helpers.helpers[i]:
-                error("can't do on-the-fly because " + jack.helpers.helpers[
-                      i]['type'] + " " + i + " doesn't support it.")
+                error("can't do on-the-fly because " + jack.helpers.helpers[i]['type'] + " " + i + " doesn't support it.")
 
     if not cf['_vbr'] and 'cmd' not in jack.helpers.helpers[cf['_encoder']]:
-        error("can't do fixed bitrate because " +
-              cf['encoder']['val'] + " doesn't support it. Use -v")
+        error("can't do fixed bitrate because " + cf['encoder']['val'] + " doesn't support it. Use -v")
 
     if cf['_ripper'] == "cdparanoia" and cf['_sloppy']:
-        jack.helpers.helpers['cdparanoia']['cmd'] = jack.helpers.helpers[
-            'cdparanoia']['cmd'].replace("--abort-on-skip", "")
-        jack.helpers.helpers['cdparanoia']['otf-cmd'] = jack.helpers.helpers[
-            'cdparanoia']['otf-cmd'].replace("--abort-on-skip", "")
+        jack.helpers.helpers['cdparanoia']['cmd'] = jack.helpers.helpers['cdparanoia']['cmd'].replace("--abort-on-skip", "")
+        jack.helpers.helpers['cdparanoia']['otf-cmd'] = jack.helpers.helpers['cdparanoia']['otf-cmd'].replace("--abort-on-skip", "")
 
     if cf['_query_on_start'] and cf['_query_when_ready']:
         error("it doesn't make sense to query now _and_ when finished.")
@@ -224,20 +212,17 @@ def check_rc(cf, global_cf, user_cf, argv_cf):
     all_keys = list(global_cf.keys()) + list(user_cf.keys()) + list(argv_cf.keys())
     userdef_keys = list(user_cf.keys()) + list(argv_cf.keys())
     if 'base_dir' not in all_keys:
-        warning(
-            "You have no standard location set, putting files into the current directory. Please consider setting base_dir in ~/.jack3rc.")
+        warning("You have no standard location set, putting files into the current directory. Please consider setting base_dir in ~/.jack3rc.")
 
     # Check if the default ripper is installed, and if not, look for another
     # one
     if 'ripper' not in all_keys:
         default_ripper = cf["ripper"]["val"]
         if not jack.utils.in_path(default_ripper):
-            rippers = [i for i in jack.helpers.helpers if jack.helpers.helpers[i][
-                "type"] == "ripper" and "toc_cmd" in jack.helpers.helpers[i]]
+            rippers = [i for i in jack.helpers.helpers if jack.helpers.helpers[i]["type"] == "ripper" and "toc_cmd" in jack.helpers.helpers[i]]
             for cmd in rippers:
                 if jack.utils.in_path(cmd):
-                    warning("Using ripper %s since default ripper %s is not available." %
-                            (cmd, default_ripper))
+                    warning("Using ripper %s since default ripper %s is not available." % (cmd, default_ripper))
                     cf.rupdate({'ripper': {'val': cmd}}, "check")
                     break
             else:
@@ -254,8 +239,7 @@ def check_rc(cf, global_cf, user_cf, argv_cf):
 
     # If the default CD device doesn't exist, see whether we can find another
     # one
-    if ('cd_device' not in all_keys and cf["rip_from_device"]["val"] and
-            not os.path.exists(cf["cd_device"]["val"])):
+    if ('cd_device' not in all_keys and cf["rip_from_device"]["val"] and not os.path.exists(cf["cd_device"]["val"])):
         default = cf["cd_device"]["val"]
         devices = []
         # All CD devices can be found in /proc on Linux
@@ -268,8 +252,7 @@ def check_rc(cf, global_cf, user_cf, argv_cf):
             else:
                 for line in info.readlines():
                     if line.startswith("drive name:"):
-                        devices = [
-                            "/dev/" + x for x in line.rstrip().split("\t")[2:]]
+                        devices = ["/dev/" + x for x in line.rstrip().split("\t")[2:]]
                         break
                 info.close()
         message = "Default CD device %s does not exist" % default

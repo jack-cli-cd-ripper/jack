@@ -66,11 +66,10 @@ def init():
     if jack.metadata.names_available:
         jack.term.tmod.extra_lines = jack.term.tmod.extra_lines + 1
         if jack.term.term_type == "curses":
-            discname = jack.tag.track_names[0][
-                0] + " - " + jack.tag.track_names[0][1]
+            discname = jack.tag.track_names[0][0] + " - " + jack.tag.track_names[0][1]
         else:
-            options_string = center_line(jack.tag.track_names[0][0] + " - " + jack.tag.track_names[0][
-                                         1], fill="- ", fill_r=" -", width=jack.term.size_x) + "\n" + center_line(options_string, fill=" ", fill_r=" ", width=jack.term.size_x)
+            options_string = center_line(jack.tag.track_names[0][0] + " - " + jack.tag.track_names[0][1],
+                fill="- ", fill_r=" -", width=jack.term.size_x) + "\n" + center_line(options_string, fill=" ", fill_r=" ", width=jack.term.size_x)
 
 
 def sig_handler(sig, frame):
@@ -101,8 +100,7 @@ def sig_handler(sig, frame):
         i['file'].close()
 
     if exit_code and cf['_silent_mode']:
-        progress("all", "err", "abnormal exit (code %i), check %s and %s" %
-                 (exit_code, cf['_err_file'], cf['_out_file']))
+        progress("all", "err", "abnormal exit (code %i), check %s and %s" % (exit_code, cf['_err_file'], cf['_out_file']))
 
     if cf['_wait_on_quit']:
         if sig:

@@ -113,8 +113,7 @@ def start_new_encoder(track, encoder):
         elif i == "%i":
             args.append(track[NAME] + ".wav")
         elif i == "%o":
-            args.append(track[NAME] + jack.targets.targets[
-                        jack.helpers.helpers[cf['_encoder']]['target']]['file_extension'])
+            args.append(track[NAME] + jack.targets.targets[jack.helpers.helpers[cf['_encoder']]['target']]['file_extension'])
         else:
             if jack.targets.targets[helper['target']]['can_pretag']:
                 if i == "%t":
@@ -203,8 +202,7 @@ def start_new_otf(track, ripper, encoder):
     args = []
     for i in cmd:
         if i == "%r":
-            args.append(repr(track[RATE] * helpers[
-                        cf['_encoder']]['bitrate_factor']))
+            args.append(repr(track[RATE] * helpers[cf['_encoder']]['bitrate_factor']))
         elif i == "%q":
             if 'inverse-quality' in helper and helper['inverse-quality']:
                 quality = min(9, 10 - cf['_vbr_quality'])
@@ -212,8 +210,7 @@ def start_new_otf(track, ripper, encoder):
                 quality = cf['_vbr_quality']
             args.append("%.3f" % quality)
         elif i == "%o":
-            args.append(track[NAME] + jack.targets.targets[
-                        jack.helpers.helpers[cf['_encoder']]['target']]['file_extension'])
+            args.append(track[NAME] + jack.targets.targets[jack.helpers.helpers[cf['_encoder']]['target']]['file_extension'])
         elif i == "%d":
             args.append(cf['_cd_device'])
         else:
@@ -300,8 +297,7 @@ def ripread(track, offset=0):
                 debug("unsupported image file " + cf['_image_file'])
                 posix._exit(4)
 
-        expected_filesize = jack.functions.tracksize(
-            jack.ripstuff.all_tracks)[CDR] + CDDA_BLOCKSIZE * offset
+        expected_filesize = jack.functions.tracksize(jack.ripstuff.all_tracks)[CDR] + CDDA_BLOCKSIZE * offset
 
         # WAVE header is 44 Bytes for normal PCM files...
         if hdr[0] == 'wav':
@@ -309,8 +305,7 @@ def ripread(track, offset=0):
 
         if abs(jack.utils.filesize(cf['_image_file']) - expected_filesize) > CDDA_BLOCKSIZE:
             # we *do* allow a difference of one frame
-            debug("image file size mismatch, aborted. %d != %d" %
-                  (jack.utils.filesize(cf['_image_file']), expected_filesize))
+            debug("image file size mismatch, aborted. %d != %d" % (jack.utils.filesize(cf['_image_file']), expected_filesize))
             posix._exit(1)
 
         elif hdr[0] == 'wav' and (hdr[1], hdr[2], hdr[4]) != (44100, 2, 16):
@@ -355,8 +350,7 @@ def ripread(track, offset=0):
             f.close()
 
             stop_time = time.time()
-            read_speed = track[LEN] // CDDA_BLOCKS_PER_SECOND // (
-                stop_time - start_time)
+            read_speed = track[LEN] // CDDA_BLOCKS_PER_SECOND // (stop_time - start_time)
             if read_speed < 100:
                 print("[%2.0fx]" % read_speed, end=' ')
             else:

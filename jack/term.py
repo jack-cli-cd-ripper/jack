@@ -124,8 +124,7 @@ def xtermset_disable():
     global geom_changed
     if xtermset and geom_changed:
         try:
-            os.system("xtermset -restore -geom %dx%d" %
-                      (orig_size_x, orig_size_y))
+            os.system("xtermset -restore -geom %dx%d" % (orig_size_x, orig_size_y))
             geom_changed = 0
         except:
             pass

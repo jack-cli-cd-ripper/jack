@@ -98,8 +98,7 @@ def load(cf, file):
     for i in rc:
         if i[0] != None:
             if i[0] in cf:
-                ret, val = jack.argv.parse_option(
-                    cf, i[0:2], 0, i[0], None, origin="rcfile")
+                ret, val = jack.argv.parse_option(cf, i[0:2], 0, i[0], None, origin="rcfile")
                 if ret != None:
                     rc_cf[i[0]] = {'val': val}
                 else:

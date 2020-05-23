@@ -165,10 +165,8 @@ def guesstoc(names):
                 error("could not get MP3 info for file \"%s\"" % i)
             blocks = int(x['length'] * CDDA_BLOCKS_PER_SECOND + 0.5)
             erg.append([num, blocks, start, 0, 0, 2, 1, x['bitrate'], i_name])
-            progr.append(
-                [num, "dae", "  *   [          simulated           ]"])
-            progr.append(
-                [num, "enc", repr(x['bitrate']), "[ s i m u l a t e d %3ikbit]" % (x['bitrate'] + 0.5)])
+            progr.append([num, "dae", "  *   [          simulated           ]"])
+            progr.append([num, "enc", repr(x['bitrate']), "[ s i m u l a t e d %3ikbit]" % (x['bitrate'] + 0.5)])
         elif i_ext == ".WAV":
             x = sndhdr.whathdr(i)
             if not x:
@@ -180,8 +178,7 @@ def guesstoc(names):
             extra_bytes = blocks % CDDA_BLOCKSIZE
             if not extra_bytes == 0:
                 warning("this is not CDDA block-aligned: " + repr(i))
-                yes = input("May I strip %d bytes (= %.4fseconds) off the end? " %
-                                (extra_bytes, extra_bytes / 2352.0 / 75.0))
+                yes = input("May I strip %d bytes (= %.4fseconds) off the end? " % (extra_bytes, extra_bytes / 2352.0 / 75.0))
                 if not ((yes + "x")[0]).upper() == "Y":
                     print("Sorry, I can't process non-aligned files (yet). Bye!")
                     sys.exit()
@@ -191,20 +188,16 @@ def guesstoc(names):
                 f.close()
                 blocks = blocks - extra_bytes
             blocks = blocks // CDDA_BLOCKSIZE
-            erg.append(
-                [num, blocks, start, 0, 0, 2, 1, cf['_bitrate'], i_name])
-            progr.append(
-                [num, "dae", "  =p  [  s  i  m  u  l  a  t  e  d   ]"])
+            erg.append([num, blocks, start, 0, 0, 2, 1, cf['_bitrate'], i_name])
+            progr.append([num, "dae", "  =p  [  s  i  m  u  l  a  t  e  d   ]"])
         elif i_ext == ".OGG":
             if oggvorbis:
                 x = oggvorbis.OggVorbis(i)
                 blocks = int(x.info.length * CDDA_BLOCKS_PER_SECOND + 0.5)
                 bitrate = temp_rate = int(x.info.bitrate / 1000 + 0.5)
                 erg.append([num, blocks, start, 0, 0, 2, 1, bitrate, i_name])
-                progr.append(
-                    [num, "dae", "  *   [          simulated           ]"])
-                progr.append(
-                    [num, "enc", repr(bitrate), "[ s i m u l a t e d %3ikbit]" % bitrate])
+                progr.append([num, "dae", "  *   [          simulated           ]"])
+                progr.append([num, "enc", repr(bitrate), "[ s i m u l a t e d %3ikbit]" % bitrate])
             else:
                 error("The OGG Python bindings are not installed.")
         elif i_ext == ".FLAC":
@@ -215,17 +208,13 @@ def guesstoc(names):
                 f = flac.FLAC(i)
                 size = os.path.getsize(i)
                 if f.info and size:
-                    blocks = int(
-                        float(f.info.total_samples) / f.info.sample_rate * CDDA_BLOCKS_PER_SECOND + 0.5)
-                    bitrate = int(
-                        size * 8 * f.info.sample_rate // f.info.total_samples // 1000)
+                    blocks = int(float(f.info.total_samples) / f.info.sample_rate * CDDA_BLOCKS_PER_SECOND + 0.5)
+                    bitrate = int(size * 8 * f.info.sample_rate // f.info.total_samples // 1000)
                 else:
                     blocks = bitrate = 0
                 erg.append([num, blocks, start, 0, 0, 2, 1, bitrate, i_name])
-                progr.append(
-                    [num, "dae", "  *   [          simulated           ]"])
-                progr.append(
-                    [num, "enc", repr(bitrate), "[ s i m u l a t e d %3ikbit]" % bitrate])
+                progr.append([num, "dae", "  *   [          simulated           ]"])
+                progr.append([num, "enc", repr(bitrate), "[ s i m u l a t e d %3ikbit]" % bitrate])
             else:
                 error("The FLAC Python bindings are not installed.")
         elif i_ext == ".M4A":
@@ -235,10 +224,8 @@ def guesstoc(names):
                 bitrate = mp4.info.bitrate
                 blocks = int(length * CDDA_BLOCKS_PER_SECOND + 0.5)
                 erg.append([num, blocks, start, 0, 0, 2, 1, bitrate, i_name])
-                progr.append(
-                    [num, "dae", "  *   [          simulated           ]"])
-                progr.append(
-                    [num, "enc", repr(bitrate), "[ s i m u l a t e d %3ikbit]" % bitrate])
+                progr.append([num, "dae", "  *   [          simulated           ]"])
+                progr.append([num, "enc", repr(bitrate), "[ s i m u l a t e d %3ikbit]" % bitrate])
         else:
             error("don't know how to handle %s files." % i_ext)
         if cf['_name'] % num != i_name:
@@ -288,8 +275,7 @@ def real_cdrdao_gettoc(tocfile):     # get toc from cdrdao-style toc-file
     toc = jack.toc.TOC()
 
     if not os.path.exists(tocfile):
-        error("Can't open TOC file '%s': file does not exist." %
-              os.path.abspath(tocfile))
+        error("Can't open TOC file '%s': file does not exist." % os.path.abspath(tocfile))
     try:
         f = open(tocfile, "rb")
     except (IOError, OSError) as e:
@@ -327,8 +313,7 @@ def real_cdrdao_gettoc(tocfile):     # get toc from cdrdao-style toc-file
                 error("could not decode above data")
         if not line:
             if actual_track.channels not in [1, 2, 4]:
-                debug(
-                    "track %02d: unknown number of channels, assuming 2" % num)
+                debug("track %02d: unknown number of channels, assuming 2" % num)
                 actual_track.channels = 2
             toc.append(actual_track)
             break
@@ -343,8 +328,7 @@ def real_cdrdao_gettoc(tocfile):     # get toc from cdrdao-style toc-file
             new_track.number = num
             if actual_track:
                 if actual_track.channels not in [1, 2, 4]:
-                    debug(
-                        "track %02d: unknown number of channels, assuming 2" % num)
+                    debug("track %02d: unknown number of channels, assuming 2" % num)
                     actual_track.channels = 2
                 toc.append(actual_track)
             actual_track = new_track
@@ -450,8 +434,7 @@ def cdrdao_puttoc(tocfile, tracks, cd_id):     # put toc to cdrdao toc-file
         if i[NUM] == 1:         # add pregap to track, virtually
             x = x + i[START]
         x = blockstomsf(x)
-        f.write("%02i" % x[B_MM] + ":" + "%02i" %
-                x[B_SS] + ":" + "%02i" % x[B_FF] + "\n")
+        f.write("%02i" % x[B_MM] + ":" + "%02i" % x[B_SS] + ":" + "%02i" % x[B_FF] + "\n")
         if i[NUM] == 1 and i[START] != 0:
             f.write("START " + msftostr(blockstomsf(i[START])) + "\n")
         f.write("\n")
@@ -465,8 +448,7 @@ def tracksize(list, dont_dae=[], blocksize=1024):
     encoded_size = wavsize = cdrsize = 0
     for track in list:
         blocks = blocks + track[LEN]
-        encoded_size = encoded_size + \
-            track[LEN] // CDDA_BLOCKS_PER_SECOND * track[RATE] * 1000 // 8
+        encoded_size = encoded_size + track[LEN] // CDDA_BLOCKS_PER_SECOND * track[RATE] * 1000 // 8
         # files can be a bit shorter, if someone knows a better way of guessing
         # filesizes, please let me know.
         count_thiswav = 1
@@ -492,8 +474,7 @@ def progress(track, what="error", data="error", data2=None):
         elif len(track) == 4:
             track, what, data, data2 = track
         else:
-            error("illegal progress entry:" + repr(
-                  track) + " (" + repr(type(track)) + ")")
+            error("illegal progress entry:" + repr(track) + " (" + repr(type(track)) + ")")
 
     if type(track) == int:
         first = "%02i" % track

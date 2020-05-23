@@ -443,8 +443,7 @@ for i in range(first, last + 1):
 }
 
 helpers['lame-user'] = helpers['lame'].copy()
-helpers[
-    'lame-user'].update({'cmd': "lame --preset cbr %r --strictly-enforce-ISO %i %o",
+helpers['lame-user'].update({'cmd': "lame --preset cbr %r --strictly-enforce-ISO %i %o",
                          'vbr-cmd': "lame -V %q --vbr-new --nohist --strictly-enforce-ISO %i %o",
                          'otf-cmd': "lame --preset cbr %r --strictly-enforce-ISO - %o",
                          'vbr-otf-cmd': "lame -V %q --vbr-new --nohist --strictly-enforce-ISO - %o", })

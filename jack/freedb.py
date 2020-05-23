@@ -94,8 +94,7 @@ def freedb_template(tracks, names=""):
             if names[0][0].upper().find("VARIOUS") >= 0:
                 f.write(freedb_split("DTITLE", "Various / " + names[0][1]))
             else:
-                f.write(
-                    freedb_split("DTITLE", "Various / " + names[0][0] + " - " + names[0][1]))
+                f.write(freedb_split("DTITLE", "Various / " + names[0][0] + " - " + names[0][1]))
         else:
             f.write(freedb_split("DTITLE", names[0][0] + " / " + names[0][1]))
     else:
@@ -120,16 +119,9 @@ def freedb_template(tracks, names=""):
     for i in tracks:
         if names:
             if names[i[NUM]][0]:  # various
-                f.write(
-                    freedb_split("TTITLE" + repr(i[NUM] - 1),
-                                 names[i[NUM]][0] +
-                                 " - " +
-                                 names[i[NUM]][1]
-                                 )
-                )
+                f.write(freedb_split("TTITLE" + repr(i[NUM] - 1), names[i[NUM]][0] + " - " + names[i[NUM]][1]))
             else:
-                f.write(
-                    freedb_split("TTITLE" + repr(i[NUM] - 1), names[i[NUM]][1]))
+                f.write(freedb_split("TTITLE" + repr(i[NUM] - 1), names[i[NUM]][1]))
         else:
             f.write("TTITLE" + repr(i[NUM] - 1) + "=\n")
     f.write("EXTD=\n")
@@ -147,11 +139,9 @@ def freedb_query(cd_ids, tracks, file):
     for i in tracks:
         qs = qs + repr(i[START] + MSF_OFFSET) + " "
     qs = qs + repr((MSF_OFFSET + tracks[-1][START] + tracks[-1][LEN]) // CDDA_BLOCKS_PER_SECOND)
-    hello = "hello=" + cf['_username'] + " " + cf[
-        '_hostname'] + " " + jack.metadata.metadata_servers[cf['_metadata_server']]['id']
+    hello = "hello=" + cf['_username'] + " " + cf['_hostname'] + " " + jack.metadata.metadata_servers[cf['_metadata_server']]['id']
     qs = urllib.parse.quote_plus(qs + "&" + hello + "&proto=6", "=&")
-    url = "http://" + \
-        jack.metadata.metadata_servers[cf['_metadata_server']]['host'] + "/~cddb/cddb.cgi?" + qs
+    url = "http://" + jack.metadata.metadata_servers[cf['_metadata_server']]['host'] + "/~cddb/cddb.cgi?" + qs
     if cf['_cont_failed_query']:
         try:
             f = urllib.request.urlopen(url)
@@ -210,17 +200,14 @@ def freedb_query(cd_ids, tracks, file):
                 error(buf + f.read().decode(cf['_charset']) + " How about trying another --server?")
         else:
             if cf['_cont_failed_query']:
-                warning(
-                    buf + f.read().decode(cf['_charset']) + " --don't know what to do, aborting query.")
+                warning(buf + f.read().decode(cf['_charset']) + " --don't know what to do, aborting query.")
                 err = 1
                 return err
             else:
-                error(
-                    buf + f.read().decode(cf['_charset']) + " --don't know what to do, aborting query.")
+                error(buf + f.read().decode(cf['_charset']) + " --don't know what to do, aborting query.")
 
         cmd = "cmd=cddb read " + freedb_cat + " " + cd_ids['cddb']
-        url = "http://" + jack.metadata.metadata_servers[cf['_metadata_server']][
-            'host'] + "/~cddb/cddb.cgi?" + urllib.parse.quote_plus(cmd + "&" + hello + "&proto=6", "=&")
+        url = "http://" + jack.metadata.metadata_servers[cf['_metadata_server']]['host'] + "/~cddb/cddb.cgi?" + urllib.parse.quote_plus(cmd + "&" + hello + "&proto=6", "=&")
         f = urllib.request.urlopen(url)
         buf = f.readline().decode(cf['_charset'])
         if buf and buf[0:3] == "210":  # entry follows
@@ -294,8 +281,7 @@ def freedb_names(cd_ids, tracks, todo, name, verb=0, warn=1):
             if i[NUM] in [x[NUM] for x in todo]:
                 err = 1
             if verb:
-                warning("no freedb info for track %02i (\"TTITLE%i\")" %
-                        (i[NUM], i[NUM] - 1))
+                warning("no freedb info for track %02i (\"TTITLE%i\")" % (i[NUM], i[NUM] - 1))
             freedb["TTITLE%i" % (i[NUM] - 1)] = "[not set]"
 
     for i in list(freedb.keys()):  # check that there is no extra info
@@ -303,14 +289,12 @@ def freedb_names(cd_ids, tracks, todo, name, verb=0, warn=1):
             if int(i[6:]) > tracks_on_cd - 1:
                 err = 2
                 if verb:
-                    warning("extra freedb info for track %02i (\"%s\"), cd has only %02i tracks." %
-                            (int(i[6:]) + 1, i, tracks_on_cd))
+                    warning("extra freedb info for track %02i (\"%s\"), cd has only %02i tracks." % (int(i[6:]) + 1, i, tracks_on_cd))
 
     if "DTITLE" not in freedb:
         err = 3
         if verb:
-            warning(
-                "freedb entry doesn't contain disc title info (\"DTITLE\").")
+            warning("freedb entry doesn't contain disc title info (\"DTITLE\").")
         freedb['DTITLE'] = "[not set]"
 
     if "DISCID" not in freedb:
@@ -333,8 +317,7 @@ def freedb_names(cd_ids, tracks, todo, name, verb=0, warn=1):
             for j in i:
                 if j not in "0123456789abcdef":
                     if verb:
-                        warning(
-                            "the disc's id is not 8-digit hex (\"DISCID\").")
+                        warning("the disc's id is not 8-digit hex (\"DISCID\").")
                     err = 5
             if len(i) != 8:
                 if verb:
@@ -351,8 +334,7 @@ def freedb_names(cd_ids, tracks, todo, name, verb=0, warn=1):
     if dtitle.find("/") == -1:
         if cf['_various'] == 1:
             dtitle = "Various/" + dtitle
-            warning("bad disc title, using %s. Please fix." %
-                    dtitle)
+            warning("bad disc title, using %s. Please fix." % dtitle)
         else:
             dtitle = "(unknown artist)/" + dtitle
 
@@ -376,8 +358,7 @@ def freedb_names(cd_ids, tracks, todo, name, verb=0, warn=1):
 
     if names[0][0] == "(unknown artist)":
         if verb:
-            warning(
-                "the disc's title must be set to \"artist / title\" (\"DTITLE\").")
+            warning("the disc's title must be set to \"artist / title\" (\"DTITLE\").")
         err = 6
 
     if names[0][0].upper() in ("VARIOUS", "VARIOUS ARTISTS", "SAMPLER", "COMPILATION", "DIVERSE", "V.A.", "VA"):
@@ -525,8 +506,7 @@ def freedb_names(cd_ids, tracks, todo, name, verb=0, warn=1):
                     lenafter = len(buf[0] + buf[1])
                     if lenafter != lenbefore - len(closing_brace):
                         if verb:
-                            warning(
-                                "brace" + repr(j) + " does not close exactly once.")
+                            warning("brace" + repr(j) + " does not close exactly once.")
                         err = 9
 
                 if cf['_various_swap']:
@@ -545,8 +525,7 @@ def freedb_names(cd_ids, tracks, todo, name, verb=0, warn=1):
     if cf['_extt_is_comment']:
         for i in range(len(names[1:])):
             if 'EXTT' + repr(i) in freedb and freedb['EXTT' + repr(i)]:
-                names[i + 1][1] = names[i + 1][
-                    1] + " (%s)" % freedb['EXTT' + repr(i)]
+                names[i + 1][1] = names[i + 1][1] + " (%s)" % freedb['EXTT' + repr(i)]
             else:
                 print("Warning: track %i (starting at 0) has no EXTT entry." % i)
 

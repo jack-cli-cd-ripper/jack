@@ -62,11 +62,9 @@ def gen_printable_names(track_names, todo):
 
     if jack.metadata.names_available and cf['_show_names']:
         if cf['_various']:
-            max_name_len = max(
-                [len(track_names[x[NUM]][0] + " - " + track_names[x[NUM]][1]) for x in todo])
+            max_name_len = max([len(track_names[x[NUM]][0] + " - " + track_names[x[NUM]][1]) for x in todo])
         else:
-            max_name_len = max(
-                [len(track_names[x[NUM]][1]) for x in todo])
+            max_name_len = max([len(track_names[x[NUM]][1]) for x in todo])
         max_name_len = len("01 ") + max_name_len
         if cf['_show_time']:
             max_name_len = max_name_len + 6
@@ -86,17 +84,13 @@ def gen_printable_names(track_names, todo):
             else:
                 tmp = "%02i " % i[NUM]
             if cf['_various']:
-                tmp = tmp + track_names[i[NUM]][
-                    0] + " - " + track_names[i[NUM]][1]
+                tmp = tmp + track_names[i[NUM]][0] + " - " + track_names[i[NUM]][1]
             else:
                 tmp = tmp + track_names[i[NUM]][1]
             p_tmp = tmp
-            printable_names[i[NUM]] = p_tmp + "." * (
-                max_name_len - width(p_tmp))
+            printable_names[i[NUM]] = p_tmp + "." * (max_name_len - width(p_tmp))
         else:
             if cf['_show_time']:
-                printable_names[i[NUM]] = ("%02i " % i[NUM]) + len_tmp + "." * (
-                    max_name_len - len(i[NAME]) - 6)
+                printable_names[i[NUM]] = ("%02i " % i[NUM]) + len_tmp + "." * (max_name_len - len(i[NAME]) - 6)
             else:
-                printable_names[i[NUM]] = i[
-                    NAME] + "." * (max_name_len - len(i[NAME]))
+                printable_names[i[NUM]] = i[NAME] + "." * (max_name_len - len(i[NAME]))

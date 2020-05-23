@@ -212,8 +212,7 @@ def tag(metadata_rename):
                             try:
                                 os.rename(encname, newname + ext)
                             except OSError:
-                                error('Cannot rename "%s" to "%s" (Filename is too long or has unusable characters)' %
-                                      (p_encname, p_newname + ext))
+                                error('Cannot rename "%s" to "%s" (Filename is too long or has unusable characters)' % (p_encname, p_newname + ext))
                             jack.m3u.add(newname + ext)
                         if cf['_keep_wavs']:
                             os.rename(wavname, newname + ".wav")
