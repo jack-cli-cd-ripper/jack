@@ -653,6 +653,12 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
         'save': 0,
         'doc': "set tag info",
     },
+    'set_extended_tag': {
+        'type': 'toggle',
+        'val': 1,
+        'save': 0,
+        'doc': "set extended tag info from MusicBrainz",
+    },
     'genre': {
         'type': str,
         'val': None,

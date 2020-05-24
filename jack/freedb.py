@@ -239,7 +239,7 @@ def freedb_query(cd_ids, tracks, file):
 
 
 def freedb_names(cd_ids, tracks, todo, name, verb=0, warn=1):
-    "returns err, [(artist, albumname), (track_01-artist, track_01-name), ...], cd_ids"
+    "returns err, [(artist, albumname), (track_01-artist, track_01-name), ...], cd_ids, mb_query_data"
     err = 0
     tracks_on_cd = tracks[-1][NUM]
     freedb = {}
@@ -528,4 +528,4 @@ def freedb_names(cd_ids, tracks, todo, name, verb=0, warn=1):
             else:
                 print("Warning: track %i (starting at 0) has no EXTT entry." % i)
 
-    return err, names, read_id
+    return err, names, read_id, None

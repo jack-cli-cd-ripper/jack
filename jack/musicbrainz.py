@@ -120,7 +120,7 @@ def musicbrainz_query(cd_id, tracks, file):
 
 
 def musicbrainz_names(cd_id, tracks, todo, name, verb=0, warn=1):
-    "returns err, [(artist, albumname), (track_01-artist, track_01-name), ...], cd_id"
+    "returns err, [(artist, albumname), (track_01-artist, track_01-name), ...], cd_id, mb_query_data"
 
     err = 0
 
@@ -174,4 +174,4 @@ def musicbrainz_names(cd_id, tracks, todo, name, verb=0, warn=1):
         print("error interpreting musicbrainz result")
         err = 1
 
-    return err, names, read_id
+    return err, names, read_id, query_data

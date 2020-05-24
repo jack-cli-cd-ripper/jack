@@ -74,9 +74,9 @@ def interpret_db_file(all_tracks, todo, metadata_form_file, verb, dirs=0, warn=N
     global names_available, dir_created
     metadata_rename = 0
     if warn == None:
-        err, track_names, cd_id = metadata_names(metadata_id(all_tracks), all_tracks, todo, metadata_form_file, verb=verb)
+        err, track_names, cd_id, mb_query_data = metadata_names(metadata_id(all_tracks), all_tracks, todo, metadata_form_file, verb=verb)
     else:
-        err, track_names, cd_id = metadata_names(metadata_id(all_tracks), all_tracks, todo, metadata_form_file, verb=verb, warn=warn)
+        err, track_names, cd_id, mb_query_data = metadata_names(metadata_id(all_tracks), all_tracks, todo, metadata_form_file, verb=verb, warn=warn)
     if (not err) and dirs:
         metadata_rename = 1
 
@@ -134,7 +134,7 @@ def interpret_db_file(all_tracks, todo, metadata_form_file, verb, dirs=0, warn=N
         names_available = 1
     else:
         metadata_rename = 0
-    return err, track_names, metadata_rename
+    return err, track_names, metadata_rename, mb_query_data
 # / end of interpret_db_file /#
 
 
