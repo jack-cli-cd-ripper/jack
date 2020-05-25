@@ -677,6 +677,7 @@ def extended_tag(tagobject, tagtype, track_position):
                 "mp3": "TXXX:MusicBrainz Album Status",
                 "vorbis": "RELEASESTATUS",
                 "m4a": "----:com.apple.iTunes:MusicBrainz Album Status",
+                "mbpath": ["_release_", "status", "_tolowercase_"]
         },
         {
                 "internalname": "releasetype",
@@ -761,6 +762,7 @@ def extended_tag(tagobject, tagtype, track_position):
                 "mp3": "TSRC",
                 "vorbis": "ISRC",
                 "m4a": "----:com.apple.iTunes:ISRC",
+                "mbpath": ["_track_", "recording", "isrc-list", "_first_"]
         },
         {
                 "internalname": "asin",
