@@ -147,7 +147,7 @@ def tag(metadata_rename):
                         if f.tags == None:
                             f.add_vorbiscomment()
                         f.delete() # delete old tags
-                        if cf['_set_extended_tag']:
+                        if cf['_set_extended_tag'] and mb_query_data:
                             extended_tag(f.tags, "vorbis", track_position)
                         else:
                             if not cf['_various']:
