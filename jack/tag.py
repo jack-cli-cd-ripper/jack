@@ -347,7 +347,7 @@ def extended_tag(tagobject, tagtype, track_position):
                 "mp3": "TXXX:Artists",
                 "vorbis": "ARTISTS",
                 "m4a": "----:com.apple.iTunes:ARTISTS",
-                "mbpath": ["_track_", "recording", "artist-credit", "_multi_", "artist", "name"]
+                "mbpath": ["_track_", "recording", "artist-credit", "_multiple_", "artist", "name"]
         },
         {
                 # part of basic tagging
@@ -364,6 +364,7 @@ def extended_tag(tagobject, tagtype, track_position):
                 "mp3": "TOAL",
                 "vorbis": None,
                 "m4a": None,
+                "mbpath": ["_release_", "release-group", "title"]
         },
         {
                 "internalname": "originalartist",
@@ -371,6 +372,7 @@ def extended_tag(tagobject, tagtype, track_position):
                 "mp3": "TOPE",
                 "vorbis": None,
                 "m4a": None,
+                "mbpath": ["_release_", "release-group", "artist-credit", "_concatenate_", "artist", "name"]
         },
         {
                 "internalname": "originaldate",
@@ -378,6 +380,7 @@ def extended_tag(tagobject, tagtype, track_position):
                 "mp3": "TDOR",
                 "vorbis": "ORIGINALDATE",
                 "m4a": None,
+                "mbpath": ["_release_", "release-group", "first-release-date"]
         },
         {
                 "internalname": "originalyear",
@@ -385,6 +388,7 @@ def extended_tag(tagobject, tagtype, track_position):
                 "mp3": None,
                 "vorbis": "ORIGINALYEAR",
                 "m4a": None,
+                "mbpath": ["_release_", "release-group", "first-release-date", "_year_from_date_"]
         },
         {
                 "internalname": "originalfilename",
@@ -680,6 +684,7 @@ def extended_tag(tagobject, tagtype, track_position):
                 "mp3": "TXXX:MusicBrainz Album Type",
                 "vorbis": "RELEASETYPE",
                 "m4a": "----:com.apple.iTunes:MusicBrainz Album Type",
+                "mbpath": ["_release_", "release-group", "type", "_tolowercase_"]
         },
         {
                 "internalname": "releasecountry",
@@ -802,7 +807,7 @@ def extended_tag(tagobject, tagtype, track_position):
                 "mp3": "TXXX:MusicBrainz Artist Id",
                 "vorbis": "MUSICBRAINZ_ARTISTID",
                 "m4a": "----:com.apple.iTunes:MusicBrainz Artist Id",
-                "mbpath": ["_track_", "recording", "artist-credit", "_multi_", "artist", "id"]
+                "mbpath": ["_track_", "recording", "artist-credit", "_multiple_", "artist", "id"]
         },
         {
                 "internalname": "musicbrainz_originalartistid",
@@ -817,7 +822,7 @@ def extended_tag(tagobject, tagtype, track_position):
                 "mp3": "TXXX:MusicBrainz Album Artist Id",
                 "vorbis": "MUSICBRAINZ_ALBUMARTISTID",
                 "m4a": "----:com.apple.iTunes:MusicBrainz Album Artist Id",
-                "mbpath": ["_release_", "artist-credit", "_multi_", "artist", "id"]
+                "mbpath": ["_release_", "artist-credit", "_multiple_", "artist", "id"]
         },
         {
                 "internalname": "musicbrainz_releasegroupid",
@@ -825,6 +830,7 @@ def extended_tag(tagobject, tagtype, track_position):
                 "mp3": "TXXX:MusicBrainz Release Group Id",
                 "vorbis": "MUSICBRAINZ_RELEASEGROUPID",
                 "m4a": "----:com.apple.iTunes:MusicBrainz Release Group Id",
+                "mbpath": ["_release_", "release-group", "id"]
         },
         {
                 "internalname": "musicbrainz_workid",
@@ -963,6 +969,8 @@ def extended_tag(tagobject, tagtype, track_position):
     for map_entry in mb_tag_map:
         if not 'mbpath' in map_entry:
             continue
+        if not map_entry[tagtype]:
+            continue
         mbpath = map_entry['mbpath']
 
         built_path = None
@@ -978,6 +986,11 @@ def extended_tag(tagobject, tagtype, track_position):
                     built_path = track
                 elif item == "_disc_id_":
                     built_path = disc_id
+                elif item == "_compilation_":
+                    if cf['_various']:
+                        built_path = 1
+                    else:
+                        built_path = None
                 elif item == "_genre_":
                     built_path = genre
                 elif item == "_first_":
@@ -999,7 +1012,7 @@ def extended_tag(tagobject, tagtype, track_position):
                                     concat_string += sub_path
                     built_path = concat_string
                     break
-                elif item == "_multi_":
+                elif item == "_multiple_":
                     remain_items = mbpath[depth+1:]
                     multi_built_path = None
                     for multi_path in built_path:
@@ -1011,6 +1024,10 @@ def extended_tag(tagobject, tagtype, track_position):
                             built_paths.append(multi_built_path)
                     built_path = None
                     break
+                elif item == "_tolowercase_":
+                    built_path = built_path.lower()
+                elif item == "_year_from_date_":
+                    built_path = built_path[:4]
                 else:
                     print("unknown special item", item)
                     built_path = None
@@ -1024,9 +1041,16 @@ def extended_tag(tagobject, tagtype, track_position):
 
         if built_path:
             built_paths.append(built_path)
+
         for built_path in built_paths:
             debug("tagging" + map_entry['name'] +  "-->" + str(built_path))
 
             if tagtype == "vorbis":
                 tagobject.append([map_entry['vorbis'], str(built_path)])
+            elif tagtype == "mp3":
+                pass    # FIXME
+            elif tagtype == "m4a":
+                pass    # FIXME
+            else:
+                error("unknown tag type " + tagtype)
     return

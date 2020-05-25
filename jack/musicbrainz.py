@@ -57,8 +57,11 @@ def musicbrainz_query(cd_id, tracks, file):
 
     mb_id = cd_id['musicbrainzngs']
 
+    includes = ["area-rels", "artist-credits", "artist-rels", "artists", "isrcs", "label-rels", "labels", "place-rels",
+            "recording-rels", "recordings", "release-group-rels", "release-groups", "release-rels", "url-rels", "work-rels"]
+
     try:
-        result = musicbrainzngs.get_releases_by_discid(mb_id, includes=["artists", "artist-credits", "labels", "recordings", "recording-rels"])
+        result = musicbrainzngs.get_releases_by_discid(mb_id, includes=includes)
     except musicbrainzngs.ResponseError:
         print("no match for", cd_id['musicbrainzngs'], "or bad response")
         err = 1
