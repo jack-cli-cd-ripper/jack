@@ -119,81 +119,87 @@ def tag(metadata_rename):
                 t_name = track_names[i[NUM]][1]
                 if not cf['_only_dae'] and cf['_set_tag']:
                     if target == "mp3":
-                        track_info = "%s/%s" % (track_position, track_count)
-                        medium_info = "%s/%s" % (medium_position, medium_count)
-                        audio = mp3.MP3(encname)
-                        if audio.tags == None:
-                            audio.add_tags()
-                        # FIXME delete old tags
-                        tags = audio.tags
-                        if not cf['_various']:
-                            tags.add(id3.TPE2(encoding=3, text=a_artist))
-                        tags.add(id3.TPE1(encoding=3, text=t_artist))
-                        tags.add(id3.TALB(encoding=3, text=a_title))
-                        tags.add(id3.TIT2(encoding=3, text=t_name))
-                        if cf['_genre']:
-                            tags.add(id3.TCON(encoding=3, text=cf['_genre']))
-                        if cf['_year']:
-                            tags.add(id3.TDRL(encoding=3, text=cf['_year']))
-                        tags.add(id3.TRCK(encoding=3, text=track_info))
-                        if medium_tagging:
-                            tags.add(id3.TPOS(encoding=3, text=medium_info))
-                        audio.save()
+                        m = mp3.MP3(encname)
+                        if m.tags == None:
+                            m.add_tags()
+                        for tag in list(m.tags):
+                            key = tag[:4]
+                            if key != "APIC":
+                                m.tags.delall(key)
+                        if cf['_set_extended_tag'] and mb_query_data:
+                            extended_tag(m.tags, "id3v2.4", track_position)
+                        else:
+                            # basic tagging
+                            if not cf['_various']:
+                                m.tags.add(id3.TPE2(encoding=3, text=a_artist))
+                            m.tags.add(id3.TPE1(encoding=3, text=t_artist))
+                            m.tags.add(id3.TALB(encoding=3, text=a_title))
+                            m.tags.add(id3.TIT2(encoding=3, text=t_name))
+                            if cf['_genre']:
+                                m.tags.add(id3.TCON(encoding=3, text=cf['_genre']))
+                            if cf['_year']:
+                                m.tags.add(id3.TDRC(encoding=3, text=cf['_year']))
+                            track_info = "%s/%s" % (track_position, track_count)
+                            m.tags.add(id3.TRCK(encoding=3, text=track_info))
+                            medium_info = "%s/%s" % (medium_position, medium_count)
+                            if medium_tagging:
+                                m.tags.add(id3.TPOS(encoding=3, text=medium_info))
+                        m.save()
                     elif target == "flac" or target == "ogg":   # both vorbis tags
                         if target == "flac":
-                            f = flac.FLAC(encname)
+                            m = flac.FLAC(encname)
                         elif target == "ogg":
-                            f = oggvorbis.OggVorbis(encname)
-                        if f.tags == None:
-                            f.add_vorbiscomment()
-                        f.delete() # delete old tags
+                            m = oggvorbis.OggVorbis(encname)
+                        if m.tags == None:
+                            m.add_vorbiscomment()
+                        m.delete() # delete old tags
                         if cf['_set_extended_tag'] and mb_query_data:
-                            extended_tag(f.tags, "vorbis", track_position)
+                            extended_tag(m.tags, "vorbis", track_position)
                         else:
                             # basic tagging
                             if not cf['_various']:
-                                f.tags['ALBUMARTIST'] = a_artist
-                            f.tags['ARTIST'] = t_artist
-                            f.tags['ALBUM'] = a_title
-                            f.tags['TITLE'] = t_name
+                                m.tags['ALBUMARTIST'] = a_artist
+                            m.tags['ARTIST'] = t_artist
+                            m.tags['ALBUM'] = a_title
+                            m.tags['TITLE'] = t_name
                             if cf['_genre']:
-                                f.tags['GENRE'] = cf['_genre']
+                                m.tags['GENRE'] = cf['_genre']
                             if cf['_year']:
-                                f.tags['DATE'] = cf['_year']
-                            f.tags['TRACKNUMBER'] = str(track_position)
-                            f.tags['TRACKTOTAL'] = str(track_count)
+                                m.tags['DATE'] = cf['_year']
+                            m.tags['TRACKNUMBER'] = str(track_position)
+                            m.tags['TRACKTOTAL'] = str(track_count)
                             if medium_tagging:
-                                f.tags['DISCNUMBER'] = str(medium_position)
+                                m.tags['DISCNUMBER'] = str(medium_position)
                                 if medium_count:
-                                    f.tags['DISCTOTAL'] = str(medium_count)
+                                    m.tags['DISCTOTAL'] = str(medium_count)
                             if cf['_various']:
-                                f.tags['COMPILATION'] = "1"
-                        f.save()
-                    elif target == "m4a":
-                        m4a = mp4.MP4(encname)
+                                m.tags['COMPILATION'] = "1"
+                        m.save()
+                    elif target == "mp4":
+                        m = mp4.MP4(encname)
                         # delete old tags
                         keeptags = ['©too', '----:com.apple.iTunes:iTunSMPB'] # set by fdkaac
-                        for tag in list(m4a.tags):
+                        for tag in list(m.tags):
                             if tag not in keeptags:
-                                m4a.tags.pop(tag)
+                                m.tags.pop(tag)
                         if cf['_set_extended_tag'] and mb_query_data:
-                            extended_tag(m4a.tags, "m4a", track_position)
+                            extended_tag(m.tags, "mp4", track_position)
                         else:
                             # basic tagging
                             if not cf['_various']:
-                                m4a.tags['aART'] = [a_artist]
-                            m4a.tags['©ART'] = [t_artist]
-                            m4a.tags['©alb'] = [a_title]
-                            m4a.tags['©nam'] = [t_name]
+                                m.tags['aART'] = [a_artist]
+                            m.tags['©ART'] = [t_artist]
+                            m.tags['©alb'] = [a_title]
+                            m.tags['©nam'] = [t_name]
                             if cf['_genre']:
-                                m4a.tags['©gen'] = [cf['_genre']]
+                                m.tags['©gen'] = [cf['_genre']]
                             if cf['_year']:
-                                m4a.tags['©day'] = [cf['_year']]
-                            m4a.tags['trkn'] = [(track_position, track_count)]
+                                m.tags['©day'] = [cf['_year']]
+                            m.tags['trkn'] = [(track_position, track_count)]
                             if medium_tagging:
-                                m4a.tags['disk'] = [(medium_position, medium_count)]
-                            m4a.tags['cpil'] = bool(cf['_various'])
-                        m4a.save()
+                                m.tags['disk'] = [(medium_position, medium_count)]
+                            m.tags['cpil'] = bool(cf['_various'])
+                        m.save()
             if metadata_rename:
                 newname = jack.metadata.filenames[i[NUM]]
                 encname = i[NAME] + ext
@@ -267,7 +273,7 @@ def fix_genre_case(genre):
     return genre
 
 
-def extended_tag(tag_object, tag_type, track_position):
+def extended_tag(tag_obj, tag_type, track_position):
 
     # taken from https://picard.musicbrainz.org/docs/mappings/
     mb_tag_map = [
@@ -275,687 +281,698 @@ def extended_tag(tag_object, tag_type, track_position):
                 # part of basic tagging
                 "internalname": "album",
                 "name": "Album",
-                "mp3": "TALB",
+                "id3v2.4": "TALB",
                 "vorbis": "ALBUM",
-                "m4a": "©alb",
+                "mp4": "©alb",
                 "mbpath": ["_release_", "title"]
         },
         {
                 "internalname": "albumsort",
                 "name": "Album Sort Order",
-                "mp3": "TSOA",
+                "id3v2.4": "TSOA",
                 "vorbis": "ALBUMSORT",
-                "m4a": "soal",
+                "mp4": "soal",
                 "mbpath": ["_release_", "sort-name"]
         },
         {
                 # part of basic tagging
                 "internalname": "title",
                 "name": "Track Title",
-                "mp3": "TIT2",
+                "id3v2.4": "TIT2",
                 "vorbis": "TITLE",
-                "m4a": "©nam",
+                "mp4": "©nam",
                 "mbpath": ["_track_", "recording", "title"]
         },
         {
                 "internalname": "titlesort",
                 "name": "Track Title Sort Order",
-                "mp3": "TSOT",
+                "id3v2.4": "TSOT",
                 "vorbis": "TITLESORT",
-                "m4a": "sonm",
+                "mp4": "sonm",
                 "mbpath": ["_track_", "recording", "sort-name"]
         },
         {
                 "internalname": "work",
                 "name": "Work Title",
-                "mp3": "TIT1",
+                "id3v2.4": "TIT1",
                 "vorbis": "WORK",
-                "m4a": "©wrk",
+                "mp4": "©wrk",
         },
         {
                 # part of basic tagging
                 "internalname": "artist",
                 "name": "Artist",
-                "mp3": "TPE1",
+                "id3v2.4": "TPE1",
                 "vorbis": "ARTIST",
-                "m4a": "©ART",
+                "mp4": "©ART",
                 "mbpath": ["_track_", "recording", "artist-credit-phrase"]
         },
         {
                 "internalname": "artistsort",
                 "name": "Artist Sort Order",
-                "mp3": "TSOP",
+                "id3v2.4": "TSOP",
                 "vorbis": "ARTISTSORT",
-                "m4a": "soar",
+                "mp4": "soar",
                 "mbpath": ["_track_", "recording", "artist-credit", "_concatenate_", "artist", "sort-name"]
         },
         {
                 # part of basic tagging, using equivalent of ["_release_", "artist-credit-phrase"]
                 "internalname": "albumartist",
                 "name": "Album Artist",
-                "mp3": "TPE2",
+                "id3v2.4": "TPE2",
                 "vorbis": "ALBUMARTIST",
-                "m4a": "aART",
+                "mp4": "aART",
                 "mbpath": ["_release_", "artist-credit", "_concatenate_", "artist", "name"]
         },
         {
                 "internalname": "albumartistsort",
                 "name": "Album Artist Sort Order",
-                "mp3": "TSO2",
+                "id3v2.4": "TSO2",
                 "vorbis": "ALBUMARTISTSORT",
-                "m4a": "soaa",
+                "mp4": "soaa",
                 "mbpath": ["_release_", "artist-credit", "_concatenate_", "artist", "sort-name"]
         },
         {
                 "internalname": "artists",
                 "name": "Artists",
-                "mp3": "TXXX:Artists",
+                "id3v2.4": "TXXX:Artists",
                 "vorbis": "ARTISTS",
-                "m4a": "----:com.apple.iTunes:ARTISTS",
+                "mp4": "----:com.apple.iTunes:ARTISTS",
                 "mbpath": ["_track_", "recording", "artist-credit", "_multiple_", "artist", "name"]
         },
         {
                 # part of basic tagging
                 "internalname": "date",
                 "name": "Release Date",
-                "mp3": "TDRC",
+                "id3v2.4": "TDRC",
+                "id3-frametype": "TimeStampTextFrame",
                 "vorbis": "DATE",
-                "m4a": "©day",
+                "mp4": "©day",
                 "mbpath": ["_release_", "date"]
         },
         {
                 "internalname": "originalalbum",
                 "name": "Original Album",
-                "mp3": "TOAL",
+                "id3v2.4": "TOAL",
                 "vorbis": None,
-                "m4a": None,
+                "mp4": None,
                 "mbpath": ["_release_", "release-group", "title"]
         },
         {
                 "internalname": "originalartist",
                 "name": "Original Artist",
-                "mp3": "TOPE",
+                "id3v2.4": "TOPE",
                 "vorbis": None,
-                "m4a": None,
+                "mp4": None,
                 "mbpath": ["_release_", "release-group", "artist-credit", "_concatenate_", "artist", "name"]
         },
         {
                 "internalname": "originaldate",
                 "name": "Original Release Date",
-                "mp3": "TDOR",
+                "id3v2.4": "TDOR",
+                "id3-frametype": "TimeStampTextFrame",
                 "vorbis": "ORIGINALDATE",
-                "m4a": "----:com.apple.iTunes:originaldate",
+                "mp4": "----:com.apple.iTunes:originaldate",
                 "mbpath": ["_release_", "release-group", "first-release-date"]
         },
         {
                 "internalname": "originalyear",
                 "name": "Original Release Year",
-                "mp3": None,
+                "id3v2.4": "TXXX:originalyear",
+                "id3-frametype": "TimeStampTextFrame",
                 "vorbis": "ORIGINALYEAR",
-                "m4a": "----:com.apple.iTunes:originalyear",
+                "mp4": "----:com.apple.iTunes:originalyear",
                 "mbpath": ["_release_", "release-group", "first-release-date", "_year_from_date_"]
         },
         {
                 "internalname": "originalfilename",
                 "name": "Original Filename",
-                "mp3": "TOFN",
+                "id3v2.4": "TOFN",
                 "vorbis": "ORIGINALFILENAME",
-                "m4a": None,
+                "mp4": None,
         },
         {
                 "internalname": "composer",
                 "name": "Composer",
-                "mp3": "TCOM",
+                "id3v2.4": "TCOM",
                 "vorbis": "COMPOSER",
-                "m4a": "©wrt",
+                "mp4": "©wrt",
         },
         {
                 "internalname": "composersort",
                 "name": "Composer Sort Order",
-                "mp3": "TSOC",
+                "id3v2.4": "TSOC",
                 "vorbis": "COMPOSERSORT",
-                "m4a": "soco",
+                "mp4": "soco",
         },
         {
                 "internalname": "lyricist",
                 "name": "Lyricist",
-                "mp3": "TEXT",
+                "id3v2.4": "TEXT",
                 "vorbis": "LYRICIST",
-                "m4a": "----:com.apple.iTunes:LYRICIST",
+                "mp4": "----:com.apple.iTunes:LYRICIST",
         },
         {
                 "internalname": "writer",
                 "name": "Writer",
-                "mp3": "TXXX:Writer",
+                "id3v2.4": "TXXX:Writer",
                 "vorbis": "WRITER",
-                "m4a": "",
+                "mp4": "",
         },
         {
                 "internalname": "conductor",
                 "name": "Conductor",
-                "mp3": "TPE3",
+                "id3v2.4": "TPE3",
                 "vorbis": "CONDUCTOR",
-                "m4a": "----:com.apple.iTunes:CONDUCTOR",
+                "mp4": "----:com.apple.iTunes:CONDUCTOR",
         },
         {
                 "internalname": "performer:instrument",
                 "name": "Performer [instrument]",
-                "mp3": "TMCL:instrument",
+                "id3v2.4": "TMCL:instrument",
                 "vorbis": "PERFORMER={artist} (instrument)",
-                "m4a": "",
+                "mp4": "",
         },
         {
                 "internalname": "remixer",
                 "name": "Remixer",
-                "mp3": "TPE4",
+                "id3v2.4": "TPE4",
                 "vorbis": "REMIXER",
-                "m4a": "----:com.apple.iTunes:REMIXER",
+                "mp4": "----:com.apple.iTunes:REMIXER",
         },
         {
                 "internalname": "arranger",
                 "name": "Arranger",
-                "mp3": "TIPL:arranger",
+                "id3v2.4": "TIPL:arranger",
                 "vorbis": "ARRANGER",
-                "m4a": "",
+                "mp4": "",
         },
         {
                 "internalname": "engineer",
                 "name": "Engineer",
-                "mp3": "TIPL:engineer",
+                "id3v2.4": "TIPL:engineer",
                 "vorbis": "ENGINEER",
-                "m4a": "----:com.apple.iTunes:ENGINEER",
+                "mp4": "----:com.apple.iTunes:ENGINEER",
         },
         {
                 "internalname": "producer",
                 "name": "Producer",
-                "mp3": "TIPL:producer",
+                "id3v2.4": "TIPL:producer",
                 "vorbis": "PRODUCER",
-                "m4a": "----:com.apple.iTunes:PRODUCER",
+                "mp4": "----:com.apple.iTunes:PRODUCER",
         },
         {
                 "internalname": "djmixer",
                 "name": "Mix-DJ",
-                "mp3": "TIPL:DJ-mix",
+                "id3v2.4": "TIPL:DJ-mix",
                 "vorbis": "DJMIXER",
-                "m4a": "----:com.apple.iTunes:DJMIXER",
+                "mp4": "----:com.apple.iTunes:DJMIXER",
         },
         {
                 "internalname": "mixer",
                 "name": "Mixer",
-                "mp3": "TIPL:mix",
+                "id3v2.4": "TIPL:mix",
                 "vorbis": "MIXER",
-                "m4a": "----:com.apple.iTunes:MIXER",
+                "mp4": "----:com.apple.iTunes:MIXER",
         },
         {
                 "internalname": "label",
                 "name": "Record Label",
-                "mp3": "TPUB",
+                "id3v2.4": "TPUB",
                 "vorbis": "LABEL",
-                "m4a": "----:com.apple.iTunes:LABEL",
+                "mp4": "----:com.apple.iTunes:LABEL",
                 "mbpath": ["_release_", "label-info-list", "_first_", "label", "name"]
         },
         {
                 "internalname": "movement",
                 "name": "Movement",
-                "mp3": "MVNM",
+                "id3v2.4": "MVNM",
                 "vorbis": "MOVEMENTNAME",
-                "m4a": "©mvn",
+                "mp4": "©mvn",
         },
         {
                 "internalname": "movementnumber",
                 "name": "Movement Number",
-                "mp3": "MVIN",
+                "id3v2.4": "MVIN",
                 "vorbis": "MOVEMENT",
-                "m4a": "mvi",
+                "mp4": "mvi",
         },
         {
                 "internalname": "movementtotal",
                 "name": "Movement Count",
-                "mp3": "MVIN",
+                "id3v2.4": "MVIN",
                 "vorbis": "MOVEMENTTOTAL",
-                "m4a": "mvc",
+                "mp4": "mvc",
         },
         {
                 "internalname": "showmovement",
                 "name": "Show Work & Movement",
-                "mp3": "TXXX:SHOWMOVEMENT",
+                "id3v2.4": "TXXX:SHOWMOVEMENT",
                 "vorbis": "SHOWMOVEMENT",
-                "m4a": "shwm",
+                "mp4": "shwm",
         },
         {
                 "internalname": "grouping",
                 "name": "Grouping",
-                "mp3": "GRP1",
+                "id3v2.4": "GRP1",
                 "vorbis": "GROUPING",
-                "m4a": "©grp",
+                "mp4": "©grp",
         },
         {
                 "internalname": "subtitle",
                 "name": "Subtitle",
-                "mp3": "TIT3",
+                "id3v2.4": "TIT3",
                 "vorbis": "SUBTITLE",
-                "m4a": "----:com.apple.iTunes:SUBTITLE",
+                "mp4": "----:com.apple.iTunes:SUBTITLE",
         },
         {
                 "internalname": "discsubtitle",
                 "name": "Disc Subtitle",
-                "mp3": "TSST",
+                "id3v2.4": "TSST",
                 "vorbis": "DISCSUBTITLE",
-                "m4a": "----:com.apple.iTunes:DISCSUBTITLE",
+                "mp4": "----:com.apple.iTunes:DISCSUBTITLE",
         },
         {
                 # part of basic tagging
                 "internalname": "tracknumber",
                 "name": "Track Number",
-                "mp3": "TRCK",
+                "id3v2.4": "TRCK",
+                "id3-frametype": "NumericPartTextFrame",
                 "vorbis": "TRACKNUMBER",
-                "m4a": "trkn",
-                "m4a-type": "tuple0",
+                "mp4": "trkn",
+                "mp4-type": "tuple",
+                "tuple-position": 0,
                 "mbpath": ["_track_", "position"]
         },
         {
                 # part of basic tagging
                 "internalname": "totaltracks",
                 "name": "Total Tracks",
-                "mp3": "TRCK",
+                "id3v2.4": "TRCK",
+                "id3-frametype": "NumericPartTextFrame",
                 "vorbis": "TRACKTOTAL",
-                "m4a": "trkn",
-                "m4a-type": "tuple1",
+                "mp4": "trkn",
+                "mp4-type": "tuple",
+                "tuple-position": 1,
                 "mbpath": ["_medium_", "track-count"]
         },
         {
                 # part of basic tagging
                 "internalname": "discnumber",
                 "name": "Disc Number",
-                "mp3": "TPOS",
+                "id3v2.4": "TPOS",
+                "id3-frametype": "NumericPartTextFrame",
                 "vorbis": "DISCNUMBER",
-                "m4a": "disk",
-                "m4a-type": "tuple0",
+                "mp4": "disk",
+                "mp4-type": "tuple",
+                "tuple-position": 0,
                 "mbpath": ["_medium_", "position"]
         },
         {
                 # part of basic tagging
                 "internalname": "totaldiscs",
                 "name": "Total Discs",
-                "mp3": "TPOS",
+                "id3v2.4": "TPOS",
+                "id3-frametype": "NumericPartTextFrame",
                 "vorbis": "DISCTOTAL",
-                "m4a": "disk",
-                "m4a-type": "tuple1",
+                "mp4": "disk",
+                "mp4-type": "tuple",
+                "tuple-position": 1,
                 "mbpath": ["_release_", "medium-count"]
         },
         {
                 # part of basic tagging
                 "internalname": "compilation",
                 "name": "Compilation (iTunes)",
-                "mp3": "TCMP",
+                "id3v2.4": "TCMP",
                 "vorbis": "COMPILATION",
-                "m4a": "cpil",
-                "m4a-type": "boolean",
+                "mp4": "cpil",
+                "mp4-type": "boolean",
                 "mbpath": ["_compilation_"]
         },
         {
                 "internalname": "comment:description",
                 "name": "Comment",
-                "mp3": "COMM:description",
+                "id3v2.4": "COMM:description",
                 "vorbis": "COMMENT",
-                "m4a": "©cmt",
+                "mp4": "©cmt",
         },
         {
                 # part of basic tagging
                 "internalname": "genre",
                 "name": "Genre",
-                "mp3": "TCON",
+                "id3v2.4": "TCON",
                 "vorbis": "GENRE",
-                "m4a": "©gen",
+                "mp4": "©gen",
                 "mbpath": ["_genre_"]
         },
         {
                 "internalname": "_rating",
                 "name": "Rating",
-                "mp3": "POPM",
+                "id3v2.4": "POPM",
                 "vorbis": "RATING:user@email",
-                "m4a": None,
+                "mp4": None,
         },
         {
                 "internalname": "bpm",
                 "name": "BPM",
-                "mp3": "TBPM",
+                "id3v2.4": "TBPM",
                 "vorbis": "BPM",
-                "m4a": "tmpo",
+                "mp4": "tmpo",
         },
         {
                 "internalname": "mood",
                 "name": "Mood",
-                "mp3": "TMOO",
+                "id3v2.4": "TMOO",
                 "vorbis": "MOOD",
-                "m4a": "----:com.apple.iTunes:MOOD",
+                "mp4": "----:com.apple.iTunes:MOOD",
         },
         {
                 "internalname": "lyrics:description",
                 "name": "Lyrics",
-                "mp3": "USLT:description",
+                "id3v2.4": "USLT:description",
                 "vorbis": "LYRICS",
-                "m4a": "©lyr",
+                "mp4": "©lyr",
         },
         {
                 "internalname": "media",
                 "name": "Media",
-                "mp3": "TMED",
+                "id3v2.4": "TMED",
                 "vorbis": "MEDIA",
-                "m4a": "----:com.apple.iTunes:MEDIA",
+                "mp4": "----:com.apple.iTunes:MEDIA",
                 "mbpath": ["_medium_", "format"]
         },
         {
                 "internalname": "catalognumber",
                 "name": "Catalog Number",
-                "mp3": "TXXX:CATALOGNUMBER",
+                "id3v2.4": "TXXX:CATALOGNUMBER",
                 "vorbis": "CATALOGNUMBER",
-                "m4a": "----:com.apple.iTunes:CATALOGNUMBER",
+                "mp4": "----:com.apple.iTunes:CATALOGNUMBER",
                 "mbpath": ["_release_", "label-info-list", "_first_", "catalog-number"]
         },
         {
                 "internalname": "show",
                 "name": "Show Name",
-                "mp3": None,
+                "id3v2.4": None,
                 "vorbis": None,
-                "m4a": "tvsh",
+                "mp4": "tvsh",
         },
         {
                 "internalname": "showsort",
                 "name": "Show Name Sort Order",
-                "mp3": None,
+                "id3v2.4": None,
                 "vorbis": None,
-                "m4a": "sosn",
+                "mp4": "sosn",
         },
         {
                 "internalname": "podcast",
                 "name": "Podcast",
-                "mp3": None,
+                "id3v2.4": None,
                 "vorbis": None,
-                "m4a": "pcst",
+                "mp4": "pcst",
         },
         {
                 "internalname": "podcasturl",
                 "name": "Podcast URL",
-                "mp3": None,
+                "id3v2.4": None,
                 "vorbis": None,
-                "m4a": "purl",
+                "mp4": "purl",
         },
         {
                 "internalname": "releasestatus",
                 "name": "Release Status",
-                "mp3": "TXXX:MusicBrainz Album Status",
+                "id3v2.4": "TXXX:MusicBrainz Album Status",
                 "vorbis": "RELEASESTATUS",
-                "m4a": "----:com.apple.iTunes:MusicBrainz Album Status",
+                "mp4": "----:com.apple.iTunes:MusicBrainz Album Status",
                 "mbpath": ["_release_", "status", "_tolowercase_"]
         },
         {
                 "internalname": "releasetype",
                 "name": "Release Type",
-                "mp3": "TXXX:MusicBrainz Album Type",
+                "id3v2.4": "TXXX:MusicBrainz Album Type",
                 "vorbis": "RELEASETYPE",
-                "m4a": "----:com.apple.iTunes:MusicBrainz Album Type",
+                "mp4": "----:com.apple.iTunes:MusicBrainz Album Type",
                 "mbpath": ["_release_", "release-group", "type", "_tolowercase_"]
         },
         {
                 "internalname": "releasecountry",
                 "name": "Release Country",
-                "mp3": "TXXX:MusicBrainz Album Release Country",
+                "id3v2.4": "TXXX:MusicBrainz Album Release Country",
                 "vorbis": "RELEASECOUNTRY",
-                "m4a": "----:com.apple.iTunes:MusicBrainz Album Release Country",
+                "mp4": "----:com.apple.iTunes:MusicBrainz Album Release Country",
                 "mbpath": ["_release_", "country"]
         },
         {
                 "internalname": "script",
                 "name": "Script",
-                "mp3": "TXXX:SCRIPT",
+                "id3v2.4": "TXXX:SCRIPT",
                 "vorbis": "SCRIPT",
-                "m4a": "----:com.apple.iTunes:SCRIPT",
+                "mp4": "----:com.apple.iTunes:SCRIPT",
                 "mbpath": ["_release_", "text-representation", "script"]
         },
         {
                 "internalname": "language",
                 "name": "Language",
-                "mp3": "TLAN",
+                "id3v2.4": "TLAN",
                 "vorbis": "LANGUAGE",
-                "m4a": "----:com.apple.iTunes:LANGUAGE",
+                "mp4": "----:com.apple.iTunes:LANGUAGE",
                 "mbpath": ["_release_", "text-representation", "language"]
         },
         {
                 "internalname": "copyright",
                 "name": "Copyright",
-                "mp3": "TCOP",
+                "id3v2.4": "TCOP",
                 "vorbis": "COPYRIGHT",
-                "m4a": "cprt",
+                "mp4": "cprt",
         },
         {
                 "internalname": "license",
                 "name": "License",
-                "mp3": "WCOP",
+                "id3v2.4": "WCOP",
                 "vorbis": "LICENSE",
-                "m4a": "----:com.apple.iTunes:LICENSE",
+                "mp4": "----:com.apple.iTunes:LICENSE",
         },
         {
                 # handled by encoder
                 "internalname": "encodedby",
                 "name": "Encoded By",
-                "mp3": "TENC",
+                "id3v2.4": "TENC",
                 "vorbis": "ENCODEDBY",
-                "m4a": "©too",
+                "mp4": "©too",
         },
         {
                 # handled by encoder
                 "internalname": "encodersettings",
                 "name": "Encoder Settings",
-                "mp3": "TSSE",
+                "id3v2.4": "TSSE",
                 "vorbis": "ENCODERSETTINGS",
-                "m4a": None,
+                "mp4": None,
         },
         {
                 "internalname": "gapless",
                 "name": "Gapless Playback",
-                "mp3": None,
+                "id3v2.4": None,
                 "vorbis": None,
-                "m4a": "pgap",
+                "mp4": "pgap",
         },
         {
                 "internalname": "barcode",
                 "name": "Barcode",
-                "mp3": "TXXX:BARCODE",
+                "id3v2.4": "TXXX:BARCODE",
                 "vorbis": "BARCODE",
-                "m4a": "----:com.apple.iTunes:BARCODE",
+                "mp4": "----:com.apple.iTunes:BARCODE",
                 "mbpath": ["_release_", "barcode"]
         },
         {
                 "internalname": "isrc",
                 "name": "ISRC",
-                "mp3": "TSRC",
+                "id3v2.4": "TSRC",
                 "vorbis": "ISRC",
-                "m4a": "----:com.apple.iTunes:ISRC",
+                "mp4": "----:com.apple.iTunes:ISRC",
                 "mbpath": ["_track_", "recording", "isrc-list", "_first_"]
         },
         {
                 "internalname": "asin",
                 "name": "ASIN",
-                "mp3": "TXXX:ASIN",
+                "id3v2.4": "TXXX:ASIN",
                 "vorbis": "ASIN",
-                "m4a": "----:com.apple.iTunes:ASIN",
+                "mp4": "----:com.apple.iTunes:ASIN",
                 "mbpath": ["_release_", "asin"]
         },
         {
                 "internalname": "musicbrainz_recordingid",
                 "name": "MusicBrainz Recording Id",
-                "mp3": "UFID://musicbrainz.org",
+                "id3v2.4": "UFID:http://musicbrainz.org",
                 "vorbis": "MUSICBRAINZ_TRACKID",
-                "m4a": "----:com.apple.iTunes:MusicBrainz Track Id",
+                "mp4": "----:com.apple.iTunes:MusicBrainz Track Id",
                 "mbpath": ["_track_", "recording", "id"]
         },
         {
                 "internalname": "musicbrainz_trackid",
                 "name": "MusicBrainz Track Id",
-                "mp3": "TXXX:MusicBrainz Release Track Id",
+                "id3v2.4": "TXXX:MusicBrainz Release Track Id",
                 "vorbis": "MUSICBRAINZ_RELEASETRACKID",
-                "m4a": "----:com.apple.iTunes:MusicBrainz Release Track Id",
+                "mp4": "----:com.apple.iTunes:MusicBrainz Release Track Id",
                 "mbpath": ["_track_", "id"]
         },
         {
                 "internalname": "musicbrainz_albumid",
                 "name": "MusicBrainz Release Id",
-                "mp3": "TXXX:MusicBrainz Album Id",
+                "id3v2.4": "TXXX:MusicBrainz Album Id",
                 "vorbis": "MUSICBRAINZ_ALBUMID",
-                "m4a": "----:com.apple.iTunes:MusicBrainz Album Id",
+                "mp4": "----:com.apple.iTunes:MusicBrainz Album Id",
                 "mbpath": ["_release_", "id"]
         },
         {
                 "internalname": "musicbrainz_originalalbumid",
                 "name": "MusicBrainz Original Release Id",
-                "mp3": "TXXX:MusicBrainz Original Album Id",
+                "id3v2.4": "TXXX:MusicBrainz Original Album Id",
                 "vorbis": "MUSICBRAINZ_ORIGINALALBUMID",
-                "m4a": "----:com.apple.iTunes:MusicBrainz Original Album Id",
+                "mp4": "----:com.apple.iTunes:MusicBrainz Original Album Id",
         },
         {
                 "internalname": "musicbrainz_artistid",
                 "name": "MusicBrainz Artist Id",
-                "mp3": "TXXX:MusicBrainz Artist Id",
+                "id3v2.4": "TXXX:MusicBrainz Artist Id",
                 "vorbis": "MUSICBRAINZ_ARTISTID",
-                "m4a": "----:com.apple.iTunes:MusicBrainz Artist Id",
+                "mp4": "----:com.apple.iTunes:MusicBrainz Artist Id",
                 "mbpath": ["_track_", "recording", "artist-credit", "_multiple_", "artist", "id"]
         },
         {
                 "internalname": "musicbrainz_originalartistid",
                 "name": "MusicBrainz Original Artist Id",
-                "mp3": "TXXX:MusicBrainz Original Artist Id",
+                "id3v2.4": "TXXX:MusicBrainz Original Artist Id",
                 "vorbis": "MUSICBRAINZ_ORIGINALARTISTID",
-                "m4a": "----:com.apple.iTunes:MusicBrainz Original Artist Id",
+                "mp4": "----:com.apple.iTunes:MusicBrainz Original Artist Id",
         },
         {
                 "internalname": "musicbrainz_albumartistid",
                 "name": "MusicBrainz Release Artist Id",
-                "mp3": "TXXX:MusicBrainz Album Artist Id",
+                "id3v2.4": "TXXX:MusicBrainz Album Artist Id",
                 "vorbis": "MUSICBRAINZ_ALBUMARTISTID",
-                "m4a": "----:com.apple.iTunes:MusicBrainz Album Artist Id",
+                "mp4": "----:com.apple.iTunes:MusicBrainz Album Artist Id",
                 "mbpath": ["_release_", "artist-credit", "_multiple_", "artist", "id"]
         },
         {
                 "internalname": "musicbrainz_releasegroupid",
                 "name": "MusicBrainz Release Group Id",
-                "mp3": "TXXX:MusicBrainz Release Group Id",
+                "id3v2.4": "TXXX:MusicBrainz Release Group Id",
                 "vorbis": "MUSICBRAINZ_RELEASEGROUPID",
-                "m4a": "----:com.apple.iTunes:MusicBrainz Release Group Id",
+                "mp4": "----:com.apple.iTunes:MusicBrainz Release Group Id",
                 "mbpath": ["_release_", "release-group", "id"]
         },
         {
                 "internalname": "musicbrainz_workid",
                 "name": "MusicBrainz Work Id",
-                "mp3": "TXXX:MusicBrainz Work Id",
+                "id3v2.4": "TXXX:MusicBrainz Work Id",
                 "vorbis": "MUSICBRAINZ_WORKID",
-                "m4a": "----:com.apple.iTunes:MusicBrainz Work Id",
+                "mp4": "----:com.apple.iTunes:MusicBrainz Work Id",
         },
         {
                 "internalname": "musicbrainz_trmid",
                 "name": "MusicBrainz TRM Id",
-                "mp3": "TXXX:MusicBrainz TRM Id",
+                "id3v2.4": "TXXX:MusicBrainz TRM Id",
                 "vorbis": "MUSICBRAINZ_TRMID",
-                "m4a": "----:com.apple.iTunes:MusicBrainz TRM Id",
+                "mp4": "----:com.apple.iTunes:MusicBrainz TRM Id",
         },
         {
                 "internalname": "musicbrainz_discid",
                 "name": "MusicBrainz Disc Id",
-                "mp3": "TXXX:MusicBrainz Disc Id",
+                "id3v2.4": "TXXX:MusicBrainz Disc Id",
                 "vorbis": "MUSICBRAINZ_DISCID",
-                "m4a": "----:com.apple.iTunes:MusicBrainz Disc Id",
+                "mp4": "----:com.apple.iTunes:MusicBrainz Disc Id",
                 "mbpath": ["_disc_id_"]
         },
         {
                 "internalname": "acoustid_id",
                 "name": "AcoustID",
-                "mp3": "TXXX:Acoustid Id",
+                "id3v2.4": "TXXX:Acoustid Id",
                 "vorbis": "ACOUSTID_ID",
-                "m4a": "----:com.apple.iTunes:Acoustid Id",
+                "mp4": "----:com.apple.iTunes:Acoustid Id",
         },
         {
                 "internalname": "acoustid_fingerprint",
                 "name": "AcoustID Fingerprint",
-                "mp3": "TXXX:Acoustid Fingerprint",
+                "id3v2.4": "TXXX:Acoustid Fingerprint",
                 "vorbis": "ACOUSTID_FINGERPRINT",
-                "m4a": "----:com.apple.iTunes:Acoustid Fingerprint",
+                "mp4": "----:com.apple.iTunes:Acoustid Fingerprint",
         },
         {
                 "internalname": "musicip_puid",
                 "name": "MusicIP PUID",
-                "mp3": "TXXX:MusicIP PUID",
+                "id3v2.4": "TXXX:MusicIP PUID",
                 "vorbis": "MUSICIP_PUID",
-                "m4a": "----:com.apple.iTunes:MusicIP PUID",
+                "mp4": "----:com.apple.iTunes:MusicIP PUID",
         },
         {
                 "internalname": "musicip_fingerprint",
                 "name": "MusicIP Fingerprint",
-                "mp3": "TXXX:MusicMagic Fingerprint",
+                "id3v2.4": "TXXX:MusicMagic Fingerprint",
                 "vorbis": "FINGERPRINT=MusicMagic Fingerprint",
-                "m4a": "----:com.apple.iTunes:fingerprint",
+                "mp4": "----:com.apple.iTunes:fingerprint",
         },
         {
                 "internalname": "website",
                 "name": "Website (official artist website)",
-                "mp3": "WOAR",
+                "id3v2.4": "WOAR",
                 "vorbis": "WEBSITE",
-                "m4a": None,
+                "mp4": None,
         },
         {
                 "internalname": "key",
                 "name": "Initial key",
-                "mp3": "TKEY",
+                "id3v2.4": "TKEY",
                 "vorbis": "KEY",
-                "m4a": "----:com.apple.iTunes:initialkey",
+                "mp4": "----:com.apple.iTunes:initialkey",
         },
         {
                 "internalname": "replaygain_album_gain",
                 "name": "ReplayGain Album Gain",
-                "mp3": "TXXX:REPLAYGAIN_ALBUM_GAIN",
+                "id3v2.4": "TXXX:REPLAYGAIN_ALBUM_GAIN",
                 "vorbis": "REPLAYGAIN_ALBUM_GAIN",
-                "m4a": "----:com.apple.iTunes:REPLAYGAIN_ALBUM_GAIN",
+                "mp4": "----:com.apple.iTunes:REPLAYGAIN_ALBUM_GAIN",
         },
         {
                 "internalname": "replaygain_album_peak",
                 "name": "ReplayGain Album Peak",
-                "mp3": "TXXX:REPLAYGAIN_ALBUM_PEAK",
+                "id3v2.4": "TXXX:REPLAYGAIN_ALBUM_PEAK",
                 "vorbis": "REPLAYGAIN_ALBUM_PEAK",
-                "m4a": "----:com.apple.iTunes:REPLAYGAIN_ALBUM_PEAK",
+                "mp4": "----:com.apple.iTunes:REPLAYGAIN_ALBUM_PEAK",
         },
         {
                 "internalname": "replaygain_album_range",
                 "name": "ReplayGain Album Range",
-                "mp3": "TXXX:REPLAYGAIN_ALBUM_RANGE",
+                "id3v2.4": "TXXX:REPLAYGAIN_ALBUM_RANGE",
                 "vorbis": "REPLAYGAIN_ALBUM_RANGE",
-                "m4a": "----:com.apple.iTunes:REPLAYGAIN_ALBUM_RANGE",
+                "mp4": "----:com.apple.iTunes:REPLAYGAIN_ALBUM_RANGE",
         },
         {
                 "internalname": "replaygain_track_gain",
                 "name": "ReplayGain Track Gain",
-                "mp3": "TXXX:REPLAYGAIN_TRACK_GAIN",
+                "id3v2.4": "TXXX:REPLAYGAIN_TRACK_GAIN",
                 "vorbis": "REPLAYGAIN_TRACK_GAIN",
-                "m4a": "----:com.apple.iTunes:REPLAYGAIN_TRACK_GAIN",
+                "mp4": "----:com.apple.iTunes:REPLAYGAIN_TRACK_GAIN",
         },
         {
                 "internalname": "replaygain_track_peak",
                 "name": "ReplayGain Track Peak",
-                "mp3": "TXXX:REPLAYGAIN_TRACK_PEAK",
+                "id3v2.4": "TXXX:REPLAYGAIN_TRACK_PEAK",
                 "vorbis": "REPLAYGAIN_TRACK_PEAK",
-                "m4a": "----:com.apple.iTunes:REPLAYGAIN_TRACK_PEAK",
+                "mp4": "----:com.apple.iTunes:REPLAYGAIN_TRACK_PEAK",
         },
         {
                 "internalname": "replaygain_track_range",
                 "name": "ReplayGain Track Range",
-                "mp3": "TXXX:REPLAYGAIN_TRACK_RANGE",
+                "id3v2.4": "TXXX:REPLAYGAIN_TRACK_RANGE",
                 "vorbis": "REPLAYGAIN_TRACK_RANGE",
-                "m4a": "----:com.apple.iTunes:REPLAYGAIN_TRACK_RANGE",
+                "mp4": "----:com.apple.iTunes:REPLAYGAIN_TRACK_RANGE",
         },
         {
                 "internalname": "replaygain_reference_loudness",
                 "name": "ReplayGain Reference Loudness",
-                "mp3": "TXXX:REPLAYGAIN_REFERENCE_LOUDNESS",
+                "id3v2.4": "TXXX:REPLAYGAIN_REFERENCE_LOUDNESS",
                 "vorbis": None,
-                "m4a": None,
+                "mp4": None,
         }
     ]
 
@@ -972,12 +989,13 @@ def extended_tag(tag_object, tag_type, track_position):
     disc_id = mb_query_data['result']['disc']['id']
     release = mb_query_data['result']['disc']['release-list'][chosen_release]
     medium = None
-    for m in release['medium-list']:
-        for d in m['disc-list']:
-            if d['id'] == disc_id:
-                medium = m
+    for medium_candidate in release['medium-list']:
+        for disc_candidate in medium_candidate['disc-list']:
+            if disc_candidate['id'] == disc_id:
+                medium = medium_candidate
     track = medium['track-list'][track_position - 1]
 
+    paired_tags={}
     for map_entry in mb_tag_map:
         if not 'mbpath' in map_entry:
             continue
@@ -1054,33 +1072,67 @@ def extended_tag(tag_object, tag_type, track_position):
         if built_path:
             built_paths.append(built_path)
 
+        i = 0
+        built_path_concat = None
         for built_path in built_paths:
             debug(tag_type + " tagging" + map_entry['name'] +  "-->" + str(built_path))
 
+            # track numbers and disc numbers need to be paired in mp4 and id3v2.4 tags
+            if 'tuple-position' in map_entry:
+                tuple_position = map_entry['tuple-position']
+                if not map_entry[tag_type] in paired_tags:
+                    paired_tags[map_entry[tag_type]] = [0, 0]
+                paired_tags[map_entry[tag_type]][tuple_position] = int(built_path)
+
             if tag_type == "vorbis":
-                tag_object.append([map_entry[tag_type], str(built_path)])
-            elif tag_type == "mp3":
-                pass    # FIXME
-            elif tag_type == "m4a":
-                m4a_type = "list-of-strings"
-                if "m4a-type" in map_entry:
-                    m4a_type = map_entry['m4a-type']
-                if m4a_type == "boolean":
-                    tag_object[map_entry[tag_type]] = bool(built_path)
-                elif m4a_type[:-1] == "tuple":
-                    if not map_entry[tag_type] in tag_object:
-                        tag_object[map_entry[tag_type]] = [(0,0)]
-                    tuple_index = int(m4a_type[-1:])
-                    # tuples are immutable
-                    tuple_as_list = list(tag_object[map_entry[tag_type]][0])
-                    tuple_as_list[tuple_index] = int(built_path)
-                    tag_object[map_entry[tag_type]][0] = tuple(tuple_as_list)
+                tag_obj.append([map_entry[tag_type], str(built_path)])
+            elif tag_type == "id3v2.4":
+                if i:
+                    built_path_concat += "/" + built_path
+                else:
+                    built_path_concat = built_path
+                id3_key = map_entry[tag_type]
+                id3_argument = None
+                if ':' in id3_key:
+                    id3_key, id3_argument = id3_key.split(':', 1)
+                frame = None
+                id3_frametype = "TextFrame"
+                if "id3-frametype" in map_entry:
+                    id3_frametype = map_entry['id3-frametype']
+                if id3_frametype == "TimeStampTextFrame":
+                    frame = id3.Frames[id3_key](encoding=3, text=built_path[:4], desc=id3_argument)
+                elif id3_frametype == "NumericPartTextFrame":
+                    text = "%s/%s" % tuple(paired_tags[map_entry[tag_type]])
+                    frame = id3.Frames[id3_key](encoding=3, text=text)
+                else:
+                    if id3_argument:
+                        if id3_key == "TXXX":
+                            frame = id3.Frames[id3_key](encoding=3, text=built_path_concat, desc=id3_argument)
+                        elif id3_key == "UFID":
+                            frame = id3.Frames[id3_key](encoding=3, data=built_path_concat.encode('utf-8'), owner=id3_argument)
+                        else:
+                            warning("unexpected argument '" + id3_argument + "' for key '" + id3_key)
+                    else:
+                        frame = id3.Frames[id3_key](encoding=3, text=built_path_concat)
+                if frame:
+                    tag_obj.add(frame)
+            elif tag_type == "mp4":
+                mp4_type = "list-of-strings"
+                if "mp4-type" in map_entry:
+                    mp4_type = map_entry['mp4-type']
+                if mp4_type == "boolean":
+                    tag_obj[map_entry[tag_type]] = bool(built_path)
+                elif mp4_type == "tuple":
+                    if not map_entry[tag_type] in tag_obj:
+                        tag_obj[map_entry[tag_type]] = [(0,0)]
+                    tag_obj[map_entry[tag_type]][0] = tuple(paired_tags[map_entry[tag_type]])
                 else:
                     if map_entry[tag_type][:4] == '----':
                         built_path = mp4.MP4FreeForm(built_path.encode("utf-8"), dataformat=mp4.AtomDataType.UTF8)
-                    if not map_entry[tag_type] in tag_object:
-                        tag_object[map_entry[tag_type]] = []
-                    tag_object[map_entry[tag_type]].append(built_path)
+                    if not map_entry[tag_type] in tag_obj:
+                        tag_obj[map_entry[tag_type]] = []
+                    tag_obj[map_entry[tag_type]].append(built_path)
             else:
                 error("unknown tag type " + tag_type)
+            i+=1
     return
