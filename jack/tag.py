@@ -150,6 +150,7 @@ def tag(metadata_rename):
                         if cf['_set_extended_tag'] and mb_query_data:
                             extended_tag(f.tags, "vorbis", track_position)
                         else:
+                            # basic tagging
                             if not cf['_various']:
                                 f.tags['ALBUMARTIST'] = a_artist
                             f.tags['ARTIST'] = t_artist
@@ -175,19 +176,23 @@ def tag(metadata_rename):
                         for tag in list(m4a.tags):
                             if tag not in keeptags:
                                 m4a.tags.pop(tag)
-                        if not cf['_various']:
-                            m4a.tags['aART'] = [a_artist]
-                        m4a.tags['©ART'] = [t_artist]
-                        m4a.tags['©alb'] = [a_title]
-                        m4a.tags['©nam'] = [t_name]
-                        if cf['_genre']:
-                            m4a.tags['©gen'] = [cf['_genre']]
-                        if cf['_year']:
-                            m4a.tags['©day'] = [cf['_year']]
-                        m4a.tags['trkn'] = [(track_position, track_count)]
-                        if medium_tagging:
-                            m4a.tags['disk'] = [(medium_position, medium_count)]
-                        m4a.tags['cpil'] = bool(cf['_various'])
+                        if cf['_set_extended_tag'] and mb_query_data:
+                            extended_tag(m4a.tags, "m4a", track_position)
+                        else:
+                            # basic tagging
+                            if not cf['_various']:
+                                m4a.tags['aART'] = [a_artist]
+                            m4a.tags['©ART'] = [t_artist]
+                            m4a.tags['©alb'] = [a_title]
+                            m4a.tags['©nam'] = [t_name]
+                            if cf['_genre']:
+                                m4a.tags['©gen'] = [cf['_genre']]
+                            if cf['_year']:
+                                m4a.tags['©day'] = [cf['_year']]
+                            m4a.tags['trkn'] = [(track_position, track_count)]
+                            if medium_tagging:
+                                m4a.tags['disk'] = [(medium_position, medium_count)]
+                            m4a.tags['cpil'] = bool(cf['_various'])
                         m4a.save()
             if metadata_rename:
                 newname = jack.metadata.filenames[i[NUM]]
@@ -262,7 +267,7 @@ def fix_genre_case(genre):
     return genre
 
 
-def extended_tag(tagobject, tagtype, track_position):
+def extended_tag(tag_object, tag_type, track_position):
 
     # taken from https://picard.musicbrainz.org/docs/mappings/
     mb_tag_map = [
@@ -379,7 +384,7 @@ def extended_tag(tagobject, tagtype, track_position):
                 "name": "Original Release Date",
                 "mp3": "TDOR",
                 "vorbis": "ORIGINALDATE",
-                "m4a": None,
+                "m4a": "----:com.apple.iTunes:originaldate",
                 "mbpath": ["_release_", "release-group", "first-release-date"]
         },
         {
@@ -387,7 +392,7 @@ def extended_tag(tagobject, tagtype, track_position):
                 "name": "Original Release Year",
                 "mp3": None,
                 "vorbis": "ORIGINALYEAR",
-                "m4a": None,
+                "m4a": "----:com.apple.iTunes:originalyear",
                 "mbpath": ["_release_", "release-group", "first-release-date", "_year_from_date_"]
         },
         {
@@ -545,6 +550,7 @@ def extended_tag(tagobject, tagtype, track_position):
                 "mp3": "TRCK",
                 "vorbis": "TRACKNUMBER",
                 "m4a": "trkn",
+                "m4a-type": "tuple0",
                 "mbpath": ["_track_", "position"]
         },
         {
@@ -554,6 +560,7 @@ def extended_tag(tagobject, tagtype, track_position):
                 "mp3": "TRCK",
                 "vorbis": "TRACKTOTAL",
                 "m4a": "trkn",
+                "m4a-type": "tuple1",
                 "mbpath": ["_medium_", "track-count"]
         },
         {
@@ -563,6 +570,7 @@ def extended_tag(tagobject, tagtype, track_position):
                 "mp3": "TPOS",
                 "vorbis": "DISCNUMBER",
                 "m4a": "disk",
+                "m4a-type": "tuple0",
                 "mbpath": ["_medium_", "position"]
         },
         {
@@ -572,6 +580,7 @@ def extended_tag(tagobject, tagtype, track_position):
                 "mp3": "TPOS",
                 "vorbis": "DISCTOTAL",
                 "m4a": "disk",
+                "m4a-type": "tuple1",
                 "mbpath": ["_release_", "medium-count"]
         },
         {
@@ -581,6 +590,7 @@ def extended_tag(tagobject, tagtype, track_position):
                 "mp3": "TCMP",
                 "vorbis": "COMPILATION",
                 "m4a": "cpil",
+                "m4a-type": "boolean",
                 "mbpath": ["_compilation_"]
         },
         {
@@ -971,7 +981,7 @@ def extended_tag(tagobject, tagtype, track_position):
     for map_entry in mb_tag_map:
         if not 'mbpath' in map_entry:
             continue
-        if not map_entry[tagtype]:
+        if not map_entry[tag_type]:
             continue
         mbpath = map_entry['mbpath']
 
@@ -1045,14 +1055,32 @@ def extended_tag(tagobject, tagtype, track_position):
             built_paths.append(built_path)
 
         for built_path in built_paths:
-            debug("tagging" + map_entry['name'] +  "-->" + str(built_path))
+            debug(tag_type + " tagging" + map_entry['name'] +  "-->" + str(built_path))
 
-            if tagtype == "vorbis":
-                tagobject.append([map_entry['vorbis'], str(built_path)])
-            elif tagtype == "mp3":
+            if tag_type == "vorbis":
+                tag_object.append([map_entry[tag_type], str(built_path)])
+            elif tag_type == "mp3":
                 pass    # FIXME
-            elif tagtype == "m4a":
-                pass    # FIXME
+            elif tag_type == "m4a":
+                m4a_type = "list-of-strings"
+                if "m4a-type" in map_entry:
+                    m4a_type = map_entry['m4a-type']
+                if m4a_type == "boolean":
+                    tag_object[map_entry[tag_type]] = bool(built_path)
+                elif m4a_type[:-1] == "tuple":
+                    if not map_entry[tag_type] in tag_object:
+                        tag_object[map_entry[tag_type]] = [(0,0)]
+                    tuple_index = int(m4a_type[-1:])
+                    # tuples are immutable
+                    tuple_as_list = list(tag_object[map_entry[tag_type]][0])
+                    tuple_as_list[tuple_index] = int(built_path)
+                    tag_object[map_entry[tag_type]][0] = tuple(tuple_as_list)
+                else:
+                    if map_entry[tag_type][:4] == '----':
+                        built_path = mp4.MP4FreeForm(built_path.encode("utf-8"), dataformat=mp4.AtomDataType.UTF8)
+                    if not map_entry[tag_type] in tag_object:
+                        tag_object[map_entry[tag_type]] = []
+                    tag_object[map_entry[tag_type]].append(built_path)
             else:
-                error("unknown tag type " + tagtype)
+                error("unknown tag type " + tag_type)
     return
