@@ -158,13 +158,13 @@ def guesstoc(names):
     for i in names:
         i_name, i_ext = os.path.splitext(os.path.basename(i))
         i_ext = i_ext.upper()
-        # erg: NUM, LEN, START, COPY, PRE, CH, RIP, RATE, NAME
+        # erg: NUM, LEN, START, COPY, PRE, CH, RIP, RATE, NAME, MCN, ISRC
         if i_ext == ".MP3":
             x = jack.mp3.mp3format(i)
             if not x:
                 error("could not get MP3 info for file \"%s\"" % i)
             blocks = int(x['length'] * CDDA_BLOCKS_PER_SECOND + 0.5)
-            erg.append([num, blocks, start, 0, 0, 2, 1, x['bitrate'], i_name])
+            erg.append([num, blocks, start, 0, 0, 2, 1, x['bitrate'], i_name, None, None])
             progr.append([num, "dae", "  *   [          simulated           ]"])
             progr.append([num, "enc", repr(x['bitrate']), "[ s i m u l a t e d %3ikbit]" % (x['bitrate'] + 0.5)])
         elif i_ext == ".WAV":
@@ -188,14 +188,14 @@ def guesstoc(names):
                 f.close()
                 blocks = blocks - extra_bytes
             blocks = blocks // CDDA_BLOCKSIZE
-            erg.append([num, blocks, start, 0, 0, 2, 1, cf['_bitrate'], i_name])
+            erg.append([num, blocks, start, 0, 0, 2, 1, cf['_bitrate'], i_name, None, None])
             progr.append([num, "dae", "  =p  [  s  i  m  u  l  a  t  e  d   ]"])
         elif i_ext == ".OGG":
             if oggvorbis:
                 x = oggvorbis.OggVorbis(i)
                 blocks = int(x.info.length * CDDA_BLOCKS_PER_SECOND + 0.5)
                 bitrate = temp_rate = int(x.info.bitrate / 1000 + 0.5)
-                erg.append([num, blocks, start, 0, 0, 2, 1, bitrate, i_name])
+                erg.append([num, blocks, start, 0, 0, 2, 1, bitrate, i_name, None, None])
                 progr.append([num, "dae", "  *   [          simulated           ]"])
                 progr.append([num, "enc", repr(bitrate), "[ s i m u l a t e d %3ikbit]" % bitrate])
             else:
@@ -212,7 +212,7 @@ def guesstoc(names):
                     bitrate = int(size * 8 * f.info.sample_rate // f.info.total_samples // 1000)
                 else:
                     blocks = bitrate = 0
-                erg.append([num, blocks, start, 0, 0, 2, 1, bitrate, i_name])
+                erg.append([num, blocks, start, 0, 0, 2, 1, bitrate, i_name, None, None])
                 progr.append([num, "dae", "  *   [          simulated           ]"])
                 progr.append([num, "enc", repr(bitrate), "[ s i m u l a t e d %3ikbit]" % bitrate])
             else:
@@ -223,7 +223,7 @@ def guesstoc(names):
                 length = mp4.info.length
                 bitrate = mp4.info.bitrate
                 blocks = int(length * CDDA_BLOCKS_PER_SECOND + 0.5)
-                erg.append([num, blocks, start, 0, 0, 2, 1, bitrate, i_name])
+                erg.append([num, blocks, start, 0, 0, 2, 1, bitrate, i_name, None, None])
                 progr.append([num, "dae", "  *   [          simulated           ]"])
                 progr.append([num, "enc", repr(bitrate), "[ s i m u l a t e d %3ikbit]" % bitrate])
         else:
@@ -297,10 +297,13 @@ def real_cdrdao_gettoc(tocfile):     # get toc from cdrdao-style toc-file
     actual_track.bitrate = cf['_bitrate']
     actual_track.image_name = ""
     actual_track.rip_name = cf['_name'] % 0
+    actual_track.mcn = None
+    actual_track.isrc = None
 
 # tocfile data is read in line by line.
 
     num = 0
+    mcn = None
     while 1:
         bline = f.readline()
         try:
@@ -319,6 +322,10 @@ def real_cdrdao_gettoc(tocfile):     # get toc from cdrdao-style toc-file
             break
         line = line.strip()
 
+        if starts_with(line, "CATALOG "):
+            mcn = line[line.find("\"") + 1:line.rfind("\"")]
+            actual_track.mcn = mcn
+
 # everytime we encounter "TRACK" we increment num and append the actual
 # track to the toc.
 
@@ -335,6 +342,7 @@ def real_cdrdao_gettoc(tocfile):     # get toc from cdrdao-style toc-file
             actual_track.rip = 1
             actual_track.bitrate = cf['_bitrate']
             actual_track.start = toc.end_pos
+            actual_track.mcn = mcn
             if line == "TRACK AUDIO":
                 actual_track.type = "audio"
             else:
@@ -359,6 +367,8 @@ def real_cdrdao_gettoc(tocfile):     # get toc from cdrdao-style toc-file
             actual_track.channels = 2
         elif line == "FOUR_CHANNEL_AUDIO":
             actual_track.channels = 4
+        elif starts_with(line, "ISRC "):
+            actual_track.isrc = line[line.find("\"") + 1:line.rfind("\"")]
 
 # example: FILE "data.wav" 08:54:22 04:45:53
 
@@ -405,6 +415,9 @@ def msftostr(msf):
 def cdrdao_puttoc(tocfile, tracks, cd_id):     # put toc to cdrdao toc-file
     "writes toc-file from tracks"
     f = open(tocfile, "w")
+    mcn = tracks[0][MCN]
+    if mcn and len(mcn) == 13 and int(mcn) > 0:
+        f.write('// MCN\nCATALOG "' + mcn + '"\n\n')
     f.write("CD_DA\n\n")
     f.write("// DB-ID=" + cd_id['cddb'] + "\n\n")
     for i in tracks:
@@ -429,6 +442,8 @@ def cdrdao_puttoc(tocfile, tracks, cd_id):     # put toc to cdrdao toc-file
             f.write("// not supported by jack!\n")
         else:
             error("illegal TOC: channels=%i, aborting." % i[CH])
+        if i[ISRC] and len(i[ISRC]):
+            f.write('ISRC "' + i[ISRC] + '"\n')
         f.write('FILE "' + i[NAME] + '.wav" 0 ')
         x = i[LEN]
         if i[NUM] == 1:         # add pregap to track, virtually
