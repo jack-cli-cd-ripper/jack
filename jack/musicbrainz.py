@@ -86,6 +86,19 @@ def musicbrainz_query(cd_id, tracks, file):
                     description += " [" + rel['date'] + "]"
                 if 'medium-count' in rel and rel['medium-count'] > 1:
                     description += " (" + str(rel['medium-count']) + " CD's)"
+                if 'barcode' in rel:
+                    description += " (barcode: " + rel['barcode'] + ")"
+                catalog_numbers = None
+                if 'label-info-list' in rel:
+                    for li in rel['label-info-list']:
+                        if 'catalog-number' in li:
+                            cn = li['catalog-number']
+                            if catalog_numbers:
+                                catalog_numbers += " / " + cn
+                            else:
+                                catalog_numbers = cn
+                if catalog_numbers:
+                    description += " (cat. nr: " + catalog_numbers + ")"
                 print("%2i" % num + ".) " + description)
                 num = num + 1
             x = -1
