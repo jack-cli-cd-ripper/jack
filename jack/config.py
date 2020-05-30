@@ -108,7 +108,7 @@ cf = jack.misc.dict2({
     },
     'metadata_server': {
         'type': str,
-        'val': "freedb",
+        'val': "musicbrainz",
         'doc': "your metadata server, see metadata_servers",
         'usage': "use which metadata server",
         'long': 'server',
