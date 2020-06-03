@@ -46,7 +46,7 @@ metadata_servers = {
         'api': "cddb",
     },
     'musicbrainz': {
-        'host': "default",
+        'host': "musicbrainz.org",
         'id': prog_name + " " + prog_version,
         'api': "musicbrainzngs",
     },
@@ -64,6 +64,10 @@ metadata_apis = {
 def get_metadata_api(server):
     "get the api used for the selected metadata server"
     return metadata_servers[server]['api']
+
+def get_metadata_host(server):
+    "get the host used for the selected metadata server"
+    return metadata_servers[server]['host']
 
 def get_metadata_form_file(api):
     "get the filename for caching metadata"

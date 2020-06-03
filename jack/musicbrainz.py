@@ -64,6 +64,7 @@ def musicbrainz_query(cd_id, tracks, file):
         result = musicbrainzngs.get_releases_by_discid(mb_id, includes=includes)
     except musicbrainzngs.ResponseError:
         print("no match for", cd_id['musicbrainzngs'], "or bad response")
+        print("Try manual lookup on " + musicbrainz_lookup_uri(tracks, cd_id))
         err = 1
         return err
 
@@ -191,3 +192,21 @@ def musicbrainz_names(cd_id, tracks, todo, name, verb=0, warn=1):
         err = 1
 
     return err, names, read_id, query_data
+
+def musicbrainz_lookup_uri(tracks, cd_id):
+    from jack.globals import START, MSF_OFFSET, CDDA_BLOCKS_PER_SECOND
+    "build uri for lookup via browser"
+
+    first_track = 1
+    track_offsets = []
+    for i in tracks:
+        track_offsets.append(i[START] + MSF_OFFSET)
+        last_track = i[NUM]
+        num_sectors = i[START] + i[LEN] + MSF_OFFSET
+    host = jack.metadata.get_metadata_host('musicbrainz')
+    uri = "https://" + host + "/cdtoc/attach?id=" + cd_id['musicbrainzngs'] + "&tracks=" + str(last_track)
+    uri += "&toc=" + str(first_track) + "+" + str(last_track) + "+" + str(num_sectors)
+    for track_offset in track_offsets:
+        uri += "+" + str(track_offset)
+
+    return uri
