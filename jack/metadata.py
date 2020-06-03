@@ -196,12 +196,9 @@ def metadata_names(cd_id, tracks, todo, name, verb=0, warn=1):
         newest_api = 'musicbrainzngs'
     newest_form_file = get_metadata_form_file(newest_api)
 
-    if apis['cddb']['mtime'] and apis['musicbrainzngs']['mtime']:
-        info("Both " + apis['cddb']['form_file'] + " and " + apis['musicbrainzngs']['form_file'] + " exist. Using " + get_metadata_form_file(newest_api) + " because it is newer")
+    if apis['cddb']['mtime'] and apis['musicbrainzngs']['mtime'] or prefer_api != newest_api:
+        info("Using " + get_metadata_form_file(newest_api))
 
-    if prefer_api != newest_api:
-        warning("preferred api is " + prefer_api + ", but using " + newest_form_file)
-    
     if newest_api == 'cddb':
         return jack.freedb.freedb_names(cd_id, tracks, todo, newest_form_file, verb=0, warn=1)
     else:
