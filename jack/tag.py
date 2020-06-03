@@ -1218,7 +1218,7 @@ def extended_tag(tag_obj, tag_type, track_position):
         built_path_concat = []
 
         for built_path in built_paths:
-            debug(tag_type + " tagging" + map_entry['name'] +  "-->" + str(built_path))
+            debug(tag_type + " tagging " + map_entry['name'] +  "-->" + str(built_path))
 
             # track numbers and disc numbers need to be paired in mp4 and id3v2.4 tags
             if 'tuple-position' in map_entry:
