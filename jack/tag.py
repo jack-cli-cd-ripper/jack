@@ -175,7 +175,7 @@ def tag(metadata_rename):
                             if cf['_various']:
                                 m.tags['COMPILATION'] = "1"
                         m.save()
-                    elif target == "mp4":
+                    elif target == "m4a":
                         m = mp4.MP4(encname)
                         # delete old tags
                         keeptags = ['©too', '----:com.apple.iTunes:iTunSMPB'] # set by fdkaac
@@ -284,7 +284,7 @@ def extended_tag(tag_obj, tag_type, track_position):
                 "id3v2.4": "TALB",
                 "vorbis": "ALBUM",
                 "mp4": "©alb",
-                "mbpath": ["_release_", "title"]
+                "mbpaths": [["_release_", "title"]]
         },
         {
                 "internalname": "albumsort",
@@ -292,7 +292,7 @@ def extended_tag(tag_obj, tag_type, track_position):
                 "id3v2.4": "TSOA",
                 "vorbis": "ALBUMSORT",
                 "mp4": "soal",
-                "mbpath": ["_release_", "sort-name"]
+                "mbpaths": [["_release_", "sort-name"]]
         },
         {
                 # part of basic tagging
@@ -301,7 +301,10 @@ def extended_tag(tag_obj, tag_type, track_position):
                 "id3v2.4": "TIT2",
                 "vorbis": "TITLE",
                 "mp4": "©nam",
-                "mbpath": ["_track_", "recording", "title"]
+                "mbpaths": [
+                        ["_track_", "title"],
+                        ["_track_", "recording", "title"],
+                ]
         },
         {
                 "internalname": "titlesort",
@@ -309,7 +312,7 @@ def extended_tag(tag_obj, tag_type, track_position):
                 "id3v2.4": "TSOT",
                 "vorbis": "TITLESORT",
                 "mp4": "sonm",
-                "mbpath": ["_track_", "recording", "sort-name"]
+                "mbpaths": [["_track_", "recording", "sort-name"]]
         },
         {
                 "internalname": "work",
@@ -325,7 +328,12 @@ def extended_tag(tag_obj, tag_type, track_position):
                 "id3v2.4": "TPE1",
                 "vorbis": "ARTIST",
                 "mp4": "©ART",
-                "mbpath": ["_track_", "recording", "artist-credit-phrase"]
+                "mbpaths": [
+                        ["_track_", "artist-credit-phrase"],
+                        ["_track_", "artist-credit", "_concatenate_", "artist", "name"],
+                        ["_track_", "recording", "artist-credit-phrase"],
+                        ["_track_", "recording", "artist-credit", "_concatenate_", "artist", "name"],
+                ]
         },
         {
                 "internalname": "artistsort",
@@ -333,7 +341,10 @@ def extended_tag(tag_obj, tag_type, track_position):
                 "id3v2.4": "TSOP",
                 "vorbis": "ARTISTSORT",
                 "mp4": "soar",
-                "mbpath": ["_track_", "recording", "artist-credit", "_concatenate_", "artist", "sort-name"]
+                "mbpaths": [
+                        ["_track_", "artist-credit", "_concatenate_", "artist", "sort-name"],
+                        ["_track_", "recording", "artist-credit", "_concatenate_", "artist", "sort-name"],
+                ]
         },
         {
                 # part of basic tagging, using equivalent of ["_release_", "artist-credit-phrase"]
@@ -342,7 +353,10 @@ def extended_tag(tag_obj, tag_type, track_position):
                 "id3v2.4": "TPE2",
                 "vorbis": "ALBUMARTIST",
                 "mp4": "aART",
-                "mbpath": ["_release_", "artist-credit", "_concatenate_", "artist", "name"]
+                "mbpaths": [
+                        ["_release_", "artist-credit-phrase"],
+                        ["_release_", "artist-credit", "_concatenate_", "artist", "name"],
+                ]
         },
         {
                 "internalname": "albumartistsort",
@@ -350,7 +364,7 @@ def extended_tag(tag_obj, tag_type, track_position):
                 "id3v2.4": "TSO2",
                 "vorbis": "ALBUMARTISTSORT",
                 "mp4": "soaa",
-                "mbpath": ["_release_", "artist-credit", "_concatenate_", "artist", "sort-name"]
+                "mbpaths": [["_release_", "artist-credit", "_concatenate_", "artist", "sort-name"]]
         },
         {
                 "internalname": "artists",
@@ -358,17 +372,21 @@ def extended_tag(tag_obj, tag_type, track_position):
                 "id3v2.4": "TXXX:Artists",
                 "vorbis": "ARTISTS",
                 "mp4": "----:com.apple.iTunes:ARTISTS",
-                "mbpath": ["_track_", "recording", "artist-credit", "_multiple_", "artist", "name"]
+                "mbpaths": [
+                        ["_track_", "artist-credit", "_multiple_", "name"],
+                        ["_track_", "artist-credit", "_multiple_", "artist", "name"],
+                        ["_track_", "recording", "artist-credit", "_multiple_", "name"],
+                        ["_track_", "recording", "artist-credit", "_multiple_", "artist", "name"],
+                ]
         },
         {
                 # part of basic tagging
                 "internalname": "date",
                 "name": "Release Date",
                 "id3v2.4": "TDRC",
-                "id3-frametype": "TimeStampTextFrame",
                 "vorbis": "DATE",
                 "mp4": "©day",
-                "mbpath": ["_release_", "date"]
+                "mbpaths": [["_release_", "date"]]
         },
         {
                 "internalname": "originalalbum",
@@ -376,7 +394,7 @@ def extended_tag(tag_obj, tag_type, track_position):
                 "id3v2.4": "TOAL",
                 "vorbis": None,
                 "mp4": None,
-                "mbpath": ["_release_", "release-group", "title"]
+                "mbpaths": [["_release_", "release-group", "title"]]
         },
         {
                 "internalname": "originalartist",
@@ -384,16 +402,15 @@ def extended_tag(tag_obj, tag_type, track_position):
                 "id3v2.4": "TOPE",
                 "vorbis": None,
                 "mp4": None,
-                "mbpath": ["_release_", "release-group", "artist-credit", "_concatenate_", "artist", "name"]
+                "mbpaths": [["_release_", "release-group", "artist-credit", "_concatenate_", "artist", "name"]]
         },
         {
                 "internalname": "originaldate",
                 "name": "Original Release Date",
                 "id3v2.4": "TDOR",
-                "id3-frametype": "TimeStampTextFrame",
                 "vorbis": "ORIGINALDATE",
-                "mp4": "----:com.apple.iTunes:originaldate",
-                "mbpath": ["_release_", "release-group", "first-release-date"]
+                "mp4": "----:com.apple.iTunes:ORIGINALDATE",
+                "mbpaths": [["_release_", "release-group", "first-release-date"]]
         },
         {
                 "internalname": "originalyear",
@@ -401,8 +418,8 @@ def extended_tag(tag_obj, tag_type, track_position):
                 "id3v2.4": "TXXX:originalyear",
                 "id3-frametype": "TimeStampTextFrame",
                 "vorbis": "ORIGINALYEAR",
-                "mp4": "----:com.apple.iTunes:originalyear",
-                "mbpath": ["_release_", "release-group", "first-release-date", "_year_from_date_"]
+                "mp4": "----:com.apple.iTunes:ORIGINALYEAR",
+                "mbpaths": [["_release_", "release-group", "first-release-date", "_year_from_date_"]]
         },
         {
                 "internalname": "originalfilename",
@@ -416,84 +433,124 @@ def extended_tag(tag_obj, tag_type, track_position):
                 "name": "Composer",
                 "id3v2.4": "TCOM",
                 "vorbis": "COMPOSER",
+                "vorbis-fmt": "%s",
                 "mp4": "©wrt",
+                "mp4-fmt": "%s",
+                "mbpaths": [["_release_", "related", "composer", "_multiple_"]]
         },
         {
                 "internalname": "composersort",
                 "name": "Composer Sort Order",
                 "id3v2.4": "TSOC",
                 "vorbis": "COMPOSERSORT",
+                "vorbis-fmt": "%s",
                 "mp4": "soco",
+                "mp4-fmt": "%s",
+                "mbpaths": [["_release_", "related", "composer-sort", "_multiple_"]]
         },
         {
                 "internalname": "lyricist",
                 "name": "Lyricist",
                 "id3v2.4": "TEXT",
                 "vorbis": "LYRICIST",
+                "vorbis-fmt": "%s",
                 "mp4": "----:com.apple.iTunes:LYRICIST",
+                "mp4-fmt": "%s",
+                "mbpaths": [["_release_", "related", "lyricist", "_multiple_"]]
         },
         {
                 "internalname": "writer",
                 "name": "Writer",
                 "id3v2.4": "TXXX:Writer",
                 "vorbis": "WRITER",
-                "mp4": "",
+                "vorbis-fmt": "%s",
+                "mp4": "----:com.apple.iTunes:WRITER",
+                "mp4-fmt": "%s",
+                "mbpaths": [["_release_", "related", "writer", "_multiple_"]]
         },
         {
                 "internalname": "conductor",
                 "name": "Conductor",
                 "id3v2.4": "TPE3",
                 "vorbis": "CONDUCTOR",
+                "vorbis-fmt": "%s",
                 "mp4": "----:com.apple.iTunes:CONDUCTOR",
+                "mp4-fmt": "%s",
+                "mbpaths": [["_release_", "related", "conductor", "_multiple_"]]
         },
         {
                 "internalname": "performer:instrument",
                 "name": "Performer [instrument]",
-                "id3v2.4": "TMCL:instrument",
-                "vorbis": "PERFORMER={artist} (instrument)",
-                "mp4": "",
+                "id3v2.4": "TMCL",
+                "id3-frametype": "PairedTextFrame",
+                "vorbis": "PERFORMER",
+                "vorbis-fmt": "%s (%s)",
+                "mp4": None,
+                "mbpaths": [["_release_", "performer", "_multiple_"]]
         },
         {
                 "internalname": "remixer",
                 "name": "Remixer",
                 "id3v2.4": "TPE4",
                 "vorbis": "REMIXER",
+                "vorbis-fmt": "%s",
                 "mp4": "----:com.apple.iTunes:REMIXER",
+                "mp4-fmt": "%s",
+                "mbpaths": [["_release_", "related", "remixer", "_multiple_"]]
         },
         {
                 "internalname": "arranger",
                 "name": "Arranger",
                 "id3v2.4": "TIPL:arranger",
+                "id3-frametype": "PairedTextFrame",
                 "vorbis": "ARRANGER",
-                "mp4": "",
+                "vorbis-fmt": "%s",
+                "mp4": None,
+                "mbpaths": [["_release_", "related", "arranger", "_multiple_"]]
         },
         {
                 "internalname": "engineer",
                 "name": "Engineer",
                 "id3v2.4": "TIPL:engineer",
+                "id3-frametype": "PairedTextFrame",
                 "vorbis": "ENGINEER",
+                "vorbis-fmt": "%s",
                 "mp4": "----:com.apple.iTunes:ENGINEER",
+                "mp4-fmt": "%s",
+                "mbpaths": [["_release_", "related", "engineer", "_multiple_"]]
         },
         {
                 "internalname": "producer",
                 "name": "Producer",
                 "id3v2.4": "TIPL:producer",
+                "id3-frametype": "PairedTextFrame",
                 "vorbis": "PRODUCER",
+                "vorbis-fmt": "%s",
                 "mp4": "----:com.apple.iTunes:PRODUCER",
+                "mp4-fmt": "%s",
+                "mbpaths": [["_release_", "related", "producer", "_multiple_"]]
         },
         {
                 "internalname": "djmixer",
                 "name": "Mix-DJ",
                 "id3v2.4": "TIPL:DJ-mix",
+                "id3-frametype": "PairedTextFrame",
                 "vorbis": "DJMIXER",
+                "vorbis-fmt": "%s",
                 "mp4": "----:com.apple.iTunes:DJMIXER",
+                "mp4-fmt": "%s",
+                "mbpaths": [["_release_", "related", "mix-DJ", "_multiple_"]]
         },
         {
                 "internalname": "mixer",
                 "name": "Mixer",
                 "id3v2.4": "TIPL:mix",
+                "id3-frametype": "PairedTextFrame",
                 "vorbis": "MIXER",
+                "vorbis-fmt": "%s",
                 "mp4": "----:com.apple.iTunes:MIXER",
+                "mp4-fmt": "%s",
+                "mbpaths": [["_release_", "related", "mix", "_multiple_"]]
         },
         {
                 "internalname": "label",
@@ -501,7 +558,7 @@ def extended_tag(tag_obj, tag_type, track_position):
                 "id3v2.4": "TPUB",
                 "vorbis": "LABEL",
                 "mp4": "----:com.apple.iTunes:LABEL",
-                "mbpath": ["_release_", "label-info-list", "_first_", "label", "name"]
+                "mbpaths": [["_release_", "label-info-list", "_multiple_", "label", "name"]]
         },
         {
                 "internalname": "movement",
@@ -551,6 +608,7 @@ def extended_tag(tag_obj, tag_type, track_position):
                 "id3v2.4": "TSST",
                 "vorbis": "DISCSUBTITLE",
                 "mp4": "----:com.apple.iTunes:DISCSUBTITLE",
+                "mbpaths": [["_medium_", "title"]]
         },
         {
                 # part of basic tagging
@@ -562,7 +620,7 @@ def extended_tag(tag_obj, tag_type, track_position):
                 "mp4": "trkn",
                 "mp4-type": "tuple",
                 "tuple-position": 0,
-                "mbpath": ["_track_", "position"]
+                "mbpaths": [["_track_", "position"]]
         },
         {
                 # part of basic tagging
@@ -574,7 +632,7 @@ def extended_tag(tag_obj, tag_type, track_position):
                 "mp4": "trkn",
                 "mp4-type": "tuple",
                 "tuple-position": 1,
-                "mbpath": ["_medium_", "track-count"]
+                "mbpaths": [["_medium_", "track-count"]]
         },
         {
                 # part of basic tagging
@@ -586,7 +644,7 @@ def extended_tag(tag_obj, tag_type, track_position):
                 "mp4": "disk",
                 "mp4-type": "tuple",
                 "tuple-position": 0,
-                "mbpath": ["_medium_", "position"]
+                "mbpaths": [["_medium_", "position"]]
         },
         {
                 # part of basic tagging
@@ -598,7 +656,7 @@ def extended_tag(tag_obj, tag_type, track_position):
                 "mp4": "disk",
                 "mp4-type": "tuple",
                 "tuple-position": 1,
-                "mbpath": ["_release_", "medium-count"]
+                "mbpaths": [["_release_", "medium-count"]]
         },
         {
                 # part of basic tagging
@@ -608,7 +666,7 @@ def extended_tag(tag_obj, tag_type, track_position):
                 "vorbis": "COMPILATION",
                 "mp4": "cpil",
                 "mp4-type": "boolean",
-                "mbpath": ["_compilation_"]
+                "mbpaths": [["_compilation_"]]
         },
         {
                 "internalname": "comment:description",
@@ -624,7 +682,7 @@ def extended_tag(tag_obj, tag_type, track_position):
                 "id3v2.4": "TCON",
                 "vorbis": "GENRE",
                 "mp4": "©gen",
-                "mbpath": ["_genre_"]
+                "mbpaths": [["_genre_"]]
         },
         {
                 "internalname": "_rating",
@@ -660,7 +718,7 @@ def extended_tag(tag_obj, tag_type, track_position):
                 "id3v2.4": "TMED",
                 "vorbis": "MEDIA",
                 "mp4": "----:com.apple.iTunes:MEDIA",
-                "mbpath": ["_medium_", "format"]
+                "mbpaths": [["_medium_", "format"]]
         },
         {
                 "internalname": "catalognumber",
@@ -668,7 +726,7 @@ def extended_tag(tag_obj, tag_type, track_position):
                 "id3v2.4": "TXXX:CATALOGNUMBER",
                 "vorbis": "CATALOGNUMBER",
                 "mp4": "----:com.apple.iTunes:CATALOGNUMBER",
-                "mbpath": ["_release_", "label-info-list", "_first_", "catalog-number"]
+                "mbpaths": [["_release_", "label-info-list", "_multiple_", "catalog-number"]]
         },
         {
                 "internalname": "show",
@@ -704,7 +762,7 @@ def extended_tag(tag_obj, tag_type, track_position):
                 "id3v2.4": "TXXX:MusicBrainz Album Status",
                 "vorbis": "RELEASESTATUS",
                 "mp4": "----:com.apple.iTunes:MusicBrainz Album Status",
-                "mbpath": ["_release_", "status", "_tolowercase_"]
+                "mbpaths": [["_release_", "status", "_tolowercase_"]]
         },
         {
                 "internalname": "releasetype",
@@ -712,7 +770,10 @@ def extended_tag(tag_obj, tag_type, track_position):
                 "id3v2.4": "TXXX:MusicBrainz Album Type",
                 "vorbis": "RELEASETYPE",
                 "mp4": "----:com.apple.iTunes:MusicBrainz Album Type",
-                "mbpath": ["_release_", "release-group", "type", "_tolowercase_"]
+                "mbpaths": [
+                        ["_release_", "release-group", "primary-type", "_tolowercase_", "_append_next_"],
+                        ["_release_", "release-group", "secondary-type-list", "_multiple_", "_tolowercase_"],
+                ]
         },
         {
                 "internalname": "releasecountry",
@@ -720,7 +781,7 @@ def extended_tag(tag_obj, tag_type, track_position):
                 "id3v2.4": "TXXX:MusicBrainz Album Release Country",
                 "vorbis": "RELEASECOUNTRY",
                 "mp4": "----:com.apple.iTunes:MusicBrainz Album Release Country",
-                "mbpath": ["_release_", "country"]
+                "mbpaths": [["_release_", "country"]]
         },
         {
                 "internalname": "script",
@@ -728,7 +789,7 @@ def extended_tag(tag_obj, tag_type, track_position):
                 "id3v2.4": "TXXX:SCRIPT",
                 "vorbis": "SCRIPT",
                 "mp4": "----:com.apple.iTunes:SCRIPT",
-                "mbpath": ["_release_", "text-representation", "script"]
+                "mbpaths": [["_release_", "text-representation", "script"]]
         },
         {
                 "internalname": "language",
@@ -736,7 +797,7 @@ def extended_tag(tag_obj, tag_type, track_position):
                 "id3v2.4": "TLAN",
                 "vorbis": "LANGUAGE",
                 "mp4": "----:com.apple.iTunes:LANGUAGE",
-                "mbpath": ["_release_", "text-representation", "language"]
+                "mbpaths": [["_release_", "text-representation", "language"]]
         },
         {
                 "internalname": "copyright",
@@ -781,7 +842,7 @@ def extended_tag(tag_obj, tag_type, track_position):
                 "id3v2.4": "TXXX:BARCODE",
                 "vorbis": "BARCODE",
                 "mp4": "----:com.apple.iTunes:BARCODE",
-                "mbpath": ["_release_", "barcode"]
+                "mbpaths": [["_release_", "barcode"]]
         },
         {
                 "internalname": "isrc",
@@ -789,7 +850,7 @@ def extended_tag(tag_obj, tag_type, track_position):
                 "id3v2.4": "TSRC",
                 "vorbis": "ISRC",
                 "mp4": "----:com.apple.iTunes:ISRC",
-                "mbpath": ["_track_", "recording", "isrc-list", "_first_"]
+                "mbpaths": [["_track_", "recording", "isrc-list", "_multiple_"]]
         },
         {
                 "internalname": "asin",
@@ -797,7 +858,7 @@ def extended_tag(tag_obj, tag_type, track_position):
                 "id3v2.4": "TXXX:ASIN",
                 "vorbis": "ASIN",
                 "mp4": "----:com.apple.iTunes:ASIN",
-                "mbpath": ["_release_", "asin"]
+                "mbpaths": [["_release_", "asin"]]
         },
         {
                 "internalname": "musicbrainz_recordingid",
@@ -805,7 +866,7 @@ def extended_tag(tag_obj, tag_type, track_position):
                 "id3v2.4": "UFID:http://musicbrainz.org",
                 "vorbis": "MUSICBRAINZ_TRACKID",
                 "mp4": "----:com.apple.iTunes:MusicBrainz Track Id",
-                "mbpath": ["_track_", "recording", "id"]
+                "mbpaths": [["_track_", "recording", "id"]]
         },
         {
                 "internalname": "musicbrainz_trackid",
@@ -813,7 +874,7 @@ def extended_tag(tag_obj, tag_type, track_position):
                 "id3v2.4": "TXXX:MusicBrainz Release Track Id",
                 "vorbis": "MUSICBRAINZ_RELEASETRACKID",
                 "mp4": "----:com.apple.iTunes:MusicBrainz Release Track Id",
-                "mbpath": ["_track_", "id"]
+                "mbpaths": [["_track_", "id"]]
         },
         {
                 "internalname": "musicbrainz_albumid",
@@ -821,7 +882,7 @@ def extended_tag(tag_obj, tag_type, track_position):
                 "id3v2.4": "TXXX:MusicBrainz Album Id",
                 "vorbis": "MUSICBRAINZ_ALBUMID",
                 "mp4": "----:com.apple.iTunes:MusicBrainz Album Id",
-                "mbpath": ["_release_", "id"]
+                "mbpaths": [["_release_", "id"]]
         },
         {
                 "internalname": "musicbrainz_originalalbumid",
@@ -836,7 +897,10 @@ def extended_tag(tag_obj, tag_type, track_position):
                 "id3v2.4": "TXXX:MusicBrainz Artist Id",
                 "vorbis": "MUSICBRAINZ_ARTISTID",
                 "mp4": "----:com.apple.iTunes:MusicBrainz Artist Id",
-                "mbpath": ["_track_", "recording", "artist-credit", "_multiple_", "artist", "id"]
+                "mbpaths": [
+                        ["_track_", "artist-credit", "_multiple_", "artist", "id"],
+                        ["_track_", "recording", "artist-credit", "_multiple_", "artist", "id"],
+                ]
         },
         {
                 "internalname": "musicbrainz_originalartistid",
@@ -851,7 +915,7 @@ def extended_tag(tag_obj, tag_type, track_position):
                 "id3v2.4": "TXXX:MusicBrainz Album Artist Id",
                 "vorbis": "MUSICBRAINZ_ALBUMARTISTID",
                 "mp4": "----:com.apple.iTunes:MusicBrainz Album Artist Id",
-                "mbpath": ["_release_", "artist-credit", "_multiple_", "artist", "id"]
+                "mbpaths": [["_release_", "artist-credit", "_multiple_", "artist", "id"]]
         },
         {
                 "internalname": "musicbrainz_releasegroupid",
@@ -859,7 +923,7 @@ def extended_tag(tag_obj, tag_type, track_position):
                 "id3v2.4": "TXXX:MusicBrainz Release Group Id",
                 "vorbis": "MUSICBRAINZ_RELEASEGROUPID",
                 "mp4": "----:com.apple.iTunes:MusicBrainz Release Group Id",
-                "mbpath": ["_release_", "release-group", "id"]
+                "mbpaths": [["_release_", "release-group", "id"]]
         },
         {
                 "internalname": "musicbrainz_workid",
@@ -881,7 +945,7 @@ def extended_tag(tag_obj, tag_type, track_position):
                 "id3v2.4": "TXXX:MusicBrainz Disc Id",
                 "vorbis": "MUSICBRAINZ_DISCID",
                 "mp4": "----:com.apple.iTunes:MusicBrainz Disc Id",
-                "mbpath": ["_disc_id_"]
+                "mbpaths": [["_disc_id_"]]
         },
         {
                 "internalname": "acoustid_id",
@@ -995,85 +1059,164 @@ def extended_tag(tag_obj, tag_type, track_position):
                 medium = medium_candidate
     track = medium['track-list'][track_position - 1]
 
+    # make artist names easier to parse
+    if 'artist-credit' in track:
+        for ac in track['artist-credit']:
+            if not 'name' in ac and 'artist' in ac and 'name' in ac['artist']:
+                ac['name'] = ac['artist']['name']
+
+    # make performers easier to parse
+    performers = {}
+    performer_types = ["instrument", "vocal"]
+    if 'artist-relation-list' in release:
+        for ar in release['artist-relation-list']:
+            if 'artist' in ar and 'name' in ar['artist']:
+                performer = ar['artist']['name']
+            else:
+                continue
+            if 'type' in ar and 'attribute-list' in ar and ar['type'] in performer_types:
+                for instrument in ar['attribute-list']:
+                    if not performer in performers:
+                        performers[performer] = [instrument]
+                    else:
+                        if not instrument in performers[performer]:
+                            performers[performer].append(instrument)
+            if 'type' in ar and 'attribute-list' not in ar and ar['type'] == "vocal":
+                instrument = "vocals"
+                if not performer in performers:
+                    performers[performer] = [instrument]
+                else:
+                    if not instrument in performers[performer]:
+                        performers[performer].append(instrument)
+    release['performer'] = []
+    for performer, instruments in performers.items():
+        instruments_concatenated = None
+        for instrument in instruments:
+            if instruments_concatenated:
+                instruments_concatenated += " and " + instrument
+            else:
+                instruments_concatenated = instrument
+        release['performer'].append((performer, instruments_concatenated))
+
+    # make mixers, producers easier to parse
+    release['related'] = {}
+    related = release['related']
+    if 'artist-relation-list' in release:
+        for ar in release['artist-relation-list']:
+            if 'artist' in  ar and 'type' in ar['artist'] and ar['artist']['type'] != "Other":
+                if 'type' in ar and 'name' in ar['artist']:
+                    ar_type = ar['type']
+                    if not ar_type in related:
+                        related[ar_type] = []
+                    related[ar_type].append((ar['artist']['name'],))
+                if 'type' in ar and 'sort-name' in ar['artist']:
+                    ar_type = ar['type'] + "-sort"
+                    if not ar_type in related:
+                        related[ar_type] = []
+                    related[ar_type].append((ar['artist']['sort-name'],))
+
+    # parse data using tag map
     paired_tags={}
+    tipl_list = []
     for map_entry in mb_tag_map:
-        if not 'mbpath' in map_entry:
+        if not 'mbpaths' in map_entry:
             continue
         if not map_entry[tag_type]:
             continue
-        mbpath = map_entry['mbpath']
+        mbpaths = map_entry['mbpaths']
 
-        built_path = None
         built_paths = []
-        depth = 0
-        for item in mbpath:
-            if item[:1] == '_' and item[-1:] == '_':
-                if item == "_release_":
-                    built_path = release
-                elif item == "_medium_":
-                    built_path = medium
-                elif item == "_track_":
-                    built_path = track
-                elif item == "_disc_id_":
-                    built_path = disc_id
-                elif item == "_compilation_":
-                    if cf['_various']:
-                        built_path = 1
+        mbpath_try = 0
+        for mbpath in mbpaths:
+            built_path = None
+            depth = 0
+            break_after_success = True
+            for item in mbpath:
+                if item[:1] == '_' and item[-1:] == '_':
+                    if item == "_release_":
+                        built_path = release
+                    elif item == "_medium_":
+                        built_path = medium
+                    elif item == "_track_":
+                        built_path = track
+                    elif item == "_disc_id_":
+                        built_path = disc_id
+                    elif item == "_compilation_":
+                        if cf['_various']:
+                            built_path = "1"
+                        else:
+                            built_path = None
+                    elif item == "_genre_":
+                        built_path = genre
+                    elif item == "_concatenate_":
+                        concat_string = ""
+                        concat_path = mbpath[depth+1:]
+                        # concatenate dicts and strings
+                        for next_item in built_path:
+                            if isinstance(next_item, str):
+                                concat_string += next_item
+                            elif isinstance(next_item, dict):
+                                for key, value in next_item.items():
+                                    if key == concat_path[0]:
+                                        sub_path = next_item
+                                        for sub_item in concat_path:
+                                            if sub_item in sub_path:
+                                                sub_path = sub_path[sub_item]
+                                        concat_string += sub_path
+                        built_path = concat_string
+                        break
+                    elif item == "_multiple_":
+                        remain_items = mbpath[depth+1:]
+                        if built_path:
+                            multi_built_path = None
+                            for multi_path in built_path:
+                                if isinstance(built_path[0], str) and isinstance(multi_path, str):
+                                    multi_built_path = multi_path
+                                    if remain_items and len(remain_items) and remain_items[0] == "_tolowercase_":
+                                        multi_built_path = multi_built_path.lower()
+                                if isinstance(built_path[0], tuple):
+                                    multi_built_path = multi_path
+                                if isinstance(multi_path, dict):
+                                    multi_built_path = multi_path
+                                    for rem_item in remain_items:
+                                        if multi_built_path and rem_item in multi_built_path:
+                                            multi_built_path = multi_built_path[rem_item]
+                                        else:
+                                            multi_built_path = None
+                                if multi_built_path and multi_built_path not in built_paths:
+                                    built_paths.append(multi_built_path)
+                        built_path = None
+                    elif item == "_tolowercase_":
+                        if built_path:
+                            built_path = built_path.lower()
+                    elif item == "_year_from_date_":
+                        built_path = built_path[:4]
+                    elif item == "_append_next_":
+                        break_after_success = False
+                    else:
+                        print("unknown special item", item)
+                        built_path = None
+                else:
+                    if built_path and item in built_path:
+                        built_path = built_path[item]
                     else:
                         built_path = None
-                elif item == "_genre_":
-                    built_path = genre
-                elif item == "_first_":
-                    built_path = built_path[0]
-                elif item == "_concatenate_":
-                    concat_string = ""
-                    concat_path = mbpath[depth+1:]
-                    # concatenate dicts and strings
-                    for next_item in built_path:
-                        if isinstance(next_item, str):
-                            concat_string += next_item
-                        elif isinstance(next_item, dict):
-                            for key, value in next_item.items():
-                                if key == concat_path[0]:
-                                    sub_path = next_item
-                                    for sub_item in concat_path:
-                                        if sub_item in sub_path:
-                                            sub_path = sub_path[sub_item]
-                                    concat_string += sub_path
-                    built_path = concat_string
-                    break
-                elif item == "_multiple_":
-                    remain_items = mbpath[depth+1:]
-                    multi_built_path = None
-                    for multi_path in built_path:
-                        if isinstance(multi_path, dict):
-                            multi_built_path = multi_path
-                            for rem_item in remain_items:
-                                if rem_item in multi_built_path:
-                                    multi_built_path = multi_built_path[rem_item]
-                            built_paths.append(multi_built_path)
-                    built_path = None
-                    break
-                elif item == "_tolowercase_":
-                    built_path = built_path.lower()
-                elif item == "_year_from_date_":
-                    built_path = built_path[:4]
+                depth += 1
+            if built_path:
+                if isinstance(built_path, str) or isinstance(built_path, int) or isinstance(built_path, tuple):
+                    built_paths.append(built_path)
                 else:
-                    print("unknown special item", item)
-                    built_path = None
-            else:
-                if item in built_path:
-                    built_path = built_path[item]
-                else:
-                    built_path = None
-                    break
-            depth += 1
-
-        if built_path:
-            built_paths.append(built_path)
+                    error("built_path is not a string or an in for " + map_entry['name'])
+            
+            if len(built_paths):
+                if len(mbpaths) > 1:
+                    if break_after_success:
+                        break
+            mbpath_try += 1
 
         i = 0
-        built_path_concat = None
+        built_path_concat = []
+
         for built_path in built_paths:
             debug(tag_type + " tagging" + map_entry['name'] +  "-->" + str(built_path))
 
@@ -1085,12 +1228,14 @@ def extended_tag(tag_obj, tag_type, track_position):
                 paired_tags[map_entry[tag_type]][tuple_position] = int(built_path)
 
             if tag_type == "vorbis":
+                if 'vorbis-fmt' in map_entry:
+                    built_path = map_entry['vorbis-fmt'] % built_path
                 tag_obj.append([map_entry[tag_type], str(built_path)])
             elif tag_type == "id3v2.4":
-                if i:
-                    built_path_concat += "/" + built_path
-                else:
-                    built_path_concat = built_path
+                if isinstance(built_path, str):
+                    built_path_concat.append(built_path)
+                elif isinstance(built_path, tuple):
+                    built_path_concat.append(list(reversed(built_path)))
                 id3_key = map_entry[tag_type]
                 id3_argument = None
                 if ':' in id3_key:
@@ -1104,19 +1249,38 @@ def extended_tag(tag_obj, tag_type, track_position):
                 elif id3_frametype == "NumericPartTextFrame":
                     text = "%s/%s" % tuple(paired_tags[map_entry[tag_type]])
                     frame = id3.Frames[id3_key](encoding=3, text=text)
+                elif id3_frametype == "PairedTextFrame":
+                    people = built_path_concat
+                    if id3_argument:
+                        if id3_key == "TIPL":
+                            for item in built_path_concat:
+                                if not id3_argument in item:
+                                    item.insert(0, id3_argument)
+                            if not item in tipl_list:
+                                tipl_list.extend([item])
+                            people = tipl_list
+                    frame = id3.Frames[id3_key](encoding=3, people=people)
                 else:
                     if id3_argument:
                         if id3_key == "TXXX":
-                            frame = id3.Frames[id3_key](encoding=3, text=built_path_concat, desc=id3_argument)
+                            if len(built_path_concat) > 1:
+                                frame = id3.Frames[id3_key](encoding=3, text=built_path_concat, desc=id3_argument)
+                            else:
+                                frame = id3.Frames[id3_key](encoding=3, text=built_path_concat[0], desc=id3_argument)
                         elif id3_key == "UFID":
-                            frame = id3.Frames[id3_key](encoding=3, data=built_path_concat.encode('utf-8'), owner=id3_argument)
+                            frame = id3.Frames[id3_key](encoding=3, data=built_path_concat[0].encode('utf-8'), owner=id3_argument)
                         else:
                             warning("unexpected argument '" + id3_argument + "' for key '" + id3_key)
                     else:
-                        frame = id3.Frames[id3_key](encoding=3, text=built_path_concat)
+                        if len(built_path_concat) > 1:
+                            frame = id3.Frames[id3_key](encoding=3, text=built_path_concat)
+                        elif len(built_path_concat) == 1:
+                            frame = id3.Frames[id3_key](encoding=3, text=built_path_concat[0])
                 if frame:
                     tag_obj.add(frame)
             elif tag_type == "mp4":
+                if 'mp4-fmt' in map_entry:
+                    built_path = map_entry['mp4-fmt'] % built_path
                 mp4_type = "list-of-strings"
                 if "mp4-type" in map_entry:
                     mp4_type = map_entry['mp4-type']
@@ -1135,4 +1299,3 @@ def extended_tag(tag_obj, tag_type, track_position):
             else:
                 error("unknown tag type " + tag_type)
             i+=1
-    return
