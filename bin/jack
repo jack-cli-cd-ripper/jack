@@ -68,7 +68,7 @@ import locale
 locale.setlocale(locale.LC_ALL, "")
 
 # say hello...
-print("This is", jack.version.prog_name, jack.version.prog_version, jack.version.prog_copyright, jack.version.prog_devemail)
+print("This is", jack.version.prog_name, jack.version.prog_version, jack.version.prog_copyright, jack.version.prog_url)
 
 ### interpret options
 global_cf = jack.rc.load(cf, cf['global_rc']['val'])

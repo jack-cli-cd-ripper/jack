@@ -18,9 +18,9 @@
 
 from sys import version
 
-prog_version = "3.1.1"
+prog_version = "4.0.0"
 prog_name = "jack"
 prog_rcversion = 31
-prog_copyright = "(C)2004 Arne Zellentin"
-prog_devemail = "<zarne@users.sf.net>"
+prog_copyright = "(C)2004 Arne Zellentin, (C)2020 Pim Zandbergen"
+prog_url = "https://github.com/pimzand/jack"
 py_version = version.split(' ')[0]
