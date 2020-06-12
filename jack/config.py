@@ -647,6 +647,13 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
         'long': 'rename',
         'short': 'R',
     },
+    'metadata_lookup': {
+        'type': 'toggle',
+        'val': 0,
+        'save': 0,
+        'usage': "start a browser and look up the CD",
+        'long': 'lookup',
+    },
     'set_tag': {
         'type': 'toggle',
         'val': 0,

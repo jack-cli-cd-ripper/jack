@@ -500,6 +500,13 @@ def read_progress(status, todo):
 
     return status
 
+def metadata_lookup():
+    "start a browser and look up the CD"
+
+    tracks = jack.ripstuff.all_tracks
+    cd_id = jack.metadata.metadata_id(jack.ripstuff.all_tracks, warn=0)
+    jack.metadata.metadata_lookup(tracks, cd_id)
+
 
 def query_on_start(todo):
     info("querying...")

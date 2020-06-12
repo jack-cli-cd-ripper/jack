@@ -268,3 +268,8 @@ def musicbrainz_getlookupurl(tracks, cd_id):
 
     return url
 
+def musicbrainz_lookup(tracks, cd_id):
+
+    import webbrowser
+
+    webbrowser.open(musicbrainz_getlookupurl(tracks, cd_id), new=1)

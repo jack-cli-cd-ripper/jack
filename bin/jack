@@ -142,6 +142,11 @@ todo = jack.prepare.gen_todo()
 if len(todo) == 0:
     error("nothing to do. bye.")
 
+### Lookup the CD on MusicBrainz
+if cf['_metadata_lookup']:
+    jack.prepare.metadata_lookup()
+    sys.exit(0)
+
 ### do query on start
 metadata_rename = 0
 if cf['_query_if_needed']:

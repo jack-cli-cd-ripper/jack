@@ -234,3 +234,11 @@ def split_albumtitle(album_title):
 
 # user says additional info is in the EXTT fields
 
+def metadata_lookup(tracks, cd_id):
+    api = get_metadata_api(cf['_metadata_server'])
+    if api == 'cddb':
+        error("metadata lookup is supported for MusicBrainz only")
+    elif api == 'musicbrainzngs':
+        return jack.musicbrainz.musicbrainz_lookup(tracks, cd_id)
+    else:
+        error("unknown api %s", api)
