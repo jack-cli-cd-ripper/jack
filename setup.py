@@ -1,25 +1,28 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """Setup script for the jack module distribution."""
 
-import os
+from setuptools import setup, find_packages
+import jack.version
 
-from distutils.core import setup, Extension
+PACKAGES = find_packages(exclude=find_packages(where="deprecated"))
 
+REQUIRES = [
+    'discid',
+    'mutagen',
+]
 
-basepath = os.path.dirname(__file__)
-
-setup(  # Distribution meta-data
-    name="jack",
-    version="4.0.0",
+setup(
+    name=jack.version.name,
+    version=jack.version.version,
     description="A frontend for several cd-rippers and mp3 encoders",
-    author="Arne Zellentin",
-    author_email="zarne@users.sf.net",
-    url="http://www.home.unix-ag.org/arne/jack/",
+    author=jack.version.author,
+    author_email=jack.version.email,
+    url=jack.version.url,
+    license=jack.version.license,
 
-    scripts=(os.path.join(basepath, 'bin', 'jack'),),
-    packages=['jack'],
+    install_requires=REQUIRES,
+    packages=PACKAGES,
+
+    entry_points={"console_scripts": ["jack = jack.__main__:main"]},
 )
-
-print("If you have installed the modules, copy jack to some place in your $PATH,")
-print("like /usr/local/bin/.")
