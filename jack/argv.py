@@ -26,7 +26,7 @@ from jack.globals import *
 from jack.misc import safe_int
 
 
-def show_usage(cf, longhelp):
+def show_usage(cf, longhelp=False):
     l = []
     for i in list(cf.keys()):
         if not longhelp and 'help' not in cf[i]:
@@ -51,7 +51,7 @@ def show_usage(cf, longhelp):
     l.sort()
     print("usage: jack [option]...")
     for i in l:
-        jack.generic.indent(i[0] + " " * (max_len - len(i[0])), i[1])
+        print(jack.generic.indent(i[0] + " " * (max_len - len(i[0])), i[1]))
 
     if longhelp:
         print("""
@@ -62,6 +62,7 @@ While Jack is running, press q or Q to quit,
     r or R to pause/continue all rippers.
 """)
     else:
+        print()
         print("These are the most common options. For a complete list, run jack --longhelp")
 
 

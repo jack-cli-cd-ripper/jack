@@ -23,49 +23,53 @@ from jack.config import cf
 
 
 def indent(pre, msg):
-    print(pre, end=' ')
-
+    ret = pre + " "
     msg = msg.split()
     p = len(pre)
     y = p
     for i in msg:
         if len(i) + y > 78:
-            print()
-            print(" " * p, end=' ')
+            ret += "\n" + (" " * (p + 1))
             y = p
-        print(i, end=' ')
+        ret += i + ' '
         y = y + len(i) + 1
-    print()
+    return ret
 
 
-def ewprint(pre, msg):
-    pre = " *" + pre + "*"
-    indent(pre, msg)
+def log_to_logfile(s):
+    f = open(jack.version.name + ".debug", "a")
+    f.write(s + "\n")
+    del f
+
+
+def log(pre, msg, show=True, fatal=False):
+    s = indent(" *" + pre + "*", msg)
+    if cf['_debug_write']:
+        log_to_logfile(s)
+    if fatal:
+        import jack.term
+        jack.term.disable()
+        print(s)
+        import sys
+        sys.exit(1)
+    if show:
+        print(s)
 
 
 def error(msg):
-    import jack.term
-    import sys
-    jack.term.disable()
-    ewprint("error", msg)
-    sys.exit(1)
+    log("error", msg, fatal=True)
 
 
 def warning(msg):
-    ewprint("warning", msg)
+    log("warning", msg)
 
 
 def info(msg):
-    ewprint("info", msg)
+    log("info", msg)
 
 
 def debug(msg):
-    if cf['_debug']:
-        ewprint("debug", msg)
-    if cf['_debug_write']:
-        tmp = open(jack.version.name + ".debug", "a")
-        tmp.write(msg + "\n")
-        del tmp
+    log("debug", msg, show=cf['_debug'])
 
 
 def expand(filespec):
