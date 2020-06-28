@@ -90,12 +90,14 @@ if len(s) >= 2:
     s = s[-2]
 if len(s) == 1:
     s = s[0]
-if s.find('ETA') < 0:
-    if s.find("%") >= 0:       # status reporting starts here
+if 'ETA' not in s:
+    if "%" in s:
+        # status reporting starts here
         y = s.split("/")
         y1 = (y[1]).split("(")[0]
         helper_percent = float(y[0]) / float(y1) * 100.0
-    elif s.find("Frame:") >= 0:    # older versions, like 3.13, untested
+    elif "Frame:" in s:
+        # older versions, like 3.13, untested
         y = s.split("/")
         y0 = (y[0]).split("[")[-1]
         y1 = (y[1]).split("]")[0]
@@ -180,7 +182,7 @@ if 0 and cf['_debug']: # disabled for now
 tmps = (exited_proc['buf']).split('\r')
 tmps.reverse()
 for tmp in tmps:
-    if tmp.find("PROGRESS") != -1:
+    if "PROGRESS" in tmp:
         last_status = tmp
         break
 helper_final_status = ("%sx" % jack.functions.pprint_speed(speed)) + last_status[16:48] + "]"
@@ -314,7 +316,7 @@ while 1:
     if new_toc1 and l and l[0] in string.digits:
         l = l.split("(")[1:]
         for i in l:
-            if i.find(":") >= 0:
+            if ":" in i:
                 x = i.split(")")[0]
                 x = replace(x, ".", ":")
                 new_lengths.append(timestrtoblocks(x))
@@ -355,7 +357,7 @@ if new_c2w and len(new_lengths) == len(new_starts) - 1:
 global helper_new_status
 tmp = (i['buf']).split("\r")
 if len(tmp) >= 2:
-    if (tmp[-2]).find('total:') != -1:
+    if 'total:' in tmp[-2]:
         helper_new_status = (tmp[-2]).strip()
     else:
         helper_new_status = "waiting..."
@@ -397,7 +399,7 @@ while l:
         'status_fkt': r"""
 global helper_new_status
 x = (i['buf']).split('\r')[-2]
-if x.find('total:') != -1:
+if 'total:' in x:
     helper_new_status = ((i['buf']).split('\r')[-2]).strip()
 else:
     helper_new_status = "waiting..."

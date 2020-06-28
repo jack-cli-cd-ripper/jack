@@ -268,7 +268,7 @@ def gen_todo():
         if cf['_tracks']:
             tracks = (cf['_tracks']).split(",")
         for k in tracks:
-            if k.find('-') >= 0:
+            if '-' in k:
                 k = k.split('-')
                 lower_limit = jack.misc.safe_int(k[0], "Track '%s' is not a number." % k[0])
                 if k[1]:

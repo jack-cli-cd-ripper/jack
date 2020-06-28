@@ -90,7 +90,7 @@ def freedb_template(tracks, names=""):
     f.write("DISCID=" + jack.metadata.metadata_id(tracks)['cddb'] + "\n")
     if names:
         if names[1][0]:  # various
-            if names[0][0].upper().find("VARIOUS") >= 0:
+            if "VARIOUS" in names[0][0].upper():
                 f.write(freedb_split("DTITLE", "Various / " + names[0][1]))
             else:
                 f.write(freedb_split("DTITLE", "Various / " + names[0][0] + " - " + names[0][1]))
@@ -263,7 +263,7 @@ def freedb_names(cd_ids, tracks, todo, name, verb=0, warn=1):
         for i in ["DISCID", "DTITLE", "DYEAR", "DGENRE", "TTITLE", "EXTD", "EXTT", "PLAYORDER"]:
             if jack.functions.starts_with(line, i):
                 buf = line
-                if buf.find("=") != -1:
+                if "=" in buf:
                     buf = buf.split("=", 1)
                     if buf[1]:
                         if buf[0] in freedb:
@@ -330,7 +330,7 @@ def freedb_names(cd_ids, tracks, todo, name, verb=0, warn=1):
     dtitle = dtitle.replace("(unknown disc title)", "(unknown artist)/(unknown disc title)")  # yukk!
     if not dtitle:
         dtitle = "(unknown artist)/(unknown disc title)"
-    if dtitle.find("/") == -1:
+    if "/" in dtitle:
         if cf['_various'] == 1:
             dtitle = "Various/" + dtitle
             warning("bad disc title, using %s. Please fix." % dtitle)

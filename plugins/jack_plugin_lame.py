@@ -16,11 +16,11 @@ plugin_helpers = {
 s = string.split(i['buf'], '\r')
 if len(s) >= 2: s=s[-2]
 if len(s) == 1: s=s[0]
-if string.find(s, "%") >= 0:       # status reporting starts here
+if "%" in s:       # status reporting starts here
     y = string.split(s, "/")
     y1 = string.split(y[1], "(")[0]
     percent = float(y[0]) / float(y1) * 100.0
-elif string.find(s, "Frame:") >= 0:    # older versions, like 3.13
+elif "Frame:" in s:    # older versions, like 3.13
     y = string.split(s, "/")
     y0 = string.split(y[0], "[")[-1]
     y1 = string.split(y[1], "]")[0]
