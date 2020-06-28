@@ -206,9 +206,10 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
             elif cmd.upper() == "U":
                 cycles = 29     # do periodic stuff _now_
             else:
-                jack.term.tmod.move_pad(cmd)
-                if cmd == 'KEY_RESIZE':
-                    continue
+                if not jack.term.tmod.move_pad(cmd):
+                    if cmd == 'KEY_RESIZE':
+                        continue
+                    # open("/tmp/jack-unhandled-keys", "a").write(cmd + "\n")
                 last_update = time.time()
 
         # read from file with activity

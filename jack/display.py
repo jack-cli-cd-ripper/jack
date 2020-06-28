@@ -73,10 +73,7 @@ def init():
 
 def sig_handler(sig, frame):
     "signal handler and general cleanup procedure"
-    if frame < 0:
-        exit_code = frame
-    else:
-        exit_code = 0
+    exit_code = 0
 
     # Ignore Ctrl-C while we disable and enable curses, otherwise there may
     # be display problems.
@@ -133,8 +130,6 @@ def center_line(str, fill=" ", fill_sep=" ", fill_r="", width=80):
         return str
 
 
-def exit(why=0):
+def exit():
     "call my own cleanum fkt. and exit"
-    if why:
-        why = 0 - why
-    sig_handler(0, why)
+    sig_handler(None, None)

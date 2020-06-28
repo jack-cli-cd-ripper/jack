@@ -1,6 +1,6 @@
-# jack.t_curses: dumb terminal functions for
+# jack.t_curses: curses terminal functions for
 # jack - extract audio from a CD and encode it using 3rd party software
-# Copyright (C) 1999-2004  Arne Zellentin <zarne@users.sf.net>
+# Copyright (C) 1999-2020  Arne Zellentin <zarne@users.sf.net>
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -218,7 +218,11 @@ def move_pad(cmd):
             splash_reserve = 0
         else:
             splash_reserve = usage_win_height
+    else:
+         return False
+
     sig_winch_handler(None, None)
+    return True
 
 
 def disp_bottom_line(bottom_line):
