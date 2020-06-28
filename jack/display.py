@@ -28,6 +28,7 @@ import jack.metadata
 import jack.functions
 import jack.globals
 import jack.tag
+import jack.misc
 
 from jack.globals import *
 
@@ -58,7 +59,7 @@ def init():
         + " reorder" * cf['_reorder'] \
         + " read-ahead=" + repr(cf['_read_ahead']) \
         + " keep-wavs" * cf['_keep_wavs'] \
-        + " id=" + cd_id[api] \
+        + jack.misc.shorten(" id=" + cd_id[api], 12) \
         + (" len=%02i:%02i" % (global_total // jack.globals.CDDA_BLOCKS_PER_SECOND // 60, global_total // jack.globals.CDDA_BLOCKS_PER_SECOND % 60)) \
         + " | press Q to quit"
     jack.term.tmod.extra_lines = 2

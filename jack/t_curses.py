@@ -46,9 +46,12 @@ pad_x = pad_y = pad_start_y = pad_start_x = pad_end_y = pad_end_x = None
 pad_height = pad_width = None
 pad_disp_start_y = pad_disp_start_x = 0
 
-# usage win geometry
+# usage win
+usage_win_title = "* * * " + jack.version.name + " " + jack.version.version + " " + jack.version.copyright + " * * *"
+usage_win_width = len(usage_win_title) + 4
+usage_win_xoffset = max(2, (usage_win_width - 49) // 2)
+usage_win_height = 7
 usage_win_y = usage_win_x = 0
-usage_win_height, usage_win_width = 7, 49
 
 # reserve lines for the copyright/help box
 splash_reserve = 0
@@ -186,11 +189,11 @@ def sig_winch_handler(sig, frame):
             del usage_win
             usage_win = newwin(usage_win_height, usage_win_width, usage_win_y, usage_win_x)
             usage_win.box()
-            usage_win.addstr(1, 2, "* * * " + jack.version.name + " " + jack.version.version + " " + jack.version.copyright + " * * *")
-            usage_win.addstr(2, 2, "use cursor keys or hjkl to scroll status info")
-            usage_win.addstr(3, 2, "press P to disable/continue ripping,")
-            usage_win.addstr(4, 2, "      E to pause/continue all encoders or")
-            usage_win.addstr(5, 2, "      R to pause/continue all rippers.")
+            usage_win.addstr(1, 2, usage_win_title)
+            usage_win.addstr(2, usage_win_xoffset, "use cursor keys or hjkl to scroll status info")
+            usage_win.addstr(3, usage_win_xoffset, "press P to disable/continue ripping,")
+            usage_win.addstr(4, usage_win_xoffset, "      E to pause/continue all encoders or")
+            usage_win.addstr(5, usage_win_xoffset, "      R to pause/continue all rippers.")
             usage_win.refresh()
 
         for i in jack.ripstuff.all_tracks_todo_sorted:
