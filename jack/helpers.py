@@ -420,7 +420,9 @@ while l:
         'type': "toc-reader",
         'toc': 1,
         'toc_fkt': r"""
-import libdiscid
+import jack.discid
+jack.discid.init()
+
 if not os.path.exists(cf['_cd_device']):
     error("Device %s does not exist!" % cf['_cd_device'])
 if not os.access(cf['_cd_device'], os.R_OK):
@@ -428,22 +430,21 @@ if not os.access(cf['_cd_device'], os.R_OK):
 if not stat.S_ISBLK(os.stat(cf['_cd_device'])[stat.ST_MODE]):
     error("Device %s is not a block device!" % cf['_cd_device'])
 try:
-    disc = libdiscid.read(device=cf['_cd_device'], features=libdiscid.FEATURE_MCN|libdiscid.FEATURE_READ|libdiscid.FEATURE_ISRC)
-except libdiscid.exceptions.DiscError as m:
+    disc = jack.discid.read(device=cf['_cd_device'])
+except jack.discid.DiscError as m:
     error("Access of CD device %s resulted in error: %s" % (cf['_cd_device'], m))
 
-toc = list(disc.track_offsets)
-toc.append(disc.leadout_track)
-first = disc.first_track
-last = disc.last_track
+toc = jack.discid.toc(disc)
+first = jack.discid.first(disc)
+last = jack.discid.last(disc)
 
 try:
-    mcn = disc.mcn
+    mcn = jack.discid.mcn(disc)
 except NotImplementedError:
     mcn = None
 
 try:
-    isrcs = disc.track_isrcs
+    isrcs = jack.discid.isrcs(disc)
 except NotImplementedError:
     isrcs = None
 

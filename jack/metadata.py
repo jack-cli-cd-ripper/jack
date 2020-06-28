@@ -28,11 +28,12 @@ import jack.tag
 import jack.misc
 import jack.freedb
 import jack.musicbrainz
+import jack.version
+import jack.discid
 
 from jack.version import prog_version, prog_name
 from jack.globals import *
 
-import libdiscid
 
 names_available = None          # metadata info is available
 dir_created = None              # dirs are only renamed if we have created them
@@ -157,9 +158,11 @@ def metadata_id(tracks, warn=0):
         track_offsets.append(i[START] + MSF_OFFSET)
         last_track = i[NUM]
         num_sectors = i[START] + i[LEN] + MSF_OFFSET
-    disc = libdiscid.put(first_track, last_track, num_sectors, track_offsets)
 
+    jack.discid.init()
+    disc = jack.discid.put(first_track, last_track, num_sectors, track_offsets)
     cd_id = {'cddb': disc.freedb_id, 'musicbrainzngs': disc.id}
+
     return cd_id
 
 
