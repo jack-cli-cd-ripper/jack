@@ -31,7 +31,6 @@ import jack.musicbrainz
 import jack.version
 import jack.discid
 
-from jack.version import prog_version, prog_name
 from jack.globals import *
 
 
@@ -43,12 +42,12 @@ filenames = []
 metadata_servers = {
     'freedb': {
         'host': "freedb.freedb.org",
-        'id': prog_name + " " + prog_version,
+        'id': jack.version.name + " " + jack.version.version,
         'api': "cddb",
     },
     'musicbrainz': {
         'host': "musicbrainz.org",
-        'id': prog_name + " " + prog_version,
+        'id': jack.version.name + " " + jack.version.version,
         'api': "musicbrainzngs",
     },
 }
@@ -72,7 +71,7 @@ def get_metadata_host(server):
 
 def get_metadata_form_file(api):
     "get the filename for caching metadata"
-    return jack.version.prog_name + metadata_apis[api]['form_file_extension']
+    return jack.version.name + metadata_apis[api]['form_file_extension']
 
 def interpret_db_file(all_tracks, todo, metadata_form_file, verb, dirs=0, warn=None):
     "read metadata file and rename dir(s)"

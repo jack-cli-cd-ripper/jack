@@ -172,7 +172,7 @@ global helper_final_status
 last_status="0123456789012345 [ -- error decoding status --  ]" # fallback
 if 0 and cf['_debug']: # disabled for now
     import jack.version
-    tmpf=open("%s.debug.%02d.txt" % (jack.version.prog_name, exited_proc['track'][NUM]), "w")
+    tmpf=open("%s.debug.%02d.txt" % (jack.version.name, exited_proc['track'][NUM]), "w")
     tmpf.write(exited_proc['buf'])
     del tmpf
 tmps = (exited_proc['buf']).split('\r')

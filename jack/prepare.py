@@ -158,7 +158,7 @@ def find_workdir():
                     if not os.path.exists(cf['_base_dir']):
                         os.makedirs(cf['_base_dir'])
                     os.chdir(cf['_base_dir'])
-                    dir_name = jack.version.prog_name + "-" + jack.metadata.metadata_id(jack.ripstuff.all_tracks, warn=0)[api]
+                    dir_name = jack.version.name + "-" + jack.metadata.metadata_id(jack.ripstuff.all_tracks, warn=0)[api]
                     if not os.path.exists(dir_name) and not os.path.isdir(dir_name):
                         os.mkdir(dir_name)
                     os.chdir(dir_name)

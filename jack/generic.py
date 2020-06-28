@@ -63,7 +63,7 @@ def debug(msg):
     if cf['_debug']:
         ewprint("debug", msg)
     if cf['_debug_write']:
-        tmp = open(jack.version.prog_name + ".debug", "a")
+        tmp = open(jack.version.name + ".debug", "a")
         tmp.write(msg + "\n")
         del tmp
 

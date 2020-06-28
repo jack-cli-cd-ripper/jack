@@ -28,8 +28,8 @@ import jack.progress
 import jack.utils
 import jack.tag
 import jack.misc
+import jack.version
 
-from jack.version import prog_version, prog_name
 from jack.globals import *
 
 NUM, LEN, START, COPY, PRE, CH, RIP, RATE, NAME = list(range(9))
@@ -86,7 +86,7 @@ def freedb_template(tracks, names=""):
         f.write("#       " + repr(i[START] + MSF_OFFSET) + "\n")
     f.write("#\n# Disc length: " + repr((MSF_OFFSET + tracks[-1][START] + tracks[-1][LEN]) // CDDA_BLOCKS_PER_SECOND))
     f.write(" seconds\n#\n# Revision: 0\n")
-    f.write("# Submitted via: " + prog_name + " " + prog_version + "\n#\n")
+    f.write("# Submitted via: " + jack.version.name + " " + jack.version.version + "\n#\n")
     f.write("DISCID=" + jack.metadata.metadata_id(tracks)['cddb'] + "\n")
     if names:
         if names[1][0]:  # various
