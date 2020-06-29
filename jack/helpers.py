@@ -54,8 +54,7 @@ helpers = {
         'bitrate_factor': 1,
         'status_start': "%",
         'percent_fkt': r"""
-global helper_percent
-s = (i['buf'], '\r').split()
+s = str(i['buf']).split('\r')
 if len(s) >= 2:
     s = s[-2]
 if len(s) == 1:
@@ -63,12 +62,7 @@ if len(s) == 1:
 y0 = s.find("[")
 y1 = s.find("%]")
 if y0 != -1 and y1 != -1:
-    try:
-        helper_percent = float(s[y0 + 1:y1])
-    except ValueError:
-        helper_percent = 0
-else:
-    helper_percent = 0
+    helper_percent = float(s[y0 + 1:y1].replace(",", "."))
 """,
     },
     'lame': {
@@ -112,19 +106,15 @@ if 'ETA' not in s:
         'status_blocksize': 160,
         'status_start': "%",
         'percent_fkt': r"""
-global helper_percent
-s = (i['buf']).split('\r')
-if len (s) >= 2: s = s[-2]
-if len (s) == 1: s = s[0]
+s = str(i['buf']).split('\r')
+if len (s) >= 2:
+    s = s[-2]
+if len (s) == 1:
+    s = s[0]
 y0 = s.rfind(": ")
 y1 = s.find ("%", y0)
 if y0 != -1 and y1 != -1:
-    try:
-        helper_percent = float(s[y0 + 1:y1])
-    except ValueError:
-        helper_percent = 0
-else:
-    helper_percent = 0
+    helper_percent = float(s[y0 + 1:y1])
 """,
     },
     'fdkaac': {
@@ -138,8 +128,15 @@ else:
         'status_blocksize': 160,
         'bitrate_factor': 1,
         'percent_fkt': r"""
-global helper_percent
-helper_percent = 0
+s = str(i['buf']).split('\r')
+if len (s) >= 2:
+    s = s[-2]
+if len (s) == 1:
+    s = s[0]
+y1 = s.find("%]")
+y0 = s.find("[", 0, y1)
+if y0 != -1 and y1 != -1:
+    helper_percent = float(s[y0 + 1:y1])
 """,
     },
     'cdparanoia': {
