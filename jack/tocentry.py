@@ -19,7 +19,7 @@
 entry_fields = ['type', 'copy', 'preemphasis', 'channels', 'media',
                 'filename', 'start', 'length', 'pregap']
 compat_fields = ['number', 'length', 'start', 'copy',
-                 'preemphasis', 'channels', 'rip', 'bitrate', 'rip_name']
+                 'preemphasis', 'channels', 'rip', 'bitrate', 'rip_name', 'mcn', 'isrc']
 
 
 class TOCentry:
@@ -39,6 +39,8 @@ class TOCentry:
         self.length = None
         self.bitrate = None         # compat?#XXX
         self.rip = None             # compat
+        self.mcn = None
+        self.isrc = None
 
         if raw_dict:    # for compatibility: allow to read old-style track info
             num = 1

@@ -1,10 +1,12 @@
-<!--#include virtual="/include/head.html" -->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+
 <HEAD>
 <TITLE>Homepage of Jack</TITLE>
 <LINK REV=MADE href=mailto:zarne@users.sf.net>
 <LINK REL=STYLESHEET HREF="mine.css">
 </HEAD>
-<BODY BGCOLOR=#072387 TEXT=#d0d840 LINK=#f0a840 VLINK=#a06820>
+<BODY BGCOLOR=#1f248B TEXT=#d0d840 LINK=#f0a840 VLINK=#a06820>
 <CENTER>
     <A href=index.html><IMG src="main.gif" height=32></A>
     <A href=download.html><IMG src="download.gif" height=32></A>
@@ -17,13 +19,80 @@
 <HR>
 <CENTER><IMG SRC="jack-logo.jpg" height=172 width=347 alt="Jack Logo"></CENTER>
 <H3>"Why would anyone need <I>another</I> CD ripper / MP3 encoder frontend?"</H3>
-If you just need everything that is new, download it <A href="download.html">here</A>. Be sure to read the <A href=requirements.html>system requirements</A>. It's quite likely that you do not have the correct python version.
+If you just need everything that is new, download it <A href="download.html">here</A>. Be sure to read the <A href=requirements.html>system requirements</A>!
 <P>
 <B>News:</B>
 <TABLE cellpadding=3>
+<TR><TD valign=top>12-Dec-2004
+    <TD>Another release (3.1.1) aimed at fixing the nasty curses-bugs. Plugins
+    are back (see the examples). The help-box now stays on top unless you
+    press "?" or disable it (see manpage).
+<TR><TD valign=top>28-Nov-2004
+    <TD>Just over one year, again. Jack-3.1.0 is out. Lots of bugs fixed, most
+    notably the curses addstr() problem. Options can now be set with
+    --option=value, like in --various=yes. Your old config files should still
+    work but I recommend rebuilding them. Here's the full <A
+    href="ChangeLog">ChangeLog</A>. Most documentation is years old, only
+    the manpage is quite up to date.
+<TR><TD valign=top>12-Oct-2003
+    <TD>After just over one year in development, today I bring you Jack-3.0.0.
+    Rejoice! =) Jack is now split up into lots of tiny modules which load
+    faster because of python's precompilation and are also easier to maintain
+    for me. The config-file is now ~/.jack3rc and (optionally) /etc/jackrc for
+    site-wide stuff. You don't edit your rc-files now, instead you can specify
+    some options and let jack --save them for you. Old ~/.jackrc files are not
+    touched or read so please plan for some configuration time after updating.
+    What else is new...  hm, let me see... real ID3v2 support with pyid3lib,
+    fixes and patches from various sources... quite a lot. But I didn't get
+    much feedback on the development versions so I can't (of course) guarantee
+    that all that worked before does so now. Please tell me if there are any
+    problems.
+<TR><TD valign=top>02-Sep-2002
+    <TD>Work on jack-3.0 started a few days ago. Will appear in CVS soon.
+<TR><TD valign=top>02-Sep-2002
+    <TD>Jack 2.99.9 released. This is a rather strange release. It's the last
+        release before 3.0.0. I wanted to release the last "stable" version,
+        before my work on the 3.0.0 release. But all changes are older than
+        2 months. <B>I did not test it before releasing</B>, but everything
+        should be fine. In the unlikely case that it doesn't work for you,
+        I won't fix it. You'd have to wait for the first 3.0 release or
+        stick with 2.99.8. Here are the main changes:<PRE>
+- jack can use normal curses now (to the extent possible, i.e.
+	without reacting to SIGWINCH (terminal window resizing))
+
+- added sloppy ripping mode which is activated by a secret switch
+
+- added support for MPEGplus (encoder: mppenc, extension: .mpc)
+
+- --quality switch for vbr
+
+- FLAC support
+
+- new char_filter
+</PRE>
+<TR><TD valign=top>15-Apr-2002
+    <TD>Jack 2.99.8 released. All bugs fixed, some improvements.
+<TR><TD valign=top>07-Nov-2001
+    <TD>Jack 2.99.7 released. Works now with python-2.1.x, please update, everybody ;). If you used jack before, you need to update your .jackrc. Many cleanups, see <A href="ChangeLog">ChangeLog</A>.
+<TR><TD valign=top>11-Oct-2001
+    <TD>Jack 2.99.6 released. Added Ogg/Vorbis support, renamed cursesmodule to jack_cursesmodule (this avoids conflicts) and cleaned up a bit. If things don't work after updating, reinstall and remove your .jackrc.
+<TR><TD valign=top>09-Oct-2001
+    <TD>If all goes well, jack will get into Debian (unstable, for now) soon. We have to thank Michael Banck for this. In the mean time you can get the packages there: [Update: jack is in Debian unstable and testing now.]
+<TR><TD valign=top>05-Oct-2001
+    <TD>Jack 2.99.5 released. All that applies to the CVS version is also true for
+	this one, so read on below! I will now start to work on <A href="http://www.xiph.org/ogg/vorbis/">Ogg Vorbis</A> support.
+<TR><TD valign=top>31-Aug-2001
+    <TD>Jack 2.99.5 is in CVS now. This version requires
+    <A href=http://cddb-py.sourceforge.net>CDDB.py</A> in addition to
+    <A href=http://id3-py.sourceforge.net>ID3.py</A> which is no longer bundled
+    with Jack. The cursesmodule is now much easier to install thanks to the
+    <A href=http://www.python.org/sigs/distutils-sig/>Python Distutils-SIG</A>
+    which you may have to install.
+<TR><TD valign=top>11-May-2000
+    <TD>Finally Jack is hosted on <A href=http://jack.sourceforge.net><IMG src=http://sourceforge.net/sflogo.php?group_id=5557&type=1 alt=SourceForge></A>.
 <TR><TD valign=top>10-Jan-2000
     <TD>New Version (2.99.0-pre) "ain't it dead yet". I'm about to do some major
-    restructuring on jack, i.e. breaking it up into modules, so the
+    restructuring on Jack, i.e. breaking it up into modules, so the
     installation has changes slightly. Read INSTALL. Cdparanoia 9.7 is now
     supported, so is xingmp3enc (the latter being untested). You can now use
     a local freedb dir. Yes, all bugs fixed, especially those concerning
@@ -58,7 +127,7 @@ If you just need everything that is new, download it <A href="download.html">her
         through the status screen if it doesn't fit in your terminal.
         I recommend not to use XTermset any longer as it is no longer needed.
         The usual bugfixes are there, too, check the
-        <A href="ChangeLog">changelog</A>.
+        <A href="CHANGELOG">changelog</A>.
 <TR><TD valign=top>18-Aug-1999
     <TD>I really want to add support for the Xing encoder. Does anyone want to pay the registration fee for me? It's only $19 I think.
 <TR><TD valign=top>09-Aug-1999
@@ -66,7 +135,7 @@ If you just need everything that is new, download it <A href="download.html">her
         on-the-fly operation.
 <TR><TD valign=top>19-Jul-1999
     <TD>Big OOPS. Version 2.0.0 contained (at least) two "brown paper bag" bugs:
-        first, jack tried to chdir into newly created dirs twice (one time too
+        first, Jack tried to chdir into newly created dirs twice (one time too
         much), this gets you the "could not create or change to..." error.
         Second, the dirs were created in the wrong sequence, so instead
         of "artist/album" you get "album/artist". Upgrade to 2.0.1, get it
@@ -87,7 +156,7 @@ If you just need everything that is new, download it <A href="download.html">her
         re-generated.
 </TR>
 <TR><TD valign=top>27-Jun-1999
-    <TD>Released version 1.3.3. see the <A href="ChangeLog">changelog</A> for details
+    <TD>Released version 1.3.3. see the <A href="CHANGELOG">changelog</A> for details
 </TR>
 <TR><TD>
     <TD>rearranged the pages a bit. I know the layout still sux, if <B>you</B> have time to waste, let me know.
@@ -95,11 +164,11 @@ If you just need everything that is new, download it <A href="download.html">her
 </TABLE>
 <H3>What's it all about?</H3>
 Jack has been developed with one main goal: making MP3s<I> without having to
-worry</I>. There is nearly no way that an incomplete rip goes unnotices, e.g. jack
+worry</I>. There is nearly no way that an incomplete rip goes unnotices, e.g. Jack
 compares WAV and MP3 filesizes when continuing from a previous run. Jack also
 checks your HD space before doing anything (even keeps some MB free).
 <P>
-You can take a <A href=screen.html>look</A> at jack working, there are even some explanations.
+You can take a <A href=screen.html>look</A> at Jack working, there are even some explanations.
 <P>
 Jack is different from other such tools in a number of ways:
 <UL>
@@ -131,13 +200,13 @@ will not fit on your HD. If you want, you can have it choose the optimal
 sequence of tracks - great if you're low on HD space
 
 <LI>freedb query, file renaming and id3 tagging - I know that this alone is not
-special, but jack tries hard to recognize artist and title when working on a
+special, but Jack tries hard to recognize artist and title when working on a
 "Various Artists"-CD, so that the ID3 tag can be set correctly.
 
 <LI>it can resume work after it has been interrupted. If all tracks have been
 ripped, it doesn't even need the CD anymore, even if you want to do a freedb
 query. In practice, this means that you can change the CD and start another
-instance of jack.
+instance of Jack.
 
 <LI>it can do a freedb query based on MP3s alone, like if you don't remember
 from which CD those MP3s came from.
@@ -161,7 +230,7 @@ You may want to read more on <A href=install.html>intallation</A> and <A href=us
 <BR>Perhaps you want to know what Jack has <A href=TODO>todo</A>.
 <BR>For your amusement, read the <A href=faq.html>FAQ</A>!
 <P>
-Please send feedback to the address below. Yes I wanna hear about all the typos I've made.
+Please send feedback to the address below. Yes, I wanna hear about all the typos I've made.
 <P>
 <IMG src="anim.written.in.vi.gif" align=right>
 <HR>
@@ -171,7 +240,7 @@ Please send feedback to the address below. Yes I wanna hear about all the typos 
 &#169; Arne Zellentin,
 <A HREF="mailto:zarne@users.sf.net">zarne@users.sf.net</A>
 </SMALL></ADDRESS>
-<SMALL>(changed: 10-Jan-2000)</SMALL>
+<SMALL>(changed: Sunday, 12-Dec-2004 23:02:03 CET)</SMALL>
 
 </body>
 </html>

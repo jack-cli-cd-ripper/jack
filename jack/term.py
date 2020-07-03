@@ -24,7 +24,7 @@ import fcntl
 import sys
 
 import jack.ripstuff
-import jack.freedb
+import jack.metadata
 
 from jack.globals import *
 
@@ -105,7 +105,7 @@ def xtermset_enable():
         want_y = len(jack.ripstuff.all_tracks_todo_sorted) + 3
         if term_type == "curses":
             want_y = want_y - 1
-        if jack.freedb.names_available:
+        if jack.metadata.names_available:
             want_y = want_y + 1
         want_y += 7  # for the help panel
         if (size_x, size_y) != (want_x, want_y):
@@ -124,8 +124,7 @@ def xtermset_disable():
     global geom_changed
     if xtermset and geom_changed:
         try:
-            os.system("xtermset -restore -geom %dx%d" %
-                      (orig_size_x, orig_size_y))
+            os.system("xtermset -restore -geom %dx%d" % (orig_size_x, orig_size_y))
             geom_changed = 0
         except:
             pass
@@ -164,7 +163,7 @@ to convert /usr/include/asm/ioctls.h to IOCTLS.py and install it.""")
         data = " " * (winsize.itemsize * 4)
         data = fcntl.ioctl(sys.stdout.fileno(), TIOCGWINSZ, data)
         # unpack the data, I hope this is portable:
-        winsize.fromstring(data)
+        winsize.frombytes(data)
         new_y, new_x, xpixel, ypixel = winsize.tolist()
     except:
         can_getsize = 0

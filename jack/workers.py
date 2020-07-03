@@ -18,7 +18,6 @@
 
 import sndhdr
 import signal
-import string
 import posix
 import array
 import fcntl
@@ -57,7 +56,7 @@ def start_new_process(args, nice_value=0):
         default_signals()
         if nice_value:
             os.nice(nice_value)
-        os.execvp(args[0], [a.encode(cf['_charset'], "replace") for a in args])
+        os.execvp(args[0], [a for a in args])
     else:
         data['pid'] = pid
         if os.uname()[0] == "Linux":
@@ -75,13 +74,13 @@ def start_new_process(args, nice_value=0):
 def start_new_ripper(track, ripper):
     "start a new DAE process"
     helper = helpers[cf['_ripper']]
-    cmd = string.split(helper['cmd'])
+    cmd = (helper['cmd']).split()
     args = []
     for i in cmd:
         if i == "%n":
-            args.append(`track[NUM]`)
+            args.append(repr(track[NUM]))
         elif i == "%o":
-            args.append(track[NAME].decode(cf['_charset'], "replace") + ".wav")
+            args.append(track[NAME] + ".wav")
         elif i == "%d":
             args.append(cf['_cd_device'])
         else:
@@ -97,25 +96,24 @@ def start_new_encoder(track, encoder):
     "start a new encoder process"
     helper = helpers[cf['_encoder']]
     if cf['_vbr']:
-        cmd = string.split(helper['vbr-cmd'])
+        cmd = (helper['vbr-cmd']).split()
     else:
-        cmd = string.split(helper['cmd'])
+        cmd = (helper['cmd']).split()
 
     args = []
     for i in cmd:
         if i == "%r":
-            args.append(`track[RATE] * helper['bitrate_factor']`)
+            args.append(repr(track[RATE] * helper['bitrate_factor']))
         elif i == "%q":
-            if helper.has_key('inverse-quality') and helper['inverse-quality']:
+            if 'inverse-quality' in helper and helper['inverse-quality']:
                 quality = min(9, 10 - cf['_vbr_quality'])
             else:
                 quality = cf['_vbr_quality']
             args.append("%.3f" % quality)
         elif i == "%i":
-            args.append(track[NAME].decode(cf['_charset'], "replace") + ".wav")
+            args.append(track[NAME] + ".wav")
         elif i == "%o":
-            args.append(track[NAME].decode(cf['_charset'], "replace") + jack.targets.targets[
-                        jack.helpers.helpers[cf['_encoder']]['target']]['file_extension'])
+            args.append(track[NAME] + jack.targets.targets[jack.helpers.helpers[cf['_encoder']]['target']]['file_extension'])
         else:
             if jack.targets.targets[helper['target']]['can_pretag']:
                 if i == "%t":
@@ -132,25 +130,20 @@ def start_new_encoder(track, encoder):
                     else:
                         args.append("")
                 elif i == "%n":
-                    args.append(`track[NUM]`)
+                    args.append(repr(track[NUM]))
                 elif i == "%l":
                     if jack.tag.track_names:
                         args.append(jack.tag.track_names[0][1])
                     else:
                         args.append("")
-                elif i == "%G":
-                    if cf['_id3_genre'] >= 0:
-                        args.append(cf['_id3_genre'])
-                    else:
-                        args.append('255')
                 elif i == "%g":
-                    if cf['_id3_genre'] >= 0:
-                        args.append(jack.tag.genretxt)
+                    if cf['_genre']:
+                        args.append(cf['_genre'])
                     else:
-                        args.append('Unknown')
+                        args.append("")
                 elif i == "%y":
-                    if cf['_id3_year'] > 0:
-                        args.append(`cf['_id3_year']`)
+                    if cf['_year']:
+                        args.append(repr(cf['_year']))
                     else:
                         args.append('0')
                 else:
@@ -175,9 +168,9 @@ def start_new_otf(track, ripper, encoder):
     data['rip']['fd'], rip_err = os.pipe()
     data['enc']['fd'], enc_err = os.pipe()
     args = []
-    for i in string.split(helpers[ripper]['otf-cmd']):
+    for i in (helpers[ripper]['otf-cmd']).split():
         if i == "%n":
-            args.append(`track[NUM]`)
+            args.append(repr(track[NUM]))
         elif i == "%d":
             args.append(cf['_cd_device'])
         else:
@@ -203,23 +196,21 @@ def start_new_otf(track, ripper, encoder):
     data['rip']['prog'] = cf['_ripper']
     data['rip']['track'] = track
     if cf['_vbr']:
-        cmd = string.split(helpers[cf['_encoder']]['vbr-otf-cmd'])
+        cmd = (helpers[cf['_encoder']]['vbr-otf-cmd']).split()
     else:
-        cmd = string.split(helpers[cf['_encoder']]['otf-cmd'])
+        cmd = (helpers[cf['_encoder']]['otf-cmd']).split()
     args = []
     for i in cmd:
         if i == "%r":
-            args.append(`track[RATE] * helpers[
-                        cf['_encoder']]['bitrate_factor']`)
+            args.append(repr(track[RATE] * helpers[cf['_encoder']]['bitrate_factor']))
         elif i == "%q":
-            if helper.has_key('inverse-quality') and helper['inverse-quality']:
+            if 'inverse-quality' in helper and helper['inverse-quality']:
                 quality = min(9, 10 - cf['_vbr_quality'])
             else:
                 quality = cf['_vbr_quality']
             args.append("%.3f" % quality)
         elif i == "%o":
-            args.append(track[NAME].decode(cf['_charset'], "replace") + jack.targets.targets[
-                        jack.helpers.helpers[cf['_encoder']]['target']]['file_extension'])
+            args.append(track[NAME] + jack.targets.targets[jack.helpers.helpers[cf['_encoder']]['target']]['file_extension'])
         elif i == "%d":
             args.append(cf['_cd_device'])
         else:
@@ -272,7 +263,7 @@ def ripread(track, offset=0):
 
         # FIXME: all this offset stuff has to go, track 0 support has to come.
 
-        print ":fAE: waiting for status report..."
+        print(":fAE: waiting for status report...")
         sys.stdout.flush()
         hdr = sndhdr.whathdr(cf['_image_file'])
         my_swap_byteorder = cf['_swap_byteorder']
@@ -285,20 +276,20 @@ def ripread(track, offset=0):
             image_offset = -offset
 
         else:
-            if string.upper(cf['_image_file'])[-4:] == ".CDR":
+            if (cf['_image_file']).upper()[-4:] == ".CDR":
                 hdr = ('cdr', 44100, 2, -1, 16)  # Unknown header, assuming cdr
 
                 # assume old cdrdao which started at track 1, not at block 0
                 image_offset = -offset
 
-            elif string.upper(cf['_image_file'])[-4:] == ".BIN":
+            elif (cf['_image_file']).upper()[-4:] == ".BIN":
                 hdr = ('bin', 44100, 2, -1, 16)  # Unknown header, assuming bin
 
                 # assume new cdrdao which starts at block 0, byteorder is reversed.
                 my_swap_byteorder = not my_swap_byteorder
                 image_offset = 0
 
-            elif string.upper(cf['_image_file'])[-4:] == ".RAW":
+            elif (cf['_image_file']).upper()[-4:] == ".RAW":
                 hdr = ('bin', 44100, 2, -1, 16)  # Unknown header, assuming raw
                 image_offset = 0
 
@@ -306,8 +297,7 @@ def ripread(track, offset=0):
                 debug("unsupported image file " + cf['_image_file'])
                 posix._exit(4)
 
-        expected_filesize = jack.functions.tracksize(
-            jack.ripstuff.all_tracks)[CDR] + CDDA_BLOCKSIZE * offset
+        expected_filesize = jack.functions.tracksize(jack.ripstuff.all_tracks)[CDR] + CDDA_BLOCKSIZE * offset
 
         # WAVE header is 44 Bytes for normal PCM files...
         if hdr[0] == 'wav':
@@ -315,8 +305,7 @@ def ripread(track, offset=0):
 
         if abs(jack.utils.filesize(cf['_image_file']) - expected_filesize) > CDDA_BLOCKSIZE:
             # we *do* allow a difference of one frame
-            debug("image file size mismatch, aborted. %d != %d" %
-                  (jack.utils.filesize(cf['_image_file']), expected_filesize))
+            debug("image file size mismatch, aborted. %d != %d" % (jack.utils.filesize(cf['_image_file']), expected_filesize))
             posix._exit(1)
 
         elif hdr[0] == 'wav' and (hdr[1], hdr[2], hdr[4]) != (44100, 2, 16):
@@ -328,11 +317,11 @@ def ripread(track, offset=0):
             posix._exit(3)
 
         else:
-            f = open(cf['_image_file'], 'r')
+            f = open(cf['_image_file'], 'rb')
 
             # set up output wav file:
 
-            wav = wave.open(track[NAME] + ".wav", 'w')
+            wav = wave.open(track[NAME] + ".wav", 'wb')
             wav.setnchannels(2)
             wav.setsampwidth(2)
             wav.setframerate(44100)
@@ -355,22 +344,21 @@ def ripread(track, offset=0):
                     buf.byteswap()
                 wav.writeframesraw(buf.tostring())
                 if i % 1000 == 0:
-                    print ":fAE: Block " + `i` + "/" + `track[LEN]` + (" (%2i%%)" % (i * 100 / track[LEN]))
+                    print(":fAE: Block " + repr(i) + "/" + repr(track[LEN]) + (" (%2i%%)" % (i * 100 // track[LEN])))
                     sys.stdout.flush()
             wav.close()
             f.close()
 
             stop_time = time.time()
-            read_speed = track[LEN] / CDDA_BLOCKS_PER_SECOND / (
-                stop_time - start_time)
+            read_speed = track[LEN] // CDDA_BLOCKS_PER_SECOND // (stop_time - start_time)
             if read_speed < 100:
-                print "[%2.0fx]" % read_speed,
+                print("[%2.0fx]" % read_speed, end=' ')
             else:
-                print "[99x]",
+                print("[99x]", end=' ')
             if hdr[0] in ('bin', 'wav'):
-                print "[      - read from image -     ]"
+                print("[      - read from image -     ]")
             else:
-                print "[cdr-WARNING, check byteorder !]"
+                print("[cdr-WARNING, check byteorder !]")
             sys.stdout.flush()
             posix._exit(0)
     else:

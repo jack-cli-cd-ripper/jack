@@ -21,7 +21,7 @@ import signal
 import types
 import os
 import stat
-import string
+import re
 
 import jack.functions
 import jack.globals
@@ -34,7 +34,7 @@ from jack.globals import *
 
 def all_paths(p):
     "return all path leading to and including p"
-    if type(p) == types.StringType:
+    if type(p) == str:
         p = split_dirname(p)
     all = []
     x = ""
@@ -46,13 +46,13 @@ def all_paths(p):
 
 def check_path(p1, p2):
     "check if p1 and p2 are equal or sub/supersets"
-    if type(p1) == types.StringType:
+    if type(p1) == str:
         p1 = split_dirname(p1)
-    if type(p2) == types.StringType:
+    if type(p2) == str:
         p2 = split_dirname(p2)
     for i in p1, p2:
-        if type(i) != types.ListType:
-            error("invalid type for check_path" + `i`)
+        if type(i) != list:
+            error("invalid type for check_path" + repr(i))
     if len(p1) > len(p2):   # make sure p1 is shorter or as long as p2
         p1, p2 = p2, p1
     ok = 1
@@ -65,17 +65,17 @@ def check_path(p1, p2):
 def rename_path(old, new):
     "this is complicated."
     cwd = os.getcwd()
-    print cwd
+    print(cwd)
     cwds = split_dirname(cwd)
-    if type(old) == types.StringType:
+    if type(old) == str:
         old = split_dirname(old)
-    if type(new) == types.StringType:
+    if type(new) == str:
         new = split_dirname(new)
     for i in old, new, cwds:
-        if type(i) != types.ListType:
-            error("invalid type for rename_path: " + `i`)
+        if type(i) != list:
+            error("invalid type for rename_path: " + repr(i))
 
-    # weed out empty dirs (which are technically illegal on freedb but exist)
+    # weed out empty dirs (which are technically illegal on metadata but exist)
     tmp = []
     for i in new:
         if i:
@@ -90,23 +90,19 @@ def rename_path(old, new):
             try:
                 os.mkdir(i)
             except OSError:
-                error(
-                    'Cannot create directory "%s" (Filename is too long or has unusable characters)' % i)
+                error('Cannot create directory "%s" (Filename is too long or has unusable characters)' % i)
         if os.path.isdir(i):
             os.chdir(i)
         else:
-            error("could not create or change to " +
-                  i + " from " + os.getcwd())
+            error("could not create or change to " + i + " from " + os.getcwd())
 
     last_of_new = new[-1]
     if os.path.exists(last_of_new):
-        error("destination directory already exists: " +
-              os.path.join(*[cf['_base_dir']] + new))
+        error("destination directory already exists: " + os.path.join(*[cf['_base_dir']] + new))
     try:
         os.rename(cwd, last_of_new)
     except OSError:
-        error('Cannot rename "%s" to "%s" (Filename is too long or has unusable characters)' %
-              (cwd, last_of_new))
+        error('Cannot rename "%s" to "%s" (Filename is too long or has unusable characters)' % (cwd, last_of_new))
     os.chdir(last_of_new)
 
     # now remove empty "orphan" dirs
@@ -130,7 +126,7 @@ def cmp_toc(x, y):
         return -1
 
 
-NUM, LEN, START, COPY, PRE, CH, RIP, RATE, NAME = range(9)
+NUM, LEN, START, COPY, PRE, CH, RIP, RATE, NAME = list(range(9))
 
 
 def cmp_toc_cd(x, y, what=(NUM, LEN, START)):
@@ -150,7 +146,7 @@ def filesize(name):
 
 
 def yes(what):
-    if what.has_key('save') and what['save'] == 0:
+    if 'save' in what and what['save'] == 0:
         return ""
 
     if what['type'] == 'toggle':
@@ -158,7 +154,7 @@ def yes(what):
             s = "yes"
         else:
             s = "no"
-    elif what['type'] == types.StringType:
+    elif what['type'] == str:
         s = "'%s'" % what['val']
     else:
         s = str(what['val'])
@@ -166,7 +162,7 @@ def yes(what):
     s = " [%s]" % s
     if what['history'][-1][0] == "global_rc":
         s = s + "*"
-    if what.has_key('doc'):
+    if 'doc' in what:
         s = s + " +"
     return s
 
@@ -175,38 +171,70 @@ def safe_float(number, message):
     try:
         return float(number)
     except ValueError:
-        print message
+        print(message)
         sys.exit(1)
 
 
 def unusable_charmap(x):
     for i in range(len(cf['_unusable_chars'])):
-        x = string.replace(
-            x, cf['_unusable_chars'][i], cf['_replacement_chars'][i])
+        uc = cf['_unusable_chars'][i]
+        rc = cf['_replacement_chars'][i]
+        if len(uc) > 1 and uc.startswith('/') and uc.endswith('/'):
+            x = re.sub(uc[1:-1], rc, x)
+        else:
+            x = x.replace(uc, rc)
     return x
 
 
 def mkdirname(names, template):
     "generate mkdir-able directory name(s)"
-    year = genretxt = None
-    if cf['_id3_year'] > 0:
-        year = `cf['_id3_year']`
-    if cf['_id3_genre'] != -1:
-        genretxt = id3genres[cf['_id3_genre']]
-    replacelist = {"a": names[0][0].encode(cf['_charset'], "replace"),
-                   "l": names[0][1].encode(cf['_charset'], "replace"),
-                   "y": year, "g": genretxt}
+    year = genre = None
+    if cf['_year']:
+        year = repr(cf['_year'])
+    if cf['_genre']:
+        genre = cf['_genre']
+    medium_position = None
+    medium_count = None
+    medium_title = None
+
+    artist = names[0][0]
+    album_title = names[0][1]
+    if len(names[0]) >= 7:
+        medium_position = names[0][4]
+        medium_count = names[0][5]
+        medium_title = names[0][6]
+
+    replacelist = {"a": artist,
+                   "l": album_title,
+                   "y": year,
+                   "g": genre,
+                   "d": str(medium_position),
+                   "D": str(medium_count),
+                   "t": medium_title}
+
+    if medium_count and medium_count != 1:
+        if int(medium_count) > 1:
+            if medium_title and medium_title != album_title:
+                template = cf['_dir_titled_cd_template']
+            else:
+                template = cf['_dir_multi_cd_template']
+        else:
+            if medium_title and medium_title != album_title:
+                template = cf['_dir_titled_cd_unknown_number_template']
+            else:
+                template = cf['_dir_multi_cd_unknown_number_template']
+
+    cf['_dir_template'] = template
+
     # Process substitution patterns from dir_template
     subst = template.split(os.path.sep)
     dirs = []
     for i in subst:
-        x = jack.misc.multi_replace(
-            i, replacelist, "dir_template", unusable_charmap, warn=2)
+        x = jack.misc.multi_replace(i, replacelist, "dir_template", unusable_charmap, warn=2)
         exec("x = x" + cf['_char_filter'])
         dirs.append(x)
     if cf['_append_year'] and year:
-        dirs[-1] += jack.misc.multi_replace(
-            cf['_append_year'], replacelist, "append-year", warn=1)
+        dirs[-1] += jack.misc.multi_replace(cf['_append_year'], replacelist, "append-year", warn=1)
     return dirs, os.path.join(*dirs)
 
 
@@ -246,10 +274,10 @@ def in_path(file):
 
 def ex_edit(file):
     editor = "/usr/bin/sensible-editor"
-    if os.environ.has_key("EDITOR"):
+    if "EDITOR" in os.environ:
         editor = os.environ['EDITOR']
-    print "invoking your editor,", editor, "..."
-    os.system(string.split(editor)[0] + " " + file)
+    print("invoking your editor,", editor, "...")
+    os.system(((editor)[0] + " " + file).split())
 
 
 def has_track(l, num):

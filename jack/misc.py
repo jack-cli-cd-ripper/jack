@@ -16,7 +16,6 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-import string
 import types
 import sys
 import os
@@ -41,13 +40,11 @@ def multi_replace(s, rules, where, filter=id, warn=0):
     # char).
     pattern = [x[0] for x in s[s.find("%"):].split("%") if x]
     for p in pattern:
-        if not rules.has_key(p):
-            warn and do_warn(
-                "Unknown pattern %%%c is used in %s." % (p, where))
+        if p not in rules:
+            warn and do_warn("Unknown pattern %%%c is used in %s." % (p, where))
         else:
             if not rules[p]:
-                warn and do_warn(
-                    "%%%c is not set but used in %s." % (p, where))
+                warn and do_warn("%%%c is not set but used in %s." % (p, where))
             else:
                 s = s.replace("%%%c" % p, filter(rules[p]))
     return s
@@ -57,14 +54,17 @@ def safe_int(number, message):
     try:
         return int(number)
     except ValueError:
-        print message
+        print(message)
         sys.exit(1)
 
 
 class dict2(dict):
 
+    def __init__(self, *arg, **kw):
+        super(dict2, self).__init__(*arg, **kw)
+
     def rupdate(self, d2, where):
-        for i in d2.keys():
+        for i in list(d2.keys()):
             if self.__contains__(i):
                 new = self.__getitem__(i)
                 if new['val'] != d2[i]['val']:
@@ -73,13 +73,13 @@ class dict2(dict):
                     dict.__setitem__(self, i, new)
 
     def __getitem__(self, y):
-        if type(y) == types.StringType and y and y[0] == "_":
+        if type(y) == str and y and y[0] == "_":
             return dict.__getitem__(self, y[1:])['val']
         else:
             return dict.__getitem__(self, y)
 
     def __setitem__(self, y, x):
-        if type(y) == types.StringType and y and y[0] == "_":
+        if type(y) == str and y and y[0] == "_":
             self[y[1:]]['val'] = x
             # return dict.__setitem__(self, y[1:])['val']
         else:
@@ -90,7 +90,7 @@ def loadavg():
     "extract sysload from /proc/loadavg, linux only (?)"
     try:
         f = open("/proc/loadavg", "r")
-        load = float(string.split(f.readline())[0])
+        load = float(((f.readline())[0]).split())
         return load
     except:
         return -1

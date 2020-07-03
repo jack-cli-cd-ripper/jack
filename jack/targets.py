@@ -18,16 +18,6 @@
 
 from jack.globals import *
 
-try:
-    import ogg.vorbis
-    has_ogg_vorbis = 1
-    if ogg.vorbis.__version__ < "0.5":
-        has_ogg_vorbis = 0
-        debug("ogg.vorbis tagging disabled, version is too low.")
-except:
-    has_ogg_vorbis = 0
-    debug("ogg.vorbis tagging disabled.")
-
 # supported target file fomats
 targets = {
     'mp3': {
@@ -43,7 +33,7 @@ targets = {
         'can_vbr': 1,
         'can_id3': 1,
         'can_pretag': 1,
-        'can_posttag': (1 & has_ogg_vorbis),
+        'can_posttag': 1,
         'file_extension': ".ogg"
     },
     'flac': {
@@ -54,12 +44,12 @@ targets = {
         'can_posttag': 1,
         'file_extension': ".flac"
     },
-    'mpc': {
-        'can_cbr': 0,
+    'm4a': {
+        'can_cbr': 1,
         'can_vbr': 1,
         'can_id3': 0,
         'can_pretag': 0,
-        'can_posttag': 0,
-        'file_extension': ".mpc"
+        'can_posttag': 1,
+        'file_extension': ".m4a"
     }
 }

@@ -1,4 +1,4 @@
-# -*- coding: iso-8859-15 -*-
+# -*- coding: utf-8 -*-
 # jack.config.py: default config settings for
 # jack - extract audio from a CD and encode it using 3rd party software
 # Copyright (C) 2002-2004  Arne Zellentin <zarne@users.sf.net>
@@ -19,7 +19,6 @@
 
 import types
 import os
-import string
 import jack.misc
 import locale
 import sys
@@ -32,8 +31,8 @@ from jack.globals import *
 # we need a working locale
 try:
     locale.getpreferredencoding()
-except locale.Error, e:
-    print "Locale problem:", e
+except locale.Error as e:
+    print("Locale problem:", e)
     sys.exit(1)
 
 # config space with attributes
@@ -54,26 +53,26 @@ cf = jack.misc.dict2({
         'long': 'AUTO',
     },
     'plugin_path': {
-        'type': types.ListType,
+        'type': list,
         'val': ["~/.jack.plugins", ],
         'usage': "directories in which jack plugins are searched for",
         'long': 'AUTO',
     },
     'ripper': {
-        'type': types.StringType,
+        'type': str,
         'val': "cdparanoia",
         'doc': "use which program to rip: cdparanoia, tosha, cdda2wav, dagrab (untested)",
         'usage': "which program to use for extracting the audio data",
         'long': 'AUTO',
     },
     'cd_device': {
-        'type': types.StringType,
+        'type': str,
         'val': "/dev/cdrom",
         'usage': "use which device for ripping",
         'long': 'device',
     },
     'encoder': {
-        'type': types.StringType,
+        'type': str,
         'val': "oggenc",
         'doc': "this is a symbolic name (see helpers), NOT the executable's name",
         'usage': "use which encoder",
@@ -90,7 +89,7 @@ cf = jack.misc.dict2({
         'long': 'AUTO',
     },
     'vbr_quality': {
-        'type': types.FloatType,
+        'type': float,
         'val': 6,
         'help': 1,
         'vbr_only': 1,  # only show in --help if vbr is on
@@ -98,7 +97,7 @@ cf = jack.misc.dict2({
         'long': 'quality',
     },
     'bitrate': {
-        'type': types.IntType,
+        'type': int,
         'val': 160,
         'help': 1,
         'vbr_only': 0,
@@ -107,27 +106,21 @@ cf = jack.misc.dict2({
         'short': 'b',
         'long': 'AUTO',
     },
-    'freedb_server': {
-        'type': types.StringType,
-        'val': "freedb",
-        'doc': "your freedb server, see freedb_servers",
-        'usage': "use which freedb server",
+    'metadata_server': {
+        'type': str,
+        'val': "musicbrainz",
+        'doc': "your metadata server, see metadata_servers",
+        'usage': "use which metadata server",
         'long': 'server',
     },
     'disable_http_proxy': {
         'type': 'toggle',
         'val': 0,
-        'usage': "XXX todo!!! disable default proxy (environment variable \"http_proxy\") for freedb queries",
-        'long': 'AUTO',
-    },
-    'my_mail': {
-        'type': types.StringType,
-        'val': "@",
-        'usage': "your e-mail address, needed for freedb submissions",
+        'usage': "XXX todo!!! disable default proxy (environment variable \"http_proxy\") for metadata queries",
         'long': 'AUTO',
     },
     'rename_fmt': {
-        'type': types.StringType,
+        'type': str,
         'val': "%a - %l - %n - %t",
         'usage': "format of normal files",
         'long': 'AUTO',
@@ -140,7 +133,7 @@ cf = jack.misc.dict2({
     %g: album genre - individual track genres are unsupported""",
     },
     'rename_fmt_va': {
-        'type': types.StringType,
+        'type': str,
         'val': "%l - %n - %a - %t",
         'usage': "format of Various Artists files",
         'long': 'AUTO',
@@ -153,7 +146,7 @@ cf = jack.misc.dict2({
     %g: album genre - individual track genres are unsupported""",
     },
     'rename_num': {
-        'type': types.StringType,
+        'type': str,
         'val': "%02d",
         'long': 'AUTO',
         'usage': "track number format for %n, printf() style",
@@ -165,38 +158,97 @@ cf = jack.misc.dict2({
         'long': 'AUTO',
     },
     'append_year': {
-        'type': types.StringType,
+        'type': str,
         'val': "",
         'usage': "append this string to the directory name",
         'long': 'AUTO',
     },
     'dir_template': {
-        'type': types.StringType,
+        'type': str,
         'val': "%a/%l",
         'usage': "if directories are renamed, this is the format used",
         'doc': """specify how the resulting files are named:
     %a: artist
     %l: album title
     %g: album genre - individual track genres are unsupported
-    %y: album release year - individual track years are unsupported""",
+    %y: album release year - individual track years are unsupported
+    %d: disc number
+    %D: number of discs
+    %t: disc title""",
+        'long': 'AUTO',
+    },
+    'dir_multi_cd_template': {
+        'type': str,
+        'val': "%a/%l (CD %d)",
+        'usage': " dir_template, if album consists of multiple discs",
+        'doc': """specify how the resulting files are named:
+    %a: artist
+    %l: album title
+    %g: album genre - individual track genres are unsupported
+    %y: album release year - individual track years are unsupported
+    %d: disc number
+    %D: number of discs
+    %t: disc title""",
+        'long': 'AUTO',
+    },
+    'dir_multi_cd_unknown_number_template': {
+        'type': str,
+        'val': "%a/%l (CD %d)",
+        'usage': " dir_template, if album consists of multiple discs, and the number of discs is unknown",
+        'doc': """specify how the resulting files are named:
+    %a: artist
+    %l: album title
+    %g: album genre - individual track genres are unsupported
+    %y: album release year - individual track years are unsupported
+    %d: disc number
+    %D: number of discs
+    %t: disc title""",
+        'long': 'AUTO',
+    },
+    'dir_titled_cd_template': {
+        'type': str,
+        'val': "%a/%l (CD %d: %t)",
+        'usage': " dir_template, if album consists of multiple discs, and the current disc has a title",
+        'doc': """specify how the resulting files are named:
+    %a: artist
+    %l: album title
+    %g: album genre - individual track genres are unsupported
+    %y: album release year - individual track years are unsupported
+    %d: disc number
+    %D: number of discs
+    %t: disc title""",
+        'long': 'AUTO',
+    },
+    'dir_titled_cd_unknown_number_template': {
+        'type': str,
+        'val': "%a/%l (CD %d: %t)",
+        'usage': " dir_template, if album consists of an unknown number of multiple discs, and the current disc has a title",
+        'doc': """specify how the resulting files are named:
+    %a: artist
+    %l: album title
+    %g: album genre - individual track genres are unsupported
+    %y: album release year - individual track years are unsupported
+    %d: disc number
+    %D: number of discs
+    %t: disc title""",
         'long': 'AUTO',
     },
     'char_filter': {
-        'type': types.StringType,
+        'type': str,
         'val': "",
         'usage': "convert file names using a python method",
         'doc': r"""an example which converts to lowercase, even with non-ascii charsets: ".lower()" """,
         'long': 'AUTO',
     },
     'charset': {
-        'type': types.StringType,
+        'type': str,
         'val': locale.getpreferredencoding(),
         'usage': 'charset of filenames',
         'doc': "examples: latin-1, utf-8, ...",
         'long': 'AUTO',
     },
     'unusable_chars': {
-        'type': types.ListType,
+        'type': list,
         'val': ["/", "\r"],
         'usage': "characters which can't be used in filenames",
         'doc': """
@@ -209,12 +261,12 @@ replacement_chars = "_"
 
 example 2: replace umlauts by an alternate representation and kill some
             special characters:
-unusable_chars = "‰ˆ¸ƒ÷‹ﬂ?*^()[]{}"
+unusable_chars = "√§√∂√º√Ñ√ñ√ú√ü?*^()[]{}"
 replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
         'long': 'AUTO',
     },
     'replacement_chars': {
-        'type': types.ListType,
+        'type': list,
         'val': ["%", ""],
         'doc': "this is stretched to match unusable_chars' length using the last char as fill",
         'usage': "unusable chars are replaced by the corresponding list item",
@@ -228,34 +280,34 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
     'show_names': {
         'type': 'toggle',
         'val': 1,
-        'doc': "XXX todo: auto id enough term width -- display freedb track names instead if \"track_01\", ... This will not fit in a 80x24 terminal.",
+        'doc': "XXX todo: auto id enough term width -- display metadata track names instead if \"track_01\", ... This will not fit in a 80x24 terminal.",
     },
     'scan_dirs': {
-        'type': types.IntType,
+        'type': int,
         'val': 2,
         'usage': "scan in cwd n dir levels deep, e.g. 0 to disable",
         'long': 'AUTO',
     },
     'searchdirs': {
-        'type': types.ListType,
+        'type': list,
         'val': [os.curdir],
         'usage': "search which directories",
         'long': 'search',
     },
     'base_dir': {
-        'type': types.StringType,
+        'type': str,
         'val': os.curdir,
         'usage': "where to create directories and put the files",
         'long': 'workdir',
         'short': 'w',
     },
     'update_interval': {
-        'type': types.FloatType,
+        'type': float,
         'val': 1.0,
         'doc': "update status screen every ... seconds",
     },
     'max_load': {
-        'type': types.FloatType,
+        'type': float,
         'val': 10.0,
         'usage': "only start new encoders if load < max_load",
         'long': 'AUTO',
@@ -271,17 +323,17 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
         'doc': "XXX not implemented yet! reset xterm width when exiting",
     },
     'terminal': {
-        'type': types.StringType,
+        'type': str,
         'val': "auto",
         'doc': "use what kind of terminal",
     },
     'default_width': {
-        'type': types.IntType,
+        'type': int,
         'val': 80,
         'doc': "XXX unused! your xterm's width (autodetected with curses)",
     },
     'default_height': {
-        'type': types.IntType,
+        'type': int,
         'val': 24,
         'doc': "XXX unused! your xterm's height (autodetected with curses)",
     },
@@ -292,12 +344,12 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
         'long': "AUTO",
     },
     'keep_free': {
-        'type': types.IntType,
+        'type': int,
         'val': 5 * 2**20,
         'doc': "suspend if less than keep_free bytes are free. Don't set this to zero as encoded file size prediction is always a bit below actual sizes => we might need some extra space.",
     },
     'encoders': {
-        'type': types.IntType,
+        'type': int,
         'val': 1,
         'usage': "encode how many files in parallel",
         'short': 'e',
@@ -338,14 +390,14 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
         'long': 'AUTO',
     },
     'read_ahead': {
-        'type': types.IntType,
+        'type': int,
         'val': 99,
         'usage': "read how many WAVs in advance",
         'short': 'a',
         'long': 'AUTO',
     },
     'nice_value': {
-        'type': types.IntType,
+        'type': int,
         'val': 12,
         'usage': "nice-level of encoders",
         'short': 'n',
@@ -378,22 +430,22 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
         'short': 'x',
     },
     'exec_rip_done': {
-        'type': types.StringType,
+        'type': str,
         'val': "eject /dev/cdrom",
         'doc': "example: eject the CD when ripping is finished",
     },
     'exec_no_err': {
-        'type': types.StringType,
+        'type': str,
         'val': "play /usr/local/audio/allok.wav",
         'doc': "example: play sound when finished",
     },
     'exec_err': {
-        'type': types.StringType,
+        'type': str,
         'val': "play /usr/local/audio/error.wav",
         'doc': "example: this is played when an error occured",
     },
     'freedb_dir': {
-        'type': types.StringType,
+        'type': str,
         'val': "",
         'doc': "change this to something like \"/var/spool/freedb\" and all queries will be done in this (local) directory; failed local queries will be done via network",
     },
@@ -429,7 +481,7 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
         'long': 'todo',
     },
     'space_from_argv': {
-        'type': types.IntType,
+        'type': int,
         'val': 0,
         'usage': "force usable disk space, in bytes",
         'long': 'space',
@@ -458,11 +510,11 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
         'long': 'AUTO',
         'short': 'd',
     },
-    'update_freedb': {
+    'update_metadata': {
         'type': 'toggle',
         'val': 0,
         'save': 0,
-        'usage': "update the freedb info and exit",
+        'usage': "update the metadata info and exit",
         'long': 'AUTO',
         'short': 'U',
     },
@@ -473,7 +525,7 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
         'long': 'I-swear-I\'ll-never-give-these-files-to-anyone,-including-hot-babes-TM',
     },
     'tracks': {
-        'type': types.StringType,
+        'type': str,
         'val': "",
         'save': 0,
         'usage': "which tracks to process (e.g. 1, 3, 5-9, 12-)",
@@ -481,18 +533,18 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
         'short': 't',
     },
     'name': {
-        'type': types.StringType,
+        'type': str,
         'val': "track_%02d",
         'doc': "filename template (before renaming)",
     },
     'rippers': {
-        'type': types.IntType,
+        'type': int,
         'val': 1,
         'doc': "not implemented: rip in parallel",
     },
     'toc_prog': {
-        'type': types.StringType,
-        'val': "CDDB.py",
+        'type': str,
+        'val': "libdiscid",
         'doc': "use which helper program to read cd's toc",
     },
     # prefs0 -- FREEDB stuff ###
@@ -501,7 +553,7 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
         'val': 0,
         'save': 0,
         'help': 1,
-        'usage': "do freedb query when starting",
+        'usage': "do metadata query when starting",
         'long': 'query-now',
         'short': 'Q',
     },
@@ -509,7 +561,7 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
         'type': 'toggle',
         'val': 0,
         'help': 1,
-        'usage': "query freedb when starting if not queried already",
+        'usage': "query metadata server when starting if not queried already",
         'long': 'AUTO',
     },
     'query_when_ready': {
@@ -517,26 +569,32 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
         'val': 0,
         'save': 0,
         'help': 1,
-        'usage': "do freedb query when all is done",
+        'usage': "do metadata query when all is done",
         'long': 'query',
         'short': 'q',
     },
     'cont_failed_query': {
         'type': 'toggle',
         'val': 0,
-        'usage': "continue without freedb data if query fails",
+        'usage': "continue without metadata data if query fails",
         'long': 'AUTO',
     },
     'edit_cddb': {
-        # For backwards compatibility only, use edit_freedb instead!
+        # For backwards compatibility only, use edit_metadata instead!
         'type': 'toggle',
         'val': 0,
         'long': 'AUTO',
     },
     'edit_freedb': {
+        # For backwards compatibility only, use edit_metadata instead!
         'type': 'toggle',
         'val': 0,
-        'usage': "edit CDDB information before using it",
+        'long': 'AUTO',
+    },
+    'edit_metadata': {
+        'type': 'toggle',
+        'val': 0,
+        'usage': "edit metadata information before using it",
         'long': 'AUTO',
     },
     'various': {
@@ -574,68 +632,68 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
         'usage': "extt contains track comment",
         'long': 'AUTO',
     },
-    'freedb_submit': {
+    'read_metadata_file': {
         'type': 'toggle',
         'val': 0,
         'save': 0,
-        'usage': "http-submit freedb file to server and exit",
-        'long': 'submit',
+        'doc': "read metadata file",
     },
-    'freedb_mailsubmit': {
-        'type': 'toggle',
-        'val': 0,
-        'save': 0,
-        'usage': "submit by e-mail - needs sendmail",
-        'long': 'mail-submit',
-        'short': 'm',
-    },
-    'read_freedb_file': {
-        'type': 'toggle',
-        'val': 0,
-        'save': 0,
-        'doc': "read freedb file",
-    },
-    'freedb_rename': {
+    'metadata_rename': {
         'type': 'toggle',
         'val': 0,
         'help': 1,
         'save': 0,
-        'usage': "rename according to freedb file, eg. after editing it",
+        'usage': "rename according to metadata file, eg. after editing it",
         'long': 'rename',
         'short': 'R',
     },
-    'set_id3tag': {
+    'metadata_lookup': {
         'type': 'toggle',
         'val': 0,
         'save': 0,
-        'doc': "set id3 tag info",
+        'usage': "start a browser and look up the CD",
+        'long': 'lookup',
     },
-    'id3_genre': {
-        'type': types.IntType,
-        'val': -1,
+    'set_tag': {
+        'type': 'toggle',
+        'val': 0,
         'save': 0,
-        'doc': "set ID3 genre (empty=don't set, help=list)",
+        'doc': "set tag info",
     },
-    'id3_year': {
-        'type': types.IntType,
-        'val': -1,
+    'set_extended_tag': {
+        'type': 'toggle',
+        'val': 1,
         'save': 0,
-        'usage': "set ID3 year (0=don't set)",
+        'doc': "set extended tag info from MusicBrainz",
+    },
+    'genre': {
+        'type': str,
+        'val': None,
+        'save': 0,
+        'usage': "overrule genre from metadata",
+        'long': 'AUTO',
+        'short': 'G',
+    },
+    'year': {
+        'type': str,
+        'val': None,
+        'save': 0,
+        'usage': "overrule year from metadata (0=don't set)",
         'long': 'AUTO',
         'short': 'Y',
     },
     'username': {
-        'type': types.StringType,
+        'type': str,
         'val': None,
-        'doc': "required for freedb query",
+        'doc': "required for metadata query",
     },
     'hostname': {
-        'type': types.StringType,
+        'type': str,
         'val': None,
-        'doc': "required for freedb query",
+        'doc': "required for metadata query",
     },
     'image_toc_file': {
-        'type': types.StringType,
+        'type': str,
         'val': None,
         'save': 0,
         'usage': "read another toc file which may point to an image-file",
@@ -643,7 +701,7 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
         'short': 'f',
     },
     'image_file': {
-        'type': types.StringType,
+        'type': bytes,
         'val': None,
         'save': 0,
         'usage': "read audio from an image file",
@@ -657,43 +715,38 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
         'doc': "rip from physical device, not from image_file",
     },
     'toc_file': {
-        'type': types.StringType,
+        'type': str,
         'val': jack.version.prog_name + ".toc",
         'save': 0,
         'doc': "the toc file which is actually used",
     },
     'def_toc': {
-        'type': types.StringType,
+        'type': str,
         'val': jack.version.prog_name + ".toc",
         'doc': "the default name of the toc file",
     },
-    'freedb_form_file': {
-        'type': types.StringType,
-        'val': jack.version.prog_name + ".freedb",
-        'doc': "name of submission template",
-    },
     'out_file': {
-        'type': types.StringType,
+        'type': str,
         'val': jack.version.prog_name + ".out",
         'doc': "in silent-mode, stdout goes here",
     },
     'err_file': {
-        'type': types.StringType,
+        'type': str,
         'val': jack.version.prog_name + ".err",
         'doc': "in silent-mode, stderr here",
     },
     'progress_file': {
-        'type': types.StringType,
+        'type': str,
         'val': jack.version.prog_name + ".progress",
         'doc': "subprocess output is cached here",
     },
     'progr_sep': {
-        'type': types.StringType,
+        'type': str,
         'val': "/|\\",
         'doc': "field separator in progress_file",
     },
     'guess_mp3s': {
-        'type': types.ListType,
+        'type': list,
         'val': [],
         'save': 0,
         'usage': "guess TOC from files (until terminating \";\")",
@@ -711,7 +764,7 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
         'type': 'toggle',
         'val': 0,
         'save': 0,
-        'usage': "try to query freedb for all dirs in searchdirs which have no freedb data",
+        'usage': "try to query metadata server for all dirs in searchdirs which have no metadata",
         'long': 'AUTO',
     },
     'claim_dir': {
@@ -728,14 +781,6 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
         'usage': "wait for key press before quitting",
         'long': 'wait',
     },
-    'id3_genre_txt': {
-        'type': types.StringType,
-        'val': None,
-        'save': 0,
-        'usage': "set ID3 genre (empty=don't set, help=list)",
-        'long': 'id3-genre',
-        'short': 'G',
-    },
     'save_args': {
         'type': 'toggle',
         'val': 0,
@@ -744,13 +789,13 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
         'long': 'save',
     },
     'global_rc': {
-        'type': types.StringType,
+        'type': str,
         'val': "/etc/jackrc",
         'save': 0,
         'doc': "system-wide config file",
     },
     'user_rc': {
-        'type': types.StringType,
+        'type': str,
         'val': "~/.jack3rc",
         'save': 0,
         'doc': "user config file",
@@ -761,29 +806,11 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
         'usage': "create a playlist in .m3u format",
         'long': 'AUTO',
     },
-    'write_id3v1': {
-        'type': 'toggle',
-        'val': 1,
-        'usage': "write a smart id3v1 tag to the encoded file",
-        'long': 'AUTO',
-    },
-    'write_id3v2': {
-        'type': 'toggle',
-        'val': 1,
-        'usage': "write an id3v2 tag to the encoded file",
-        'long': 'AUTO',
-    },
-    'playorder': {
-        'type': 'toggle',
-        'val': 0,
-        'usage': "use the freedb PLAYORDER field to limit the tracks to rip (non-functional, sorry)",
-        'long': 'AUTO',
-    },
 })
 
-for i in cf.keys():
+for i in list(cf.keys()):
     # expand long options
-    if cf[i].has_key('long') and cf[i]['long'] == "AUTO":
-        cf[i]['long'] = string.replace(i, "_", "-")
+    if 'long' in cf[i] and cf[i]['long'] == "AUTO":
+        cf[i]['long'] = i.replace("_", "-")
     # init history
     cf[i]['history'] = [["config", cf[i]['val'], ], ]

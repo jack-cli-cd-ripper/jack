@@ -16,7 +16,6 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-import string
 import types
 
 CDDA_BLOCKS_PER_SECOND = 75
@@ -24,18 +23,18 @@ CDDA_BLOCKS_PER_SECOND = 75
 
 def strtoblocks(str):
     "convert mm:ss:ff to blocks"
-    str = string.split(str, ":")
-    blocks = string.atoi(str[2])
-    blocks = blocks + string.atoi(str[1]) * CDDA_BLOCKS_PER_SECOND
-    blocks = blocks + string.atoi(str[0]) * 60 * CDDA_BLOCKS_PER_SECOND
+    str = str.split(":")
+    blocks = int(str[2])
+    blocks = blocks + int(str[1]) * CDDA_BLOCKS_PER_SECOND
+    blocks = blocks + int(str[0]) * 60 * CDDA_BLOCKS_PER_SECOND
     return blocks
 
 
 def blockstomsf(blocks):
     "convert blocks to mm, ss, ff"
-    mm = blocks / 60 / CDDA_BLOCKS_PER_SECOND
+    mm = blocks // 60 // CDDA_BLOCKS_PER_SECOND
     blocks = blocks - mm * 60 * CDDA_BLOCKS_PER_SECOND
-    ss = blocks / CDDA_BLOCKS_PER_SECOND
+    ss = blocks // CDDA_BLOCKS_PER_SECOND
     ff = blocks % CDDA_BLOCKS_PER_SECOND
     return mm, ss, ff, blocks
 
@@ -66,16 +65,16 @@ class CDTime:
         self.__dict__[name] = value
         if name == 'string' or name == 'any':
             new_val = self.__dict__[name]
-            if type(new_val) == types.StringType and len(new_val) >= 2:
+            if type(new_val) == str and len(new_val) >= 2:
                 if new_val[0] == new_val[-1]:
                     if new_val[0] in ('"', "'"):
                         new_val = new_val[1:-1]
             try:
-                blocks = string.atoi(new_val)
+                blocks = int(new_val)
             except:
-                if type(new_val) == types.StringType:
+                if type(new_val) == str:
                     blocks = strtoblocks(new_val)
-                elif type(new_val) == types.IntType:
+                elif type(new_val) == int:
                     blocks = new_val
                 else:
                     raise ValueError
@@ -86,11 +85,11 @@ class CDTime:
             self.ff == self.blocks
         elif name == 'ff':
             if self.ff >= CDDA_BLOCKS_PER_SECOND:
-                self.ss = self.ss + self.ff / CDDA_BLOCKS_PER_SECOND
+                self.ss = self.ss + self.ff // CDDA_BLOCKS_PER_SECOND
                 self.__dict__['ff'] = self.ff % CDDA_BLOCKS_PER_SECOND
         elif name == 'ss':
             if self.ss >= 60:
-                self.mm = self.mm + self.ss / 60
+                self.mm = self.mm + self.ss // 60
                 self.__dict__['ss'] = self.ss % 60
         self.__dict__['string'] = msftostr((self.mm, self.ss, self.ff,))
         self.__dict__['blocks'] = strtoblocks(self.string)

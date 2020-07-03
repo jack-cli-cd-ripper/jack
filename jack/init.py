@@ -17,7 +17,6 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 import os
-import string
 import sys
 
 from jack.generic import *
@@ -34,35 +33,18 @@ except:
     from FCNTL import O_NONBLOCK
 
 try:
-    import eyed3.id3
+    import libdiscid
 except:
-    print "Please install the eyeD3 module available from http://eyed3.nicfit.net/"
+    print("Please install the libdiscid module available at https://pythonhosted.org/python-libdiscid/")
     sys.exit(1)
 
 try:
-    import cdrom
-except:
-    print "Please install the CDDB module available at http://cddb-py.sourceforge.net"
-    print "Without it, you'll not be able to rip from CDs."
-
-    # want to see my favorite ugly hack of the day?
-    class dummy_cdrom:
-
-        def __init__(self):
-            pass
-
-        def open(self, dummy=None):
-            print "Cannot access cdrom device while the CDDB module is not installed. See above."
-            sys.exit(1)
-    cdrom = dummy_cdrom()
-
-try:
-    import ogg.vorbis
-except:
-    warning("ogg module not installed, ogg support disabled")
-    ogg = None
-
-try:
+    import mutagen.mp3 as mp3
+    import mutagen.id3 as id3
     import mutagen.flac as flac
-except ImportError:
-    flac = None
+    import mutagen.mp4 as mp4
+    import mutagen.oggvorbis as oggvorbis
+except:
+    print("Please install the Mutagen module available at")
+    print("https://mutagen.readthedocs.io/")
+    sys.exit(1)

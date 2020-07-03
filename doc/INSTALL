@@ -1,14 +1,14 @@
-### This is jack  (c) 1999-2004 Arne Zellentin
+### This is jack  (c) 1999-2003 Arne Zellentin
 ### free to use, no warranties, no nothing
 ### see COPYING
 
 
 --- Step 1 - install 3rd party modules ---------------------------------------
 
-install the eyeD3 and CDDB.py modules:
+install the ID3.py and CDDB.py module:
 
 * grab them from http://cddb-py.sourceforge.net
-  and            http://eyed3.nicfit.net/
+  and            http://id3-py.sourceforge.net
 
 Too ease up the installations, install the Python Distutils
 from
@@ -26,23 +26,26 @@ if you don't already have them. (If you don't have them you'll get errors like
 * if not, follow the instructions
 
 
---- Step 2 - install the jack_* modules and my curses module -----------------
+--- Step 2 - install my curses module ----------------------------------------
 
 * see the end of this file for tips on installing it without distutils!
 
 * if you have the python distutils installed, run (as root if needed)
 
-    # python setup.py install
+    # python setup-cursesmodule.py install
 
---- Step 3 - install jack ----------------------------------------------------
+--- Step 3 - install jack and it's modules -----------------------------------
 
 Copy it somewhere in your $PATH, e.g.:
 
-    # cp jack $HOME/bin
+    # cp jack* $HOME/bin
 
 or (you may have to be root)
 
     # cp jack /usr/local/bin/
+    # cp jack_*py /usr/local/lib/pythonM.m/site-packages/
+
+(replace M.m by the version of your python-installation)
 
 --- That's it -- you're done! Congratulations!
 

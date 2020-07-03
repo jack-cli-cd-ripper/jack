@@ -1,4 +1,4 @@
-# -*- coding: iso-8859-15 -*-
+# -*- coding: utf-8 -*-
 # jack.globals: Global storage space for
 # jack - extract audio from a CD and encode it using 3rd party software
 # Copyright (C) 1999-2003  Arne Zellentin <zarne@users.sf.net>
@@ -20,7 +20,6 @@
 from jack.config import cf
 from jack.constants import *
 from jack.generic import debug, error, expand, info, warning
-from jack.init import eyed3
 
 # import jack.generic
 # error = jack.generic.error
@@ -39,8 +38,3 @@ def debug(x):
     jack.generic.warning(x)
 """
 
-# globals
-revision = 0                        # initial revision of freedb data
-is_submittable = 0                  # well-formed freedb-file?
-
-id3genres = eyed3.id3.ID3_GENRES

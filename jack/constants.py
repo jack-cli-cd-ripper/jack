@@ -19,8 +19,8 @@
 # track representation format
 # LEN and START is in cdda-blocks:
 # [ track#, len, start, copy, pre, ch, unused, bitrate, filename ]
-fields = ["NUM", "LEN", "START", "COPY", "PRE", "CH", "RIP", "RATE", "NAME"]
-NUM, LEN, START, COPY, PRE, CH, RIP, RATE, NAME = 0, 1, 2, 3, 4, 5, 6, 7, 8
+fields = ["NUM", "LEN", "START", "COPY", "PRE", "CH", "RIP", "RATE", "NAME", "MCN", "ISRC"]
+NUM, LEN, START, COPY, PRE, CH, RIP, RATE, NAME, MCN, ISRC = 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
 
 # jack.functions.tracksize() return list format
 ENC, WAV, BOTH, PEAK, AT, CDR, BLOCKS = 0, 1, 2, 3, 4, 5, 6

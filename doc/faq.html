@@ -1,6 +1,9 @@
-<!--#include virtual="/include/head.html" -->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+
 <HEAD>
 <TITLE>FAQ for Jack</TITLE>
+<LINK REL=STYLESHEET HREF="mine.css">
 <LINK REV=MADE href=mailto:zarne@users.sf.net>
 </HEAD>
 <BODY BGCOLOR=#072387 TEXT=#d0d840 LINK=#f0a840 VLINK=a06820>
@@ -15,7 +18,7 @@
 </CENTER>
 
 <TABLE width=100%><TR><TD valign=bottom>
-<H3><U>Frequently Asked Questions</U></H3>
+<H1>Frequently Asked Questions</H1>
 <TD valign=bottom>
 <IMG SRC="jack-logo.jpg" align=right alt="Jack" height=50 width=101></TR>
 </TABLE>
@@ -32,7 +35,7 @@
 </TT><BR>
     in Modules/Setup. Jack 2.x doesn't need the threads any more, but they
 are still good to have. Only leave them out if they cause trouble. In general, I recommend activating as many modules as possible so you don't have to
-recompile every time a newly installed programm needs another non-default module.
+recompile every time a newly installed programm need another non-default module.
 <SMALL>(from Jason Lunz)</SMALL>
 <P>
 <LI><B>Q:</B> I can't / don't want to install python-1.5.2. Isn't there a
@@ -51,14 +54,9 @@ recompile every time a newly installed programm needs another non-default module
 <P>
 <B>A:</B>    The bitrate is cached in jack.progress. So if you encode track n with bitrate x1, delete the MP3 and call jack without specifying a bitrate, bitrate x1 is used, regardless what the default in your .jackrc is. Specify the wanted bitrate with -b.
 <P>
-<LI><B>Q:</B> I want to use a flat local cddb directory. Jack wants me to use subfolders like rock, blues, ... . Can you help?
+<LI><B>Q:</B> Jack won't start on SuSE Linux 6.3, OSError: out of pty devices or OSError: [Errno 13] Permission denied: '/dev/ttypX'
 <P>
-<B>A:</B>    As long as nobody complains, use this workaround (sh style):<BR>
-cd [your_cddb_dir]<BR>
-for i in  blues classical country data folk \<BR>
-jazz misc newage reggae rock  soundtrack ; do<BR>
-    ln -s . "$i"<BR>
-done
+<B>A:</B>    For security reasons SuSE Linux 6.3 (I don't know about other versions) installs the ptys with mode 660. On a mission-critical Server they recommend against running Programs which thus can't be run. If you trust your local users set the ptys rights to 666, like in <code>chmod 666 /dev/pty*</code> (as root). Alternatives: change the programs which need this to sgid tty or add the trusted users to group tty.
 <P>
 </UL>
 Wanna go <A href=index.html>home</A>?
@@ -70,6 +68,6 @@ Wanna go <A href=index.html>home</A>?
 &#169; Arne Zellentin,
 <A HREF="mailto:zarne@users.sf.net">zarne@users.sf.net</A>
 </SMALL></ADDRESS>
-<SMALL>(changed: 19-Jul-99)</SMALL>
+<SMALL>(changed: Wednesday, 06-Feb-2002 23:57:24 CET)</SMALL>
 </body>
 </html>

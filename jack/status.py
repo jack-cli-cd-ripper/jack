@@ -16,8 +16,6 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-import string
-
 from jack.globals import NUM, cf
 import jack.term
 import jack.ripstuff
@@ -36,7 +34,7 @@ def init(todo):
 
 
 def extract(status):
-    for i in status.keys():
+    for i in list(status.keys()):
         if status[i]['dae']:
             dae_status[i] = status[i]['dae']
         if status[i]['enc']:
@@ -58,14 +56,14 @@ def dae_stat_upd(num, string):
 def print_status(form='normal'):
     for i in jack.ripstuff.all_tracks_todo_sorted:
         if form != 'normal' or not jack.ripstuff.printable_names:
-            print cf['_name'] % i[NUM] + ":", dae_status[i[NUM]], enc_status[i[NUM]]
+            print(cf['_name'] % i[NUM] + ":", dae_status[i[NUM]], enc_status[i[NUM]])
         else:
-            print jack.ripstuff.printable_names[i[NUM]] + ":", dae_status[i[NUM]], enc_status[i[NUM]]
+            print(jack.ripstuff.printable_names[i[NUM]] + ":", dae_status[i[NUM]], enc_status[i[NUM]])
 
 
 def get_2_line(buf, default="A failure occured"):
-    tmp = string.split(buf, "\n")
+    tmp = buf.split("\n")
     if len(tmp) >= 2:
-        return string.strip(tmp[-2])
+        return (tmp[-2]).split()
     else:
         return default

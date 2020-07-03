@@ -11,7 +11,7 @@ basepath = os.path.dirname(__file__)
 
 setup(  # Distribution meta-data
     name="jack",
-    version="3.1.1",
+    version="4.0.0",
     description="A frontend for several cd-rippers and mp3 encoders",
     author="Arne Zellentin",
     author_email="zarne@users.sf.net",
@@ -21,5 +21,5 @@ setup(  # Distribution meta-data
     packages=['jack'],
 )
 
-print "If you have installed the modules, copy jack to some place in your $PATH,"
-print "like /usr/local/bin/."
+print("If you have installed the modules, copy jack to some place in your $PATH,")
+print("like /usr/local/bin/.")
