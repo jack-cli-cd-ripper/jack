@@ -272,4 +272,6 @@ def musicbrainz_lookup(tracks, cd_id):
 
     import webbrowser
 
-    webbrowser.open(musicbrainz_getlookupurl(tracks, cd_id), new=1)
+    url = musicbrainz_getlookupurl(tracks, cd_id)
+    print("opening url", url, "in browser")
+    webbrowser.open(url)
