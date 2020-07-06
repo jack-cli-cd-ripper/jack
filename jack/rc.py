@@ -70,7 +70,7 @@ def read(file):
     version = get_version(read_rc)
     if not version:
         warning("config file %s doesn't define jackrc-version." % file)
-    elif version != jack.version.prog_rcversion:
+    elif version != jack.version.rcversion:
         warning("config file %s is of unknown version %s." % (file, repr(version)))
     return read_rc
 
@@ -139,7 +139,7 @@ def merge(old, new):
 def write(file, rc, rcfile_exists=True):
     f = open(file, "w")
     if not rcfile_exists:
-        f.write("# jackrc-version:%d\n" % jack.version.prog_rcversion)
+        f.write("# jackrc-version:%d\n" % jack.version.rcversion)
 
     for i in rc:
         if i[0]:

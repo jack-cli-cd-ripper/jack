@@ -94,3 +94,8 @@ def loadavg():
         return load
     except:
         return -1
+
+def shorten(s, limit=74, elipsis='…'):
+    if elipsis:
+        limit -= len(elipsis)
+    return s[:limit] + elipsis * (len(s) > limit)

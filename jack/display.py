@@ -28,6 +28,7 @@ import jack.metadata
 import jack.functions
 import jack.globals
 import jack.tag
+import jack.misc
 
 from jack.globals import *
 
@@ -58,7 +59,7 @@ def init():
         + " reorder" * cf['_reorder'] \
         + " read-ahead=" + repr(cf['_read_ahead']) \
         + " keep-wavs" * cf['_keep_wavs'] \
-        + " id=" + cd_id[api] \
+        + jack.misc.shorten(" id=" + cd_id[api], 12) \
         + (" len=%02i:%02i" % (global_total // jack.globals.CDDA_BLOCKS_PER_SECOND // 60, global_total // jack.globals.CDDA_BLOCKS_PER_SECOND % 60)) \
         + " | press Q to quit"
     jack.term.tmod.extra_lines = 2
@@ -73,10 +74,7 @@ def init():
 
 def sig_handler(sig, frame):
     "signal handler and general cleanup procedure"
-    if frame < 0:
-        exit_code = frame
-    else:
-        exit_code = 0
+    exit_code = 0
 
     # Ignore Ctrl-C while we disable and enable curses, otherwise there may
     # be display problems.
@@ -133,8 +131,6 @@ def center_line(str, fill=" ", fill_sep=" ", fill_r="", width=80):
         return str
 
 
-def exit(why=0):
+def exit():
     "call my own cleanum fkt. and exit"
-    if why:
-        why = 0 - why
-    sig_handler(0, why)
+    sig_handler(None, None)

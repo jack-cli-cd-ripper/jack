@@ -716,28 +716,28 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
     },
     'toc_file': {
         'type': str,
-        'val': jack.version.prog_name + ".toc",
+        'val': jack.version.name + ".toc",
         'save': 0,
         'doc': "the toc file which is actually used",
     },
     'def_toc': {
         'type': str,
-        'val': jack.version.prog_name + ".toc",
+        'val': jack.version.name + ".toc",
         'doc': "the default name of the toc file",
     },
     'out_file': {
         'type': str,
-        'val': jack.version.prog_name + ".out",
+        'val': jack.version.name + ".out",
         'doc': "in silent-mode, stdout goes here",
     },
     'err_file': {
         'type': str,
-        'val': jack.version.prog_name + ".err",
+        'val': jack.version.name + ".err",
         'doc': "in silent-mode, stderr here",
     },
     'progress_file': {
         'type': str,
-        'val': jack.version.prog_name + ".progress",
+        'val': jack.version.name + ".progress",
         'doc': "subprocess output is cached here",
     },
     'progr_sep': {

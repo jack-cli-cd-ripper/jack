@@ -27,8 +27,8 @@ import jack.progress
 import jack.utils
 import jack.tag
 import jack.misc
+import jack.version
 
-from jack.version import prog_version, prog_name
 from jack.globals import *
 
 import urllib.parse
@@ -48,7 +48,7 @@ def musicbrainz_query(cd_id, tracks, file):
     mb_id = cd_id['musicbrainzngs']
     includes = "artists+artist-credits+artist-rels+recordings+release-groups+release-rels+recording-rels+release-group-rels+isrcs+labels+label-rels+genres+url-rels+work-rels"
     query_url = "http://" + host + "/ws/2/discid/" + mb_id + "?toc=" + toc + "&inc=" + includes + "&fmt=json"
-    user_agent = "%s/%s (%s)" % (jack.version.prog_name, jack.version.prog_version, jack.version.prog_url)
+    user_agent = "%s/%s (%s)" % (jack.version.name, jack.version.version, jack.version.url)
     headers = {'User-Agent': user_agent}
 
     request = urllib.request.Request(query_url, None, headers)
@@ -153,7 +153,7 @@ def musicbrainz_query(cd_id, tracks, file):
     query_data = {
         'query_id': mb_id,
         'query_date': datetime.datetime.now().isoformat(),
-        'prog_version': jack.version.prog_version,
+        'prog_version': jack.version.version,
         'chosen_release': chosen_release,
         'result': result,
     }

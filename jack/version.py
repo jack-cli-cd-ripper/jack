@@ -18,9 +18,28 @@
 
 from sys import version
 
-prog_version = "4.0.0"
-prog_name = "jack"
-prog_rcversion = 31
-prog_copyright = "(C)2004 Arne Zellentin, (C)2020 Pim Zandbergen"
-prog_url = "https://github.com/pimzand/jack"
 py_version = version.split(' ')[0]
+
+name = "jack"
+version = "4.0.0"
+
+authors = [
+        {
+            "name": "Arne Zellentin",
+            "email": "zarne@users.sf.net"
+            },
+        {
+            "name": "Pim Zandbergen",
+            "email": "pim@zandbergen.org",
+            },
+        ]
+
+author = ", ".join(x["name"] for x in authors)
+copyright = "(C)2020 " + author
+email = ", ".join("%s <%s>" % (x["name"], x["email"]) for x in authors)
+
+license = "GPLv2"
+
+url = "https://github.com/pimzand/jack"
+
+rcversion = 31

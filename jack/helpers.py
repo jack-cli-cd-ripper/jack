@@ -54,8 +54,7 @@ helpers = {
         'bitrate_factor': 1,
         'status_start': "%",
         'percent_fkt': r"""
-global helper_percent
-s = (i['buf'], '\r').split()
+s = str(i['buf']).split('\r')
 if len(s) >= 2:
     s = s[-2]
 if len(s) == 1:
@@ -63,12 +62,7 @@ if len(s) == 1:
 y0 = s.find("[")
 y1 = s.find("%]")
 if y0 != -1 and y1 != -1:
-    try:
-        helper_percent = float(s[y0 + 1:y1])
-    except ValueError:
-        helper_percent = 0
-else:
-    helper_percent = 0
+    helper_percent = float(s[y0 + 1:y1].replace(",", "."))
 """,
     },
     'lame': {
@@ -83,21 +77,25 @@ else:
         'bitrate_factor': 1,
         'status_start': "%",
         'percent_fkt': r"""
-global helper_percent
-s = (i['buf']).split('\r')
-if len(s) >= 2: s=s[-2]
-if len(s) == 1: s=s[0]
-if s.find("%") >= 0:       # status reporting starts here
-    y = s.split("/")
-    y1 = (y[1]).split("(")[0]
-    helper_percent = float(y[0]) / float(y1) * 100.0
-elif s.find("Frame:") >= 0:    # older versions, like 3.13
-    y = s.split("/")
-    y0 = (y[0]).split("[")[-1]
-    y1 = (y[1]).split("]")[0]
-    helper_percent = float(y0) / float(y1) * 100.0
-else:
-    helper_percent = 0
+#"   1500/9274   (16%)|    0:00/    0:04|    0:00/    0:04|   55.176x|    0:03 "
+helper_percent = 20
+s = str(i['buf']).replace('\n', '\r').split('\r')
+if len(s) >= 2:
+    s = s[-2]
+if len(s) == 1:
+    s = s[0]
+if 'ETA' not in s:
+    if "%" in s:
+        # status reporting starts here
+        y = s.split("/")
+        y1 = (y[1]).split("(")[0]
+        helper_percent = float(y[0]) / float(y1) * 100.0
+    elif "Frame:" in s:
+        # older versions, like 3.13, untested
+        y = s.split("/")
+        y0 = (y[0]).split("[")[-1]
+        y1 = (y[1]).split("]")[0]
+        helper_percent = float(y0) / float(y1) * 100.0
 """,
     },
     'flac': {
@@ -108,19 +106,15 @@ else:
         'status_blocksize': 160,
         'status_start': "%",
         'percent_fkt': r"""
-global helper_percent
-s = (i['buf']).split('\r')
-if len (s) >= 2: s = s[-2]
-if len (s) == 1: s = s[0]
+s = str(i['buf']).split('\r')
+if len (s) >= 2:
+    s = s[-2]
+if len (s) == 1:
+    s = s[0]
 y0 = s.rfind(": ")
 y1 = s.find ("%", y0)
 if y0 != -1 and y1 != -1:
-    try:
-        helper_percent = float(s[y0 + 1:y1])
-    except ValueError:
-        helper_percent = 0
-else:
-    helper_percent = 0
+    helper_percent = float(s[y0 + 1:y1])
 """,
     },
     'fdkaac': {
@@ -134,8 +128,15 @@ else:
         'status_blocksize': 160,
         'bitrate_factor': 1,
         'percent_fkt': r"""
-global helper_percent
-helper_percent = 0
+s = str(i['buf']).split('\r')
+if len (s) >= 2:
+    s = s[-2]
+if len (s) == 1:
+    s = s[0]
+y1 = s.find("%]")
+y0 = s.find("[", 0, y1)
+if y0 != -1 and y1 != -1:
+    helper_percent = float(s[y0 + 1:y1])
 """,
     },
     'cdparanoia': {
@@ -172,13 +173,13 @@ global helper_final_status
 last_status="0123456789012345 [ -- error decoding status --  ]" # fallback
 if 0 and cf['_debug']: # disabled for now
     import jack.version
-    tmpf=open("%s.debug.%02d.txt" % (jack.version.prog_name, exited_proc['track'][NUM]), "w")
+    tmpf=open("%s.debug.%02d.txt" % (jack.version.name, exited_proc['track'][NUM]), "w")
     tmpf.write(exited_proc['buf'])
     del tmpf
 tmps = (exited_proc['buf']).split('\r')
 tmps.reverse()
 for tmp in tmps:
-    if tmp.find("PROGRESS") != -1:
+    if "PROGRESS" in tmp:
         last_status = tmp
         break
 helper_final_status = ("%sx" % jack.functions.pprint_speed(speed)) + last_status[16:48] + "]"
@@ -312,7 +313,7 @@ while 1:
     if new_toc1 and l and l[0] in string.digits:
         l = l.split("(")[1:]
         for i in l:
-            if i.find(":") >= 0:
+            if ":" in i:
                 x = i.split(")")[0]
                 x = replace(x, ".", ":")
                 new_lengths.append(timestrtoblocks(x))
@@ -353,7 +354,7 @@ if new_c2w and len(new_lengths) == len(new_starts) - 1:
 global helper_new_status
 tmp = (i['buf']).split("\r")
 if len(tmp) >= 2:
-    if (tmp[-2]).find('total:') != -1:
+    if 'total:' in tmp[-2]:
         helper_new_status = (tmp[-2]).strip()
     else:
         helper_new_status = "waiting..."
@@ -395,7 +396,7 @@ while l:
         'status_fkt': r"""
 global helper_new_status
 x = (i['buf']).split('\r')[-2]
-if x.find('total:') != -1:
+if 'total:' in x:
     helper_new_status = ((i['buf']).split('\r')[-2]).strip()
 else:
     helper_new_status = "waiting..."
@@ -420,7 +421,9 @@ while l:
         'type': "toc-reader",
         'toc': 1,
         'toc_fkt': r"""
-import libdiscid
+import jack.discid
+jack.discid.init()
+
 if not os.path.exists(cf['_cd_device']):
     error("Device %s does not exist!" % cf['_cd_device'])
 if not os.access(cf['_cd_device'], os.R_OK):
@@ -428,22 +431,21 @@ if not os.access(cf['_cd_device'], os.R_OK):
 if not stat.S_ISBLK(os.stat(cf['_cd_device'])[stat.ST_MODE]):
     error("Device %s is not a block device!" % cf['_cd_device'])
 try:
-    disc = libdiscid.read(device=cf['_cd_device'], features=libdiscid.FEATURE_MCN|libdiscid.FEATURE_READ|libdiscid.FEATURE_ISRC)
-except libdiscid.exceptions.DiscError as m:
+    disc = jack.discid.read(device=cf['_cd_device'])
+except jack.discid.DiscError as m:
     error("Access of CD device %s resulted in error: %s" % (cf['_cd_device'], m))
 
-toc = list(disc.track_offsets)
-toc.append(disc.leadout_track)
-first = disc.first_track
-last = disc.last_track
+toc = jack.discid.toc(disc)
+first = jack.discid.first(disc)
+last = jack.discid.last(disc)
 
 try:
-    mcn = disc.mcn
+    mcn = jack.discid.mcn(disc)
 except NotImplementedError:
     mcn = None
 
 try:
-    isrcs = disc.track_isrcs
+    isrcs = jack.discid.isrcs(disc)
 except NotImplementedError:
     isrcs = None
 

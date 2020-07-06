@@ -17,6 +17,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+import traceback
 import signal
 import select
 import time
@@ -206,9 +207,10 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
             elif cmd.upper() == "U":
                 cycles = 29     # do periodic stuff _now_
             else:
-                jack.term.tmod.move_pad(cmd)
-                if cmd == 'KEY_RESIZE':
-                    continue
+                if not jack.term.tmod.move_pad(cmd):
+                    if cmd == 'KEY_RESIZE':
+                        continue
+                    # open("/tmp/jack-unhandled-keys", "a").write(cmd + "\n")
                 last_update = time.time()
 
         # read from file with activity
@@ -382,16 +384,15 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
 
                 elif i['type'] == "encoder":
                     if len(i['buf']) == jack.helpers.helpers[i['prog']]['status_blocksize']:
-                        tmp_d = {'i': i.copy(), 'percent': 0}
+                        loc = {'i': i, 'helper_percent': 0}
                         try:
-                            exec((jack.helpers.helpers[i['prog']]['percent_fkt']), globals(), tmp_d)
+                            exec((jack.helpers.helpers[i['prog']]['percent_fkt']), globals(), loc)
                         except:
-                            tmp_d['percent'] = 0
-                            debug("error in percent_fkt of %s." % repr(i))
-                        i['percent'] = tmp_d['percent']
+                            debug("error in percent_fkt of %s. Traceback: %s " % (jack.helpers.helpers[i['prog']], traceback.format_exc()))
+                        i['percent'] = loc['helper_percent']
                         if i['percent'] > 0:
                             i['elapsed'] = time.time() - i['start_time']
-                            speed = ((i['track'][LEN] / float(CDDA_BLOCKS_PER_SECOND)) * (i['percent'] // 100)) // i['elapsed']
+                            speed = ((i['track'][LEN] / float(CDDA_BLOCKS_PER_SECOND)) * (i['percent'] / 100)) / i['elapsed']
                             eta = (100 - i['percent']) * i['elapsed'] // i['percent']
                             eta_ms = "%02i:%02i" % (eta // 60, eta % 60)
                             jack.status.enc_stat_upd(i['track'][NUM], '%2i%% done, ETA:%6s, %sx' % (i['percent'], eta_ms, jack.functions.pprint_speed(speed)))

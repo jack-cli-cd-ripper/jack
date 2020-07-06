@@ -28,11 +28,11 @@ import jack.tag
 import jack.misc
 import jack.freedb
 import jack.musicbrainz
+import jack.version
+import jack.discid
 
-from jack.version import prog_version, prog_name
 from jack.globals import *
 
-import libdiscid
 
 names_available = None          # metadata info is available
 dir_created = None              # dirs are only renamed if we have created them
@@ -42,12 +42,12 @@ filenames = []
 metadata_servers = {
     'freedb': {
         'host': "freedb.freedb.org",
-        'id': prog_name + " " + prog_version,
+        'id': jack.version.name + " " + jack.version.version,
         'api': "cddb",
     },
     'musicbrainz': {
         'host': "musicbrainz.org",
-        'id': prog_name + " " + prog_version,
+        'id': jack.version.name + " " + jack.version.version,
         'api': "musicbrainzngs",
     },
 }
@@ -71,7 +71,7 @@ def get_metadata_host(server):
 
 def get_metadata_form_file(api):
     "get the filename for caching metadata"
-    return jack.version.prog_name + metadata_apis[api]['form_file_extension']
+    return jack.version.name + metadata_apis[api]['form_file_extension']
 
 def interpret_db_file(all_tracks, todo, metadata_form_file, verb, dirs=0, warn=None):
     "read metadata file and rename dir(s)"
@@ -157,9 +157,11 @@ def metadata_id(tracks, warn=0):
         track_offsets.append(i[START] + MSF_OFFSET)
         last_track = i[NUM]
         num_sectors = i[START] + i[LEN] + MSF_OFFSET
-    disc = libdiscid.put(first_track, last_track, num_sectors, track_offsets)
 
+    jack.discid.init()
+    disc = jack.discid.put(first_track, last_track, num_sectors, track_offsets)
     cd_id = {'cddb': disc.freedb_id, 'musicbrainzngs': disc.id}
+
     return cd_id
 
 

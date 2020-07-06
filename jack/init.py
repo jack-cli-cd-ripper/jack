@@ -19,6 +19,7 @@
 import os
 import sys
 
+import jack.discid
 from jack.generic import *
 from jack.globals import *
 
@@ -32,9 +33,7 @@ try:
 except:
     from FCNTL import O_NONBLOCK
 
-try:
-    import libdiscid
-except:
+if not jack.discid.init():
     print("Please install the libdiscid module available at https://pythonhosted.org/python-libdiscid/")
     sys.exit(1)
 
