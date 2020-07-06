@@ -3,7 +3,7 @@
 [![Build Status](https://travis-ci.org/jack-cli-cd-ripper/jack.svg?branch=master)](https://travis-ci.org/jack-cli-cd-ripper/jack)
 
 Jack is command-line CD ripper. It extracts audio from a CD, encodes it using
-3rd party software and augment it with metadata from
+3rd party software and augments it with metadata from
 [CDDB](https://en.wikipedia.org/wiki/CDDB).
 
 As all CLI things, Jack (the ripper) is fast and efficient, and that's why we
@@ -42,7 +42,8 @@ $ jack --encoder-name=flac --save
 
 ### Requirements
 
-* Right now only python-2.7 is supported - as found on Debian GNU/Linux 9.0 (stretch)
+* Right now only python-2.7 is supported - as found on Debian GNU/Linux 9.0 (stretch).
+  See [this branch](https://github.com/jack-cli-cd-ripper/jack/tree/python3-mb) for a work-in-progress python 3 port
 * CDDB.py  - see `doc/INSTALL` on how to get/install it
 * eyeD3    - see `doc/INSTALL` on how to get/install it
 * an encoder like oggenc for Ogg/Vorbis (default), flac (Free Lossless Audio
@@ -52,6 +53,13 @@ $ jack --encoder-name=flac --save
 Read `doc/INSTALL` for further installation details. It's very unlikely that
 it'll run out of the box, you need to install additional software.
 
+## Freedb
+
+Freedb servers are gone. For existing installations, [download this plugin](https://github.com/jack-cli-cd-ripper/jack/raw/master/plugins/jack_plugin_gnudb.py)
+to ~/.jack_plugins/ (create directory). Then run
+```shell
+jack --server plugin_gnudb --save
+```
 
 ## Authors and Copyrights
 
