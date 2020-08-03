@@ -24,6 +24,7 @@ import os
 import locale
 import codecs
 import tempfile
+import traceback
 import shutil
 import re
 
