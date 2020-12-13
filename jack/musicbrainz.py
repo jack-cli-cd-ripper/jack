@@ -191,13 +191,21 @@ def musicbrainz_names(cd_id, tracks, todo, name, verb=0, warn=1):
     if 'chosen_release' in query_data and query_data['chosen_release']:
         chosen_release = int(query_data['chosen_release'])
 
-
-    acp = ""
+    # get the artist name for use in constructing the path
+    artist_as_credited = ""
+    artist_as_in_mb = ""
+    artist_as_sort_name = ""
     for ac in query_data['result']['releases'][chosen_release]['artist-credit']:
-        acp += ac['name']
+        artist_as_credited += ac['name']
+        artist_as_in_mb += ac['artist']['name']
+        artist_as_sort_name += ac['artist']['sort-name']
         if 'joinphrase' in ac:
-            acp += ac['joinphrase']
-    a_artist = acp
+            artist_as_credited += ac['joinphrase']
+            artist_as_in_mb += ac['joinphrase']
+            artist_as_sort_name += ac['joinphrase']
+    a_artist = artist_as_in_mb
+
+    # get the album name for use in constructing the path
     album = query_data['result']['releases'][chosen_release]['title']
     if 'date' in query_data['result']['releases'][chosen_release]:
         date = query_data['result']['releases'][chosen_release]['date']
