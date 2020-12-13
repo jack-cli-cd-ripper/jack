@@ -233,6 +233,13 @@ cf = jack.misc.dict2({
     %t: disc title""",
         'long': 'AUTO',
     },
+    'file_artist': {
+        'type': str,
+        'val': 'as-in-mb',
+        'usage': "which MusicBrainz artist name to use for filenames",
+        'doc': "valid arguments are 'as-in-mb' (default), 'as-credited' or 'as-sort-name'",
+        'long': 'AUTO',
+    },
     'char_filter': {
         'type': str,
         'val': "",

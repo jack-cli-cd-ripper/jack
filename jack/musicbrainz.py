@@ -203,7 +203,13 @@ def musicbrainz_names(cd_id, tracks, todo, name, verb=0, warn=1):
             artist_as_credited += ac['joinphrase']
             artist_as_in_mb += ac['joinphrase']
             artist_as_sort_name += ac['joinphrase']
-    a_artist = artist_as_in_mb
+
+    if cf['_file_artist'] == 'as-credited':
+        a_artist = artist_as_credited
+    elif cf['_file_artist'] == 'as-sort-name':
+        a_artist = artist_as_sort_name
+    else:
+        a_artist = artist_as_in_mb
 
     # get the album name for use in constructing the path
     album = query_data['result']['releases'][chosen_release]['title']
