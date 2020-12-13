@@ -213,6 +213,8 @@ def musicbrainz_names(cd_id, tracks, todo, name, verb=0, warn=1):
 
     # get the album name for use in constructing the path
     album = query_data['result']['releases'][chosen_release]['title']
+    if cf['_add_disambiguation'] and 'disambiguation' in query_data['result']['releases'][chosen_release] and len(query_data['result']['releases'][chosen_release]['disambiguation']):
+        album += " (" + query_data['result']['releases'][chosen_release]['disambiguation'] + ")"
     if 'date' in query_data['result']['releases'][chosen_release]:
         date = query_data['result']['releases'][chosen_release]['date']
     else:

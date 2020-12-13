@@ -240,6 +240,12 @@ cf = jack.misc.dict2({
         'doc': "valid arguments are 'as-in-mb' (default), 'as-credited' or 'as-sort-name'",
         'long': 'AUTO',
     },
+    'add_disambiguation': {
+        'type': 'toggle',
+        'val': 0,
+        'usage': "add disambiguation to the album title",
+        'long': 'AUTO',
+    },
     'char_filter': {
         'type': str,
         'val': "",
