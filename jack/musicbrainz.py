@@ -236,12 +236,23 @@ def musicbrainz_names(cd_id, tracks, todo, name, verb=0, warn=1):
                     disc_subtitle = medium['title']
                 names.append([a_artist, album, date, genre, medium_position, medium_count, disc_subtitle])
                 for track in medium['tracks']:
-                    acp = ""
+                    artist_as_credited = ""
+                    artist_as_in_mb = ""
+                    artist_as_sort_name = ""
                     for ac in track['recording']['artist-credit']:
-                        acp += ac['name']
+                        artist_as_credited += ac['name']
+                        artist_as_in_mb += ac['artist']['name']
+                        artist_as_sort_name += ac['artist']['sort-name']
                         if 'joinphrase' in ac:
-                            acp += ac['joinphrase']
-                    t_artist = acp
+                            artist_as_credited += ac['joinphrase']
+                            artist_as_in_mb += ac['joinphrase']
+                            artist_as_sort_name += ac['joinphrase']
+                    if cf['_file_artist'] == 'as-credited':
+                        t_artist = artist_as_credited
+                    elif cf['_file_artist'] == 'as-sort-name':
+                        t_artist = artist_as_sort_name
+                    else:
+                        t_artist = artist_as_in_mb
                     t_title = track['recording']['title']
                     if len(t_title) > 40 and ':' in t_title:
                         t_title = t_title.split(':')[0]
