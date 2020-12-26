@@ -86,7 +86,7 @@ def tag(metadata_rename):
         # use metadata year and genre data if available
         if cf['_year'] == None and len(track_names[0]) >= 3:
             cf['_year'] = track_names[0][2]
-        if cf['_genre'] == None and len(track_names[0]) == 4:
+        if cf['_genre'] == None and len(track_names[0]) >= 4:
             cf['_genre'] = track_names[0][3]
         if cf['_genre']:
             cf['_genre'] = standardize_genre(cf['_genre'])
