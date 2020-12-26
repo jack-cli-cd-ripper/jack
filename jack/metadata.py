@@ -206,7 +206,7 @@ def metadata_names(cd_id, tracks, todo, name, verb=0, warn=1):
         info("Using " + get_metadata_form_file(newest_api))
 
     if newest_api == 'cddb':
-        return jack.freedb.freedb_names(cd_id, tracks, todo, newest_form_file, verb=0, warn=1)
+        return jack.freedb.freedb_names(cd_id, tracks, todo, newest_form_file, verb=1, warn=1)
     else:
         return jack.musicbrainz.musicbrainz_names(cd_id, tracks, todo, newest_form_file, verb=0, warn=1)
 
