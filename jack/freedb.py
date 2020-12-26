@@ -330,7 +330,7 @@ def freedb_names(cd_ids, tracks, todo, name, verb=0, warn=1):
     dtitle = dtitle.replace("(unknown disc title)", "(unknown artist)/(unknown disc title)")  # yukk!
     if not dtitle:
         dtitle = "(unknown artist)/(unknown disc title)"
-    if "/" in dtitle:
+    if not "/" in dtitle:
         if cf['_various'] == 1:
             dtitle = "Various/" + dtitle
             warning("bad disc title, using %s. Please fix." % dtitle)
