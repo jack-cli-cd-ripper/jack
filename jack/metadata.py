@@ -40,8 +40,13 @@ NUM, LEN, START, COPY, PRE, CH, RIP, RATE, NAME = list(range(9))
 filenames = []
 
 metadata_servers = {
+    'gnudb': {
+        'host': "gnudb.gnudb.org",
+        'id': jack.version.name + " " + jack.version.version,
+        'api': "cddb",
+    },
     'freedb': {
-        'host': "freedb.freedb.org",
+        'host': "gnudb.gnudb.org",
         'id': jack.version.name + " " + jack.version.version,
         'api': "cddb",
     },
