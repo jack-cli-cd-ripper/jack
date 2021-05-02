@@ -222,6 +222,7 @@ def musicbrainz_names(cd_id, tracks, todo, name, verb=0, warn=1):
         warning("no date found in metadata")
     read_id = query_data['query_id']
     genre = None
+    year = None
 
     if a_artist.upper() in ("VARIOUS", "VARIOUS ARTISTS", "SAMPLER", "COMPILATION", "DIVERSE", "V.A.", "VA"):
         if not cf['_various'] and not ['argv', False] in cf['various']['history']:
@@ -260,6 +261,11 @@ def musicbrainz_names(cd_id, tracks, todo, name, verb=0, warn=1):
                         t_title = t_title.split(':')[0]
                     names.append([t_artist, t_title])
                 break
+
+    # use year from "chosen-release" array element if it is set
+    if cf['_year'] == None and len(query_data['result']['releases'][chosen_release]['date']) >= 4:
+        cf['_year'] = int(query_data['result']['releases'][chosen_release]['date'].split("-")[0])
+        debug("use year from ['releases'][chosen_release]['date']: " + str(cf['_year']))
 
     if medium_position == None:
         print("MusicBrainz returned releases, but none of them matched the disc ID. Try adding a disc id using this URL:\n" + musicbrainz_getlookupurl(tracks, cd_id))
