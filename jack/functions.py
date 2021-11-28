@@ -58,11 +58,11 @@ def df(fs=".", blocksize=1024):
         return int(f_bavail) * int(f_bsize)
     else:
         # Not very portable
-        p = os.popen("df " + fs)
-        s = p.readline().rstrip().strip()
+        p = os.popen("LANG=C df " + fs)
+        s = p.readline().rstrip().split()
         for i in range(len(s)):
             if s[i] == "Available":
-                s = p.readline().rstrip().strip()
+                s = p.readline().rstrip().split()
                 p.close()
                 return int(s[i]) * int(blocksize)
         p.close()
