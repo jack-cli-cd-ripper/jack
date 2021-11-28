@@ -64,6 +64,6 @@ def print_status(form='normal'):
 def get_2_line(buf, default="A failure occured"):
     tmp = buf.split("\n")
     if len(tmp) >= 2:
-        return (tmp[-2]).split()
+        return (tmp[-2]).strip()
     else:
         return default
