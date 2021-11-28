@@ -338,6 +338,8 @@ def freedb_names(cd_ids, tracks, todo, name, verb=0, warn=1):
             dtitle = "(unknown artist)/" + dtitle
 
     album_artist, album_title = dtitle.split("/", 1)
+    album_artist = album_artist.strip()
+    album_title = album_title.strip()
     year = None
     genre = None
     if 'DYEAR' in freedb:
@@ -347,7 +349,7 @@ def freedb_names(cd_ids, tracks, todo, name, verb=0, warn=1):
         elif cf['_year'] != year:
             warning("Specified and FreeDB year differ (%d vs %d)" % (cf['_year'], year))
     if 'DGENRE' in freedb:
-        genre = freedb['DGENRE']
+        genre = freedb['DGENRE'].strip()
 
     # extract disc number from album title
     album_title, medium_position, medium_count, medium_title = jack.metadata.split_albumtitle(album_title)
@@ -510,6 +512,8 @@ def freedb_names(cd_ids, tracks, todo, name, verb=0, warn=1):
 
                 if cf['_various_swap']:
                     buf = [buf[1], buf[0]]
+                buf[0] = buf[0].strip()
+                buf[1] = buf[1].strip()
                 names.append(buf)
         else:
             err = 7
@@ -518,7 +522,7 @@ def freedb_names(cd_ids, tracks, todo, name, verb=0, warn=1):
     else:
         for i in range(tracks_on_cd):
             buf = freedb['TTITLE' + repr(i)]
-            names.append(["", buf])
+            names.append(["", buf.strip()])
 
     # append the EXTT fields to the track names
     if cf['_extt_is_comment']:
