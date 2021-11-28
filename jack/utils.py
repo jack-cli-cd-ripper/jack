@@ -65,7 +65,6 @@ def check_path(p1, p2):
 def rename_path(old, new):
     "this is complicated."
     cwd = os.getcwd()
-    print(cwd)
     cwds = split_dirname(cwd)
     if type(old) == str:
         old = split_dirname(old)

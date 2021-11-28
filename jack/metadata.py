@@ -107,7 +107,7 @@ def interpret_db_file(all_tracks, todo, metadata_form_file, verb, dirs=0, warn=N
 
             if jack.utils.check_path(dirs_created, old_dirs) and not jack.utils.check_path(dirs_created, new_dirs):
                 jack.utils.rename_path(dirs_created, new_dirs)
-                print("Info: cwd now", os.getcwd())
+                info("cwd now " + repr(os.getcwd()))
                 jack.functions.progress("all", 'ren', str(dir_created + "-->" + new_dir))
 
     if not err:

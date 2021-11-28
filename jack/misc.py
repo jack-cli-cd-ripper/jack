@@ -36,7 +36,7 @@ def multi_replace(s, rules, where, filter=id, warn=0):
         do_warn = jack.globals.warning
 
     # get a list of characters we need to replace (i.e. the x from %x)
-    # currently all from must be like %x (a percent sign follow by single
+    # currently all from must be like %x (a percent sign followed by single
     # char).
     pattern = [x[0] for x in s[s.find("%"):].split("%") if x]
     for p in pattern:
