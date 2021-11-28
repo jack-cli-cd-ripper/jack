@@ -190,7 +190,7 @@ def mkdirname(names, template):
     "generate mkdir-able directory name(s)"
     year = genre = None
     if cf['_year']:
-        year = repr(cf['_year'])
+        year = str(cf['_year'])
     if cf['_genre']:
         genre = cf['_genre']
     medium_position = None
