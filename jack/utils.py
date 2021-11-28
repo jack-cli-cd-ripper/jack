@@ -204,7 +204,8 @@ def mkdirname(names, template):
         medium_count = names[0][5]
         medium_title = names[0][6]
 
-    replacelist = {"a": artist,
+    replacelist = {" ": " ",
+                   "a": artist,
                    "l": album_title,
                    "y": year,
                    "g": genre,

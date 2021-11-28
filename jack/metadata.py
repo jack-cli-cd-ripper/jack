@@ -122,7 +122,12 @@ def interpret_db_file(all_tracks, todo, metadata_form_file, verb, dirs=0, warn=N
         # starts at 1
         num = 1
         for i in track_names[1:]:
-            replacelist = {"n": cf['_rename_num'] % num, "l": cd[1], "t": i[1], "y": year, "g": genre}
+            replacelist = {" ": " ",
+                           "n": cf['_rename_num'] % num,
+                           "l": cd[1],
+                           "t": i[1],
+                           "y": year,
+                           "g": genre}
             if cf['_various']:
                 replacelist["a"] = i[0]
                 newname = jack.misc.multi_replace(cf['_rename_fmt_va'], replacelist, "rename_fmt_va", warn=(num == 1))
