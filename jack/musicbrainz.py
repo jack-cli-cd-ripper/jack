@@ -273,8 +273,8 @@ def musicbrainz_names(cd_id, tracks, todo, name, verb=0, warn=1):
     # try to use year from chosen release array element
     if cf['_year'] is None:
         try:
-            mb_date = query_data['result']['releases'][chosen_release]['date']
-            cf['_year'] = datetime.datetime.fromisoformat(mb_date).year
+            mb_date = query_data['result']['releases'][chosen_release]['date'][:4]
+            cf['_year'] = mb_date
             debug("using year from ['releases'][chosen_release]['date']"
                   + f" = { repr(mb_date) } -> { cf['_year'] }")
         except (TypeError, ValueError) as ex:
