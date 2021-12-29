@@ -74,9 +74,15 @@ def musicbrainz_query(cd_id, tracks, file):
             print("MusicBrainz did not return releases. Try adding one using this URL:\n" + musicbrainz_getlookupurl(tracks, cd_id))
             err = 1
             return err
-        elif len(releases) == 1:
+        exact_matches = False
+        for release in releases:
+            for medium in release['media']:
+                for disc in medium['discs']:
+                    if disc['id'] == mb_id:
+                        exact_matches = True
+        if len(releases) == 1 and exact_matches == True:
             chosen_release = 0
-        elif len(releases) > 1:
+        else:
             # FIXME this should be configurable behaviour
             old_chosen_release = None
             old_release_id = None
@@ -94,7 +100,10 @@ def musicbrainz_query(cd_id, tracks, file):
                         warning("automatically selected release " + old_release_id)
  
             if chosen_release == None:
-                print("Found the following matches. Choose one:")
+                if exact_matches:
+                    print("Found multiple exact matches. Choose one:")
+                else:
+                    print("Found the following inexact matches. Choose one:")
                 matches = []
                 num = 1
                 for rel in releases:
