@@ -236,7 +236,7 @@ def musicbrainz_names(cd_id, tracks, todo, name, verb=0, warn=1):
     read_id = query_data['query_id']
     genre = None
 
-    if a_artist.upper() in ("VARIOUS", "VARIOUS ARTISTS", "SAMPLER", "COMPILATION", "DIVERSE", "V.A.", "VA"):
+    if a_artist == "Various Artists":
         if not cf['_various'] and not ['argv', False] in cf['various']['history']:
             cf['_various'] = 1
 
