@@ -252,8 +252,9 @@ def musicbrainz_names(cd_id, tracks, todo, name, verb=0, warn=1):
 
     if exact_match == None:
         if mb_names_calls == 0:
-            warning("Inexact match. If you are sure the release matches, then attach the Disc ID to release %s using this URL: %s\n" %
-                    (release['id'], musicbrainz_getlookupurl(tracks, cd_id)))
+            attach_url = musicbrainz_getlookupurl(tracks, cd_id) + "&filter-release.query=" + release['id']
+            warning("Inexact match. If you are sure the release matches, then attach the Disc ID using this URL: " +
+                    attach_url + "\n")
         best_match = None
         if medium_count == 1:
             best_match = 0
