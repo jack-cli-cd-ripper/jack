@@ -98,7 +98,7 @@ def musicbrainz_query(cd_id, tracks, file):
                     if old_release_id and rel['id'] == old_release_id:
                         chosen_release = idx
                         warning("automatically selected release " + old_release_id)
- 
+
             if chosen_release == None:
                 if exact_matches:
                     print("Found multiple exact matches. Choose one:")
@@ -178,9 +178,12 @@ def musicbrainz_query(cd_id, tracks, file):
     return err
 
 
+mb_names_calls = 0
+
 def musicbrainz_names(cd_id, tracks, todo, name, verb=0, warn=1):
     "returns err, [(artist, albumname), (track_01-artist, track_01-name), ...], cd_id, mb_query_data"
 
+    global mb_names_calls
     err = 0
     names = []
     read_id = None
@@ -228,7 +231,8 @@ def musicbrainz_names(cd_id, tracks, todo, name, verb=0, warn=1):
         date = query_data['result']['releases'][chosen_release]['date']
     else:
         date = None
-        warning("no date found in metadata")
+        if mb_names_calls == 0:
+            warning("no date found in metadata")
     read_id = query_data['query_id']
     genre = None
 
@@ -236,39 +240,72 @@ def musicbrainz_names(cd_id, tracks, todo, name, verb=0, warn=1):
         if not cf['_various'] and not ['argv', False] in cf['various']['history']:
             cf['_various'] = 1
 
+    exact_match = None
     medium_position = None
     medium_count = len(query_data['result']['releases'][chosen_release]['media'])
     for idx, medium in enumerate(query_data['result']['releases'][chosen_release]['media']):
         for disc in medium['discs']:
             if disc['id'] == read_id:
+                exact_match = idx
                 medium_position = idx + 1
-                disc_subtitle = None
-                if 'title' in medium and len(medium['title']):
-                    disc_subtitle = medium['title']
-                names.append([a_artist, album, date, genre, medium_position, medium_count, disc_subtitle])
-                for track in medium['tracks']:
-                    artist_as_credited = ""
-                    artist_as_in_mb = ""
-                    artist_as_sort_name = ""
-                    for ac in track['recording']['artist-credit']:
-                        artist_as_credited += ac['name']
-                        artist_as_in_mb += ac['artist']['name']
-                        artist_as_sort_name += ac['artist']['sort-name']
-                        if 'joinphrase' in ac:
-                            artist_as_credited += ac['joinphrase']
-                            artist_as_in_mb += ac['joinphrase']
-                            artist_as_sort_name += ac['joinphrase']
-                    if cf['_file_artist'] == 'as-credited':
-                        t_artist = artist_as_credited
-                    elif cf['_file_artist'] == 'as-sort-name':
-                        t_artist = artist_as_sort_name
-                    else:
-                        t_artist = artist_as_in_mb
-                    t_title = track['recording']['title']
-                    if len(t_title) > 40 and ':' in t_title:
-                        t_title = t_title.split(':')[0]
-                    names.append([t_artist, t_title])
-                break
+
+    if exact_match == None:
+        if mb_names_calls == 0:
+            warning("Inexact match. If you are sure the release matches, then attach the Disc ID to release %s using this URL: %s\n" %
+                    (query_data['result']['releases'][chosen_release]['id'], musicbrainz_getlookupurl(tracks, cd_id)))
+        best_match = None
+        if medium_count == 1:
+            best_match = 0
+            medium_position = 1
+        else:
+            least_deviation = None
+            for idx, medium in enumerate(query_data['result']['releases'][chosen_release]['media']):
+                if len(medium['tracks']) == len(tracks):
+                    deviation = 0
+                    for track in medium['tracks']:
+                        track_position = int(track['position']) - 1
+                        toc_track_len = tracks[track_position][LEN] * 1000 // CDDA_BLOCKS_PER_SECOND
+                        mb_track_len = int(track['length'])
+                        deviation += abs(mb_track_len - toc_track_len)
+                    if least_deviation == None or deviation < least_deviation:
+                        least_deviation = deviation
+                        best_match = idx
+                        medium_position = idx + 1
+
+    if medium_position:
+        medium = query_data['result']['releases'][chosen_release]['media'][medium_position - 1]
+        if exact_match == None and medium_count > 1 and mb_names_calls == 0:
+            warning("guessed medium position %d/%d" % (medium_position, medium_count))
+    else:
+        error("cannot determine medium position in chosen release")
+        sys.exit()
+
+    disc_subtitle = None
+    if 'title' in medium and len(medium['title']):
+        disc_subtitle = medium['title']
+    names.append([a_artist, album, date, genre, medium_position, medium_count, disc_subtitle])
+    for track in medium['tracks']:
+        artist_as_credited = ""
+        artist_as_in_mb = ""
+        artist_as_sort_name = ""
+        for ac in track['recording']['artist-credit']:
+            artist_as_credited += ac['name']
+            artist_as_in_mb += ac['artist']['name']
+            artist_as_sort_name += ac['artist']['sort-name']
+            if 'joinphrase' in ac:
+                artist_as_credited += ac['joinphrase']
+                artist_as_in_mb += ac['joinphrase']
+                artist_as_sort_name += ac['joinphrase']
+        if cf['_file_artist'] == 'as-credited':
+            t_artist = artist_as_credited
+        elif cf['_file_artist'] == 'as-sort-name':
+            t_artist = artist_as_sort_name
+        else:
+            t_artist = artist_as_in_mb
+        t_title = track['recording']['title']
+        if len(t_title) > 40 and ':' in t_title:
+            t_title = t_title.split(':')[0]
+        names.append([t_artist, t_title])
 
     # try to use year from chosen release array element
     if cf['_year'] is None:
@@ -281,14 +318,11 @@ def musicbrainz_names(cd_id, tracks, todo, name, verb=0, warn=1):
             warning("could not parse year from ['releases'][chosen_release]"
                     + f"['date']: { ex }")
 
-    if medium_position == None:
-        print("MusicBrainz returned releases, but none of them matched the disc ID. Try adding a disc id using this URL:\n" + musicbrainz_getlookupurl(tracks, cd_id))
-        err = 1
-
     if len(names) == 0:
         print("error interpreting musicbrainz result")
         err = 1
 
+    mb_names_calls += 1
     return err, names, read_id, query_data
 
 def musicbrainz_gettoc(tracks):

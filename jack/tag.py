@@ -1027,13 +1027,10 @@ def extended_tag(tag_obj, tag_type, track_position):
     # prepare data
     chosen_release = mb_query_data['chosen_release']
     genre = None
-    disc_id = mb_query_data['result']['id']
+    disc_id = mb_query_data['query_id']
     release = mb_query_data['result']['releases'][chosen_release]
-    medium = None
-    for medium_candidate in release['media']:
-        for disc_candidate in medium_candidate['discs']:
-            if disc_candidate['id'] == disc_id:
-                medium = medium_candidate
+    medium_position = track_names[0][4]
+    medium = release['media'][medium_position - 1]
     track = medium['tracks'][track_position - 1]
 
     # count mediums
