@@ -189,6 +189,10 @@ def musicbrainz_names(cd_id, tracks, todo, name, verb=0, warn=1):
     read_id = None
 
     # load the musicbrainz query data that was previously dumped as json data
+    if not os.path.exists(name):
+        error(name + " does not exist")
+        err = 1
+        return err, names, read_id, query_data
     f = open(name, "r")
     query_data = json.loads(f.read())
     f.close()
