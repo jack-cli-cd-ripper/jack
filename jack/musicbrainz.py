@@ -202,12 +202,13 @@ def musicbrainz_names(cd_id, tracks, todo, name, verb=0, warn=1):
     chosen_release = 0
     if 'chosen_release' in query_data and query_data['chosen_release']:
         chosen_release = int(query_data['chosen_release'])
+    release = query_data['result']['releases'][chosen_release]
 
     # get the artist name for use in constructing the path
     artist_as_credited = ""
     artist_as_in_mb = ""
     artist_as_sort_name = ""
-    for ac in query_data['result']['releases'][chosen_release]['artist-credit']:
+    for ac in release['artist-credit']:
         artist_as_credited += ac['name']
         artist_as_in_mb += ac['artist']['name']
         artist_as_sort_name += ac['artist']['sort-name']
@@ -224,11 +225,11 @@ def musicbrainz_names(cd_id, tracks, todo, name, verb=0, warn=1):
         a_artist = artist_as_in_mb
 
     # get the album name for use in constructing the path
-    album = query_data['result']['releases'][chosen_release]['title']
-    if cf['_add_disambiguation'] and 'disambiguation' in query_data['result']['releases'][chosen_release] and len(query_data['result']['releases'][chosen_release]['disambiguation']):
-        album += " (" + query_data['result']['releases'][chosen_release]['disambiguation'] + ")"
-    if 'date' in query_data['result']['releases'][chosen_release]:
-        date = query_data['result']['releases'][chosen_release]['date']
+    album = release['title']
+    if cf['_add_disambiguation'] and 'disambiguation' in release and len(release['disambiguation']):
+        album += " (" + release['disambiguation'] + ")"
+    if 'date' in release:
+        date = release['date']
     else:
         date = None
         if mb_names_calls == 0:
@@ -242,8 +243,8 @@ def musicbrainz_names(cd_id, tracks, todo, name, verb=0, warn=1):
 
     exact_match = None
     medium_position = None
-    medium_count = len(query_data['result']['releases'][chosen_release]['media'])
-    for idx, medium in enumerate(query_data['result']['releases'][chosen_release]['media']):
+    medium_count = len(release['media'])
+    for idx, medium in enumerate(release['media']):
         for disc in medium['discs']:
             if disc['id'] == read_id:
                 exact_match = idx
@@ -252,14 +253,14 @@ def musicbrainz_names(cd_id, tracks, todo, name, verb=0, warn=1):
     if exact_match == None:
         if mb_names_calls == 0:
             warning("Inexact match. If you are sure the release matches, then attach the Disc ID to release %s using this URL: %s\n" %
-                    (query_data['result']['releases'][chosen_release]['id'], musicbrainz_getlookupurl(tracks, cd_id)))
+                    (release['id'], musicbrainz_getlookupurl(tracks, cd_id)))
         best_match = None
         if medium_count == 1:
             best_match = 0
             medium_position = 1
         else:
             least_deviation = None
-            for idx, medium in enumerate(query_data['result']['releases'][chosen_release]['media']):
+            for idx, medium in enumerate(release['media']):
                 if len(medium['tracks']) == len(tracks):
                     deviation = 0
                     for track in medium['tracks']:
@@ -273,7 +274,7 @@ def musicbrainz_names(cd_id, tracks, todo, name, verb=0, warn=1):
                         medium_position = idx + 1
 
     if medium_position:
-        medium = query_data['result']['releases'][chosen_release]['media'][medium_position - 1]
+        medium = release['media'][medium_position - 1]
         if exact_match == None and medium_count > 1 and mb_names_calls == 0:
             warning("guessed medium position %d/%d" % (medium_position, medium_count))
     else:
@@ -310,7 +311,7 @@ def musicbrainz_names(cd_id, tracks, todo, name, verb=0, warn=1):
     # try to use year from chosen release array element
     if cf['_year'] is None:
         try:
-            mb_date = query_data['result']['releases'][chosen_release]['date'][:4]
+            mb_date = release['date'][:4]
             cf['_year'] = mb_date
             debug("using year from ['releases'][chosen_release]['date']"
                   + f" = { repr(mb_date) } -> { cf['_year'] }")
