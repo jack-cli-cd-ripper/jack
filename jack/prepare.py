@@ -617,6 +617,7 @@ def what_todo(space, todo):
     wavs_todo = []
     mp3s_todo = []
     remove_q = []
+    trc_tracks = {}
     ext = jack.targets.targets[jack.helpers.helpers[cf['_encoder']]['target']]['file_extension']
 
     for track in todo:
@@ -676,7 +677,18 @@ def what_todo(space, todo):
                 if jack.status.enc_status[track[NUM]] == "[file lost-doing again]":
                     jack.status.enc_status[track[NUM]] = ""
         else:
-            if jack.status.dae_status[track[NUM]]:
+            # see if we can transcode
+            can_trc = False
+            for i in list(jack.helpers.helpers.keys()):
+                if jack.helpers.helpers[i]['type'] == "encoder" and 'decode-otf-cmd' in jack.helpers.helpers[i]:
+                    trc_file = track[NAME] + jack.targets.targets[jack.helpers.helpers[i]['target']]['file_extension']
+                    if os.path.exists(trc_file):
+                        wavs_todo.remove(track)
+                        trc_tracks[track[NUM]] = i
+                        jack.status.enc_status[track[NUM]] = ""
+                        can_trc = True
+                        break
+            if can_trc == False and jack.status.dae_status[track[NUM]]:
                 if jack.status.enc_status[track[NUM]] == "[file lost-doing again]":
                     jack.status.dae_status[track[NUM]] = " ---- [    both lost, doing again    ]"
                     jack.status.enc_status[track[NUM]] = ""
@@ -712,7 +724,7 @@ def what_todo(space, todo):
         for i in mp3s_todo:
             i[RATE] = cf['_bitrate']
 
-    return space, remove_q, wavs_todo, mp3s_todo, dae_queue, enc_queue
+    return space, remove_q, wavs_todo, mp3s_todo, dae_queue, enc_queue, trc_tracks
 #
 #
 #

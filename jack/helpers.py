@@ -103,6 +103,7 @@ if 'ETA' not in s:
         'target': "flac",
         'vbr-cmd': "flac -o %o %i",
         'vbr-otf-cmd': "flac --channels 2 --bps 16 --sample-rate 44100 --force-raw-format --endian=big --sign=signed -o %o -",
+        'decode-otf-cmd': "flac --decode --stdout %i",
         'status_blocksize': 160,
         'status_start': "%",
         'percent_fkt': r"""

@@ -247,6 +247,91 @@ def start_new_otf(track, ripper, encoder):
     data['enc']['file'] = os.fdopen(data['enc']['fd'])
     return data
 
+def start_new_transcoder(track, decoder, encoder):
+    "start a new decoder/encoder pair for transcoding"
+    data = {}
+    data['dec'] = {}
+    data['enc'] = {}
+    enc_in, dec_out = os.pipe()
+    data['dec']['fd'], dec_err = os.pipe()
+    data['enc']['fd'], enc_err = os.pipe()
+    args = []
+    for i in (helpers[decoder]['decode-otf-cmd']).split():
+        if i == "%i":
+            args.append(track[NAME] + jack.targets.targets[jack.helpers.helpers[decoder]['target']]['file_extension'])
+        else:
+            args.append(i)
+    data['dec']['start_time'] = time.time()
+    pid = os.fork()
+    if pid == CHILD:
+        default_signals()
+        os.dup2(dec_out, STDOUT_FILENO)
+        os.dup2(dec_err, STDERR_FILENO)
+        os.close(dec_out)
+        os.close(dec_err)
+        os.execvp(args[0], args)
+        # child won't see anything below...
+    os.close(dec_out)
+    os.close(dec_err)
+    data['dec']['pid'] = pid
+    data['dec']['cmd'] = helpers[decoder]['decode-otf-cmd']
+    data['dec']['buf'] = ""
+    data['dec']['percent'] = 0
+    data['dec']['elapsed'] = 0
+    data['dec']['type'] = "decoder"
+    data['dec']['prog'] = decoder
+    data['dec']['track'] = track
+    if cf['_vbr']:
+        cmd = (helpers[cf['_encoder']]['vbr-otf-cmd']).split()
+    else:
+        cmd = (helpers[cf['_encoder']]['otf-cmd']).split()
+    args = []
+    for i in cmd:
+        if i == "%r":
+            args.append(repr(track[RATE] * helpers[cf['_encoder']]['bitrate_factor']))
+        elif i == "%q":
+            if 'inverse-quality' in helper and helper['inverse-quality']:
+                quality = min(9, 10 - cf['_vbr_quality'])
+            else:
+                quality = cf['_vbr_quality']
+            args.append("%.3f" % quality)
+        elif i == "%o":
+            args.append(track[NAME] + jack.targets.targets[jack.helpers.helpers[cf['_encoder']]['target']]['file_extension'])
+        else:
+            args.append(i)
+    data['enc']['start_time'] = time.time()
+    pid = os.fork()
+    if pid == CHILD:
+        default_signals()
+        if cf['_nice_value']:
+            os.nice(cf['_nice_value'])
+        os.dup2(enc_in, STDIN_FILENO)
+        os.dup2(enc_err, STDERR_FILENO)
+        os.close(enc_in)
+        os.close(enc_err)
+        os.execvp(args[0], args)
+        # child won't see anything below...
+    os.close(enc_in)
+    os.close(enc_err)
+    data['enc']['pid'] = pid
+    data['enc']['otf-pid'] = data['dec']['pid']
+    data['enc']['cmd'] = cmd
+    data['enc']['buf'] = ""
+    data['enc']['percent'] = 0
+    data['enc']['elapsed'] = 0
+    data['enc']['type'] = "encoder"
+    data['enc']['prog'] = cf['_encoder']
+    data['enc']['track'] = track
+    data['dec']['otf-pid'] = data['enc']['pid']
+
+    if os.uname()[0] == "Linux":
+        fcntl.fcntl(data['dec']['fd'], F_SETFL, O_NONBLOCK)
+        fcntl.fcntl(data['enc']['fd'], F_SETFL, O_NONBLOCK)
+    data['dec']['file'] = os.fdopen(data['dec']['fd'])
+    data['enc']['file'] = os.fdopen(data['enc']['fd'])
+    return data
+
+
 
 def ripread(track, offset=0):
     "rip one track from an image file."

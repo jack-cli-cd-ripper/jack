@@ -187,7 +187,7 @@ def main():
         space = jack.ripstuff.raw_space = jack.functions.df()
 
     #### check what is already there
-    space, remove_q, wavs_todo, mp3s_todo, dae_queue, enc_queue = jack.prepare.what_todo(space, todo)
+    space, remove_q, wavs_todo, mp3s_todo, dae_queue, enc_queue, trc_tracks = jack.prepare.what_todo(space, todo)
 
     if cf['_todo_exit']:           # print what needs to be done, then exit
         jack.prepare.print_todo(todo, wavs_todo, mp3s_todo)
@@ -237,7 +237,7 @@ def main():
         jack.display.init()
         try:
             jack.term.enable()
-            global_error = jack.main_loop.main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset)
+            global_error = jack.main_loop.main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset, trc_tracks)
         except SystemExit:
             jack.term.disable()
             print(jack.display.options_string)

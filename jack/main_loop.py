@@ -39,7 +39,7 @@ import jack.term
 
 from jack.globals import *
 
-def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
+def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset, trc_tracks):
     global helper_new_status
     global helper_final_status
     global helper_percent
@@ -152,7 +152,13 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
                     track = enc_queue[0]
                     enc_queue = enc_queue[1:]
                     jack.status.enc_stat_upd(track[NUM], "waiting for encoder...")
-                    jack.children.children.append(jack.workers.start_new_encoder(track, cf['_encoder']))
+                    if track[NUM] in trc_tracks:
+                        decoder = trc_tracks[track[NUM]]
+                        data = jack.workers.start_new_transcoder(track, decoder, cf['_encoder'])
+                        jack.children.children.append(data['dec'])
+                        jack.children.children.append(data['enc'])
+                    else:
+                        jack.children.children.append(jack.workers.start_new_encoder(track, cf['_encoder']))
                     if first_encoder:
                         first_encoder = 0
                         global_start = time.time()
@@ -215,6 +221,10 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
 
         # read from file with activity
         for i in jack.children.children:
+
+            if i['type'] == "decoder":
+                continue
+
             if i['fd'] in rfd:
                 if os.uname()[0] == "Linux" and i['type'] != "image_reader":
                     try:
@@ -353,10 +363,11 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
                             rate = track[RATE]
                         jack.status.enc_stat_upd(num, "[coding @" + '%s' % jack.functions.pprint_speed(speed) + "x done, %dkbit" % rate)
                         jack.functions.progress(num, "enc", repr(rate), jack.status.enc_status[num])
-                        if not cf['_otf'] and not cf['_keep_wavs']:
+                        if not cf['_otf'] and not cf['_keep_wavs'] and not track[NUM] in trc_tracks:
                             os.remove(track[NAME] + ".wav")
                             space = space + jack.functions.tracksize(track)[WAV]
-
+                elif exited_proc['type'] == "decoder":
+                    pass
                 else:
                     error("child process of unknown type (" + exited_proc['type'] + ") exited")
                 if global_error:
@@ -405,6 +416,9 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset):
                         jack.status.dae_stat_upd(i['track'][NUM], line)
                         if line.startswith("Error"):
                             global_error = global_error + 1
+
+                elif i['type'] == "decoder":
+                    pass
 
                 else:
                     error("unknown subprocess type \"" + i['type'] + "\".")
