@@ -288,15 +288,15 @@ def start_new_transcoder(track, decoder, encoder):
     args = []
     for i in cmd:
         if i == "%r":
-            args.append(repr(track[RATE] * helpers[cf['_encoder']]['bitrate_factor']))
+            args.append(repr(track[RATE] * helpers[encoder]['bitrate_factor']))
         elif i == "%q":
-            if 'inverse-quality' in helper and helper['inverse-quality']:
+            if 'inverse-quality' in helpers[encoder] and helpers[encoder]['inverse-quality']:
                 quality = min(9, 10 - cf['_vbr_quality'])
             else:
                 quality = cf['_vbr_quality']
             args.append("%.3f" % quality)
         elif i == "%o":
-            args.append(track[NAME] + jack.targets.targets[jack.helpers.helpers[cf['_encoder']]['target']]['file_extension'])
+            args.append(track[NAME] + jack.targets.targets[jack.helpers.helpers[encoder]['target']]['file_extension'])
         else:
             args.append(i)
     data['enc']['start_time'] = time.time()
@@ -320,7 +320,7 @@ def start_new_transcoder(track, decoder, encoder):
     data['enc']['percent'] = 0
     data['enc']['elapsed'] = 0
     data['enc']['type'] = "encoder"
-    data['enc']['prog'] = cf['_encoder']
+    data['enc']['prog'] = encoder
     data['enc']['track'] = track
     data['dec']['otf-pid'] = data['enc']['pid']
 
