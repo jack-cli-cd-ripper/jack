@@ -819,6 +819,18 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
         'usage': "create a playlist in .m3u format",
         'long': 'AUTO',
     },
+    'embed_albumart': {
+        'type': 'toggle',
+        'val': 0,
+        'usage': "embed album art",
+        'long': 'AUTO',
+    },
+    'albumart_file': {
+        'type': str,
+        'val': None,
+        'usage': "specific album art file to embed",
+        'long': 'AUTO',
+    },
 })
 
 for i in list(cf.keys()):

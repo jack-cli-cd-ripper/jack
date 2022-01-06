@@ -21,6 +21,9 @@ import os
 import sys
 import re
 
+from io import BytesIO
+from PIL import Image
+
 import jack.functions
 import jack.ripstuff
 import jack.targets
@@ -144,15 +147,22 @@ def tag(metadata_rename):
                             medium_info = "%s/%s" % (medium_position, medium_count)
                             if medium_tagging:
                                 m.tags.add(id3.TPOS(encoding=3, text=medium_info))
+                        jack.albumart.embed_albumart(m, target, encname)
                         m.save()
                     elif target == "flac" or target == "ogg":   # both vorbis tags
+                        keeptags = []
                         if target == "flac":
                             m = flac.FLAC(encname)
                         elif target == "ogg":
                             m = oggvorbis.OggVorbis(encname)
+                            keeptags = ['metadata_block_picture']
                         if m.tags == None:
                             m.add_vorbiscomment()
-                        m.delete() # delete old tags
+                        savetags = []
+                        for tag in m.tags:
+                            if tag[0] in keeptags:
+                                savetags.append(tag)
+                        m.delete()
                         if cf['_set_extended_tag'] and mb_query_data:
                             extended_tag(m.tags, "vorbis", track_position)
                         else:
@@ -174,6 +184,9 @@ def tag(metadata_rename):
                                     m.tags['DISCTOTAL'] = str(medium_count)
                             if cf['_various']:
                                 m.tags['COMPILATION'] = "1"
+                        for tag in savetags:
+                            m.tags[tag[0]] = tag[1]
+                        jack.albumart.embed_albumart(m, target, encname)
                         m.save()
                     elif target == "m4a":
                         m = mp4.MP4(encname)
@@ -199,6 +212,7 @@ def tag(metadata_rename):
                             if medium_tagging:
                                 m.tags['disk'] = [(medium_position, medium_count)]
                             m.tags['cpil'] = bool(cf['_various'])
+                        jack.albumart.embed_albumart(m, target, encname)
                         m.save()
             if metadata_rename:
                 newname = jack.metadata.filenames[i[NUM]]
@@ -254,6 +268,12 @@ def tag(metadata_rename):
             print("Genre: %s" % cf['_genre'])
         if cf['_vbr'] and not cf['_only_dae']:
             print("Avg. bitrate: %03.0fkbit" % ((total_size * 0.008) / (total_length / 75)))
+        if cf['_embed_albumart'] and cf['_albumart_file']:
+            imgsize = os.stat(cf['_albumart_file']).st_size
+            imgdata = open(cf['_albumart_file'], "rb").read()
+            imgobj = Image.open(BytesIO(imgdata))
+            (width, height) = imgobj.size
+            print("Album art: %s %dx%d %d bytes" % (cf['_albumart_file'], width, height, imgsize))
         else:
             print()
 

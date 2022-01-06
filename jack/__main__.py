@@ -59,6 +59,7 @@ import jack.functions
 import jack.main_loop
 import jack.progress
 import jack.prepare
+import jack.albumart
 
 
 ##############################################################################
