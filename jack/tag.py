@@ -150,12 +150,19 @@ def tag(metadata_rename):
                         jack.albumart.embed_albumart(m, target, encname)
                         m.save()
                     elif target == "flac" or target == "ogg":   # both vorbis tags
+                        # some flac and ogg files have ID3 headers - remove them
+                        try:
+                            m = id3.ID3(encname)
+                            debug("removing ID3 data from" + encname)
+                            m.delete()
+                        except:
+                            pass
                         keeptags = []
                         if target == "flac":
                             m = flac.FLAC(encname)
                         elif target == "ogg":
                             m = oggvorbis.OggVorbis(encname)
-                            keeptags = ['metadata_block_picture']
+                            keeptags.append('metadata_block_picture')
                         if m.tags == None:
                             m.add_vorbiscomment()
                         savetags = []
