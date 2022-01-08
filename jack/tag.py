@@ -122,12 +122,13 @@ def tag(metadata_rename):
                 t_name = track_names[i[NUM]][1]
                 if not cf['_only_dae'] and cf['_set_tag']:
                     if target == "mp3":
+                        keeptags = ["APIC"]
                         m = mp3.MP3(encname)
                         if m.tags == None:
                             m.add_tags()
                         for tag in list(m.tags):
                             key = tag[:4]
-                            if key != "APIC":
+                            if not key in keeptags:
                                 m.tags.delall(key)
                         if cf['_set_extended_tag'] and mb_query_data:
                             extended_tag(m.tags, "id3v2.4", track_position)
@@ -281,8 +282,6 @@ def tag(metadata_rename):
             imgobj = Image.open(BytesIO(imgdata))
             (width, height) = imgobj.size
             print("Album art: %s %s %dx%d %d bytes" % (cf['_albumart_file'], imgobj.format, width, height, imgsize))
-            for k,v in imgobj.info.items():
-                print(k,v)
         else:
             print()
 

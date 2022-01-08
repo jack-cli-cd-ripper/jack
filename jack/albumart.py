@@ -31,10 +31,8 @@ from jack.init import mp4
 from jack.globals import *
 
 
-
 def imagedepth(mode):
-    imagemodes =
-        {
+    imagemodes = {
             '1': 1, # (1-bit pixels, black and white, stored with one pixel per byte)
             'L': 8, # (8-bit pixels, black and white)
             'P': 8, # (8-bit pixels, mapped to any other mode using a color palette)
@@ -59,7 +57,7 @@ def imagedepth(mode):
             'BGR;16': 16, # (16-bit reversed true colour)
             'BGR;24': 24, # (24-bit reversed true colour)
             'BGR;32': 32, # (32-bit reversed true colour)
-        }
+    }
     if mode in imagemodes:
         return imagemodes[mode]
     return None
@@ -87,9 +85,27 @@ def save_existing_albumart(imgdata, mime):
         debug(savefile + " already exists")
 
 def embed_albumart_id3(tagobj, audiofile, imgfile, imgdata, imgobj):
-    #TODO
-    warning("ID3 albumart embedding currently not supported")
-    return
+    makechanges = 0
+    new_pic = id3.APIC(
+            encoding = id3.Encoding.UTF8,
+            mime = "image/" + imgobj.format.lower(),
+            type = id3.PictureType.COVER_FRONT,
+            data = imgdata
+        )
+
+    old_pics = tagobj.tags.getall('APIC')
+    for old_pic in old_pics:
+        if old_pic.encoding != new_pic.encoding or old_pic.mime != new_pic.mime or old_pic.type != new_pic.type or old_pic.data != new_pic.data:
+            makechanges += 1
+            debug("removing images from " + audiofile)
+            save_existing_albumart(old_pic.data, old_pic.mime)
+    if not old_pics:
+        makechanges += 1
+
+    if makechanges:
+        debug("adding image " + imgfile + " into " + audiofile)
+        tagobj.tags.delall('APIC')
+        tagobj.tags.add(new_pic)
 
 def embed_albumart_mp4(tagobj, audiofile, imgfile, imgdata, imgobj):
     makechanges = 0
