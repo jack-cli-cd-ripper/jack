@@ -30,6 +30,41 @@ from jack.init import flac
 from jack.init import mp4
 from jack.globals import *
 
+
+
+def imagedepth(mode):
+    imagemodes =
+        {
+            '1': 1, # (1-bit pixels, black and white, stored with one pixel per byte)
+            'L': 8, # (8-bit pixels, black and white)
+            'P': 8, # (8-bit pixels, mapped to any other mode using a color palette)
+            'RGB': 24, # (3x8-bit pixels, true color)
+            'RGBA': 32, # (4x8-bit pixels, true color with transparency mask)
+            'CMYK': 32, # (4x8-bit pixels, color separation)
+            'YCbCr': 24, # (3x8-bit pixels, color video format)
+            'LAB': 24, # (3x8-bit pixels, the L*a*b color space)
+            'HSV': 24, # (3x8-bit pixels, Hue, Saturation, Value color space)
+            'I': 32, # (32-bit signed integer pixels)
+            'F': 32, # (32-bit floating point pixels)
+            'LA': 16, # (L with alpha)
+            'PA': 16, # (P with alpha)
+            'RGBX': 24, # (true color with padding)
+            'RGBa': 32, # (true color with premultiplied alpha)
+            'La': 16, # (L with premultiplied alpha)
+            'I;16': 16, # (16-bit unsigned integer pixels)
+            'I;16L': 16, # (16-bit little endian unsigned integer pixels)
+            'I;16B': 16, # (16-bit big endian unsigned integer pixels)
+            'I;16N': 16, # (16-bit native endian unsigned integer pixels)
+            'BGR;15': 15, # (15-bit reversed true colour)
+            'BGR;16': 16, # (16-bit reversed true colour)
+            'BGR;24': 24, # (24-bit reversed true colour)
+            'BGR;32': 32, # (32-bit reversed true colour)
+        }
+    if mode in imagemodes:
+        return imagemodes[mode]
+    return None
+
+
 def save_existing_albumart(imgdata, mime):
     if mime == "image/jpeg":
         ext = "jpg"
@@ -59,11 +94,11 @@ def embed_albumart_id3(tagobj, audiofile, imgfile, imgdata, imgobj):
 def embed_albumart_mp4(tagobj, audiofile, imgfile, imgdata, imgobj):
     makechanges = 0
 
-    mp4_covr = []
-    mp4_covr.append(mp4.MP4Cover(imgdata, imageformat=mp4.MP4Cover.FORMAT_JPEG))
+    imageformats = {'JPEG': mp4.MP4Cover.FORMAT_JPEG, 'PNG': mp4.MP4Cover.FORMAT_PNG}
+    new_pic = [mp4.MP4Cover(imgdata, imageformat=imageformats[imgobj.format])]
 
     if 'covr' in tagobj.tags:
-        if  tagobj.tags['covr'] != mp4_covr:
+        if  tagobj.tags['covr'] != new_pic:
             makechanges += 1
             debug("replacing image " + imgfile + " into " + audiofile)
             for covr in tagobj.tags['covr']:
@@ -78,15 +113,15 @@ def embed_albumart_mp4(tagobj, audiofile, imgfile, imgdata, imgobj):
         makechanges += 1
         debug("adding image " + imgfile + " into " + audiofile)
     if makechanges:
-        tagobj.tags['covr'] = mp4_covr
+        tagobj.tags['covr'] = new_pic
 
 def embed_albumart_flac(tagobj, audiofile, imgfile, imgdata, imgobj):
     new_pic = flac.Picture()
     new_pic.data = imgdata
     new_pic.type = id3.PictureType.COVER_FRONT
-    new_pic.mime = "image/jpeg"
+    new_pic.mime = "image/" + imgobj.format.lower()
     (new_pic.width, new_pic.height) = imgobj.size
-    new_pic.depth = 24
+    new_pic.depth = imagedepth(imgobj.mode)
 
     makechanges = 0
     if tagobj.pictures:
@@ -107,9 +142,9 @@ def embed_albumart_ogg(tagobj, audiofile, imgfile, imgdata, imgobj):
     new_pic = flac.Picture()
     new_pic.data = imgdata
     new_pic.type = id3.PictureType.COVER_FRONT
-    new_pic.mime = "image/jpeg"
+    new_pic.mime = "image/" + imgobj.format.lower()
     (new_pic.width, new_pic.height) = imgobj.size
-    new_pic.depth = 24
+    new_pic.depth = imagedepth(imgobj.mode)
 
     makechanges = 0
     picture_data = tagobj.get("metadata_block_picture", [])
@@ -138,8 +173,8 @@ def embed_albumart(tagobj, target, audiofile):
 
         imgdata = open(imgfile, "rb").read()
         imgobj = Image.open(BytesIO(imgdata))
-        if imgobj.format != 'JPEG':
-            warning(imgfile + " is not a jpeg file")
+        if imgobj.format != 'JPEG' and imgobj.format != 'PNG':
+            warning("skipping %s with unsupported image format %s" % (imgfile, imgobj.format))
             cf['_albumart_file'] = None
             return
 

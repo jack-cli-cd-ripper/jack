@@ -280,7 +280,9 @@ def tag(metadata_rename):
             imgdata = open(cf['_albumart_file'], "rb").read()
             imgobj = Image.open(BytesIO(imgdata))
             (width, height) = imgobj.size
-            print("Album art: %s %dx%d %d bytes" % (cf['_albumart_file'], width, height, imgsize))
+            print("Album art: %s %s %dx%d %d bytes" % (cf['_albumart_file'], imgobj.format, width, height, imgsize))
+            for k,v in imgobj.info.items():
+                print(k,v)
         else:
             print()
 
