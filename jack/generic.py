@@ -22,17 +22,23 @@ import jack.version
 from jack.config import cf
 
 
-def indent(pre, msg):
-    ret = pre + " "
+def indent(pre, msg, at=80, indent=0):
     msg = msg.split()
-    p = len(pre)
-    y = p
+    ret = pre
+    if indent:
+        if len(pre) < indent:
+            ret += " " * (indent - len(pre))
+        tab = indent
+    else:
+        tab = len(pre)
+    x = len(ret)
     for i in msg:
-        if len(i) + y > 78:
-            ret += "\n" + (" " * (p + 1))
-            y = p
-        ret += i + ' '
-        y = y + len(i) + 1
+        add = 1 + len(i)
+        if x + add > at:
+            ret += "\n" + (" " * (tab))
+            x = tab
+        ret += " " + i
+        x += add
     return ret
 
 

@@ -49,7 +49,7 @@ cf = jack.misc.dict2({
     'debug_write': {
         'type': 'toggle',
         'val': 0,
-        # 'usage': "write debug information to a file",
+        'usage': "write debug information to a file",
         'long': 'AUTO',
     },
     'plugin_path': {
@@ -535,7 +535,7 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
         'type': 'toggle',
         'val': 0,
         'doc': "XXX",
-        'long': 'I-swear-I\'ll-never-give-these-files-to-anyone,-including-hot-babes-TM',
+        'long': 'I-swear-I\'ll-never-give-these-files-to-anyone',
     },
     'tracks': {
         'type': str,

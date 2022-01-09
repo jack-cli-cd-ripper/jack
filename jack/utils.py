@@ -160,10 +160,20 @@ def yes(what):
         s = str(what['val'])
 
     s = " [%s]" % s
-    if what['history'][-1][0] == "global_rc":
-        s = s + "*"
+
+    flags = ""
+    sources_to_flags = {
+            'global_rc': "#",
+            'user_rc': "$",
+            }
+
+    modified_by = what['history'][-1][0]
+    if modified_by in sources_to_flags:
+        flags = flags + sources_to_flags[modified_by]
     if 'doc' in what:
-        s = s + " +"
+        flags = flags + "+"
+    if flags:
+        s = s + " " + flags
     return s
 
 

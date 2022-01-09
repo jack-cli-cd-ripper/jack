@@ -27,31 +27,28 @@ from jack.misc import safe_int
 
 
 def show_usage(cf, longhelp=False):
-    l = []
+    print("usage: jack [option]...")
+
     for i in list(cf.keys()):
         if not longhelp and 'help' not in cf[i]:
             continue
-        s = ""
-        if 'usage' in cf[i]:
-            if not longhelp and 'vbr_only' in cf[i] and cf[i]['vbr_only'] != cf['_vbr']:
-                continue
-            if 'long' in cf[i]:
-                s = "  --%s" % cf[i]['long']
-                if 'short' in cf[i]:
-                    s = s + ", -%s" % cf[i]['short']
+
+        options = ""
+        if (not longhelp
+                and 'vbr_only' in cf[i]
+                and cf[i]['vbr_only'] != cf['_vbr']):
+            continue
+        if 'long' in cf[i]:
+            options = "  --%s" % cf[i]['long']
+            if 'short' in cf[i]:
+                options = options + ", -%s" % cf[i]['short']
+
+            if 'usage' in cf[i]:
+                description = cf[i]['usage'] + jack.utils.yes(cf[i])
+
+                print(jack.generic.indent(options, description, indent=20))
             else:
-                error("internal error in show_usage")
-
-            x_char = " "
-            l.append([s, cf[i]['usage'] + jack.utils.yes(cf[i])])
-    max_len = 0
-    for i in l:
-        max_len = max(max_len, len(i[0]))
-
-    l.sort()
-    print("usage: jack [option]...")
-    for i in l:
-        print(jack.generic.indent(i[0] + " " * (max_len - len(i[0])), i[1]))
+                debug("no usage in " + i + ": " + str(cf[i]))
 
     if longhelp:
         print("""
