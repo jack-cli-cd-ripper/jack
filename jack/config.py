@@ -827,8 +827,26 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
     },
     'albumart_file': {
         'type': str,
-        'val': None,
+        'val': "front.jpg",
         'usage': "specific album art file to embed",
+        'long': 'AUTO',
+    },
+    'fetch_albumart': {
+        'type': 'toggle',
+        'val': 0,
+        'usage': "download album art from coverartarchive.org while querying",
+        'long': 'AUTO',
+    },
+    'albumart_size': {
+        'type': int,
+        'val': 500,
+        'usage': "downloaded album art size: 250, 500 or 1200 pixels",
+        'long': 'AUTO',
+    },
+    'albumart_types': {
+        'type': list,
+        'val': ['front'],
+        'usage': "download these album arts ('front' and/or 'back')",
         'long': 'AUTO',
     },
 })

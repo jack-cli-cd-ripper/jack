@@ -21,6 +21,7 @@ import os
 import json
 import datetime
 import re
+import shutil
 
 import jack.functions
 import jack.progress
@@ -58,12 +59,11 @@ def get_response(url):
         response = urllib.request.urlopen(request)
         return 0, response
     except urllib.error.HTTPError as e:
-        print('The server couldn\'t fulfill the request.')
-        print('Error code: ', e.code)
+        warning('The server couldn\'t fulfill the request. Error code: '
+                + str(e.code))
         return 1, None
     except urllib.error.URLError as e:
-        print('The server couldn\'t be reached.')
-        print('Reason: ', e.reason)
+        warning('The server couldn\'t be reached. Reason: ' + str( e.reason))
         return 1, None
 
 
@@ -198,6 +198,21 @@ def musicbrainz_query(cd_id, tracks, file):
     of = open(file, "w")
     of.write(json.dumps(query_data, indent=4) + "\n")
     of.close()
+
+    if cf['_fetch_albumart']:
+        release = result['releases'][chosen_release]
+        base_url = f'https://coverartarchive.org/release/{ release["id"] }/'
+        if 'cover-art-archive' in release:
+            caa = release['cover-art-archive']
+            for art in cf['_albumart_types']:
+                artfile = art + '.jpg'
+                if art in caa and caa[art] and not os.path.exists(artfile):
+                    err, response = get_response(base_url + art
+                            + "-" + str(cf['_albumart_size']))
+                    if not err:
+                        with open(artfile, 'wb') as out_file:
+                            shutil.copyfileobj(response, out_file)
+                        response.close()
 
     err = 0
     return err
