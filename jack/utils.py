@@ -22,6 +22,7 @@ import types
 import os
 import stat
 import re
+import subprocess
 
 import jack.functions
 import jack.globals
@@ -272,12 +273,12 @@ def in_path(file):
     return False
 
 
-def ex_edit(file):
+def ex_edit(f):
     editor = "/usr/bin/sensible-editor"
     if "EDITOR" in os.environ:
         editor = os.environ['EDITOR']
     print("invoking your editor,", editor, "...")
-    os.system(((editor)[0] + " " + file).split())
+    subprocess.run([editor, f])
 
 
 def has_track(l, num):
