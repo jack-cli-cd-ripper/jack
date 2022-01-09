@@ -891,13 +891,13 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
         'usage': "download album art from coverartarchive.org while querying",
         'long': 'AUTO',
     },
-    'albumart_size': {
+    'fetch albumart_size': {
         'type': int,
         'val': 500,
-        'usage': "downloaded album art size: 250, 500 or 1200 pixels",
+        'usage': "download additional album art thumbnail size: 250, 500 or 1200 pixels",
         'long': 'AUTO',
     },
-    'albumart_types': {
+    'fetch albumart_types': {
         'type': list,
         'val': ['front'],
         'usage': "download these album arts ('front' and/or 'back')",

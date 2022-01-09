@@ -204,11 +204,11 @@ def musicbrainz_query(cd_id, tracks, file):
         base_url = f'https://coverartarchive.org/release/{ release["id"] }/'
         if 'cover-art-archive' in release:
             caa = release['cover-art-archive']
-            for art in cf['_albumart_types']:
+            for art in cf['_fetch_albumart_types']:
                 artfile = art + '.jpg'
                 if art in caa and caa[art] and not os.path.exists(artfile):
                     err, response = get_response(base_url + art
-                            + "-" + str(cf['_albumart_size']))
+                            + "-" + str(cf['_fetch_albumart_size']))
                     if not err:
                         with open(artfile, 'wb') as out_file:
                             shutil.copyfileobj(response, out_file)
