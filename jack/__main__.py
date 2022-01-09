@@ -154,6 +154,7 @@ def main():
     if cf['_query_if_needed']:
         if not os.path.exists(metadata_form_file + ".bak"):
             cf['_query_on_start'] = 1
+            cf['_set_tag'] = 1
     if cf['_query_on_start']:
         metadata_rename = jack.prepare.query_on_start(todo)
 
