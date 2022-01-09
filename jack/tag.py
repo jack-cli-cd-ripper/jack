@@ -276,14 +276,15 @@ def tag(metadata_rename):
             print("Genre: %s" % cf['_genre'])
         if cf['_vbr'] and not cf['_only_dae']:
             print("Avg. bitrate: %03.0fkbit" % ((total_size * 0.008) / (total_length / 75)))
-        if (cf['_embed_albumart']
-                and cf['_albumart_file']
-                and os.path.exists(cf['_albumart_file'])):
-            imgsize = os.stat(cf['_albumart_file']).st_size
-            imgdata = open(cf['_albumart_file'], "rb").read()
-            imgobj = Image.open(BytesIO(imgdata))
-            (width, height) = imgobj.size
-            print("Album art: %s %s %dx%d %d bytes" % (cf['_albumart_file'], imgobj.format, width, height, imgsize))
+        if cf['_embed_albumart']:
+            if cf['_albumart_file'] and os.path.exists(cf['_albumart_file']):
+                imgsize = os.stat(cf['_albumart_file']).st_size
+                imgdata = open(cf['_albumart_file'], "rb").read()
+                imgobj = Image.open(BytesIO(imgdata))
+                (width, height) = imgobj.size
+                print("Album art: %s %s %dx%d %d bytes" % (cf['_albumart_file'], imgobj.format, width, height, imgsize))
+            else:
+                warning("no suitable album art found for embedding")
         else:
             print()
 
