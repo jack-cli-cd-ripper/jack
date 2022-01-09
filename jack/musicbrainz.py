@@ -37,8 +37,47 @@ import urllib.error
 
 
 def musicbrainz_template(tracks, names=""):
-    "for now no need to create musicbrainz templates"
-    pass
+    data = {
+        'empty': True,
+        'prog_version': jack.version.version,
+    }
+    form_file = jack.metadata.get_metadata_form_file(jack.metadata.get_metadata_api(cf['_metadata_server']))
+    if os.path.exists(form_file):
+        os.rename(form_file, form_file + ".bak")
+    with open(form_file, "w") as f:
+        f.write(json.dumps(data, indent=4) + "\n")
+
+
+def get_response(url):
+    debug(f"get_response({ url })")
+    user_agent = "%s/%s (%s)" % (jack.version.name, jack.version.version, jack.version.url)
+    headers = {'User-Agent': user_agent}
+
+    request = urllib.request.Request(url, None, headers)
+    try:
+        response = urllib.request.urlopen(request)
+        return 0, response
+    except urllib.error.HTTPError as e:
+        print('The server couldn\'t fulfill the request.')
+        print('Error code: ', e.code)
+        return 1, None
+    except urllib.error.URLError as e:
+        print('The server couldn\'t be reached.')
+        print('Reason: ', e.reason)
+        return 1, None
+
+
+def read_data_from(file):
+    if not os.path.exists(file):
+        return None
+    with open(file, "r") as f:
+        query_data = json.loads(f.read())
+
+    if 'empty' in query_data and query_data['empty']:
+        # this is an empty template
+        return None
+
+    return query_data
 
 
 def musicbrainz_query(cd_id, tracks, file):
@@ -48,24 +87,12 @@ def musicbrainz_query(cd_id, tracks, file):
     mb_id = cd_id['musicbrainzngs']
     includes = "artists+artist-credits+artist-rels+recordings+release-groups+release-rels+recording-rels+release-group-rels+isrcs+labels+label-rels+genres+url-rels+work-rels"
     query_url = "http://" + host + "/ws/2/discid/" + mb_id + "?toc=" + toc + "&inc=" + includes + "&fmt=json"
-    user_agent = "%s/%s (%s)" % (jack.version.name, jack.version.version, jack.version.url)
-    headers = {'User-Agent': user_agent}
-
-    request = urllib.request.Request(query_url, None, headers)
-    try:
-        response = urllib.request.urlopen(request)
-    except urllib.error.HTTPError as e:
-        print('The server couldn\'t fulfill the request.')
-        print('Error code: ', e.code)
-        err = 1
-        return err
-    except urllib.error.URLError as e:
-        print('The server couldn\'t be reached.')
-        print('Reason: ', e.reason)
-        err = 1
+    err, response = get_response(query_url)
+    if err:
         return err
     response_data = response.read()
     result = json.loads(response_data)
+    response.close()
 
     chosen_release = None
     if 'releases' in result:
@@ -86,11 +113,9 @@ def musicbrainz_query(cd_id, tracks, file):
             # FIXME this should be configurable behaviour
             old_chosen_release = None
             old_release_id = None
-            if os.path.exists(file):
-                f = open(file, "r")
-                old_query_data = json.loads(f.read())
-                f.close()
 
+            old_query_data = read_data_from(file)
+            if old_query_data:
                 old_chosen_release = old_query_data['chosen_release']
                 old_release_id = old_query_data['result']['releases'][old_chosen_release]['id']
 
@@ -189,13 +214,10 @@ def musicbrainz_names(cd_id, tracks, todo, name, verb=0, warn=1):
     read_id = None
 
     # load the musicbrainz query data that was previously dumped as json data
-    if not os.path.exists(name):
-        error(name + " does not exist")
+    query_data = read_data_from(name)
+    if not query_data:
         err = 1
         return err, names, read_id, query_data
-    f = open(name, "r")
-    query_data = json.loads(f.read())
-    f.close()
 
     if not 'releases' in query_data['result'] or len(query_data['result']['releases']) == 0:
         print("MusicBrainz did not return releases. Try adding one using this URL:\n" + musicbrainz_getlookupurl(tracks, cd_id))
