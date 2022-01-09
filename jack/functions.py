@@ -171,7 +171,10 @@ def guesstoc(names):
             x = sndhdr.whathdr(i)
             if not x:
                 error("this is not WAV-format: " + i)
-            if x != ('wav', 44100, 2, -1, 16):
+            if (x.filetype != 'wav'
+                    or x.framerate != 44100
+                    or x.nchannels != 2
+                    or x.sampwidth != 16):
                 error("unsupported format " + repr(x) + " in " + i)
             blocks = jack.utils.filesize(i)
             blocks = blocks - 44    # substract WAV header
