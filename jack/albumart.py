@@ -18,6 +18,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 import os
+import re
 import base64
 import hashlib
 from io import BytesIO
@@ -178,9 +179,67 @@ def embed_albumart_ogg(tagobj, audiofile, imgfile, imgdata, imgobj):
         vcomment_value = encoded_data.decode("ascii")
         tagobj["metadata_block_picture"] = [vcomment_value]
 
+def assess_albumart(filename):
+    reject = 0
+    try:
+        imgdata = open(filename, "rb").read()
+    except:
+        reject += 1
+        debug("rejecting %s, reason: can not open" % (filename,))
+        return
+    try:
+        imgobj = Image.open(BytesIO(imgdata))
+    except:
+        reject += 1
+        debug("rejecting %s, reason: can not load as picture" % (filename,))
+        return
+    if imgobj.format != 'JPEG' and imgobj.format != 'PNG':
+        reject += 1
+        debug("rejecting %s, reason: picture format %s is not PNG or JPEG" % (filename, imgobj.format))
+    size = os.stat(filename).st_size
+    (width, height) = imgobj.size
+    if size > cf['_albumart_max_size']:
+        reject += 1
+        debug("rejecting %s, reason: too large (%d>%d)" % (filename, size, cf['_albumart_max_size']))
+    if size < cf['_albumart_min_size']:
+        reject += 1
+        debug("rejecting %s, reason: too small (%d<%d)" % (filename, size, cf['_albumart_min_size']))
+    if width > cf['_albumart_max_width']:
+        reject += 1
+        debug("rejecting %s, reason: too wide (%d>%d)" % (filename, width, cf['_albumart_max_width']))
+    if width < cf['_albumart_min_width']:
+        reject += 1
+        debug("rejecting %s, reason: too narrow (%d<%d)" % (filename, width, cf['_albumart_min_width']))
+    if height > cf['_albumart_max_height']:
+        reject += 1
+        debug("rejecting %s, reason: too high (%d>%d)" % (filename, height, cf['_albumart_max_height']))
+    if height < cf['_albumart_min_height']:
+        reject += 1
+        debug("rejecting %s, reason: too low (%d<%d)" % (filename, height, cf['_albumart_min_height']))
+    return reject == 0
+
+def search_albumart():
+    search_root = "."
+    if cf['_albumart_ignorecase']:
+        flags = re.IGNORECASE
+    else:
+        flags = 0
+    for path, dirnames, filenames in os.walk(search_root):
+        if path != search_root and not cf['_albumart_recurse']:
+            continue
+        for filename in filenames:
+            for pattern in cf['_albumart_search']:
+                if re.match(pattern, filename, flags=flags):
+                    filepath = os.path.join(path, filename)
+                    if assess_albumart(filepath):
+                        return filepath
+    return None
+
 def embed_albumart(tagobj, target, audiofile):
     if not cf['_embed_albumart']:
         return
+    if not cf['_albumart_file']:
+        cf['_albumart_file'] = search_albumart()
     if not cf['_albumart_file']:
         return
     imgfile = cf['_albumart_file']
