@@ -135,19 +135,19 @@ def tag(metadata_rename):
                         else:
                             # basic tagging
                             if not cf['_various']:
-                                m.tags.add(id3.TPE2(encoding=3, text=a_artist))
-                            m.tags.add(id3.TPE1(encoding=3, text=t_artist))
-                            m.tags.add(id3.TALB(encoding=3, text=a_title))
-                            m.tags.add(id3.TIT2(encoding=3, text=t_name))
+                                m.tags.add(id3.TPE2(encoding=id3.Encoding.UTF8, text=a_artist))
+                            m.tags.add(id3.TPE1(encoding=id3.Encoding.UTF8, text=t_artist))
+                            m.tags.add(id3.TALB(encoding=id3.Encoding.UTF8, text=a_title))
+                            m.tags.add(id3.TIT2(encoding=id3.Encoding.UTF8, text=t_name))
                             if cf['_genre']:
-                                m.tags.add(id3.TCON(encoding=3, text=cf['_genre']))
+                                m.tags.add(id3.TCON(encoding=id3.Encoding.UTF8, text=cf['_genre']))
                             if cf['_year']:
-                                m.tags.add(id3.TDRC(encoding=3, text=cf['_year']))
+                                m.tags.add(id3.TDRC(encoding=id3.Encoding.UTF8, text=cf['_year']))
                             track_info = "%s/%s" % (track_position, track_count)
-                            m.tags.add(id3.TRCK(encoding=3, text=track_info))
+                            m.tags.add(id3.TRCK(encoding=id3.Encoding.UTF8, text=track_info))
                             medium_info = "%s/%s" % (medium_position, medium_count)
                             if medium_tagging:
-                                m.tags.add(id3.TPOS(encoding=3, text=medium_info))
+                                m.tags.add(id3.TPOS(encoding=id3.Encoding.UTF8, text=medium_info))
                         jack.albumart.embed_albumart(m, target, encname)
                         m.save()
                     elif target == "flac" or target == "ogg":   # both vorbis tags
@@ -1264,33 +1264,33 @@ def extended_tag(tag_obj, tag_type, track_position):
                     paired_tags[map_entry[tag_type]] = [0, 0]
                 paired_tags[map_entry[tag_type]][map_entry['tuple-position']] = int(value_list[0])
                 text = "%s/%s" % tuple(paired_tags[map_entry[tag_type]])
-                frame = id3.Frames[id3_key](encoding=3, text=text)
+                frame = id3.Frames[id3_key](encoding=id3.Encoding.UTF8, text=text)
             elif id3_key == "UFID":
-                frame = id3.Frames[id3_key](encoding=3, data=value_list[0].encode('utf-8'), owner=id3_argument)
+                frame = id3.Frames[id3_key](encoding=id3.Encoding.UTF8, data=value_list[0].encode('utf-8'), owner=id3_argument)
             elif id3_key == 'TMCL':
                 people = []
                 for val in value_list:
                     people.append(list(reversed(val)))
-                frame = id3.Frames[id3_key](encoding=3, people=people)
+                frame = id3.Frames[id3_key](encoding=id3.Encoding.UTF8, people=people)
             elif id3_key == 'TIPL':
                 for val in value_list:
                     value_pair = [id3_argument, val]
                     if not value_pair in tipl_list:
                         tipl_list.append(value_pair)
                     people = tipl_list
-                frame = id3.Frames[id3_key](encoding=3, people=people)
+                frame = id3.Frames[id3_key](encoding=id3.Encoding.UTF8, people=people)
             elif id3_key == "TXXX":
                 if id3_argument == "originalyear":
-                    frame = id3.Frames[id3_key](encoding=3, text=value_list[0][:4], desc=id3_argument)
+                    frame = id3.Frames[id3_key](encoding=id3.Encoding.UTF8, text=value_list[0][:4], desc=id3_argument)
                 elif len(value_list) > 1:
-                    frame = id3.Frames[id3_key](encoding=3, text=value_list, desc=id3_argument)
+                    frame = id3.Frames[id3_key](encoding=id3.Encoding.UTF8, text=value_list, desc=id3_argument)
                 else:
-                    frame = id3.Frames[id3_key](encoding=3, text=value_list[0], desc=id3_argument)
+                    frame = id3.Frames[id3_key](encoding=id3.Encoding.UTF8, text=value_list[0], desc=id3_argument)
             else:
                 if len(value_list) > 1:
-                    frame = id3.Frames[id3_key](encoding=3, text=value_list)
+                    frame = id3.Frames[id3_key](encoding=id3.Encoding.UTF8, text=value_list)
                 else:
-                    frame = id3.Frames[id3_key](encoding=3, text=value_list[0])
+                    frame = id3.Frames[id3_key](encoding=id3.Encoding.UTF8, text=value_list[0])
             if frame:
                 tag_obj.add(frame)
         elif tag_type == "mp4":
