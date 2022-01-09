@@ -904,10 +904,10 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
         'usage': "prefix for saving fetched album art files",
         'long': 'AUTO',
     },
-    'fetch_albumart_size': {
-        'type': int,
-        'val': 500,
-        'usage': "download additional album art thumbnail size: 250, 500 or 1200 pixels",
+    'fetch_albumart_sizes': {
+        'type': list,
+        'val': [500],
+        'usage': "download additional resized album art thumbnail sizes: 250, 500 or 1200 pixels",
         'long': 'AUTO',
     },
     'fetch_albumart_types': {
