@@ -37,9 +37,9 @@ def indent(pre, msg):
 
 
 def log_to_logfile(s):
-    f = open(jack.version.name + ".debug", "a")
-    f.write(s + "\n")
-    del f
+    if not hasattr(log_to_logfile, "logfile"):
+        log_to_logfile.logfile = open(jack.version.name + ".debug", "a")
+    log_to_logfile.logfile.write(s + "\n")
 
 
 def log(pre, msg, show=True, fatal=False):
@@ -73,4 +73,4 @@ def debug(msg):
 
 
 def expand(filespec):
-    return(os.path.expanduser(os.path.expandvars(filespec)))
+    return os.path.expanduser(os.path.expandvars(filespec))
