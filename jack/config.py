@@ -840,7 +840,7 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
     },
     'albumart_search': {
         'type': list,
-        'val': [r'.*[Cc]over.*\.(jpg|jpeg|png)$', r'.*[Ff]ront.*\.(jpg|jpeg|png)$', r'^[Ff]older\.(jpg|jpeg|png)$'],
+        'val': [r'.*[Cc]over.*\.(jpg|jpeg|png)$', r'.*[Ff]ront.*\.(jpg|jpeg|png)$', r'^[Ff]older\.(jpg|jpeg|png)$', r'^jack\.front\.jpg$', r'^jack\.front-\d*\.jpg$'],
         'usage': "list of regex patterns for matching local album art files",
         'long': 'AUTO',
     },
