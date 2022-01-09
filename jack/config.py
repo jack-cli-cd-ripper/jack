@@ -679,6 +679,13 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
         'save': 0,
         'doc': "set extended tag info from MusicBrainz",
     },
+    'set_dae_tag': {
+        'type': 'toggle',
+        'val': 0,
+        'usage': "set DAE info tags",
+        'doc': "depends on set_extended_tag",
+        'long': 'AUTO',
+    },
     'genre': {
         'type': str,
         'val': None,
@@ -698,12 +705,12 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
     'username': {
         'type': str,
         'val': None,
-        'doc': "required for metadata query",
+        'doc': "for metadata query",
     },
     'hostname': {
         'type': str,
         'val': None,
-        'doc': "required for metadata query",
+        'doc': "for metadata query",
     },
     'image_toc_file': {
         'type': str,

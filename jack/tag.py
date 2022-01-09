@@ -32,6 +32,7 @@ import jack.metadata
 import jack.utils
 import jack.misc
 import jack.m3u
+import jack.status
 
 from jack.init import oggvorbis
 from jack.init import mp3
@@ -41,10 +42,767 @@ from jack.init import mp4
 from jack.globals import *
 
 track_names = None
-mb_query_data = None
 
 a_artist = None
 a_title = None
+
+mb_query_data = None
+# taken from https://picard.musicbrainz.org/docs/mappings/
+mb_tag_map = [
+    {
+            # part of basic tagging
+            "internalname": "album",
+            "name": "Album",
+            "id3v2.4": "TALB",
+            "vorbis": "ALBUM",
+            "mp4": "©alb",
+            "mbpaths": [["_release_", "title"]]
+    },
+    {
+            "internalname": "albumsort",
+            "name": "Album Sort Order",
+            "id3v2.4": "TSOA",
+            "vorbis": "ALBUMSORT",
+            "mp4": "soal",
+            "mbpaths": [["_release_", "sort-name"]]
+    },
+    {
+            # part of basic tagging
+            "internalname": "title",
+            "name": "Track Title",
+            "id3v2.4": "TIT2",
+            "vorbis": "TITLE",
+            "mp4": "©nam",
+            "mbpaths": [
+                    ["_track_", "title"],
+                    ["_track_", "recording", "title"],
+            ]
+    },
+    {
+            "internalname": "titlesort",
+            "name": "Track Title Sort Order",
+            "id3v2.4": "TSOT",
+            "vorbis": "TITLESORT",
+            "mp4": "sonm",
+            "mbpaths": [["_track_", "recording", "sort-name"]]
+    },
+    {
+            "internalname": "work",
+            "name": "Work Title",
+            "id3v2.4": "TIT1",
+            "vorbis": "WORK",
+            "mp4": "©wrk",
+    },
+    {
+            # part of basic tagging
+            "internalname": "artist",
+            "name": "Artist",
+            "id3v2.4": "TPE1",
+            "vorbis": "ARTIST",
+            "mp4": "©ART",
+            "mbpaths": [
+                    ["_track_", "artist-credit-phrase"],
+                    ["_track_", "recording", "artist-credit-phrase"],
+            ]
+    },
+    {
+            "internalname": "artistsort",
+            "name": "Artist Sort Order",
+            "id3v2.4": "TSOP",
+            "vorbis": "ARTISTSORT",
+            "mp4": "soar",
+            "mbpaths": [
+                    ["_track_", "artist-credit-phrase-sort"],
+                    ["_track_", "recording", "artist-credit-phrase-sort"],
+            ]
+    },
+    {
+            # part of basic tagging, using equivalent of ["_release_", "artist-credit-phrase"]
+            "internalname": "albumartist",
+            "name": "Album Artist",
+            "id3v2.4": "TPE2",
+            "vorbis": "ALBUMARTIST",
+            "mp4": "aART",
+            "mbpaths": [["_release_", "artist-credit-phrase"]],
+    },
+    {
+            "internalname": "albumartistsort",
+            "name": "Album Artist Sort Order",
+            "id3v2.4": "TSO2",
+            "vorbis": "ALBUMARTISTSORT",
+            "mp4": "soaa",
+            "mbpaths": [["_release_", "artist-credit-phrase-sort"]],
+    },
+    {
+            "internalname": "artists",
+            "name": "Artists",
+            "id3v2.4": "TXXX:Artists",
+            "vorbis": "ARTISTS",
+            "mp4": "----:com.apple.iTunes:ARTISTS",
+            "mbpaths": [
+                    ["_track_", "artist-credit", "_multiple_", "name"],
+                    ["_track_", "artist-credit", "_multiple_", "artist", "name"],
+                    ["_track_", "recording", "artist-credit", "_multiple_", "name"],
+                    ["_track_", "recording", "artist-credit", "_multiple_", "artist", "name"],
+            ]
+    },
+    {
+            # part of basic tagging
+            "internalname": "date",
+            "name": "Release Date",
+            "id3v2.4": "TDRC",
+            "vorbis": "DATE",
+            "mp4": "©day",
+            "mbpaths": [["_release_", "date"]],
+    },
+    {
+            "internalname": "originalalbum",
+            "name": "Original Album",
+            "id3v2.4": "TOAL",
+            "vorbis": None,
+            "mp4": None,
+            "mbpaths": [["_release_", "release-group", "title"]],
+    },
+    {
+            "internalname": "originalartist",
+            "name": "Original Artist",
+            "id3v2.4": "TOPE",
+            "vorbis": None,
+            "mp4": None,
+            "mbpaths": [["_release_", "release-group", "artist-credit-phrase"]],
+    },
+    {
+            "internalname": "originaldate",
+            "name": "Original Release Date",
+            "id3v2.4": "TDOR",
+            "vorbis": "ORIGINALDATE",
+            "mp4": "----:com.apple.iTunes:ORIGINALDATE",
+            "mbpaths": [["_release_", "release-group", "first-release-date"]],
+    },
+    {
+            "internalname": "originalyear",
+            "name": "Original Release Year",
+            "id3v2.4": "TXXX:originalyear",
+            "vorbis": "ORIGINALYEAR",
+            "mp4": "----:com.apple.iTunes:ORIGINALYEAR",
+            "mbpaths": [["_release_", "release-group", "first-release-date"]],
+            "postprocess": "firstfour",
+    },
+    {
+            "internalname": "originalfilename",
+            "name": "Original Filename",
+            "id3v2.4": "TOFN",
+            "vorbis": "ORIGINALFILENAME",
+            "mp4": None,
+    },
+    {
+            "internalname": "composer",
+            "name": "Composer",
+            "id3v2.4": "TCOM",
+            "vorbis": "COMPOSER",
+            "mp4": "©wrt",
+            "mbpaths": [["_release_", "related", "composer", "_multiple_"]],
+    },
+    {
+            "internalname": "composersort",
+            "name": "Composer Sort Order",
+            "id3v2.4": "TSOC",
+            "vorbis": "COMPOSERSORT",
+            "mp4": "soco",
+            "mbpaths": [["_release_", "related", "composer-sort", "_multiple_"]],
+    },
+    {
+            "internalname": "lyricist",
+            "name": "Lyricist",
+            "id3v2.4": "TEXT",
+            "vorbis": "LYRICIST",
+            "mp4": "----:com.apple.iTunes:LYRICIST",
+            "mbpaths": [["_release_", "related", "lyricist", "_multiple_"]],
+    },
+    {
+            "internalname": "writer",
+            "name": "Writer",
+            "id3v2.4": "TXXX:Writer",
+            "vorbis": "WRITER",
+            "mp4": "----:com.apple.iTunes:WRITER",
+            "mbpaths": [["_release_", "related", "writer", "_multiple_"]],
+    },
+    {
+            "internalname": "conductor",
+            "name": "Conductor",
+            "id3v2.4": "TPE3",
+            "vorbis": "CONDUCTOR",
+            "mp4": "----:com.apple.iTunes:CONDUCTOR",
+            "mbpaths": [["_release_", "related", "conductor", "_multiple_"]],
+    },
+    {
+            "internalname": "performer:instrument",
+            "name": "Performer [instrument]",
+            "id3v2.4": "TMCL",
+            "vorbis": "PERFORMER",
+            "vorbis-fmt": "%s (%s)",
+            "mp4": None,
+            "mbpaths": [["_release_", "performer", "_multiple_"]],
+    },
+    {
+            "internalname": "remixer",
+            "name": "Remixer",
+            "id3v2.4": "TPE4",
+            "vorbis": "REMIXER",
+            "mp4": "----:com.apple.iTunes:REMIXER",
+            "mbpaths": [["_release_", "related", "remixer", "_multiple_"]],
+    },
+    {
+            "internalname": "arranger",
+            "name": "Arranger",
+            "id3v2.4": "TIPL:arranger",
+            "vorbis": "ARRANGER",
+            "mp4": None,
+            "mbpaths": [["_release_", "related", "arranger", "_multiple_"]],
+    },
+    {
+            "internalname": "engineer",
+            "name": "Engineer",
+            "id3v2.4": "TIPL:engineer",
+            "vorbis": "ENGINEER",
+            "mp4": "----:com.apple.iTunes:ENGINEER",
+            "mbpaths": [["_release_", "related", "engineer", "_multiple_"]],
+    },
+    {
+            "internalname": "producer",
+            "name": "Producer",
+            "id3v2.4": "TIPL:producer",
+            "vorbis": "PRODUCER",
+            "mp4": "----:com.apple.iTunes:PRODUCER",
+            "mbpaths": [["_release_", "related", "producer", "_multiple_"]],
+    },
+    {
+            "internalname": "djmixer",
+            "name": "Mix-DJ",
+            "id3v2.4": "TIPL:DJ-mix",
+            "vorbis": "DJMIXER",
+            "mp4": "----:com.apple.iTunes:DJMIXER",
+            "mbpaths": [["_release_", "related", "mix-DJ", "_multiple_"]],
+    },
+    {
+            "internalname": "mixer",
+            "name": "Mixer",
+            "id3v2.4": "TIPL:mix",
+            "vorbis": "MIXER",
+            "mp4": "----:com.apple.iTunes:MIXER",
+            "mbpaths": [["_release_", "related", "mix", "_multiple_"]],
+    },
+    {
+            "internalname": "label",
+            "name": "Record Label",
+            "id3v2.4": "TPUB",
+            "vorbis": "LABEL",
+            "mp4": "----:com.apple.iTunes:LABEL",
+            "mbpaths": [["_release_", "label-info", "_multiple_", "label", "name"]],
+    },
+    {
+            "internalname": "movement",
+            "name": "Movement",
+            "id3v2.4": "MVNM",
+            "vorbis": "MOVEMENTNAME",
+            "mp4": "©mvn",
+    },
+    {
+            "internalname": "movementnumber",
+            "name": "Movement Number",
+            "id3v2.4": "MVIN",
+            "vorbis": "MOVEMENT",
+            "mp4": "mvi",
+    },
+    {
+            "internalname": "movementtotal",
+            "name": "Movement Count",
+            "id3v2.4": "MVIN",
+            "vorbis": "MOVEMENTTOTAL",
+            "mp4": "mvc",
+    },
+    {
+            "internalname": "showmovement",
+            "name": "Show Work & Movement",
+            "id3v2.4": "TXXX:SHOWMOVEMENT",
+            "vorbis": "SHOWMOVEMENT",
+            "mp4": "shwm",
+    },
+    {
+            "internalname": "grouping",
+            "name": "Grouping",
+            "id3v2.4": "GRP1",
+            "vorbis": "GROUPING",
+            "mp4": "©grp",
+    },
+    {
+            "internalname": "subtitle",
+            "name": "Subtitle",
+            "id3v2.4": "TIT3",
+            "vorbis": "SUBTITLE",
+            "mp4": "----:com.apple.iTunes:SUBTITLE",
+    },
+    {
+            "internalname": "discsubtitle",
+            "name": "Disc Subtitle",
+            "id3v2.4": "TSST",
+            "vorbis": "DISCSUBTITLE",
+            "mp4": "----:com.apple.iTunes:DISCSUBTITLE",
+            "mbpaths": [["_medium_", "title"]],
+    },
+    {
+            # part of basic tagging
+            "internalname": "tracknumber",
+            "name": "Track Number",
+            "id3v2.4": "TRCK",
+            "vorbis": "TRACKNUMBER",
+            "mp4": "trkn",
+            "tuple-position": 0,
+            "mbpaths": [["_track_", "position"]],
+    },
+    {
+            # part of basic tagging
+            "internalname": "totaltracks",
+            "name": "Total Tracks",
+            "id3v2.4": "TRCK",
+            "vorbis": "TRACKTOTAL",
+            "mp4": "trkn",
+            "tuple-position": 1,
+            "mbpaths": [["_medium_", "track-count"]],
+    },
+    {
+            # part of basic tagging
+            "internalname": "discnumber",
+            "name": "Disc Number",
+            "id3v2.4": "TPOS",
+            "vorbis": "DISCNUMBER",
+            "mp4": "disk",
+            "tuple-position": 0,
+            "mbpaths": [["_medium_", "position"]],
+    },
+    {
+            # part of basic tagging
+            "internalname": "totaldiscs",
+            "name": "Total Discs",
+            "id3v2.4": "TPOS",
+            "vorbis": "DISCTOTAL",
+            "mp4": "disk",
+            "tuple-position": 1,
+            "mbpaths": [["_release_", "medium-count"]],
+    },
+    {
+            # part of basic tagging
+            "internalname": "compilation",
+            "name": "Compilation (iTunes)",
+            "id3v2.4": "TCMP",
+            "vorbis": "COMPILATION",
+            "mp4": "cpil",
+            "mp4-type": "boolean",
+            "mbpaths": [["_compilation_"]],
+    },
+    {
+            "internalname": "comment:description",
+            "name": "Comment",
+            "id3v2.4": "COMM:description",
+            "vorbis": "COMMENT",
+            "mp4": "©cmt",
+    },
+    {
+            # part of basic tagging
+            "internalname": "genre",
+            "name": "Genre",
+            "id3v2.4": "TCON",
+            "vorbis": "GENRE",
+            "mp4": "©gen",
+            "mbpaths": [["_genres_"]],
+            "postprocess": "standardize-genre,reversesort",
+    },
+    {
+            "internalname": "_rating",
+            "name": "Rating",
+            "id3v2.4": "POPM",
+            "vorbis": "RATING:user@email",
+            "mp4": None,
+    },
+    {
+            "internalname": "bpm",
+            "name": "BPM",
+            "id3v2.4": "TBPM",
+            "vorbis": "BPM",
+            "mp4": "tmpo",
+    },
+    {
+            "internalname": "mood",
+            "name": "Mood",
+            "id3v2.4": "TMOO",
+            "vorbis": "MOOD",
+            "mp4": "----:com.apple.iTunes:MOOD",
+    },
+    {
+            "internalname": "lyrics:description",
+            "name": "Lyrics",
+            "id3v2.4": "USLT:description",
+            "vorbis": "LYRICS",
+            "mp4": "©lyr",
+    },
+    {
+            "internalname": "media",
+            "name": "Media",
+            "id3v2.4": "TMED",
+            "vorbis": "MEDIA",
+            "mp4": "----:com.apple.iTunes:MEDIA",
+            "mbpaths": [["_medium_", "format"]],
+    },
+    {
+            "internalname": "catalognumber",
+            "name": "Catalog Number",
+            "id3v2.4": "TXXX:CATALOGNUMBER",
+            "vorbis": "CATALOGNUMBER",
+            "mp4": "----:com.apple.iTunes:CATALOGNUMBER",
+            "mbpaths": [["_release_", "label-info", "_multiple_", "catalog-number"]],
+    },
+    {
+            "internalname": "show",
+            "name": "Show Name",
+            "id3v2.4": None,
+            "vorbis": None,
+            "mp4": "tvsh",
+    },
+    {
+            "internalname": "showsort",
+            "name": "Show Name Sort Order",
+            "id3v2.4": None,
+            "vorbis": None,
+            "mp4": "sosn",
+    },
+    {
+            "internalname": "podcast",
+            "name": "Podcast",
+            "id3v2.4": None,
+            "vorbis": None,
+            "mp4": "pcst",
+    },
+    {
+            "internalname": "podcasturl",
+            "name": "Podcast URL",
+            "id3v2.4": None,
+            "vorbis": None,
+            "mp4": "purl",
+    },
+    {
+            "internalname": "releasestatus",
+            "name": "Release Status",
+            "id3v2.4": "TXXX:MusicBrainz Album Status",
+            "vorbis": "RELEASESTATUS",
+            "mp4": "----:com.apple.iTunes:MusicBrainz Album Status",
+            "mbpaths": [["_release_", "status"]],
+            "postprocess": "tolowercase",
+    },
+    {
+            "internalname": "releasetype",
+            "name": "Release Type",
+            "id3v2.4": "TXXX:MusicBrainz Album Type",
+            "vorbis": "RELEASETYPE",
+            "mp4": "----:com.apple.iTunes:MusicBrainz Album Type",
+            "mbpaths": [
+                    ["_release_", "release-group", "primary-type"],
+                    ["_release_", "release-group", "secondary-types", "_multiple_"],
+            ],
+            "mbpaths-attempt": "any",
+            "postprocess": "tolowercase",
+    },
+    {
+            "internalname": "releasecountry",
+            "name": "Release Country",
+            "id3v2.4": "TXXX:MusicBrainz Album Release Country",
+            "vorbis": "RELEASECOUNTRY",
+            "mp4": "----:com.apple.iTunes:MusicBrainz Album Release Country",
+            "mbpaths": [["_release_", "country"]],
+    },
+    {
+            "internalname": "script",
+            "name": "Script",
+            "id3v2.4": "TXXX:SCRIPT",
+            "vorbis": "SCRIPT",
+            "mp4": "----:com.apple.iTunes:SCRIPT",
+            "mbpaths": [["_release_", "text-representation", "script"]],
+    },
+    {
+            "internalname": "language",
+            "name": "Language",
+            "id3v2.4": "TLAN",
+            "vorbis": "LANGUAGE",
+            "mp4": "----:com.apple.iTunes:LANGUAGE",
+            "mbpaths": [["_release_", "text-representation", "language"]],
+    },
+    {
+            "internalname": "copyright",
+            "name": "Copyright",
+            "id3v2.4": "TCOP",
+            "vorbis": "COPYRIGHT",
+            "mp4": "cprt",
+    },
+    {
+            "internalname": "license",
+            "name": "License",
+            "id3v2.4": "WCOP",
+            "vorbis": "LICENSE",
+            "mp4": "----:com.apple.iTunes:LICENSE",
+    },
+    {
+            # handled by encoder
+            "internalname": "encodedby",
+            "name": "Encoded By",
+            "id3v2.4": "TENC",
+            "vorbis": "ENCODEDBY",
+            "mp4": "©too",
+    },
+    {
+            # handled by encoder
+            "internalname": "encodersettings",
+            "name": "Encoder Settings",
+            "id3v2.4": "TSSE",
+            "vorbis": "ENCODERSETTINGS",
+            "mp4": None,
+    },
+    {
+            "internalname": "gapless",
+            "name": "Gapless Playback",
+            "id3v2.4": None,
+            "vorbis": None,
+            "mp4": "pgap",
+    },
+    {
+            "internalname": "barcode",
+            "name": "Barcode",
+            "id3v2.4": "TXXX:BARCODE",
+            "vorbis": "BARCODE",
+            "mp4": "----:com.apple.iTunes:BARCODE",
+            "mbpaths": [["_release_", "barcode"]],
+    },
+    {
+            "internalname": "isrc",
+            "name": "ISRC",
+            "id3v2.4": "TSRC",
+            "vorbis": "ISRC",
+            "mp4": "----:com.apple.iTunes:ISRC",
+            "mbpaths": [["_track_", "recording", "isrcs", "_multiple_"]],
+    },
+    {
+            "internalname": "asin",
+            "name": "ASIN",
+            "id3v2.4": "TXXX:ASIN",
+            "vorbis": "ASIN",
+            "mp4": "----:com.apple.iTunes:ASIN",
+            "mbpaths": [["_release_", "asin"]],
+    },
+    {
+            "internalname": "musicbrainz_recordingid",
+            "name": "MusicBrainz Recording Id",
+            "id3v2.4": "UFID:http://musicbrainz.org",
+            "vorbis": "MUSICBRAINZ_TRACKID",
+            "mp4": "----:com.apple.iTunes:MusicBrainz Track Id",
+            "mbpaths": [["_track_", "recording", "id"]],
+    },
+    {
+            "internalname": "musicbrainz_trackid",
+            "name": "MusicBrainz Track Id",
+            "id3v2.4": "TXXX:MusicBrainz Release Track Id",
+            "vorbis": "MUSICBRAINZ_RELEASETRACKID",
+            "mp4": "----:com.apple.iTunes:MusicBrainz Release Track Id",
+            "mbpaths": [["_track_", "id"]],
+    },
+    {
+            "internalname": "musicbrainz_albumid",
+            "name": "MusicBrainz Release Id",
+            "id3v2.4": "TXXX:MusicBrainz Album Id",
+            "vorbis": "MUSICBRAINZ_ALBUMID",
+            "mp4": "----:com.apple.iTunes:MusicBrainz Album Id",
+            "mbpaths": [["_release_", "id"]],
+    },
+    {
+            "internalname": "musicbrainz_originalalbumid",
+            "name": "MusicBrainz Original Release Id",
+            "id3v2.4": "TXXX:MusicBrainz Original Album Id",
+            "vorbis": "MUSICBRAINZ_ORIGINALALBUMID",
+            "mp4": "----:com.apple.iTunes:MusicBrainz Original Album Id",
+    },
+    {
+            "internalname": "musicbrainz_artistid",
+            "name": "MusicBrainz Artist Id",
+            "id3v2.4": "TXXX:MusicBrainz Artist Id",
+            "vorbis": "MUSICBRAINZ_ARTISTID",
+            "mp4": "----:com.apple.iTunes:MusicBrainz Artist Id",
+            "mbpaths": [
+                    ["_track_", "artist-credit", "_multiple_", "artist", "id"],
+                    ["_track_", "recording", "artist-credit", "_multiple_", "artist", "id"],
+            ],
+    },
+    {
+            "internalname": "musicbrainz_originalartistid",
+            "name": "MusicBrainz Original Artist Id",
+            "id3v2.4": "TXXX:MusicBrainz Original Artist Id",
+            "vorbis": "MUSICBRAINZ_ORIGINALARTISTID",
+            "mp4": "----:com.apple.iTunes:MusicBrainz Original Artist Id",
+    },
+    {
+            "internalname": "musicbrainz_albumartistid",
+            "name": "MusicBrainz Release Artist Id",
+            "id3v2.4": "TXXX:MusicBrainz Album Artist Id",
+            "vorbis": "MUSICBRAINZ_ALBUMARTISTID",
+            "mp4": "----:com.apple.iTunes:MusicBrainz Album Artist Id",
+            "mbpaths": [["_release_", "artist-credit", "_multiple_", "artist", "id"]],
+    },
+    {
+            "internalname": "musicbrainz_releasegroupid",
+            "name": "MusicBrainz Release Group Id",
+            "id3v2.4": "TXXX:MusicBrainz Release Group Id",
+            "vorbis": "MUSICBRAINZ_RELEASEGROUPID",
+            "mp4": "----:com.apple.iTunes:MusicBrainz Release Group Id",
+            "mbpaths": [["_release_", "release-group", "id"]],
+    },
+    {
+            "internalname": "musicbrainz_workid",
+            "name": "MusicBrainz Work Id",
+            "id3v2.4": "TXXX:MusicBrainz Work Id",
+            "vorbis": "MUSICBRAINZ_WORKID",
+            "mp4": "----:com.apple.iTunes:MusicBrainz Work Id",
+    },
+    {
+            "internalname": "musicbrainz_trmid",
+            "name": "MusicBrainz TRM Id",
+            "id3v2.4": "TXXX:MusicBrainz TRM Id",
+            "vorbis": "MUSICBRAINZ_TRMID",
+            "mp4": "----:com.apple.iTunes:MusicBrainz TRM Id",
+    },
+    {
+            "internalname": "musicbrainz_discid",
+            "name": "MusicBrainz Disc Id",
+            "id3v2.4": "TXXX:MusicBrainz Disc Id",
+            "vorbis": "MUSICBRAINZ_DISCID",
+            "mp4": "----:com.apple.iTunes:MusicBrainz Disc Id",
+            "mbpaths": [["_disc_id_"]],
+    },
+    {
+            "internalname": "acoustid_id",
+            "name": "AcoustID",
+            "id3v2.4": "TXXX:Acoustid Id",
+            "vorbis": "ACOUSTID_ID",
+            "mp4": "----:com.apple.iTunes:Acoustid Id",
+    },
+    {
+            "internalname": "acoustid_fingerprint",
+            "name": "AcoustID Fingerprint",
+            "id3v2.4": "TXXX:Acoustid Fingerprint",
+            "vorbis": "ACOUSTID_FINGERPRINT",
+            "mp4": "----:com.apple.iTunes:Acoustid Fingerprint",
+    },
+    {
+            "internalname": "musicip_puid",
+            "name": "MusicIP PUID",
+            "id3v2.4": "TXXX:MusicIP PUID",
+            "vorbis": "MUSICIP_PUID",
+            "mp4": "----:com.apple.iTunes:MusicIP PUID",
+    },
+    {
+            "internalname": "musicip_fingerprint",
+            "name": "MusicIP Fingerprint",
+            "id3v2.4": "TXXX:MusicMagic Fingerprint",
+            "vorbis": "FINGERPRINT=MusicMagic Fingerprint",
+            "mp4": "----:com.apple.iTunes:fingerprint",
+    },
+    {
+            "internalname": "website",
+            "name": "Website (official artist website)",
+            "id3v2.4": "WOAR",
+            "vorbis": "WEBSITE",
+            "mp4": None,
+    },
+    {
+            "internalname": "key",
+            "name": "Initial key",
+            "id3v2.4": "TKEY",
+            "vorbis": "KEY",
+            "mp4": "----:com.apple.iTunes:initialkey",
+    },
+    {
+            "internalname": "replaygain_album_gain",
+            "name": "ReplayGain Album Gain",
+            "id3v2.4": "TXXX:REPLAYGAIN_ALBUM_GAIN",
+            "vorbis": "REPLAYGAIN_ALBUM_GAIN",
+            "mp4": "----:com.apple.iTunes:REPLAYGAIN_ALBUM_GAIN",
+    },
+    {
+            "internalname": "replaygain_album_peak",
+            "name": "ReplayGain Album Peak",
+            "id3v2.4": "TXXX:REPLAYGAIN_ALBUM_PEAK",
+            "vorbis": "REPLAYGAIN_ALBUM_PEAK",
+            "mp4": "----:com.apple.iTunes:REPLAYGAIN_ALBUM_PEAK",
+    },
+    {
+            "internalname": "replaygain_album_range",
+            "name": "ReplayGain Album Range",
+            "id3v2.4": "TXXX:REPLAYGAIN_ALBUM_RANGE",
+            "vorbis": "REPLAYGAIN_ALBUM_RANGE",
+            "mp4": "----:com.apple.iTunes:REPLAYGAIN_ALBUM_RANGE",
+    },
+    {
+            "internalname": "replaygain_track_gain",
+            "name": "ReplayGain Track Gain",
+            "id3v2.4": "TXXX:REPLAYGAIN_TRACK_GAIN",
+            "vorbis": "REPLAYGAIN_TRACK_GAIN",
+            "mp4": "----:com.apple.iTunes:REPLAYGAIN_TRACK_GAIN",
+    },
+    {
+            "internalname": "replaygain_track_peak",
+            "name": "ReplayGain Track Peak",
+            "id3v2.4": "TXXX:REPLAYGAIN_TRACK_PEAK",
+            "vorbis": "REPLAYGAIN_TRACK_PEAK",
+            "mp4": "----:com.apple.iTunes:REPLAYGAIN_TRACK_PEAK",
+    },
+    {
+            "internalname": "replaygain_track_range",
+            "name": "ReplayGain Track Range",
+            "id3v2.4": "TXXX:REPLAYGAIN_TRACK_RANGE",
+            "vorbis": "REPLAYGAIN_TRACK_RANGE",
+            "mp4": "----:com.apple.iTunes:REPLAYGAIN_TRACK_RANGE",
+    },
+    {
+            "internalname": "replaygain_reference_loudness",
+            "name": "ReplayGain Reference Loudness",
+            "id3v2.4": "TXXX:REPLAYGAIN_REFERENCE_LOUDNESS",
+            "vorbis": None,
+            "mp4": None,
+    },
+]
+
+# defined by jack - please report if there is a standard for these
+dae_tag_map = [
+    {
+            "internalname": "dae_app",
+            "name": "Digital Audio Extraction Application",
+            "id3v2.4": "TXXX:DIGITAL_AUDIO_EXTRACTION_APPLICATION",
+            "vorbis": "DIGITAL_AUDIO_EXTRACTION_APPLICATION",
+            "mp4": None,
+            "mbpaths": [["_cf_", "ripper"]],
+    },
+    {
+            "internalname": "dae_app_options",
+            "name": "Digital Audio Extraction Application Options",
+            "id3v2.4": "TXXX:DIGITAL_AUDIO_EXTRACTION_APPLICATION_OPTIONS",
+            "vorbis": "DIGITAL_AUDIO_EXTRACTION_APPLICATION_OPTIONS",
+            "mp4": None,
+            "mbpaths": [["_helpers_", "_cf_ripper_", "cmd"]],
+    },
+    {
+            "internalname": "dae_app_report",
+            "name": "Digital Audio Extraction Application Report",
+            "id3v2.4": "TXXX:DIGITAL_AUDIO_EXTRACTION_APPLICATION_REPORT",
+            "vorbis": "DIGITAL_AUDIO_EXTRACTION_APPLICATION_REPORT",
+            "mp4": None,
+            "mbpaths": [["_dae_status_", "_track_"]],
+    },
+]
 
 
 def tag(metadata_rename):
@@ -319,742 +1077,6 @@ def standardize_genre(genre):
 
 def extended_tag(tag_obj, tag_type, track_position):
 
-    # taken from https://picard.musicbrainz.org/docs/mappings/
-    mb_tag_map = [
-        {
-                # part of basic tagging
-                "internalname": "album",
-                "name": "Album",
-                "id3v2.4": "TALB",
-                "vorbis": "ALBUM",
-                "mp4": "©alb",
-                "mbpaths": [["_release_", "title"]]
-        },
-        {
-                "internalname": "albumsort",
-                "name": "Album Sort Order",
-                "id3v2.4": "TSOA",
-                "vorbis": "ALBUMSORT",
-                "mp4": "soal",
-                "mbpaths": [["_release_", "sort-name"]]
-        },
-        {
-                # part of basic tagging
-                "internalname": "title",
-                "name": "Track Title",
-                "id3v2.4": "TIT2",
-                "vorbis": "TITLE",
-                "mp4": "©nam",
-                "mbpaths": [
-                        ["_track_", "title"],
-                        ["_track_", "recording", "title"],
-                ]
-        },
-        {
-                "internalname": "titlesort",
-                "name": "Track Title Sort Order",
-                "id3v2.4": "TSOT",
-                "vorbis": "TITLESORT",
-                "mp4": "sonm",
-                "mbpaths": [["_track_", "recording", "sort-name"]]
-        },
-        {
-                "internalname": "work",
-                "name": "Work Title",
-                "id3v2.4": "TIT1",
-                "vorbis": "WORK",
-                "mp4": "©wrk",
-        },
-        {
-                # part of basic tagging
-                "internalname": "artist",
-                "name": "Artist",
-                "id3v2.4": "TPE1",
-                "vorbis": "ARTIST",
-                "mp4": "©ART",
-                "mbpaths": [
-                        ["_track_", "artist-credit-phrase"],
-                        ["_track_", "recording", "artist-credit-phrase"],
-                ]
-        },
-        {
-                "internalname": "artistsort",
-                "name": "Artist Sort Order",
-                "id3v2.4": "TSOP",
-                "vorbis": "ARTISTSORT",
-                "mp4": "soar",
-                "mbpaths": [
-                        ["_track_", "artist-credit-phrase-sort"],
-                        ["_track_", "recording", "artist-credit-phrase-sort"],
-                ]
-        },
-        {
-                # part of basic tagging, using equivalent of ["_release_", "artist-credit-phrase"]
-                "internalname": "albumartist",
-                "name": "Album Artist",
-                "id3v2.4": "TPE2",
-                "vorbis": "ALBUMARTIST",
-                "mp4": "aART",
-                "mbpaths": [["_release_", "artist-credit-phrase"]],
-        },
-        {
-                "internalname": "albumartistsort",
-                "name": "Album Artist Sort Order",
-                "id3v2.4": "TSO2",
-                "vorbis": "ALBUMARTISTSORT",
-                "mp4": "soaa",
-                "mbpaths": [["_release_", "artist-credit-phrase-sort"]],
-        },
-        {
-                "internalname": "artists",
-                "name": "Artists",
-                "id3v2.4": "TXXX:Artists",
-                "vorbis": "ARTISTS",
-                "mp4": "----:com.apple.iTunes:ARTISTS",
-                "mbpaths": [
-                        ["_track_", "artist-credit", "_multiple_", "name"],
-                        ["_track_", "artist-credit", "_multiple_", "artist", "name"],
-                        ["_track_", "recording", "artist-credit", "_multiple_", "name"],
-                        ["_track_", "recording", "artist-credit", "_multiple_", "artist", "name"],
-                ]
-        },
-        {
-                # part of basic tagging
-                "internalname": "date",
-                "name": "Release Date",
-                "id3v2.4": "TDRC",
-                "vorbis": "DATE",
-                "mp4": "©day",
-                "mbpaths": [["_release_", "date"]],
-        },
-        {
-                "internalname": "originalalbum",
-                "name": "Original Album",
-                "id3v2.4": "TOAL",
-                "vorbis": None,
-                "mp4": None,
-                "mbpaths": [["_release_", "release-group", "title"]],
-        },
-        {
-                "internalname": "originalartist",
-                "name": "Original Artist",
-                "id3v2.4": "TOPE",
-                "vorbis": None,
-                "mp4": None,
-                "mbpaths": [["_release_", "release-group", "artist-credit-phrase"]],
-        },
-        {
-                "internalname": "originaldate",
-                "name": "Original Release Date",
-                "id3v2.4": "TDOR",
-                "vorbis": "ORIGINALDATE",
-                "mp4": "----:com.apple.iTunes:ORIGINALDATE",
-                "mbpaths": [["_release_", "release-group", "first-release-date"]],
-        },
-        {
-                "internalname": "originalyear",
-                "name": "Original Release Year",
-                "id3v2.4": "TXXX:originalyear",
-                "vorbis": "ORIGINALYEAR",
-                "mp4": "----:com.apple.iTunes:ORIGINALYEAR",
-                "mbpaths": [["_release_", "release-group", "first-release-date"]],
-                "postprocess": "firstfour",
-        },
-        {
-                "internalname": "originalfilename",
-                "name": "Original Filename",
-                "id3v2.4": "TOFN",
-                "vorbis": "ORIGINALFILENAME",
-                "mp4": None,
-        },
-        {
-                "internalname": "composer",
-                "name": "Composer",
-                "id3v2.4": "TCOM",
-                "vorbis": "COMPOSER",
-                "mp4": "©wrt",
-                "mbpaths": [["_release_", "related", "composer", "_multiple_"]],
-        },
-        {
-                "internalname": "composersort",
-                "name": "Composer Sort Order",
-                "id3v2.4": "TSOC",
-                "vorbis": "COMPOSERSORT",
-                "mp4": "soco",
-                "mbpaths": [["_release_", "related", "composer-sort", "_multiple_"]],
-        },
-        {
-                "internalname": "lyricist",
-                "name": "Lyricist",
-                "id3v2.4": "TEXT",
-                "vorbis": "LYRICIST",
-                "mp4": "----:com.apple.iTunes:LYRICIST",
-                "mbpaths": [["_release_", "related", "lyricist", "_multiple_"]],
-        },
-        {
-                "internalname": "writer",
-                "name": "Writer",
-                "id3v2.4": "TXXX:Writer",
-                "vorbis": "WRITER",
-                "mp4": "----:com.apple.iTunes:WRITER",
-                "mbpaths": [["_release_", "related", "writer", "_multiple_"]],
-        },
-        {
-                "internalname": "conductor",
-                "name": "Conductor",
-                "id3v2.4": "TPE3",
-                "vorbis": "CONDUCTOR",
-                "mp4": "----:com.apple.iTunes:CONDUCTOR",
-                "mbpaths": [["_release_", "related", "conductor", "_multiple_"]],
-        },
-        {
-                "internalname": "performer:instrument",
-                "name": "Performer [instrument]",
-                "id3v2.4": "TMCL",
-                "vorbis": "PERFORMER",
-                "vorbis-fmt": "%s (%s)",
-                "mp4": None,
-                "mbpaths": [["_release_", "performer", "_multiple_"]],
-        },
-        {
-                "internalname": "remixer",
-                "name": "Remixer",
-                "id3v2.4": "TPE4",
-                "vorbis": "REMIXER",
-                "mp4": "----:com.apple.iTunes:REMIXER",
-                "mbpaths": [["_release_", "related", "remixer", "_multiple_"]],
-        },
-        {
-                "internalname": "arranger",
-                "name": "Arranger",
-                "id3v2.4": "TIPL:arranger",
-                "vorbis": "ARRANGER",
-                "mp4": None,
-                "mbpaths": [["_release_", "related", "arranger", "_multiple_"]],
-        },
-        {
-                "internalname": "engineer",
-                "name": "Engineer",
-                "id3v2.4": "TIPL:engineer",
-                "vorbis": "ENGINEER",
-                "mp4": "----:com.apple.iTunes:ENGINEER",
-                "mbpaths": [["_release_", "related", "engineer", "_multiple_"]],
-        },
-        {
-                "internalname": "producer",
-                "name": "Producer",
-                "id3v2.4": "TIPL:producer",
-                "vorbis": "PRODUCER",
-                "mp4": "----:com.apple.iTunes:PRODUCER",
-                "mbpaths": [["_release_", "related", "producer", "_multiple_"]],
-        },
-        {
-                "internalname": "djmixer",
-                "name": "Mix-DJ",
-                "id3v2.4": "TIPL:DJ-mix",
-                "vorbis": "DJMIXER",
-                "mp4": "----:com.apple.iTunes:DJMIXER",
-                "mbpaths": [["_release_", "related", "mix-DJ", "_multiple_"]],
-        },
-        {
-                "internalname": "mixer",
-                "name": "Mixer",
-                "id3v2.4": "TIPL:mix",
-                "vorbis": "MIXER",
-                "mp4": "----:com.apple.iTunes:MIXER",
-                "mbpaths": [["_release_", "related", "mix", "_multiple_"]],
-        },
-        {
-                "internalname": "label",
-                "name": "Record Label",
-                "id3v2.4": "TPUB",
-                "vorbis": "LABEL",
-                "mp4": "----:com.apple.iTunes:LABEL",
-                "mbpaths": [["_release_", "label-info", "_multiple_", "label", "name"]],
-        },
-        {
-                "internalname": "movement",
-                "name": "Movement",
-                "id3v2.4": "MVNM",
-                "vorbis": "MOVEMENTNAME",
-                "mp4": "©mvn",
-        },
-        {
-                "internalname": "movementnumber",
-                "name": "Movement Number",
-                "id3v2.4": "MVIN",
-                "vorbis": "MOVEMENT",
-                "mp4": "mvi",
-        },
-        {
-                "internalname": "movementtotal",
-                "name": "Movement Count",
-                "id3v2.4": "MVIN",
-                "vorbis": "MOVEMENTTOTAL",
-                "mp4": "mvc",
-        },
-        {
-                "internalname": "showmovement",
-                "name": "Show Work & Movement",
-                "id3v2.4": "TXXX:SHOWMOVEMENT",
-                "vorbis": "SHOWMOVEMENT",
-                "mp4": "shwm",
-        },
-        {
-                "internalname": "grouping",
-                "name": "Grouping",
-                "id3v2.4": "GRP1",
-                "vorbis": "GROUPING",
-                "mp4": "©grp",
-        },
-        {
-                "internalname": "subtitle",
-                "name": "Subtitle",
-                "id3v2.4": "TIT3",
-                "vorbis": "SUBTITLE",
-                "mp4": "----:com.apple.iTunes:SUBTITLE",
-        },
-        {
-                "internalname": "discsubtitle",
-                "name": "Disc Subtitle",
-                "id3v2.4": "TSST",
-                "vorbis": "DISCSUBTITLE",
-                "mp4": "----:com.apple.iTunes:DISCSUBTITLE",
-                "mbpaths": [["_medium_", "title"]],
-        },
-        {
-                # part of basic tagging
-                "internalname": "tracknumber",
-                "name": "Track Number",
-                "id3v2.4": "TRCK",
-                "vorbis": "TRACKNUMBER",
-                "mp4": "trkn",
-                "tuple-position": 0,
-                "mbpaths": [["_track_", "position"]],
-        },
-        {
-                # part of basic tagging
-                "internalname": "totaltracks",
-                "name": "Total Tracks",
-                "id3v2.4": "TRCK",
-                "vorbis": "TRACKTOTAL",
-                "mp4": "trkn",
-                "tuple-position": 1,
-                "mbpaths": [["_medium_", "track-count"]],
-        },
-        {
-                # part of basic tagging
-                "internalname": "discnumber",
-                "name": "Disc Number",
-                "id3v2.4": "TPOS",
-                "vorbis": "DISCNUMBER",
-                "mp4": "disk",
-                "tuple-position": 0,
-                "mbpaths": [["_medium_", "position"]],
-        },
-        {
-                # part of basic tagging
-                "internalname": "totaldiscs",
-                "name": "Total Discs",
-                "id3v2.4": "TPOS",
-                "vorbis": "DISCTOTAL",
-                "mp4": "disk",
-                "tuple-position": 1,
-                "mbpaths": [["_release_", "medium-count"]],
-        },
-        {
-                # part of basic tagging
-                "internalname": "compilation",
-                "name": "Compilation (iTunes)",
-                "id3v2.4": "TCMP",
-                "vorbis": "COMPILATION",
-                "mp4": "cpil",
-                "mp4-type": "boolean",
-                "mbpaths": [["_compilation_"]],
-        },
-        {
-                "internalname": "comment:description",
-                "name": "Comment",
-                "id3v2.4": "COMM:description",
-                "vorbis": "COMMENT",
-                "mp4": "©cmt",
-        },
-        {
-                # part of basic tagging
-                "internalname": "genre",
-                "name": "Genre",
-                "id3v2.4": "TCON",
-                "vorbis": "GENRE",
-                "mp4": "©gen",
-                "mbpaths": [["_genres_"]],
-                "postprocess": "standardize-genre,reversesort",
-        },
-        {
-                "internalname": "_rating",
-                "name": "Rating",
-                "id3v2.4": "POPM",
-                "vorbis": "RATING:user@email",
-                "mp4": None,
-        },
-        {
-                "internalname": "bpm",
-                "name": "BPM",
-                "id3v2.4": "TBPM",
-                "vorbis": "BPM",
-                "mp4": "tmpo",
-        },
-        {
-                "internalname": "mood",
-                "name": "Mood",
-                "id3v2.4": "TMOO",
-                "vorbis": "MOOD",
-                "mp4": "----:com.apple.iTunes:MOOD",
-        },
-        {
-                "internalname": "lyrics:description",
-                "name": "Lyrics",
-                "id3v2.4": "USLT:description",
-                "vorbis": "LYRICS",
-                "mp4": "©lyr",
-        },
-        {
-                "internalname": "media",
-                "name": "Media",
-                "id3v2.4": "TMED",
-                "vorbis": "MEDIA",
-                "mp4": "----:com.apple.iTunes:MEDIA",
-                "mbpaths": [["_medium_", "format"]],
-        },
-        {
-                "internalname": "catalognumber",
-                "name": "Catalog Number",
-                "id3v2.4": "TXXX:CATALOGNUMBER",
-                "vorbis": "CATALOGNUMBER",
-                "mp4": "----:com.apple.iTunes:CATALOGNUMBER",
-                "mbpaths": [["_release_", "label-info", "_multiple_", "catalog-number"]],
-        },
-        {
-                "internalname": "show",
-                "name": "Show Name",
-                "id3v2.4": None,
-                "vorbis": None,
-                "mp4": "tvsh",
-        },
-        {
-                "internalname": "showsort",
-                "name": "Show Name Sort Order",
-                "id3v2.4": None,
-                "vorbis": None,
-                "mp4": "sosn",
-        },
-        {
-                "internalname": "podcast",
-                "name": "Podcast",
-                "id3v2.4": None,
-                "vorbis": None,
-                "mp4": "pcst",
-        },
-        {
-                "internalname": "podcasturl",
-                "name": "Podcast URL",
-                "id3v2.4": None,
-                "vorbis": None,
-                "mp4": "purl",
-        },
-        {
-                "internalname": "releasestatus",
-                "name": "Release Status",
-                "id3v2.4": "TXXX:MusicBrainz Album Status",
-                "vorbis": "RELEASESTATUS",
-                "mp4": "----:com.apple.iTunes:MusicBrainz Album Status",
-                "mbpaths": [["_release_", "status"]],
-                "postprocess": "tolowercase",
-        },
-        {
-                "internalname": "releasetype",
-                "name": "Release Type",
-                "id3v2.4": "TXXX:MusicBrainz Album Type",
-                "vorbis": "RELEASETYPE",
-                "mp4": "----:com.apple.iTunes:MusicBrainz Album Type",
-                "mbpaths": [
-                        ["_release_", "release-group", "primary-type"],
-                        ["_release_", "release-group", "secondary-types", "_multiple_"],
-                ],
-                "mbpaths-attempt": "any",
-                "postprocess": "tolowercase",
-        },
-        {
-                "internalname": "releasecountry",
-                "name": "Release Country",
-                "id3v2.4": "TXXX:MusicBrainz Album Release Country",
-                "vorbis": "RELEASECOUNTRY",
-                "mp4": "----:com.apple.iTunes:MusicBrainz Album Release Country",
-                "mbpaths": [["_release_", "country"]],
-        },
-        {
-                "internalname": "script",
-                "name": "Script",
-                "id3v2.4": "TXXX:SCRIPT",
-                "vorbis": "SCRIPT",
-                "mp4": "----:com.apple.iTunes:SCRIPT",
-                "mbpaths": [["_release_", "text-representation", "script"]],
-        },
-        {
-                "internalname": "language",
-                "name": "Language",
-                "id3v2.4": "TLAN",
-                "vorbis": "LANGUAGE",
-                "mp4": "----:com.apple.iTunes:LANGUAGE",
-                "mbpaths": [["_release_", "text-representation", "language"]],
-        },
-        {
-                "internalname": "copyright",
-                "name": "Copyright",
-                "id3v2.4": "TCOP",
-                "vorbis": "COPYRIGHT",
-                "mp4": "cprt",
-        },
-        {
-                "internalname": "license",
-                "name": "License",
-                "id3v2.4": "WCOP",
-                "vorbis": "LICENSE",
-                "mp4": "----:com.apple.iTunes:LICENSE",
-        },
-        {
-                # handled by encoder
-                "internalname": "encodedby",
-                "name": "Encoded By",
-                "id3v2.4": "TENC",
-                "vorbis": "ENCODEDBY",
-                "mp4": "©too",
-        },
-        {
-                # handled by encoder
-                "internalname": "encodersettings",
-                "name": "Encoder Settings",
-                "id3v2.4": "TSSE",
-                "vorbis": "ENCODERSETTINGS",
-                "mp4": None,
-        },
-        {
-                "internalname": "gapless",
-                "name": "Gapless Playback",
-                "id3v2.4": None,
-                "vorbis": None,
-                "mp4": "pgap",
-        },
-        {
-                "internalname": "barcode",
-                "name": "Barcode",
-                "id3v2.4": "TXXX:BARCODE",
-                "vorbis": "BARCODE",
-                "mp4": "----:com.apple.iTunes:BARCODE",
-                "mbpaths": [["_release_", "barcode"]],
-        },
-        {
-                "internalname": "isrc",
-                "name": "ISRC",
-                "id3v2.4": "TSRC",
-                "vorbis": "ISRC",
-                "mp4": "----:com.apple.iTunes:ISRC",
-                "mbpaths": [["_track_", "recording", "isrcs", "_multiple_"]],
-        },
-        {
-                "internalname": "asin",
-                "name": "ASIN",
-                "id3v2.4": "TXXX:ASIN",
-                "vorbis": "ASIN",
-                "mp4": "----:com.apple.iTunes:ASIN",
-                "mbpaths": [["_release_", "asin"]],
-        },
-        {
-                "internalname": "musicbrainz_recordingid",
-                "name": "MusicBrainz Recording Id",
-                "id3v2.4": "UFID:http://musicbrainz.org",
-                "vorbis": "MUSICBRAINZ_TRACKID",
-                "mp4": "----:com.apple.iTunes:MusicBrainz Track Id",
-                "mbpaths": [["_track_", "recording", "id"]],
-        },
-        {
-                "internalname": "musicbrainz_trackid",
-                "name": "MusicBrainz Track Id",
-                "id3v2.4": "TXXX:MusicBrainz Release Track Id",
-                "vorbis": "MUSICBRAINZ_RELEASETRACKID",
-                "mp4": "----:com.apple.iTunes:MusicBrainz Release Track Id",
-                "mbpaths": [["_track_", "id"]],
-        },
-        {
-                "internalname": "musicbrainz_albumid",
-                "name": "MusicBrainz Release Id",
-                "id3v2.4": "TXXX:MusicBrainz Album Id",
-                "vorbis": "MUSICBRAINZ_ALBUMID",
-                "mp4": "----:com.apple.iTunes:MusicBrainz Album Id",
-                "mbpaths": [["_release_", "id"]],
-        },
-        {
-                "internalname": "musicbrainz_originalalbumid",
-                "name": "MusicBrainz Original Release Id",
-                "id3v2.4": "TXXX:MusicBrainz Original Album Id",
-                "vorbis": "MUSICBRAINZ_ORIGINALALBUMID",
-                "mp4": "----:com.apple.iTunes:MusicBrainz Original Album Id",
-        },
-        {
-                "internalname": "musicbrainz_artistid",
-                "name": "MusicBrainz Artist Id",
-                "id3v2.4": "TXXX:MusicBrainz Artist Id",
-                "vorbis": "MUSICBRAINZ_ARTISTID",
-                "mp4": "----:com.apple.iTunes:MusicBrainz Artist Id",
-                "mbpaths": [
-                        ["_track_", "artist-credit", "_multiple_", "artist", "id"],
-                        ["_track_", "recording", "artist-credit", "_multiple_", "artist", "id"],
-                ],
-        },
-        {
-                "internalname": "musicbrainz_originalartistid",
-                "name": "MusicBrainz Original Artist Id",
-                "id3v2.4": "TXXX:MusicBrainz Original Artist Id",
-                "vorbis": "MUSICBRAINZ_ORIGINALARTISTID",
-                "mp4": "----:com.apple.iTunes:MusicBrainz Original Artist Id",
-        },
-        {
-                "internalname": "musicbrainz_albumartistid",
-                "name": "MusicBrainz Release Artist Id",
-                "id3v2.4": "TXXX:MusicBrainz Album Artist Id",
-                "vorbis": "MUSICBRAINZ_ALBUMARTISTID",
-                "mp4": "----:com.apple.iTunes:MusicBrainz Album Artist Id",
-                "mbpaths": [["_release_", "artist-credit", "_multiple_", "artist", "id"]],
-        },
-        {
-                "internalname": "musicbrainz_releasegroupid",
-                "name": "MusicBrainz Release Group Id",
-                "id3v2.4": "TXXX:MusicBrainz Release Group Id",
-                "vorbis": "MUSICBRAINZ_RELEASEGROUPID",
-                "mp4": "----:com.apple.iTunes:MusicBrainz Release Group Id",
-                "mbpaths": [["_release_", "release-group", "id"]],
-        },
-        {
-                "internalname": "musicbrainz_workid",
-                "name": "MusicBrainz Work Id",
-                "id3v2.4": "TXXX:MusicBrainz Work Id",
-                "vorbis": "MUSICBRAINZ_WORKID",
-                "mp4": "----:com.apple.iTunes:MusicBrainz Work Id",
-        },
-        {
-                "internalname": "musicbrainz_trmid",
-                "name": "MusicBrainz TRM Id",
-                "id3v2.4": "TXXX:MusicBrainz TRM Id",
-                "vorbis": "MUSICBRAINZ_TRMID",
-                "mp4": "----:com.apple.iTunes:MusicBrainz TRM Id",
-        },
-        {
-                "internalname": "musicbrainz_discid",
-                "name": "MusicBrainz Disc Id",
-                "id3v2.4": "TXXX:MusicBrainz Disc Id",
-                "vorbis": "MUSICBRAINZ_DISCID",
-                "mp4": "----:com.apple.iTunes:MusicBrainz Disc Id",
-                "mbpaths": [["_disc_id_"]],
-        },
-        {
-                "internalname": "acoustid_id",
-                "name": "AcoustID",
-                "id3v2.4": "TXXX:Acoustid Id",
-                "vorbis": "ACOUSTID_ID",
-                "mp4": "----:com.apple.iTunes:Acoustid Id",
-        },
-        {
-                "internalname": "acoustid_fingerprint",
-                "name": "AcoustID Fingerprint",
-                "id3v2.4": "TXXX:Acoustid Fingerprint",
-                "vorbis": "ACOUSTID_FINGERPRINT",
-                "mp4": "----:com.apple.iTunes:Acoustid Fingerprint",
-        },
-        {
-                "internalname": "musicip_puid",
-                "name": "MusicIP PUID",
-                "id3v2.4": "TXXX:MusicIP PUID",
-                "vorbis": "MUSICIP_PUID",
-                "mp4": "----:com.apple.iTunes:MusicIP PUID",
-        },
-        {
-                "internalname": "musicip_fingerprint",
-                "name": "MusicIP Fingerprint",
-                "id3v2.4": "TXXX:MusicMagic Fingerprint",
-                "vorbis": "FINGERPRINT=MusicMagic Fingerprint",
-                "mp4": "----:com.apple.iTunes:fingerprint",
-        },
-        {
-                "internalname": "website",
-                "name": "Website (official artist website)",
-                "id3v2.4": "WOAR",
-                "vorbis": "WEBSITE",
-                "mp4": None,
-        },
-        {
-                "internalname": "key",
-                "name": "Initial key",
-                "id3v2.4": "TKEY",
-                "vorbis": "KEY",
-                "mp4": "----:com.apple.iTunes:initialkey",
-        },
-        {
-                "internalname": "replaygain_album_gain",
-                "name": "ReplayGain Album Gain",
-                "id3v2.4": "TXXX:REPLAYGAIN_ALBUM_GAIN",
-                "vorbis": "REPLAYGAIN_ALBUM_GAIN",
-                "mp4": "----:com.apple.iTunes:REPLAYGAIN_ALBUM_GAIN",
-        },
-        {
-                "internalname": "replaygain_album_peak",
-                "name": "ReplayGain Album Peak",
-                "id3v2.4": "TXXX:REPLAYGAIN_ALBUM_PEAK",
-                "vorbis": "REPLAYGAIN_ALBUM_PEAK",
-                "mp4": "----:com.apple.iTunes:REPLAYGAIN_ALBUM_PEAK",
-        },
-        {
-                "internalname": "replaygain_album_range",
-                "name": "ReplayGain Album Range",
-                "id3v2.4": "TXXX:REPLAYGAIN_ALBUM_RANGE",
-                "vorbis": "REPLAYGAIN_ALBUM_RANGE",
-                "mp4": "----:com.apple.iTunes:REPLAYGAIN_ALBUM_RANGE",
-        },
-        {
-                "internalname": "replaygain_track_gain",
-                "name": "ReplayGain Track Gain",
-                "id3v2.4": "TXXX:REPLAYGAIN_TRACK_GAIN",
-                "vorbis": "REPLAYGAIN_TRACK_GAIN",
-                "mp4": "----:com.apple.iTunes:REPLAYGAIN_TRACK_GAIN",
-        },
-        {
-                "internalname": "replaygain_track_peak",
-                "name": "ReplayGain Track Peak",
-                "id3v2.4": "TXXX:REPLAYGAIN_TRACK_PEAK",
-                "vorbis": "REPLAYGAIN_TRACK_PEAK",
-                "mp4": "----:com.apple.iTunes:REPLAYGAIN_TRACK_PEAK",
-        },
-        {
-                "internalname": "replaygain_track_range",
-                "name": "ReplayGain Track Range",
-                "id3v2.4": "TXXX:REPLAYGAIN_TRACK_RANGE",
-                "vorbis": "REPLAYGAIN_TRACK_RANGE",
-                "mp4": "----:com.apple.iTunes:REPLAYGAIN_TRACK_RANGE",
-        },
-        {
-                "internalname": "replaygain_reference_loudness",
-                "name": "ReplayGain Reference Loudness",
-                "id3v2.4": "TXXX:REPLAYGAIN_REFERENCE_LOUDNESS",
-                "vorbis": None,
-                "mp4": None,
-        }
-    ]
-
-    if not cf['_set_extended_tag']:
-        print("no extended tagging wanted")
-        return
-    if not mb_query_data:
-        print("no extended metadata available")
-        return
-
     # prepare data
     chosen_release = mb_query_data['chosen_release']
     genre = None
@@ -1063,6 +1085,8 @@ def extended_tag(tag_obj, tag_type, track_position):
     medium_position = track_names[0][4]
     medium = release['media'][medium_position - 1]
     track = medium['tracks'][track_position - 1]
+    dae_status = jack.status.dae_status[track_position]
+    is_from_disc = "read from image" not in dae_status
 
     # count mediums
     release['medium-count'] = len(release['media'])
@@ -1164,7 +1188,11 @@ def extended_tag(tag_obj, tag_type, track_position):
     # parse data using tag map
     paired_tags={}
     tipl_list = []
-    for map_entry in mb_tag_map:
+    tag_map = mb_tag_map
+    if cf['_set_dae_tag'] and not cf['_otf'] and is_from_disc:
+        tag_map = [*tag_map, *dae_tag_map]
+
+    for map_entry in tag_map:
         if not 'mbpaths' in map_entry:
             continue
         if not map_entry[tag_type]:
@@ -1176,7 +1204,7 @@ def extended_tag(tag_obj, tag_type, track_position):
         for mbpath in mbpaths:
             built_path = None
             depth = 0
-            for item in mbpath:
+            for index, item in enumerate(mbpath):
                 if item[:1] == '_' and item[-1:] == '_':
                     if item == "_release_":
                         built_path = release
@@ -1212,6 +1240,26 @@ def extended_tag(tag_obj, tag_type, track_position):
                                 if multi_built_path and multi_built_path not in value_list:
                                     value_list.append(multi_built_path)
                         built_path = None
+                    elif item == '_cf_':
+                        value_list.append(cf[f'_{ mbpath[index + 1] }'])
+                        built_path = None
+                        break
+                    elif item == '_helpers_':
+                        helper = mbpath[index + 1]
+                        if helper.startswith('_cf_') and helper.endswith('_'):
+                            helper = cf[f'_{ helper[4:-1] }']
+                        helper = jack.helpers.helpers[helper]
+                        value_list.append(helper[mbpath[index + 2]])
+                        built_path = None
+                        break
+                    elif item == '_dae_status_':
+                        num = mbpath[index + 1]
+                        if num == '_track_':
+                            num = int(track['number'])
+                        status = jack.status.dae_status[num]
+                        value_list.append(status)
+                        built_path = None
+                        break
                     else:
                         print("unknown special item", item)
                         built_path = None
@@ -1225,7 +1273,7 @@ def extended_tag(tag_obj, tag_type, track_position):
                 if isinstance(built_path, str) or isinstance(built_path, int) or isinstance(built_path, tuple):
                     value_list.append(built_path)
                 else:
-                    error("built_path is not a string or an in for " + map_entry['name'])
+                    error("built_path is not a string or an int for " + map_entry['name'])
             
             if len(value_list):
                 if len(mbpaths) > 1:
