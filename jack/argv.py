@@ -46,7 +46,7 @@ def show_usage(cf, longhelp=False):
             if 'usage' in cf[i]:
                 description = cf[i]['usage'] + jack.utils.yes(cf[i])
 
-                print(jack.generic.indent(options, description, indent=20))
+                print(jack.generic.indent(options, description, margin=20))
             else:
                 debug("no usage in " + i + ": " + str(cf[i]))
 

@@ -17,24 +17,6 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-from jack.config import cf
 from jack.constants import *
+from jack.config import cf
 from jack.generic import debug, error, expand, info, warning
-
-# import jack.generic
-# error = jack.generic.error
-
-dummy = """
-def error(x):
-    jack.generic.error(x)
-
-def debug(x):
-    jack.generic.debug(x)
-
-def info(x):
-    jack.generic.info(x)
-
-def debug(x):
-    jack.generic.warning(x)
-"""
-

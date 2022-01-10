@@ -19,16 +19,15 @@
 import sys
 import os
 import jack.version
-from jack.config import cf
 
 
-def indent(pre, msg, at=80, indent=0):
+def indent(pre, msg, at=80, margin=0):
     msg = msg.split()
     ret = pre
-    if indent:
-        if len(pre) < indent:
-            ret += " " * (indent - len(pre))
-        tab = indent
+    if margin:
+        if len(pre) < margin:
+            ret += " " * (margin - len(pre))
+        tab = margin
     else:
         tab = len(pre)
     x = len(ret)
@@ -50,13 +49,13 @@ def log_to_logfile(s):
 
 def log(pre, msg, show=True, fatal=False):
     s = indent(" *" + pre + "*", msg)
+    from jack.config import cf
     if cf['_debug_write']:
         log_to_logfile(s)
     if fatal:
-        import jack.term
-        jack.term.disable()
+        from jack.term import disable
+        disable()
         print(s)
-        import sys
         sys.exit(1)
     if show:
         print(s)
@@ -75,6 +74,7 @@ def info(msg):
 
 
 def debug(msg):
+    from jack.config import cf
     log("debug", msg, show=cf['_debug'])
 
 
