@@ -33,6 +33,7 @@ import jack.utils
 import jack.misc
 import jack.m3u
 import jack.status
+import jack.generic
 
 from jack.init import oggvorbis
 from jack.init import mp3
@@ -1139,12 +1140,7 @@ def extended_tag(tag_obj, tag_type, track_position):
                         performers[performer].append(instrument)
     release['performer'] = []
     for performer, instruments in performers.items():
-        instruments_concatenated = None
-        for instrument in instruments:
-            if instruments_concatenated:
-                instruments_concatenated += " and " + instrument
-            else:
-                instruments_concatenated = instrument
+        instruments_concatenated = jack.generic.human_readable_list(instruments)
         release['performer'].append((performer, instruments_concatenated))
 
     # make mixers, producers easier to parse
