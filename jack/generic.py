@@ -86,4 +86,4 @@ def human_readable_list(items):
     if len(items) <= 2:
         return ' and '.join(map(str, items))
     *most, last = items
-    return f"{', '.join(map(str, most))}, and {last}"
+    return f"{', '.join(map(str, most))} and {last}"
