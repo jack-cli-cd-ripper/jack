@@ -130,6 +130,7 @@ cf = jack.misc.dict2({
     %t: track title
     %l: album title
     %y: album release year - individual track years are unsupported
+    %Y: smart year - transforms to the append_year template if year is set
     %g: album genre - individual track genres are unsupported""",
     },
     'rename_fmt_va': {
@@ -143,6 +144,7 @@ cf = jack.misc.dict2({
     %t: track title
     %l: album title
     %y: album release year - individual track years are unsupported
+    %Y: smart year - transforms to the append_year template if year is set
     %g: album genre - individual track genres are unsupported""",
     },
     'rename_num': {
@@ -172,6 +174,7 @@ cf = jack.misc.dict2({
     %l: album title
     %g: album genre - individual track genres are unsupported
     %y: album release year - individual track years are unsupported
+    %Y: smart year - transforms to the append_year template if year is set
     %d: disc number
     %D: number of discs
     %t: disc title""",
@@ -186,6 +189,7 @@ cf = jack.misc.dict2({
     %l: album title
     %g: album genre - individual track genres are unsupported
     %y: album release year - individual track years are unsupported
+    %Y: smart year - transforms to the append_year template if year is set
     %d: disc number
     %D: number of discs
     %t: disc title""",
@@ -200,6 +204,7 @@ cf = jack.misc.dict2({
     %l: album title
     %g: album genre - individual track genres are unsupported
     %y: album release year - individual track years are unsupported
+    %Y: smart year - transforms to the append_year template if year is set
     %d: disc number
     %D: number of discs
     %t: disc title""",
@@ -214,6 +219,7 @@ cf = jack.misc.dict2({
     %l: album title
     %g: album genre - individual track genres are unsupported
     %y: album release year - individual track years are unsupported
+    %Y: smart year - transforms to the append_year template if year is set
     %d: disc number
     %D: number of discs
     %t: disc title""",
@@ -228,6 +234,7 @@ cf = jack.misc.dict2({
     %l: album title
     %g: album genre - individual track genres are unsupported
     %y: album release year - individual track years are unsupported
+    %Y: smart year - transforms to the append_year template if year is set
     %d: disc number
     %D: number of discs
     %t: disc title""",

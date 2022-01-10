@@ -35,6 +35,9 @@ def multi_replace(s, rules, where, filter=id, warn=0):
     else:
         do_warn = jack.globals.warning
 
+    s = s.replace("%Y", jack.globals.cf['_append_year']
+            if jack.globals.cf['_year'] else "")
+
     # get a list of characters we need to replace (i.e. the x from %x)
     # currently all from must be like %x (a percent sign followed by single
     # char).

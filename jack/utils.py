@@ -200,7 +200,7 @@ def mkdirname(names, template):
     "generate mkdir-able directory name(s)"
     year = genre = None
     if cf['_year']:
-        year = str(cf['_year'])
+        year = cf['_year']
     if cf['_genre']:
         genre = cf['_genre']
     medium_position = None
@@ -244,7 +244,7 @@ def mkdirname(names, template):
         x = jack.misc.multi_replace(i, replacelist, "dir_template", unusable_charmap, warn=2)
         exec("x = x" + cf['_char_filter'])
         dirs.append(x)
-    if cf['_append_year'] and year:
+    if cf['_append_year'] and year and "%Y" not in template:
         dirs[-1] += jack.misc.multi_replace(cf['_append_year'], replacelist, "append-year", warn=1)
     return dirs, os.path.join(*dirs)
 
