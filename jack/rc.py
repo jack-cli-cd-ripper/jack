@@ -52,7 +52,7 @@ def read(file):
                 opt = x[0]
             else:
                 opt, val = x
-                # check if there's a comment ridden in val
+                # check if there's a comment hidden in val
                 if "#" in val:
                     quoted = []
                     for i in range(len(val)):
@@ -96,15 +96,18 @@ def load(cf, file):
     rc = read(expand(file))
     rc_cf = {}
     for i in rc:
-        if i[0] != None:
-            if i[0] in cf:
-                ret, val = jack.argv.parse_option(cf, i[0:2], 0, i[0], None, origin="rcfile")
-                if ret != None:
-                    rc_cf[i[0]] = {'val': val}
-                else:
-                    warning(file + ":%s: " % i[3] + val)
-            else:
-                warning(file + ":%s: unknown option `%s'" % (i[3], i[0]))
+        if i[0] is None:
+            continue
+        if i[0] not in cf:
+            warning(f"{file}:{i[3]}: unknown option {repr(i[0])}")
+            continue
+        value = i[1] if cf[i[0]]['type'] == bool else None
+        ret, val = jack.argv.parse_option(cf, i[0:2], 0, i[0], value,
+                origin="rcfile")
+        if ret is None:
+            warning(f"{file}:{i[3]}: {val}")
+        else:
+            rc_cf[i[0]] = {'val': val}
     return rc_cf
 
 
@@ -112,7 +115,6 @@ def merge(old, new):
     old = old[:]
     new = new[:]
     append = []
-    remove = []
     old.reverse()
     for i in range(len(new)):
         found = 0
@@ -123,15 +125,6 @@ def merge(old, new):
                 break
         if not found:
             append.append(new[i][:2] + [None, ])
-        else:
-            if new[i][2] == 'toggle':
-                remove.append(old[j])
-    for i in remove:
-        if i[2] != None:
-            x = old.index(i)
-            old[x] = [None, None, old[x][2]]
-        else:
-            old.remove(i)
     old.reverse()
     return old + append
 
@@ -162,19 +155,17 @@ def write_yes(x):
 
 def convert(cf):
     rc = []
-    for i in list(cf.keys()):
-        if cf[i]['type'] == bytes or cf[i]['type'] == str:
-            rc.append([i, cf[i]['val'], None])
-        elif cf[i]['type'] == float:
-            rc.append([i, repr(cf[i]['val']), None])
-        elif cf[i]['type'] == int:
-            rc.append([i, repr(cf[i]['val']), None])
-        elif cf[i]['type'] == 'toggle':
-            rc.append([i, write_yes(cf[i]['val']), 'toggle'])
-        elif cf[i]['type'] == list:
-            rc.append([i, repr(cf[i]['val']), None])
+    for key, value in cf.items():
+        ty = value['type']
+        val = value['val']
+        if ty in (bytes, str):
+            rc.append([key, val])
+        elif ty == bool:
+            rc.append([key, write_yes(val)])
+        elif ty in (float, int, list):
+            rc.append([key, repr(val)])
         else:
-            error("don't know how to handle " + repr(cf[i]['type']))
+            error("don't know how to handle " + repr(ty))
     return rc
 
 

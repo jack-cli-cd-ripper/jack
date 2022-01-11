@@ -149,7 +149,7 @@ def yes(what):
     if 'save' in what and what['save'] == 0:
         return ""
 
-    if what['type'] == 'toggle':
+    if what['type'] == bool:
         if what['val']:
             s = "yes"
         else:

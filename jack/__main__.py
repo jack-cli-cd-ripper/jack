@@ -69,9 +69,6 @@ import jack.albumart
 def main():
     locale.setlocale(locale.LC_ALL, "")
 
-    # say hello...
-    print("This is", jack.version.name, jack.version.version, jack.version.copyright, jack.version.url)
-
     ### interpret options
     global_cf = jack.rc.load(cf, cf['global_rc']['val'])
     jack.checkopts.checkopts(cf, global_cf)
@@ -82,6 +79,10 @@ def main():
     help, argv_cf = jack.argv.parse_argv(cf, sys.argv)
     jack.checkopts.checkopts(cf, argv_cf)
     cf.rupdate(argv_cf, "argv")
+
+    # say hello...
+    print("This is", jack.version.name, jack.version.version, jack.version.copyright, jack.version.url)
+
     if help:
         jack.argv.show_usage(cf, help-1)
         sys.exit(0)
