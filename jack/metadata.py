@@ -135,14 +135,7 @@ def interpret_db_file(all_tracks, todo, metadata_form_file, verb, dirs=0, warn=N
                 replacelist["a"] = cd[0]
                 newname = jack.misc.multi_replace(cf['_rename_fmt'], replacelist, "rename_fmt", warn=(num == 1))
             exec("newname = newname" + cf['_char_filter'])
-            for char_i in range(len(cf['_unusable_chars'])):
-                try:
-                    a = str(cf['_unusable_chars'][char_i])
-                    b = str(cf['_replacement_chars'][char_i])
-                except UnicodeDecodeError:
-                    warning("Cannot substitute unusable character %d." % (char_i + 1))
-                else:
-                    newname = newname.replace(a, b)
+            newname =  jack.utils.unusable_charmap(newname)
             filenames.append(newname)
             num += 1
         names_available = 1
