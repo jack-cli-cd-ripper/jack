@@ -189,7 +189,7 @@ def unusable_charmap(x):
     for i in range(len(cf['_unusable_chars'])):
         uc = cf['_unusable_chars'][i]
         rc = cf['_replacement_chars'][i]
-        # hack: if an unusable character is a string that stars and ends with a slash, treat it as a regex
+        # hack: if an unusable character is a string that starts and ends with a slash, treat it as a regex
         if len(uc) > 1 and uc.startswith('/') and uc.endswith('/'):
             x = re.sub(uc[1:-1], rc, x)
         else:
