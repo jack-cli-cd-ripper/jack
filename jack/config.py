@@ -930,6 +930,36 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
         'usage': "download these album arts ('front' and/or 'back')",
         'long': 'AUTO',
     },
+    'fetch_itunes_albumart': {
+        'type': bool,
+        'val': 0,
+        'usage': "download album art from iTunes while querying",
+        'long': 'AUTO',
+    },
+    'fetch_itunes_albumart_sizes': {
+        'type': list,
+        'val': ['standard','high'],
+        'usage': "list of album art sizes to download from iTunes: 'thumb', 'standard' or 'high'",
+        'long': 'AUTO',
+    },
+    'fetch_itunes_albumart_limit': {
+        'type': int,
+        'val': 5,
+        'usage': "limit number of matches when querying for iTunes album art, zero is no limit",
+        'long': 'AUTO',
+    },
+    'fetch_itunes_albumart_country': {
+        'type': str,
+        'val': "us",
+        'usage': "two letter country code of iTunes store to query",
+        'long': 'AUTO',
+    },
+    'fetch_itunes_albumart_prefix': {
+        'type': str,
+        'val': "jack.itunes.",
+        'usage': "prefix for saving fetched iTunes album art files",
+        'long': 'AUTO',
+    },
 })
 
 for i in list(cf.keys()):
