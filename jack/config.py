@@ -567,6 +567,18 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
         'val': "libdiscid",
         'doc': "use which helper program to read cd's toc",
     },
+    'toc_mcn': {
+        'type': bool,
+        'val': 1,
+        'doc': "extract the MCN from a disc, may slow down reading old CD's",
+        'long': 'AUTO',
+    },
+    'toc_isrc': {
+        'type': bool,
+        'val': 1,
+        'doc': "extract ISRCs from a disc, may slow down reading old CD's",
+        'long': 'AUTO',
+    },
     # prefs0 -- FREEDB stuff ###
     'query_on_start': {
         'type': bool,

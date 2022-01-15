@@ -16,6 +16,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+from jack.globals import *
 
 def init(debug=False):
     global discid_read, DiscError, put, features, v
@@ -25,14 +26,22 @@ def init(debug=False):
         from libdiscid import put
         from libdiscid import DiscError
         from libdiscid import FEATURE_MCN, FEATURE_READ, FEATURE_ISRC
-        features = FEATURE_MCN | FEATURE_READ | FEATURE_ISRC
+        features = FEATURE_READ
+        if cf['_toc_mcn']:
+            features |= FEATURE_MCN
+        if cf['_toc_isrc']:
+            features |= FEATURE_ISRC
         v = 1
     except ImportError:
         try:
             from discid.disc import read as discid_read
             from discid.disc import put
             from discid.disc import DiscError
-            features = ['read', 'mcn', 'isrc']
+            features = ['read']
+            if cf['_toc_mcn']:
+                features.append('mcn')
+            if cf['_toc_isrc']:
+                features.append('isrc')
             v = 2
         except ImportError:
             return False
