@@ -944,7 +944,7 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
     },
     'fetch_itunes_albumart_limit': {
         'type': int,
-        'val': 5,
+        'val': 1,
         'usage': "limit number of matches when querying for iTunes album art, zero is no limit",
         'long': 'AUTO',
     },
