@@ -21,7 +21,6 @@ import os
 import json
 import datetime
 import re
-import shutil
 
 import jack.functions
 import jack.progress
@@ -200,28 +199,8 @@ def musicbrainz_query(cd_id, tracks, file):
     of.close()
 
     if cf['_fetch_albumart']:
-        release = result['releases'][chosen_release]
-        base_url = f'https://coverartarchive.org/release/{ release["id"] }/'
-        if 'cover-art-archive' in release:
-            caa = release['cover-art-archive']
-            for art_type in cf['_fetch_albumart_types']:
-                # original
-                artfile = "%s%s.jpg" % (cf['_fetch_albumart_prefix'], art_type)
-                if art_type in caa and caa[art_type] and not os.path.exists(artfile):
-                    err, response = get_response("%s%s.jpg" % (base_url, art_type))
-                    if not err:
-                        with open(artfile, 'wb') as out_file:
-                            shutil.copyfileobj(response, out_file)
-                        response.close()
-                # thumbnails
-                for size in cf['_fetch_albumart_sizes']:
-                    artfile = "%s%s-%d.jpg" % (cf['_fetch_albumart_prefix'], art_type, size)
-                    if art_type in caa and caa[art_type] and not os.path.exists(artfile):
-                        err, response = get_response("%s%s-%d.jpg" % (base_url, art_type, size))
-                        if not err:
-                            with open(artfile, 'wb') as out_file:
-                                shutil.copyfileobj(response, out_file)
-                            response.close()
+        jack.albumart.fetch_caa_albumart(result['releases'][chosen_release])
+
     err = 0
     return err
 

@@ -21,16 +21,23 @@ import os
 import re
 import base64
 import hashlib
+import requests
+import shutil
+import json
+import datetime
+import dateparser
+from urllib.parse import urlparse
 from io import BytesIO
 from PIL import Image
 
+import jack.functions
+import jack.version
 from jack.init import oggvorbis
 from jack.init import mp3
 from jack.init import id3
 from jack.init import flac
 from jack.init import mp4
 from jack.globals import *
-
 
 def imagedepth(mode):
     imagemodes = {
@@ -265,3 +272,104 @@ def embed_albumart(tagobj, target, audiofile):
             error("unknown target " + target)
     else:
         cf['_albumart_file'] = None
+
+def fetch_caa_albumart(release):
+    base_url = f'https://coverartarchive.org/release/{ release["id"] }/'
+    if 'cover-art-archive' in release:
+        caa = release['cover-art-archive']
+        for art_type in cf['_fetch_albumart_types']:
+            # original
+            artfile = "%s%s.jpg" % (cf['_fetch_albumart_prefix'], art_type)
+            if art_type in caa and caa[art_type] and not os.path.exists(artfile):
+                err, response = jack.musicbrainz.get_response("%s%s.jpg" % (base_url, art_type))
+                if not err:
+                    with open(artfile, 'wb') as out_file:
+                        shutil.copyfileobj(response, out_file)
+                    response.close()
+            # thumbnails
+            for size in cf['_fetch_albumart_sizes']:
+                artfile = "%s%s-%d.jpg" % (cf['_fetch_albumart_prefix'], art_type, size)
+                if art_type in caa and caa[art_type] and not os.path.exists(artfile):
+                    err, response = jack.musicbrainz.get_response("%s%s-%d.jpg" % (base_url, art_type, size))
+                    if not err:
+                        with open(artfile, 'wb') as out_file:
+                            shutil.copyfileobj(response, out_file)
+                        response.close()
+
+def fetch_itunes_albumart(artist, album):
+    baseurl = 'https://itunes.apple.com/search'
+    country = cf['_fetch_itunes_albumart_country']
+    prefix = cf['_fetch_itunes_albumart_prefix']
+    limit = cf['_fetch_itunes_albumart_limit']
+    fetchlist = cf['_fetch_itunes_albumart_sizes']
+
+    user_agent = "%s/%s (%s)" % (jack.version.name, jack.version.version, jack.version.url)
+    headers = {'User-Agent': user_agent}
+
+    search_term = requests.utils.quote(artist + ' ' + album)
+    search_url = "%s?term=%s&country=%s&media=music&entity=album&limit=%d" % (baseurl, search_term, country, limit)
+
+    session = requests.Session()
+    session.headers.update(headers)
+
+    r = session.get(search_url)
+    querydata = json.loads(r.text)
+
+    if 'results' in querydata:
+        for result in querydata['results']:
+
+            itunes_artist = result['artistName']
+            itunes_album = result['collectionName']
+
+            itunes_name = jack.utils.unusable_charmap(itunes_artist + " - " + itunes_album)
+            suffix = ""
+
+            # iTunes API shows thumbnail pictures only. This is an undocumented trick to get high quality versions.
+            # Taken from https://github.com/bendodson/itunes-artwork-finder
+            http_url = urlparse(result['artworkUrl100'])._replace(scheme='http', netloc='is5.mzstatic.com').geturl()
+
+            art_urls = {}
+            art_urls['thumb']    = http_url
+            art_urls['standard'] = http_url.replace("100x100bb", "600x600bb")
+            art_urls['high']     = http_url.replace("100x100bb", "100000x100000-999")
+
+            for size in fetchlist:
+                if size in art_urls:
+                    if len(fetchlist) > 1:
+                        suffix = "." + size
+                    filename = prefix + itunes_name + suffix + ".jpg"
+                    download(session, art_urls[size], filename)
+
+    session.close()
+
+def download(session, url, filename):
+    "fast chunked downloading of binary data with restoring modification date"
+    try:
+        with open(filename, "xb") as fd:
+            r = session.get(url, stream=True)
+            if r.status_code == 200 and len(r.history) == 0:
+                for data in r.iter_content(chunk_size=32768):
+                    fd.write(data)
+                fd.close()
+                info("Downloaded " + filename)
+                last_modified = r.headers.get('Last-Modified')
+                if last_modified:
+                    timestamp = datetime.datetime.timestamp(dateparser.parse(last_modified))
+                    stinfo = os.stat(filename)
+                    os.utime(filename, (stinfo.st_atime, timestamp))
+            else:
+                warning("Could not download %s, status %d" % (filename, r.status_code))
+                os.remove(filename)
+    except FileExistsError:
+        r = session.head(url)
+        if r.status_code == 200 and len(r.history) == 0:
+            remote_length = int(r.headers.get('Content-Length'))
+            if remote_length:
+                local_length = os.stat(filename).st_size
+                if remote_length != local_length:
+                    warning("different filesize for %s: web: %d local: %d" % (filename, remote_length, local_length))
+            last_modified = r.headers.get('Last-Modified')
+            if last_modified:
+                timestamp = datetime.datetime.timestamp(dateparser.parse(last_modified))
+                if timestamp != os.stat(filename).st_mtime:
+                    warning("different remote timestamp for %s")

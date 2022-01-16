@@ -60,7 +60,6 @@ import jack.main_loop
 import jack.progress
 import jack.prepare
 import jack.albumart
-import jack.itunes
 
 
 ##############################################################################
@@ -171,7 +170,7 @@ def main():
 
     ### download iTunes album art
     if cf['_query_on_start'] and cf['_fetch_itunes_albumart']:
-        jack.itunes.fetch_itunes_albumart(jack.tag.track_names[0][0], jack.tag.track_names[0][1])
+        jack.albumart.fetch_itunes_albumart(jack.tag.track_names[0][0], jack.tag.track_names[0][1])
 
     ### update progress file at user's request (operation mode)
     if cf['_upd_progress']:
