@@ -22,7 +22,6 @@ import re
 import base64
 import hashlib
 import requests
-import shutil
 import json
 import datetime
 import dateparser
@@ -274,27 +273,34 @@ def embed_albumart(tagobj, target, audiofile):
         cf['_albumart_file'] = None
 
 def fetch_caa_albumart(release):
+    if not 'cover-art-archive' in release:
+        return
+
     base_url = f'https://coverartarchive.org/release/{ release["id"] }/'
-    if 'cover-art-archive' in release:
-        caa = release['cover-art-archive']
-        for art_type in cf['_fetch_albumart_types']:
-            # original
-            artfile = "%s%s.jpg" % (cf['_fetch_albumart_prefix'], art_type)
-            if art_type in caa and caa[art_type] and not os.path.exists(artfile):
-                err, response = jack.musicbrainz.get_response("%s%s.jpg" % (base_url, art_type))
-                if not err:
-                    with open(artfile, 'wb') as out_file:
-                        shutil.copyfileobj(response, out_file)
-                    response.close()
-            # thumbnails
-            for size in cf['_fetch_albumart_sizes']:
-                artfile = "%s%s-%d.jpg" % (cf['_fetch_albumart_prefix'], art_type, size)
-                if art_type in caa and caa[art_type] and not os.path.exists(artfile):
-                    err, response = jack.musicbrainz.get_response("%s%s-%d.jpg" % (base_url, art_type, size))
-                    if not err:
-                        with open(artfile, 'wb') as out_file:
-                            shutil.copyfileobj(response, out_file)
-                        response.close()
+    prefix = cf['_fetch_albumart_prefix']
+    art_types = cf['_fetch_albumart_types']
+    fetchlist = cf['_fetch_albumart_sizes']
+
+    user_agent = "%s/%s (%s)" % (jack.version.name, jack.version.version, jack.version.url)
+    headers = {'User-Agent': user_agent}
+
+    session = requests.Session()
+    session.headers.update(headers)
+
+    caa = release['cover-art-archive']
+    for art_type in art_types:
+        if art_type in caa and caa[art_type]:
+            for size in fetchlist:
+                if len(fetchlist) > 1:
+                    suffix = "." + size
+                filename = prefix + art_type + suffix + ".jpg"
+                if size == 'original':
+                    url = "%s%s.jpg" % (base_url, art_type)
+                else:
+                    url = "%s%s-%s.jpg" % (base_url, art_type, size)
+                download(session, url, filename)
+
+    session.close()
 
 def fetch_itunes_albumart(artist, album):
     baseurl = 'https://itunes.apple.com/search'
@@ -347,7 +353,7 @@ def download(session, url, filename):
     try:
         with open(filename, "xb") as fd:
             r = session.get(url, stream=True)
-            if r.status_code == 200 and len(r.history) == 0:
+            if r.status_code == 200:
                 for data in r.iter_content(chunk_size=32768):
                     fd.write(data)
                 fd.close()
@@ -362,7 +368,7 @@ def download(session, url, filename):
                 os.remove(filename)
     except FileExistsError:
         r = session.head(url)
-        if r.status_code == 200 and len(r.history) == 0:
+        if r.status_code == 200:
             remote_length = int(r.headers.get('Content-Length'))
             if remote_length:
                 local_length = os.stat(filename).st_size

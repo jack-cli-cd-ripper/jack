@@ -932,8 +932,8 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
     },
     'fetch_albumart_sizes': {
         'type': list,
-        'val': [500],
-        'usage': "download additional resized album art thumbnail sizes: 250, 500 or 1200 pixels",
+        'val': ['original','500'],
+        'usage': "list of album art sizes to download from coverartarchive: 'original', '250', '500' or '1200'",
         'long': 'AUTO',
     },
     'fetch_albumart_types': {
