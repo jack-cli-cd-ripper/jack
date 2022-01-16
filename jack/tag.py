@@ -1116,32 +1116,34 @@ def extended_tag(tag_obj, tag_type, track_position):
                 subtree['artist-credit-phrase-sort'] = None
 
     # make performers easier to parse
-    performers = {}
     performer_types = ["instrument", "vocal"]
+    prefix_words = ["guest", "additional"]
+    insert_words = ["solo"]
+    release['performer'] = []
     if 'relations' in release:
         for relation in release['relations']:
+            if not 'type' in relation or not relation['type'] in performer_types:
+                continue
             if 'artist' in relation and 'name' in relation['artist']:
                 performer = relation['artist']['name']
             else:
                 continue
-            if 'type' in relation and 'attributes' in relation and relation['type'] in performer_types:
-                for instrument in relation['attributes']:
-                    if not performer in performers:
-                        performers[performer] = [instrument]
-                    else:
-                        if not instrument in performers[performer]:
-                            performers[performer].append(instrument)
-            if 'type' in relation and len(relation['attributes']) == 0 and relation['type'] == "vocal":
-                instrument = "vocals"
-                if not performer in performers:
-                    performers[performer] = [instrument]
+            prefixes = []
+            instruments = []
+            for instrument in relation['attributes']:
+                if instrument in prefix_words:
+                    prefixes.append(instrument)
+                elif instrument in insert_words and instruments:
+                    instruments[-1] = instrument + " " + instruments[-1]
                 else:
-                    if not instrument in performers[performer]:
-                        performers[performer].append(instrument)
-    release['performer'] = []
-    for performer, instruments in performers.items():
-        instruments_concatenated = jack.generic.human_readable_list(instruments)
-        release['performer'].append((performer, instruments_concatenated))
+                    instruments.append(instrument)
+            if relation['type'] == "vocal":
+                instruments.append("vocals")
+            instruments_concatenated = ""
+            for prefix in prefixes:
+                instruments_concatenated += prefix + " "
+            instruments_concatenated += jack.generic.human_readable_list(instruments)
+            release['performer'].append((performer, instruments_concatenated))
 
     # make mixers, producers easier to parse
     release['related'] = {}
