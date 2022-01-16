@@ -1117,8 +1117,7 @@ def extended_tag(tag_obj, tag_type, track_position):
 
     # make performers easier to parse
     performer_types = ["instrument", "vocal"]
-    prefix_words = ["guest", "additional"]
-    insert_words = ["solo"]
+    prefix_words = ["guest", "additional", "solo"]
     release['performer'] = []
     if 'relations' in release:
         for relation in release['relations']:
@@ -1133,8 +1132,6 @@ def extended_tag(tag_obj, tag_type, track_position):
             for instrument in relation['attributes']:
                 if instrument in prefix_words:
                     prefixes.append(instrument)
-                elif instrument in insert_words and instruments:
-                    instruments[-1] = instrument + " " + instruments[-1]
                 else:
                     instruments.append(instrument)
             if relation['type'] == "vocal":
