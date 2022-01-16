@@ -88,7 +88,7 @@ def download(session, url, filename):
                     stinfo = os.stat(filename)
                     os.utime(filename, (stinfo.st_atime, timestamp))
             else:
-                warning("Could not download %s, status %d" % (filename, status))
+                warning("Could not download %s, status %d" % (filename, r.status_code))
                 os.remove(filename)
     except FileExistsError:
         r = session.head(url)
