@@ -5,16 +5,25 @@
 from setuptools import setup, find_packages
 import jack.version
 
+# libdiscid is preferred, but cannot be installed with pip, as it is a wrapper only
+# fall back to discid if our distro does not satisfy all requirements
+require_discid = False
+try:
+    import libdiscid
+except:
+    require_discid = True
+
 PACKAGES = find_packages(exclude=find_packages(where="deprecated"))
 
 REQUIRES = [
-    #FIXME, we require either discid or libdiscid, libdiscid is preferred but requires an external C-library to be present in your distro
-    'discid',
     'mutagen',
     'pillow',
     'requests',
     'dateparser',
 ]
+
+if require_discid:
+    REQUIRES.append('discid')
 
 setup(
     name=jack.version.name,
