@@ -355,6 +355,7 @@ def download(session, url, filename):
         with open(filename, "xb") as fd:
             r = session.get(url, stream=True)
             if r.status_code == 200:
+                remote_length = int(r.headers.get('Content-Length'))
                 for data in r.iter_content(chunk_size=32768):
                     fd.write(data)
                 fd.close()
@@ -370,11 +371,11 @@ def download(session, url, filename):
     except FileExistsError:
         r = session.head(url)
         if r.status_code == 200:
-            remote_length = int(r.headers.get('Content-Length'))
+            remote_length = r.headers.get('Content-Length')
             if remote_length:
                 local_length = os.stat(filename).st_size
-                if remote_length != local_length:
-                    warning("different filesize for %s: web: %d local: %d" % (filename, remote_length, local_length))
+                if int(remote_length) != local_length:
+                    warning("different filesize for %s: web: %s local: %d" % (filename, remote_length, local_length))
             last_modified = r.headers.get('Last-Modified')
             if last_modified:
                 timestamp = datetime.datetime.timestamp(dateparser.parse(last_modified))
