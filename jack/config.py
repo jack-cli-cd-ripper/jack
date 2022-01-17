@@ -938,8 +938,8 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
     },
     'fetch_albumart_sizes': {
         'type': list,
-        'val': ['original','500'],
-        'usage': "list of album art sizes to download from coverartarchive: 'original', '250', '500' or '1200'",
+        'val': ['original','large'],
+        'usage': "list of album art sizes to download from coverartarchive: 'original', 'small', 'large', '250', '500' or '1200'",
         'long': 'AUTO',
     },
     'fetch_albumart_types': {

@@ -288,18 +288,26 @@ def fetch_caa_albumart(release):
     session = requests.Session()
     session.headers.update(headers)
 
-    caa = release['cover-art-archive']
-    for art_type in art_types:
-        if art_type in caa and caa[art_type]:
-            for size in fetchlist:
-                if len(fetchlist) > 1:
-                    suffix = "." + size
-                filename = prefix + art_type + suffix + ".jpg"
-                if size == 'original':
-                    url = "%s%s.jpg" % (base_url, art_type)
-                else:
-                    url = "%s%s-%s.jpg" % (base_url, art_type, size)
-                download(session, url, filename)
+    r = session.get(base_url)
+    query_data = json.loads(r.text)
+
+    if 'images' in query_data:
+        for image in query_data['images']:
+            for art_type in art_types:
+                if art_type in image and image[art_type]:
+                    for size in fetchlist:
+                        if len(fetchlist) > 1:
+                            suffix = "." + size
+                        if size == 'original':
+                            url = image['image']
+                        else:
+                            if size in image['thumbnails']:
+                                url = image['thumbnails'][size]
+                            else:
+                                continue
+                        extension = url.split(".")[-1]
+                        filename = prefix + art_type + suffix + "." + extension
+                        download(session, url, filename)
 
     session.close()
 
