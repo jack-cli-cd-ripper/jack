@@ -852,6 +852,12 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
         'usage': "create a playlist in .m3u format",
         'long': 'AUTO',
     },
+    'download_progress_interval': {
+        'type': int,
+        'val': 5,
+        'usage': "interval in seconds for showing progress of slow downloads, zero is no progress",
+        'long': 'AUTO',
+    },
     'embed_albumart': {
         'type': bool,
         'val': 0,

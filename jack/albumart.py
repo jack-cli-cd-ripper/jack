@@ -355,18 +355,29 @@ def download(session, url, filename):
         with open(filename, "xb") as fd:
             r = session.get(url, stream=True)
             if r.status_code == 200:
-                remote_length = int(r.headers.get('Content-Length'))
-                for data in r.iter_content(chunk_size=32768):
-                    fd.write(data)
+                old_timestamp = datetime.datetime.now().timestamp()
+                current_length = 0
+                remote_length = r.headers.get('Content-Length')
+                for chunk in r.iter_content(chunk_size=32768):
+                    fd.write(chunk)
+                    current_length += len(chunk)
+                    new_timestamp = datetime.datetime.now().timestamp()
+                    if cf['_download_progress_interval'] and new_timestamp - old_timestamp > cf['_download_progress_interval']:
+                        progress = "downloading %s: %d bytes" % (filename, current_length)
+                        if remote_length:
+                            percent = 100 * current_length // int(remote_length)
+                            progress = "downloading %s: %d/%s bytes (%d%%)" % (filename, current_length, remote_length, percent)
+                        info(progress)
+                        old_timestamp = new_timestamp
                 fd.close()
-                info("Downloaded " + filename)
+                info("downloaded " + filename)
                 last_modified = r.headers.get('Last-Modified')
                 if last_modified:
                     timestamp = datetime.datetime.timestamp(dateparser.parse(last_modified))
                     stinfo = os.stat(filename)
                     os.utime(filename, (stinfo.st_atime, timestamp))
             else:
-                warning("Could not download %s, status %d" % (filename, r.status_code))
+                warning("could not download %s, status %d" % (filename, r.status_code))
                 os.remove(filename)
     except FileExistsError:
         r = session.head(url)
