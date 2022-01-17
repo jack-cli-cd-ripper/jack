@@ -280,6 +280,7 @@ def fetch_caa_albumart(release):
     prefix = cf['_fetch_albumart_prefix']
     art_types = cf['_fetch_albumart_types']
     fetchlist = cf['_fetch_albumart_sizes']
+    suffix = ""
 
     user_agent = "%s/%s (%s)" % (jack.version.name, jack.version.version, jack.version.url)
     headers = {'User-Agent': user_agent}
@@ -308,6 +309,7 @@ def fetch_itunes_albumart(artist, album):
     prefix = cf['_fetch_itunes_albumart_prefix']
     limit = cf['_fetch_itunes_albumart_limit']
     fetchlist = cf['_fetch_itunes_albumart_sizes']
+    suffix = ""
 
     user_agent = "%s/%s (%s)" % (jack.version.name, jack.version.version, jack.version.url)
     headers = {'User-Agent': user_agent}
@@ -328,7 +330,6 @@ def fetch_itunes_albumart(artist, album):
             itunes_album = result['collectionName']
 
             itunes_name = jack.utils.unusable_charmap(itunes_artist + " - " + itunes_album)
-            suffix = ""
 
             # iTunes API shows thumbnail pictures only. This is an undocumented trick to get high quality versions.
             # Taken from https://github.com/bendodson/itunes-artwork-finder
@@ -340,9 +341,9 @@ def fetch_itunes_albumart(artist, album):
             art_urls['high']     = http_url.replace("100x100bb", "100000x100000-999")
 
             for size in fetchlist:
+                if len(fetchlist) > 1:
+                    suffix = "." + size
                 if size in art_urls:
-                    if len(fetchlist) > 1:
-                        suffix = "." + size
                     filename = prefix + itunes_name + suffix + ".jpg"
                     download(session, art_urls[size], filename)
 
