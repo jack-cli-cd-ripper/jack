@@ -363,6 +363,10 @@ def fetch_itunes_albumart(artist, album):
 
 def fetch_discogs_albumart(release):
 
+    prefix = cf['_discogs_albumart_prefix']
+    art_types = cf['_discogs_albumart_types']
+    access_token = cf['_discogs_albumart_token']
+
     base_url = "https://api.discogs.com/releases/"
 
     user_agent = "%s/%s (%s)" % (jack.version.name, jack.version.version, jack.version.url)
@@ -383,14 +387,27 @@ def fetch_discogs_albumart(release):
     for discogs_url in discogs_urls:
         discogs_release = discogs_url.split("/")[-1]
         api_url = base_url + discogs_release
+        if access_token:
+            api_url += "?token=" + access_token
 
         r = session.get(api_url)
         query_data = json.loads(r.text)
 
         if 'images' in query_data:
             for image in query_data['images']:
-                if 'type' in image and image['type'] == 'primary':
-                    warning("discogs albumart (%dx%d) is available but cannot be downloaded without authentication" % (image['width'], image['height']))
+                for art_type in art_types:
+                    if 'type' in image and image['type'] == art_type and 'uri' in image:
+                        url = image['uri']
+                        if len(url):
+                            basename = url.split("/")[-1]
+                            if len(art_types) > 1:
+                                filename = prefix  + art_type + "." + basename
+                            else:
+                                filename = prefix + basename
+                            download(session, url, filename)
+                        else:
+                            print("discogs albumart (%dx%d) is available but cannot be downloaded without an access token" % (image['width'], image['height']))
+                            print("create a personal access token at https://www.discogs.com/settings/developers and use it as --discogs-albumart-token=your_token")
 
     session.close()
 
