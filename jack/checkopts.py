@@ -211,7 +211,7 @@ def check_rc(cf, global_cf, user_cf, argv_cf):
     all_keys = list(global_cf.keys()) + list(user_cf.keys()) + list(argv_cf.keys())
     userdef_keys = list(user_cf.keys()) + list(argv_cf.keys())
     if 'base_dir' not in all_keys:
-        warning("You have no standard location set, putting files into the current directory. Please consider setting base_dir in ~/.jack3rc.")
+        warning(f"You have no standard location set, putting files into the current directory. Please consider setting base_dir in {cf['_user_rc'][0]}.")
 
     # Check if the default ripper is installed, and if not, look for another
     # one

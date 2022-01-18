@@ -29,13 +29,32 @@ from jack.globals import *
 # load
 # save
 
+def _choose(files):
+    expanded = [expand(x) for x in files]
+    preferred = expanded[0]
+    existing = [x for x in expanded if os.path.exists(x)]
+    if len(existing) == 0:
+        return None
+    if existing[0] == preferred:
+        if len(existing) > 1:
+            for i in existing[1:]:
+                warning(f"ignoring old user rcfile {i}")
+        return preferred
+    else:
+        old = existing[0]
+        save_cmd = f"--{cf['save_args']['long']}"
+        if not save_cmd in sys.argv:
+            warning(f"found old user rcfile {old} - please review, then "
+                    f"use {save_cmd} to update to {preferred}")
+        return old
 
-def read(file):
+def _read(files):
+    file = _choose(files)
     read_rc = []
     try:
         f = open(file)
-    except (IOError, OSError):
-        return read_rc
+    except (IOError, OSError, TypeError):
+        return file, read_rc
     lineno = 0
     for x in f.readlines():
         lineno += 1
@@ -64,7 +83,6 @@ def read(file):
                                 quoted.append(c)
                         elif c == "#" and not quoted:
                             val, com = val[:i].strip(), val[i + 1:]
-                            print(com)
                             break
         read_rc.append([opt, val, com, lineno])
     version = get_version(read_rc)
@@ -72,7 +90,7 @@ def read(file):
         warning("config file %s doesn't define jackrc-version." % file)
     elif version != jack.version.rcversion:
         warning("config file %s is of unknown version %s." % (file, repr(version)))
-    return read_rc
+    return file, read_rc
 
 
 def get_version(rc):
@@ -92,17 +110,17 @@ def get_version(rc):
     return None
 
 
-def load(cf, file):
-    rc = read(expand(file))
+def load(config, files):
+    file, rc = _read(files)
     rc_cf = {}
     for i in rc:
         if i[0] is None:
             continue
-        if i[0] not in cf:
+        if i[0] not in config:
             warning(f"{file}:{i[3]}: unknown option {repr(i[0])}")
             continue
-        value = i[1] if cf[i[0]]['type'] == bool else None
-        ret, val = jack.argv.parse_option(cf, i[0:2], 0, i[0], value,
+        value = i[1] if config[i[0]]['type'] == bool else None
+        ret, val = jack.argv.parse_option(config, i[0:2], 0, i[0], value,
                 origin="rcfile")
         if ret is None:
             warning(f"{file}:{i[3]}: {val}")
@@ -129,12 +147,15 @@ def merge(old, new):
     return old + append
 
 
-def write(file, rc, rcfile_exists=True):
+def _write(file, rc):
     f = open(file, "w")
-    if not rcfile_exists:
-        f.write("# jackrc-version:%d\n" % jack.version.rcversion)
+    f.write(f"# {cf['_rc_version_key']}:{jack.version.rcversion}\n")
 
     for i in rc:
+        if (not i[0]
+                and not i[1]
+                and i[2].lstrip().startswith(f"{cf['_rc_version_key']}:")):
+            continue
         if i[0]:
             f.write(i[0])
         if i[1] != None:
@@ -153,9 +174,9 @@ def write_yes(x):
         return "no"
 
 
-def convert(cf):
+def convert(config):
     rc = []
-    for key, value in cf.items():
+    for key, value in config.items():
         ty = value['type']
         val = value['val']
         if ty in (bytes, str):
@@ -169,21 +190,21 @@ def convert(cf):
     return rc
 
 
-def save(file, cf):
-    file = expand(file)
+def save(files, config):
+    file = expand(files[0])
     rc_cf = {}
-    for i in list(cf.keys()):
-        if 'save' in cf[i] and not cf[i]['save']:
+    for i in list(config.keys()):
+        if 'save' in config[i] and not config[i]['save']:
             continue
-        opt = cf[i]
+        opt = config[i]
         if opt['history'][-1][0] == "argv":
             rc_cf[i] = opt
-    oldrc = read(file)
+    oldfile, oldrc = _read(files)
     argvrc = convert(rc_cf)
     newrc = merge(oldrc, argvrc)
     rcfile_exists = os.path.exists(file)
     try:
-        write(file + ".tmp", newrc, rcfile_exists)
+        _write(file + ".tmp", newrc)
     except:
         error("can't write config file")
     if os.path.exists(file):

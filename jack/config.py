@@ -834,17 +834,23 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
         'usage': "show value of a config option",
         'long': 'AUTO',
     },
-    'global_rc': {
+    'rc_version_key': {
         'type': str,
-        'val': "/etc/jackrc",
+        'val': jack.version.name + "rc-version",
+        'save': 0,
+        'doc': "rc key to rc file version, e.g. jackrc-version",
+    },
+    'global_rc': {
+        'type': list,
+        'val': ["/etc/jackrc"],
         'save': 0,
         'doc': "system-wide config file",
     },
     'user_rc': {
-        'type': str,
-        'val': "~/.jack3rc",
+        'type': list,
+        'val': ["~/.jack4rc", "~/.jack3rc"],
         'save': 0,
-        'doc': "user config file",
+        'doc': "user config file with fallbacks",
     },
     'write_m3u': {
         'type': bool,

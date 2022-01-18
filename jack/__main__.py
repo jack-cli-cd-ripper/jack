@@ -95,7 +95,7 @@ def main():
 
     if cf['save_args']['val'] == 1:
         count = jack.rc.save(cf['user_rc']['val'], cf)
-        info("%d options saved in %s" % (count, cf['user_rc']['val']))
+        info("%d new options saved in %s" % (count, cf['user_rc']['val'][0]))
         sys.exit()
 
     ext = jack.targets.targets[jack.helpers.helpers[cf['_encoder']]['target']]['file_extension']
