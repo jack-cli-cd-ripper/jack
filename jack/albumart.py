@@ -233,8 +233,8 @@ def search_albumart():
     for path, dirnames, filenames in os.walk(search_root):
         if path != search_root and not cf['_albumart_recurse']:
             continue
-        for filename in filenames:
-            for pattern in cf['_albumart_search']:
+        for pattern in cf['_albumart_search']:
+            for filename in filenames:
                 if re.match(pattern, filename, flags=flags):
                     filepath = os.path.join(path, filename)
                     if assess_albumart(filepath):
