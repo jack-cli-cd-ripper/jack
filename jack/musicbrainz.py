@@ -198,7 +198,7 @@ def musicbrainz_query(cd_id, tracks, file):
     of.write(json.dumps(query_data, indent=4) + "\n")
     of.close()
 
-    if cf['_fetch_albumart']:
+    if cf['_fetch_albumart'] and 'coverartarchive' in cf['_albumart_providers']:
         jack.albumart.fetch_caa_albumart(result['releases'][chosen_release])
 
     err = 0

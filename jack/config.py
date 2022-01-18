@@ -872,7 +872,7 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
     },
     'albumart_search': {
         'type': list,
-        'val': [r'.*[Cc]over.*\.(jpg|jpeg|png)$', r'.*[Ff]ront.*\.(jpg|jpeg|png)$', r'^[Ff]older\.(jpg|jpeg|png)$', r'^jack\.front\.jpg$', r'^jack\.front-\d*\.jpg$'],
+        'val': [r'.*[Cc]over.*\.(jpg|jpeg|png)$', r'.*[Ff]ront.*\.(jpg|jpeg|png)$', r'^[Ff]older\.(jpg|jpeg|png)$', r'^jack\.caa\.front.*\.jpg$', r'^jack\.itunes.*\.jpg$'],
         'usage': "list of regex patterns for matching local album art files",
         'long': 'AUTO',
     },
@@ -924,55 +924,61 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
         'usage': "minimum height when considering album art file",
         'long': 'AUTO',
     },
+    'albumart_save_prefix': {
+        'type': str,
+        'val': 'jack.saved.',
+        'usage': "prefix for saving existing embedded album art",
+        'long': 'AUTO',
+    },
     'fetch_albumart': {
         'type': bool,
         'val': 0,
         'usage': "download album art from coverartarchive.org while querying",
         'long': 'AUTO',
     },
-    'fetch_albumart_prefix': {
-        'type': str,
-        'val': "jack.",
-        'usage': "prefix for saving fetched album art files",
+    'albumart_providers': {
+        'type': list,
+        'val': ['coverartarchive', 'iTunes'],
+        'usage': "list of sources for album art, currently 'coverartarchive' or 'iTunes'",
         'long': 'AUTO',
     },
-    'fetch_albumart_sizes': {
+    'caa_albumart_prefix': {
+        'type': str,
+        'val': "jack.caa.",
+        'usage': "prefix for saving fetched album art files from coverartarchive",
+        'long': 'AUTO',
+    },
+    'caa_albumart_sizes': {
         'type': list,
         'val': ['original','large'],
         'usage': "list of album art sizes to download from coverartarchive: 'original', 'small', 'large', '250', '500' or '1200'",
         'long': 'AUTO',
     },
-    'fetch_albumart_types': {
+    'caa_albumart_types': {
         'type': list,
         'val': ['front'],
-        'usage': "download these album arts ('front' and/or 'back')",
+        'usage': "download these album arts from coverartarchive ('front' and/or 'back')",
         'long': 'AUTO',
     },
-    'fetch_itunes_albumart': {
-        'type': bool,
-        'val': 0,
-        'usage': "download album art from iTunes while querying",
-        'long': 'AUTO',
-    },
-    'fetch_itunes_albumart_sizes': {
+    'itunes_albumart_sizes': {
         'type': list,
         'val': ['standard','high'],
         'usage': "list of album art sizes to download from iTunes: 'thumb', 'standard' or 'high'",
         'long': 'AUTO',
     },
-    'fetch_itunes_albumart_limit': {
+    'itunes_albumart_limit': {
         'type': int,
         'val': 1,
         'usage': "limit number of matches when querying for iTunes album art, zero is no limit",
         'long': 'AUTO',
     },
-    'fetch_itunes_albumart_country': {
+    'itunes_albumart_country': {
         'type': str,
         'val': "us",
         'usage': "two letter country code of iTunes store to query",
         'long': 'AUTO',
     },
-    'fetch_itunes_albumart_prefix': {
+    'itunes_albumart_prefix': {
         'type': str,
         'val': "jack.itunes.",
         'usage': "prefix for saving fetched iTunes album art files",

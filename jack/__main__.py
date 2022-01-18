@@ -169,7 +169,7 @@ def main():
         sys.exit(0)
 
     ### download iTunes album art
-    if cf['_query_on_start'] and cf['_fetch_itunes_albumart']:
+    if cf['_query_on_start'] and cf['_fetch_albumart'] and 'iTunes' in cf['_albumart_providers']:
         jack.albumart.fetch_itunes_albumart(jack.tag.track_names[0][0], jack.tag.track_names[0][1])
 
     ### update progress file at user's request (operation mode)

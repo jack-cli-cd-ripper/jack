@@ -82,7 +82,7 @@ def save_existing_albumart(imgdata, mime):
     else:
         ext = "dat"
     md5 = hashlib.md5(imgdata).hexdigest()
-    savefile = "jack.albumart-{0}.{1}".format(md5, ext)
+    savefile = "%s%s.%s" % (cf['_albumart_save_prefix'], md5, ext)
     if not os.path.exists(savefile):
         debug("saving album art to " + savefile)
         fd = open(savefile, "wb")
@@ -277,9 +277,9 @@ def fetch_caa_albumart(release):
         return
 
     base_url = f'https://coverartarchive.org/release/{ release["id"] }/'
-    prefix = cf['_fetch_albumart_prefix']
-    art_types = cf['_fetch_albumart_types']
-    fetchlist = cf['_fetch_albumart_sizes']
+    prefix = cf['_caa_albumart_prefix']
+    art_types = cf['_caa_albumart_types']
+    fetchlist = cf['_caa_albumart_sizes']
     suffix = ""
 
     user_agent = "%s/%s (%s)" % (jack.version.name, jack.version.version, jack.version.url)
@@ -313,10 +313,10 @@ def fetch_caa_albumart(release):
 
 def fetch_itunes_albumart(artist, album):
     baseurl = 'https://itunes.apple.com/search'
-    country = cf['_fetch_itunes_albumart_country']
-    prefix = cf['_fetch_itunes_albumart_prefix']
-    limit = cf['_fetch_itunes_albumart_limit']
-    fetchlist = cf['_fetch_itunes_albumart_sizes']
+    country = cf['_itunes_albumart_country']
+    prefix = cf['_itunes_albumart_prefix']
+    limit = cf['_itunes_albumart_limit']
+    fetchlist = cf['_itunes_albumart_sizes']
     suffix = ""
 
     user_agent = "%s/%s (%s)" % (jack.version.name, jack.version.version, jack.version.url)
