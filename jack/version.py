@@ -16,12 +16,10 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-from sys import version
+import glob
+import os
+import sys
 
-py_version = version.split(' ')[0]
-
-name = "jack"
-version = "4.0.0"
 
 authors = [
         {
@@ -34,12 +32,22 @@ authors = [
             },
         ]
 
+name = __name__
+
+try:
+    import importlib.metadata
+    version = importlib.metadata.version(name)
+except importlib.metadata.PackageNotFoundError:
+    try:
+        import setuptools_scm
+        version = setuptools_scm.get_version(root='..', relative_to=__file__)
+    except (LookupError, ModuleNotFoundError):
+        version = "4.x"
+
+py_version = sys.version.split(' ')[0]
 author = ", ".join(x["name"] for x in authors)
 copyright = "(C)2021 " + author
 email = ", ".join("%s <%s>" % (x["name"], x["email"]) for x in authors)
-
 license = "GPLv2"
-
 url = "https://github.com/jack-cli-cd-ripper/jack"
-
 rcversion = 31

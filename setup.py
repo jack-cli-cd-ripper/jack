@@ -16,6 +16,7 @@ except:
 PACKAGES = find_packages(exclude=find_packages(where="deprecated"))
 
 REQUIRES = [
+    'setuptools_scm',
     'mutagen',
     'pillow',
     'requests',
@@ -26,8 +27,10 @@ if require_discid:
     REQUIRES.append('discid')
 
 setup(
+    setup_requires=['setuptools_scm'],
+
     name=jack.version.name,
-    version=jack.version.version,
+    use_scm_version=True,
     description="A frontend for several cd-rippers and mp3 encoders",
     author=jack.version.author,
     author_email=jack.version.email,
