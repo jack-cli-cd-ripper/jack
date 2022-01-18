@@ -46,7 +46,7 @@ except (LookupError, ModuleNotFoundError):
 
 py_version = sys.version.split(' ')[0]
 author = ", ".join(x["name"] for x in authors)
-copyright = "(C)2021 " + author
+copyright = "(C)2022 " + author
 email = ", ".join("%s <%s>" % (x["name"], x["email"]) for x in authors)
 license = "GPLv2"
 url = "https://github.com/jack-cli-cd-ripper/jack"
