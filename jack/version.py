@@ -51,3 +51,4 @@ email = ", ".join("%s <%s>" % (x["name"], x["email"]) for x in authors)
 license = "GPLv2"
 url = "https://github.com/jack-cli-cd-ripper/jack"
 rcversion = 31
+user_agent = "%s/%s (%s)" % (name, version, url)

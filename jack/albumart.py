@@ -286,8 +286,7 @@ def fetch_caa_albumart(release):
     fetchlist = cf['_caa_albumart_sizes']
     suffix = ""
 
-    user_agent = "%s/%s (%s)" % (jack.version.name, jack.version.version, jack.version.url)
-    headers = {'User-Agent': user_agent}
+    headers = {'User-Agent': jack.version.user_agent}
 
     session = requests.Session()
     session.headers.update(headers)
@@ -323,8 +322,7 @@ def fetch_itunes_albumart(artist, album):
     fetchlist = cf['_itunes_albumart_sizes']
     suffix = ""
 
-    user_agent = "%s/%s (%s)" % (jack.version.name, jack.version.version, jack.version.url)
-    headers = {'User-Agent': user_agent}
+    headers = {'User-Agent': jack.version.user_agent}
 
     search_term = requests.utils.quote(artist + ' ' + album)
     search_url = "%s?term=%s&country=%s&media=music&entity=album&limit=%d" % (baseurl, search_term, country, limit)
@@ -369,8 +367,7 @@ def fetch_discogs_albumart(release):
 
     base_url = "https://api.discogs.com/releases/"
 
-    user_agent = "%s/%s (%s)" % (jack.version.name, jack.version.version, jack.version.url)
-    headers = {'User-Agent': user_agent}
+    headers = {'User-Agent': jack.version.user_agent}
 
     discogs_urls = []
     if 'relations' in release:

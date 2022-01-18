@@ -50,8 +50,7 @@ def musicbrainz_template(tracks, names=""):
 
 def get_response(url):
     debug(f"get_response({ url })")
-    user_agent = "%s/%s (%s)" % (jack.version.name, jack.version.version, jack.version.url)
-    headers = {'User-Agent': user_agent}
+    headers = {'User-Agent': jack.version.user_agent}
 
     request = urllib.request.Request(url, None, headers)
     try:
