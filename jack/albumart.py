@@ -361,6 +361,39 @@ def fetch_itunes_albumart(artist, album):
 
     session.close()
 
+def fetch_discogs_albumart(release):
+
+    base_url = "https://api.discogs.com/releases/"
+
+    user_agent = "%s/%s (%s)" % (jack.version.name, jack.version.version, jack.version.url)
+    headers = {'User-Agent': user_agent}
+
+    discogs_urls = []
+    if 'relations' in release:
+        for relation in release['relations']:
+            if 'type' in relation and relation['type'] == "discogs" and 'url' in relation and 'resource' in relation['url']:
+                discogs_urls.append(relation['url']['resource'])
+
+    if not discogs_urls:
+        return
+
+    session = requests.Session()
+    session.headers.update(headers)
+
+    for discogs_url in discogs_urls:
+        discogs_release = discogs_url.split("/")[-1]
+        api_url = base_url + discogs_release
+
+        r = session.get(api_url)
+        query_data = json.loads(r.text)
+
+        if 'images' in query_data:
+            for image in query_data['images']:
+                if 'type' in image and image['type'] == 'primary':
+                    warning("discogs albumart (%dx%d) is available but cannot be downloaded without authentication" % (image['width'], image['height']))
+
+    session.close()
+
 def download(session, url, filename):
     "fast chunked downloading of binary data with restoring modification date"
     try:

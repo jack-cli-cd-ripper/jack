@@ -201,6 +201,9 @@ def musicbrainz_query(cd_id, tracks, file):
     if cf['_fetch_albumart'] and 'coverartarchive' in cf['_albumart_providers']:
         jack.albumart.fetch_caa_albumart(result['releases'][chosen_release])
 
+    if cf['_fetch_albumart'] and 'discogs' in cf['_albumart_providers']:
+        jack.albumart.fetch_discogs_albumart(result['releases'][chosen_release])
+
     err = 0
     return err
 
