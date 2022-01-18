@@ -16,7 +16,6 @@ except:
 PACKAGES = find_packages(exclude=find_packages(where="deprecated"))
 
 REQUIRES = [
-    'setuptools_scm',
     'mutagen',
     'pillow',
     'requests',

@@ -35,13 +35,13 @@ authors = [
 name = __name__
 
 try:
-    import importlib.metadata
-    version = importlib.metadata.version(name)
-except importlib.metadata.PackageNotFoundError:
+    import setuptools_scm
+    version = setuptools_scm.get_version(root='..', relative_to=__file__)
+except (LookupError, ModuleNotFoundError):
     try:
-        import setuptools_scm
-        version = setuptools_scm.get_version(root='..', relative_to=__file__)
-    except (LookupError, ModuleNotFoundError):
+        import importlib.metadata
+        version = importlib.metadata.version(name)
+    except importlib.metadata.PackageNotFoundError:
         version = "4.x"
 
 py_version = sys.version.split(' ')[0]
