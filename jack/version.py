@@ -32,7 +32,7 @@ authors = [
             },
         ]
 
-name = __name__
+name = __package__
 
 try:
     import setuptools_scm
