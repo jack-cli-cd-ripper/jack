@@ -275,6 +275,10 @@ def embed_albumart(tagobj, target, audiofile):
 def fetch_caa_albumart(release):
     if not 'cover-art-archive' in release:
         return
+    if not 'artwork' in release['cover-art-archive']:
+        return
+    if not release['cover-art-archive']['artwork']:
+        return
 
     base_url = f'https://coverartarchive.org/release/{ release["id"] }/'
     prefix = cf['_caa_albumart_prefix']
