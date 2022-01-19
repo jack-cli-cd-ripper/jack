@@ -30,7 +30,7 @@ from jack.misc import safe_int
 txt_readme_md = """# Jack
 
 Jack is command-line CD ripper. It extracts audio from a CD, encodes it using
-3rd party software and augment it with metadata from various sources
+3rd party software and augments it with metadata from various sources
 
 As all CLI things, Jack (the ripper) is fast and efficient, and that's why we
 like it.
@@ -63,7 +63,7 @@ Options of type bool can be negated with --no-[option].
 Options that take an argument get that argument from the next option;
 or from the form --[option]=[argument].
 Options that take a list argument can terminate that list with ';' which
-may need to be escaped to '\;'.
+may need to be escaped to '\\;'.
 
 | Option | Type | Default value | Description |
 |--------|------|---------------|-------------|
@@ -90,7 +90,8 @@ Jack has first been developed by the following authors, be they praised:
 
 ## Contributions
 
-Pull Requests and contributions in general are welcome."""
+Pull Requests and contributions in general are welcome.
+"""
 
 txt_interaction = """While Jack is running, press q or Q to quit,
     p or P to disable ripping (you need the CD drive)
