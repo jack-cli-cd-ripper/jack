@@ -938,13 +938,13 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
     'fetch_albumart': {
         'type': bool,
         'val': 0,
-        'usage': "download album art from coverartarchive.org while querying",
+        'usage': "download album art while querying",
         'long': 'AUTO',
     },
     'albumart_providers': {
         'type': list,
         'val': ['coverartarchive', 'iTunes', 'discogs'],
-        'usage': "list of sources for album art, currently 'coverartarchive' or 'iTunes'",
+        'usage': "list of sources for album art, currently 'coverartarchive', 'iTunes' or 'discogs'",
         'long': 'AUTO',
     },
     'caa_albumart_prefix': {
