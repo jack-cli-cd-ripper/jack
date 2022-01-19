@@ -116,8 +116,7 @@ cf = jack.misc.dict2({
     'disable_http_proxy': {
         'type': bool,
         'val': 0,
-        'usage': "XXX todo!!! disable default proxy (environment variable \"http_proxy\") for metadata queries",
-        'long': 'AUTO',
+        'doc': "[not implemented] disable default proxy (environment variable \"http_proxy\") for metadata queries",
     },
     'rename_fmt': {
         'type': str,
@@ -829,7 +828,7 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
     },
     'get': {
         'type': str,
-        'val': 0,
+        'val': None,
         'save': 0,
         'usage': "show value of a config option",
         'long': 'AUTO',
@@ -1006,6 +1005,13 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
         'type': str,
         'val': None,
         'usage': "discogs personal authentication token",
+        'long': 'AUTO',
+    },
+    'readme': {
+        'type': str,
+        'val': None,
+        'usage': "export README.md to given file",
+        'save': False,
         'long': 'AUTO',
     },
 })

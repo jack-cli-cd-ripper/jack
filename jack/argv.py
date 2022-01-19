@@ -16,6 +16,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+import os
 import sys
 import types
 import pprint
@@ -26,12 +27,93 @@ import jack.generic
 from jack.globals import *
 from jack.misc import safe_int
 
+txt_readme_md = """# Jack
+
+Jack is command-line CD ripper. It extracts audio from a CD, encodes it using
+3rd party software and augment it with metadata from various sources
+
+As all CLI things, Jack (the ripper) is fast and efficient, and that's why we
+like it.
+
+## Recent features
+
+* port to Python 3
+* replace CDDB.py with libdiscid
+* replace eyeD3 with mutagen
+* add support for MusicBrainz while keeping support for freedb/gnudb
+* add support for extended tagging, compatible with MusicBrainz Picard
+* add support for M4A, using fdkaac and mutagen
+* transcoding from lossless to lossy formats
+* automatic downloading of album art from coverartarchive, iTunes and discogs
+* automatic, highly configurable embedding of album art
+
+### Requirements
+
+* Python 3
+* Python 3 modules libdiscid, mutagen, requests, pillow and dateparser
+* an encoder like oggenc for Ogg/Vorbis (default), flac (Free Lossless Audio
+  Codec), lame (MP3) or fdkaac (M4A/AAC)
+* cdparanoia
+
+## Usage
+
+jack [option...]
+
+Options of type bool can be negated with --no-[option].
+Options that take an argument get that argument from the next option;
+or from the form --[option]=[argument].
+Options that take a list argument can terminate that list with ';' which
+may need to be escaped to '\;'.
+
+| Option | Type | Default value | Description |
+|--------|------|---------------|-------------|
+{}
+
+## Interaction
+
+{}
+
+## Authors and Copyrights
+
+Jack is Free Libre Open Source Software distributed under the GNU General Public
+License version 2, or (at your option) any later version.
+
+The original home of the project was http://www.home.unix-ag.org/arne/jack/ and
+the code was hosted in SourceForge.
+
+Jack has first been developed by the following authors, be they praised:
+
+* Copyright (C) 1999-2022 Arne Zellentin <zarne@users.sf.net>
+* Copyright (C) 2020-2022 Pim Zandbergen <pim@zandbergen.org>
+* Copyright (C) 2002-2016 Martin Michlmayr <tbm@debian.org>, Michael Banck
+  <mbanck@debian.org>, for all the Debian patches
+
+## Contributions
+
+Pull Requests and contributions in general are welcome."""
+
+txt_interaction = """While Jack is running, press q or Q to quit,
+    p or P to disable ripping (you need the CD drive)
+    p or P (again) or c or C to resume,
+    e or E to pause/continue all encoders and
+    r or R to pause/continue all rippers."""
 
 def show_usage(cf, longhelp=False):
-    print("usage: jack [option]...")
+    "show program usage for config object cf."
+    "longhelp=0: short help"
+    "longhelp=1: long help"
+    "longhelp=2: export full documentation as markdown"
 
+    if longhelp < 2:
+        print("usage: jack [option]...")
+
+    help_md = []
     for i in list(cf.keys()):
-        if not longhelp and 'help' not in cf[i]:
+        if longhelp == 0 and 'help' not in cf[i]:
+            continue
+
+        if longhelp == 2:
+            help_md.append(doc_md(cf, i))
             continue
 
         options = ""
@@ -57,23 +139,68 @@ def show_usage(cf, longhelp=False):
             else:
                 debug("no usage in " + i + ": " + str(cf[i]))
 
-    if longhelp:
+    if longhelp == 1:
         print("""
 For options that take an argument, the current default value is shown
 in brackets. Some have a flag symbol appended:
     #: modified in global rc file
     $: modified in user rc file
-    +: further documentation available in jack --help <option>
+    +: further documentation available in jack --help <option>""")
 
-While Jack is running, press q or Q to quit,
-    p or P to disable ripping (you need the CD drive)
-    p or P (again) or c or C to resume,
-    e or E to pause/continue all encoders and
-    r or R to pause/continue all rippers.
-""")
-    else:
+    if longhelp == 1:
+        print()
+        print(txt_interaction)
+    elif longhelp == 0:
         print()
         print("These are the most common options. For a complete list, run jack --longhelp")
+
+    if longhelp == 2:
+        out = cf['_readme']
+        if os.path.exists(out) and not cf['_force']:
+            error(f"{out} exists")
+
+        help_md = [x for x in help_md if x]
+        help_md = "\n".join(help_md)
+        with open(out, "w") as fd:
+            fd.write(txt_readme_md.format(help_md, txt_interaction))
+        info(f"wrote README to {out}")
+
+
+def doc_md(cf, index):
+    entry = cf[index]
+    if not 'usage' in entry:
+        return None
+    options = ([f"--{entry[x]}" for x in entry if x == "long" ]
+            + [f"-{entry[x]}" for x in entry if x == "short" ])
+
+    desc = entry['usage']
+    if 'doc' in entry:
+        doc = entry['doc']
+        if not doc.startswith("\n"):
+            desc += "<br>"
+        desc += "<br>"
+        desc += entry['doc'].replace('\n', '<br>')
+
+    default = entry['history'][0][1]
+    if default is None:
+        default = "-"
+    else:
+        if entry['type'] == bool:
+            default = "yes" if default else "no"
+        elif entry['type'] == str:
+            default = repr(default)
+
+    line = [f"{', '.join(options)}",
+            f"{entry['type'].__name__}",
+            f"{default}",
+            f"{desc}"]
+
+    for i in "|*^$":
+        line = [x.replace(i, "\\" + i) for x in line]
+    line = " | ".join(line)
+    line = f"| {line} |"
+
+    return line
 
 
 def get_next(argv, i, extra_arg=None, allow_equal=1):
@@ -287,12 +414,15 @@ def parse_argv(cf, argv):
             if option not in argv_cf:
                 argv_cf[option] = {}
             argv_cf[option].update({'val': value})
+            if option in ("readme",):
+                help = 3
         else:
             print("unknown option `%s'" % argv[i])
             show_usage(cf)
             sys.exit(1)
         if not i:
             break
+
         i = i + 1
     return help, argv_cf
 # end of parse_argv()
