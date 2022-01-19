@@ -6,21 +6,19 @@ Jack is command-line CD ripper. It extracts audio from a CD, encodes it using
 As all CLI things, Jack (the ripper) is fast and efficient, and that's why we
 like it.
 
-This is a heavily modified fork of https://github.com/jack-cli-cd-ripper/jack
-which is becoming obsolete, as it requires Python 2, and needs FreeDB which
-has been declared dead.
+This is a heavily modified branch, that started as a fork.
+The main branch is becoming obsolete, as it requires Python 2
 
-This fork intends to achieve the following:
-* port to Python 3 - done
-* replace CDDB.py with python-libdiscid - done
-* replace eyeD3 with mutagen - done
-* add support for MusicBrainz - under development
-* add support for extended, picard-like MusicBrainz tagging - todo
-* add support for M4A, using fdkaac and mutagen - mostly done
-* encode to multiple formats - todo
-* encode from lossless to lossy formats - todo
-* automatically download and embed album art - todo
-* lots of cleanups and small changes - continuous process
+This branch features the following enhancements and changes:
+* port to Python 3
+* replace CDDB.py with libdiscid
+* replace eyeD3 with mutagen
+* add support for MusicBrainz while keeping support for freedb/gnudb
+* add support for extended tagging, compatible with MusicBrainz Picard
+* add support for M4A, using fdkaac and mutagen
+* transcoding from lossless to lossy formats
+* automatic downloading of album art from coverartarchive, iTunes and discogs
+* automatic, highly configurable embedding of album art
 
 ## Usage
 
@@ -29,9 +27,7 @@ For now, see the original repo.
 ### Requirements
 
 * Python 3
-* python-libdiscid for disc recognition
-* python-musicbrainzngs for MusicBrainz support
-* mutagen for tagging
+* Python 3 modules libdiscid, mutagen, requests, pillow and dateparser
 * an encoder like oggenc for Ogg/Vorbis (default), flac (Free Lossless Audio
   Codec), lame (MP3) or fdkaac (M4A/AAC)
 * a Digital Audio Extraction tool like cdparanoia
@@ -47,11 +43,10 @@ the code was hosted in SourceForge.
 
 Jack has first been developed by the following authors, be they praised:
 
-* Copyright (C) 1999-2005 Arne Zellentin <zarne@users.sf.net>, for the Jack code
+* Copyright (C) 1999-2022 Arne Zellentin <zarne@users.sf.net>
+* Copyright (C) 2020-2022 Pim Zandbergen <pim@zandbergen.org>
 * Copyright (C) 2002-2016 Martin Michlmayr <tbm@debian.org>, Michael Banck
   <mbanck@debian.org>, for all the Debian patches
-* Copyright (C) 2020 Pim Zandbergen <pim+jack@zandbergen.org>, for the changes
-  in this fork
 
 
 ## Contributions
