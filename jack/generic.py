@@ -21,24 +21,31 @@ import os
 import jack.version
 
 
-def indent(pre, msg, at=80, margin=0):
-    msg = msg.split()
-    ret = pre
+def indent(pre, msg, at=80, margin=0, show=False):
+    ret = (pre + " ") if pre else ""
     if margin:
-        if len(pre) < margin:
-            ret += " " * (margin - len(pre))
+        if len(ret) < margin:
+            ret += " " * (margin - len(ret))
         tab = margin
     else:
-        tab = len(pre)
+        tab = len(ret)
+
     x = len(ret)
-    for i in msg:
-        add = 1 + len(i)
-        if x + add > at:
+    first = True
+    for i in msg.split():
+        add = "" if first else " "
+        first = False
+        add += i
+        if x + len(add) > at:
             ret += "\n" + (" " * (tab))
             x = tab
-        ret += " " + i
-        x += add
-    return ret
+            add = i
+        ret += add
+        x += len(add)
+    if show:
+        print(ret)
+    else:
+        return ret
 
 
 def log_to_logfile(s):
