@@ -30,7 +30,7 @@ For now, see the original repo.
 * Python 3 modules libdiscid, mutagen, requests, pillow and dateparser
 * an encoder like oggenc for Ogg/Vorbis (default), flac (Free Lossless Audio
   Codec), lame (MP3) or fdkaac (M4A/AAC)
-* a Digital Audio Extraction tool like cdparanoia
+* cdparanoia
 
 
 ## Authors and Copyrights
