@@ -209,7 +209,7 @@ def musicbrainz_query(cd_id, tracks, file):
 
 mb_names_calls = 0
 
-def musicbrainz_names(cd_id, tracks, todo, name, verb=0, warn=1):
+def musicbrainz_names(cd_id, tracks, todo, name, verb=None, warn=None):
     "returns err, [(artist, albumname), (track_01-artist, track_01-name), ...], cd_id, mb_query_data"
 
     global mb_names_calls

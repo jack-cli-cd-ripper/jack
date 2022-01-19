@@ -21,6 +21,8 @@ import sys
 import os
 import re
 
+from operator import itemgetter
+
 import jack.functions
 import jack.progress
 import jack.utils
@@ -60,9 +62,11 @@ metadata_servers = {
 metadata_apis = {
     'cddb': {
         'form_file_extension': ".freedb",
+        'names_fn': jack.freedb.freedb_names,
     },
     'musicbrainzngs': {
         'form_file_extension': ".musicbrainz",
+        'names_fn': jack.musicbrainz.musicbrainz_names,
     },
 }
 
@@ -82,10 +86,7 @@ def interpret_db_file(all_tracks, todo, metadata_form_file, verb, dirs=0, warn=N
     "read metadata file and rename dir(s)"
     global names_available, dir_created
     metadata_rename = 0
-    if warn == None:
-        err, track_names, cd_id, mb_query_data = metadata_names(metadata_id(all_tracks), all_tracks, todo, metadata_form_file, verb=verb)
-    else:
-        err, track_names, cd_id, mb_query_data = metadata_names(metadata_id(all_tracks), all_tracks, todo, metadata_form_file, verb=verb, warn=warn)
+    err, track_names, cd_id, mb_query_data = metadata_names(metadata_id(all_tracks), all_tracks, todo, metadata_form_file, verb=verb, warn=warn)
     if (not err) and dirs:
         metadata_rename = 1
 
@@ -189,29 +190,39 @@ def metadata_query(cd_id, tracks, file):
 
 
 def metadata_names(cd_id, tracks, todo, name, verb=0, warn=1):
-    prefer_api = get_metadata_api(cf['_metadata_server'])
-    apis = {}
-    for api in ['cddb', 'musicbrainzngs']:
+    "select metadata source and return metadata"
+
+    available = []
+    for api in metadata_apis.keys():
         form_file = get_metadata_form_file(api)
-        if os.path.exists(form_file):
-            mtime = os.path.getmtime(form_file)
-        else:
-            mtime = 0
-        apis[api] = {"form_file": form_file, "mtime": mtime}
+        if not os.path.exists(form_file):
+            continue
 
-    if apis['cddb']['mtime'] > apis['musicbrainzngs']['mtime']:
-        newest_api = 'cddb'
-    else:
-        newest_api = 'musicbrainzngs'
-    newest_form_file = get_metadata_form_file(newest_api)
+        args = (cd_id, tracks, todo, form_file)
+        data = metadata_apis[api]['names_fn'](*args, verb=0, warn=0)
+        if data[0]:  # error
+            debug(f"could not read {form_file}, error {data[0]}")
+            continue
 
-    if apis['cddb']['mtime'] and apis['musicbrainzngs']['mtime'] or prefer_api != newest_api:
-        info("Using " + get_metadata_form_file(newest_api))
+        entry = {
+                "api": api,
+                "form_file": form_file,
+                "preferred": api == get_metadata_api(cf['_metadata_server']),
+                "mtime": os.path.getmtime(form_file),
+                "args": args,
+        }
+        available.append(entry)
 
-    if newest_api == 'cddb':
-        return jack.freedb.freedb_names(cd_id, tracks, todo, newest_form_file, verb=1, warn=1)
-    else:
-        return jack.musicbrainz.musicbrainz_names(cd_id, tracks, todo, newest_form_file, verb=0, warn=1)
+    if len(available) == 0:
+        return True, None, None, None  # error
+
+    available.sort(reverse=True, key=itemgetter('mtime'))
+    selected = available[0]
+    if not selected['preferred']:
+        info(f"Using {selected['form_file']}")
+
+    return metadata_apis[selected['api']]['names_fn'](*selected['args'],
+            verb=verb, warn=warn)
 
 
 def split_albumtitle(album_title):
