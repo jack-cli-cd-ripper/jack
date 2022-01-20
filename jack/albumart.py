@@ -339,7 +339,7 @@ def fetch_itunes_albumart(artist, album):
             itunes_artist = result['artistName']
             itunes_album = result['collectionName']
 
-            itunes_name = jack.utils.unusable_charmap(itunes_artist + " - " + itunes_album)
+            itunes_name = jack.utils.unusable_charmap(itunes_artist + " - " + itunes_album)[40:]
 
             # iTunes API shows thumbnail pictures only. This is an undocumented trick to get high quality versions.
             # Taken from https://github.com/bendodson/itunes-artwork-finder
@@ -396,7 +396,14 @@ def fetch_discogs_albumart(release):
                     if 'type' in image and image['type'] == art_type and 'uri' in image:
                         url = image['uri']
                         if len(url):
-                            basename = url.split("/")[-1]
+                            r = session.head(url)
+                            content_disposition =  r.headers.get("Content-Disposition")
+                            if content_disposition:
+                                basename = content_disposition.split("filename=")[1] 
+                                basename = basename.replace('"', '')
+                            else:
+                                basename = hashlib.md5(url.encode("utf-8")).hexdigest()
+                                basename += "." + url.split(".")[-1]
                             if len(art_types) > 1:
                                 filename = prefix  + art_type + "." + basename
                             else:
@@ -445,9 +452,9 @@ def download(session, url, filename):
             if remote_length:
                 local_length = os.stat(filename).st_size
                 if int(remote_length) != local_length:
-                    warning("different filesize for %s: web: %s local: %d" % (filename, remote_length, local_length))
+                    warning("different remote file size for " + filename)
             last_modified = r.headers.get('Last-Modified')
             if last_modified:
                 timestamp = datetime.datetime.timestamp(dateparser.parse(last_modified))
                 if timestamp != os.stat(filename).st_mtime:
-                    warning("different remote timestamp for %s")
+                    warning("different remote timestamp for " + filename)
