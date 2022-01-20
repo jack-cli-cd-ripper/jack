@@ -1,9 +1,9 @@
 # Jack
 
 Jack is command-line CD ripper. It extracts audio from a CD, encodes it using
-3rd party software and augments it with metadata from various sources
+3rd party software and augments it with metadata from various sources.
 
-As all CLI things, Jack (the ripper) is fast and efficient, and that's why we
+As all CLI things, Jack is fast and efficient, and that's why we
 like it.
 
 ## Recent features
@@ -18,7 +18,7 @@ like it.
 * automatic downloading of album art from coverartarchive, iTunes and discogs
 * automatic, highly configurable embedding of album art
 
-### Requirements
+## Requirements
 
 * Python 3
 * Python 3 modules libdiscid, mutagen, requests, pillow and dateparser
@@ -28,13 +28,13 @@ like it.
 
 ## Usage
 
-jack [option...]
+jack [option]...
 
 Options of type bool can be negated with --no-[option].
-Options that take an argument get that argument from the next option;
+Options that take an argument get that argument from the next option,
 or from the form --[option]=[argument].
-Options that take a list argument can terminate that list with ';' which
-may need to be escaped to '\;'.
+Options that take a list argument take that list from the following arguments
+terminated with ';', the next option or the end of the options.
 
 | Option | Type | Default value | Description |
 |--------|------|---------------|-------------|
