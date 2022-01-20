@@ -292,6 +292,9 @@ def fetch_caa_albumart(release):
     session.headers.update(headers)
 
     r = session.get(base_url)
+    if r.status_code != 200:
+        session.close()
+        return
     query_data = json.loads(r.text)
 
     if 'images' in query_data:
@@ -331,6 +334,9 @@ def fetch_itunes_albumart(artist, album):
     session.headers.update(headers)
 
     r = session.get(search_url)
+    if r.status_code != 200:
+        session.close()
+        return
     querydata = json.loads(r.text)
 
     if 'results' in querydata:
@@ -388,6 +394,8 @@ def fetch_discogs_albumart(release):
             api_url += "?token=" + access_token
 
         r = session.get(api_url)
+        if r.status_code != 200:
+            continue
         query_data = json.loads(r.text)
 
         if 'images' in query_data:
@@ -397,6 +405,8 @@ def fetch_discogs_albumart(release):
                         url = image['uri']
                         if len(url):
                             r = session.head(url)
+                            if r.status_code != 200:
+                                continue
                             content_disposition =  r.headers.get("Content-Disposition")
                             if content_disposition:
                                 basename = content_disposition.split("filename=")[1] 
