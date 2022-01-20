@@ -339,7 +339,7 @@ def fetch_itunes_albumart(artist, album):
             itunes_artist = result['artistName']
             itunes_album = result['collectionName']
 
-            itunes_name = jack.utils.unusable_charmap(itunes_artist + " - " + itunes_album)[40:]
+            itunes_name = jack.utils.unusable_charmap(itunes_artist + " - " + itunes_album)[:60]
 
             # iTunes API shows thumbnail pictures only. This is an undocumented trick to get high quality versions.
             # Taken from https://github.com/bendodson/itunes-artwork-finder
