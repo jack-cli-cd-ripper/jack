@@ -313,6 +313,9 @@ def fetch_caa_albumart(release):
                                 continue
                         extension = url.split(".")[-1]
                         filename = prefix + art_type + suffix + "." + extension
+                        session.close()
+                        session = requests.Session()
+                        session.headers.update(headers)
                         download(session, url, filename)
 
     session.close()
