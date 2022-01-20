@@ -270,8 +270,7 @@ cf = jack.misc.dict2({
         'type': list,
         'val': ["/", "\r"],
         'usage': "characters which can't be used in filenames",
-        'doc': """
-put chars which can't be used in filenames here and their replacements
+        'doc': """put chars which can't be used in filenames here and their replacements
 in replacement_chars.
 
 example 1: replace all " " by "_":
@@ -1011,6 +1010,13 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
         'type': str,
         'val': None,
         'usage': "export README.md to given file",
+        'save': False,
+        'long': 'AUTO',
+    },
+    'show': {
+        'type': str,
+        'val': None,
+        'doc': "(internal) show config object",
         'save': False,
         'long': 'AUTO',
     },

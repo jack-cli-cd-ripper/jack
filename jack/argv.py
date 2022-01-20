@@ -25,14 +25,13 @@ import jack.utils
 import jack.generic
 
 from jack.globals import *
-from jack.misc import safe_int
 
 txt_readme_md = """# Jack
 
 Jack is command-line CD ripper. It extracts audio from a CD, encodes it using
-3rd party software and augments it with metadata from various sources
+3rd party software and augments it with metadata from various sources.
 
-As all CLI things, Jack (the ripper) is fast and efficient, and that's why we
+As all CLI things, Jack is fast and efficient, and that's why we
 like it.
 
 ## Recent features
@@ -47,7 +46,7 @@ like it.
 * automatic downloading of album art from coverartarchive, iTunes and discogs
 * automatic, highly configurable embedding of album art
 
-### Requirements
+## Requirements
 
 * Python 3
 * Python 3 modules libdiscid, mutagen, requests, pillow and dateparser
@@ -57,13 +56,13 @@ like it.
 
 ## Usage
 
-jack [option...]
+jack [option]...
 
 Options of type bool can be negated with --no-[option].
-Options that take an argument get that argument from the next option;
+Options that take an argument get that argument from the next option,
 or from the form --[option]=[argument].
-Options that take a list argument can terminate that list with ';' which
-may need to be escaped to '\\;'.
+Options that take a list argument take that list from the following arguments
+terminated with ';', the next option or the end of the options.
 
 | Option | Type | Default value | Description |
 |--------|------|---------------|-------------|
@@ -99,34 +98,44 @@ txt_interaction = """While Jack is running, press q or Q to quit,
     e or E to pause/continue all encoders and
     r or R to pause/continue all rippers."""
 
-def show_usage(cf, longhelp=False):
+def show_usage(cf, verbosity, searches=None):
     "show program usage for config object cf."
-    "longhelp=0: short help"
-    "longhelp=1: long help"
-    "longhelp=2: export full documentation as markdown"
+    "verbosity=1: short help for all items"
+    "verbosity=2: long help for all items"
+    "verbosity=2: export full documentation as markdown"
+    "searches=list: short help for items in list or all if list is empty"
 
-    if longhelp < 2:
+    if searches:
+        cf_filter = {x for v in searches.values() for x in v}
+
+    _, shorthelp, longhelp, exporthelp = [x == verbosity for x in range(4)]
+
+    if longhelp or shorthelp or searches:
         print("usage: jack [option]...")
 
     help_md = []
     for i in list(cf.keys()):
-        if longhelp == 0 and 'help' not in cf[i]:
+        if searches and i not in cf_filter:
             continue
 
-        if longhelp == 2:
+        if not searches and shorthelp and 'help' not in cf[i]:
+            continue
+
+        if exporthelp:
             help_md.append(doc_md(cf, i))
             continue
 
-        options = ""
-        if (not longhelp
+        if (not (longhelp or shorthelp)
                 and 'vbr_only' in cf[i]
                 and cf[i]['vbr_only'] != cf['_vbr']):
             continue
+
         if 'long' in cf[i]:
             isbool = cf[i]['type'] == bool
             val = cf[i]['val']
             prefix = "--no-" if isbool and val else "--"
             options = f"  {prefix}{cf[i]['long']}"
+
             if 'short' in cf[i]:
                 options += f", -{cf[i]['short']}"
 
@@ -135,27 +144,38 @@ def show_usage(cf, longhelp=False):
                 description = f"{prefix}{cf[i]['usage']}"
                 if not isbool:
                     description += jack.utils.yes(cf[i])
+                jack.generic.indent(options, description, margin=20, show=True)
 
-                print(jack.generic.indent(options, description, margin=20))
+                if searches and longhelp and 'doc' in cf[i]:
+                    print()
+                    print(cf[i]['doc'])
+                    print()
             else:
                 debug("no usage in " + i + ": " + str(cf[i]))
 
-    if longhelp == 1:
+    if searches:
+        if len(cf_filter) > 1:
+            print()
+            jack.generic.indent("", "These are the options matching "
+                    f"{jack.generic.human_readable_list(searches.keys())}. "
+                    "For a complete list, run jack --longhelp", show=True)
+
+    elif longhelp:
         print("""
 For options that take an argument, the current default value is shown
 in brackets. Some have a flag symbol appended:
     #: modified in global rc file
     $: modified in user rc file
-    +: further documentation available in jack --help <option>""")
-
-    if longhelp == 1:
+    +: further documentation available in jack --longhelp <option>""")
         print()
         print(txt_interaction)
-    elif longhelp == 0:
-        print()
-        print("These are the most common options. For a complete list, run jack --longhelp")
 
-    if longhelp == 2:
+    elif shorthelp:
+        print()
+        jack.generic.indent("", "These are the most common options. "
+                "For a complete list, run jack --longhelp", show=True)
+
+    elif exporthelp:
         out = cf['_readme']
         if os.path.exists(out) and not cf['_force']:
             error(f"{out} exists")
@@ -226,46 +246,28 @@ def istrue(x):
         raise TypeError
 
 
+def opt(cf, o):
+    return f"--{cf[o]['long']}"
+
+
 def parse_option(cf, argv, i, option, alt_arg, origin="argv"):
     ty = cf[option]['type']
     if ty == bool:
-        if alt_arg is not None:
-            return i, istrue(alt_arg)
-        else:
-            return i, True
+        return i, True if alt_arg is None else istrue(alt_arg)
 
-    elif ty == float:
+    if ty in (float, int, bytes, str):
         i, data = get_next(argv, i, alt_arg)
-        if data != None:
-            try:
-                data = float(data)
-                return i, data
-            except:
-                return None, "option `%s' needs a float argument" % option
-        else:
-            return None, "Option `%s' needs exactly one argument" % option
+        if data is None:
+            return None, (f"Option {repr(opt(cf, option))} needs "
+                    "exactly one argument")
+        try:
+            value = ty(data)
+            return i, value
+        except ValueError:
+            return None, (f"option {repr(opt(cf, option))} needs "
+                    f"an argument of type {ty.__name__}")
 
-    elif ty == int:
-        i, data = get_next(argv, i, alt_arg)
-        if data != None:
-            try:
-                data = int(data)
-                return i, data
-            except:
-                return None, "option `%s' needs an integer argument" % option
-
-            return i, safe_int(data, "option `%s' needs an integer argument" % option)
-        else:
-            return None, "Option `%s' needs exactly one argument" % option
-
-    elif ty in (bytes, str):
-        i, data = get_next(argv, i, alt_arg)
-        if data != None:
-            return i, data
-        else:
-            return None, "Option `%s' needs exactly one string argument" % option
-
-    elif ty == list:
+    if ty == list:
         l = []
         if origin == "argv":
             valid_short_opts = [cf[key]['short']
@@ -278,9 +280,9 @@ def parse_option(cf, argv, i, option, alt_arg, origin="argv"):
                     if data == ";":
                         break
                     # The end of a list has to be signaled with a semicolon but
-                    # many users forget this; therefore, check whether the next list
-                    # entry is a valid option, and if so, assume the end of the list
-                    # has been reached.
+                    # many users forget this; therefore, check whether the next
+                    # list entry is a valid option, and if so, assume the end
+                    # of the list has been reached.
                     if data.startswith("--") and data[2:].split('=', 1)[0] in valid_long_opts:
                         i -= 1
                         break
@@ -300,9 +302,9 @@ def parse_option(cf, argv, i, option, alt_arg, origin="argv"):
             return i, l
         else:
             return None, "option `%s' takes a non-empty list (which may be terminated by \";\")" % option
-    else:
-        # default
-        return None, "unknown argument type for option `%s'." % option
+
+    # default
+    return None, "unknown argument type for option `%s'." % option
 
 
 def parse_argv(cf, argv):
@@ -310,21 +312,26 @@ def parse_argv(cf, argv):
     longhelp_args = ("--longhelp", "--long-help")
     all_help_args = (*help_args, *longhelp_args)
 
-    argv_cf = {}
     allargs = {}
-    for i in list(cf.keys()):
-        if 'long' in cf[i]:
-            if len(cf[i]['long']) < 2 or cf[i]['long'] in allargs:
-                error(f"[internal] option not long or amibiguos: {cf[i]}")
+    for k, v in cf.items():
+        if 'long' in v:
+            if len(v['long']) < 2 or v['long'] in allargs:
+                error(f"[internal] option not long or amibiguos: {v}")
             else:
-                allargs[cf[i]['long']] = i
-        if 'short' in cf[i]:
-            if len(cf[i]['short']) != 1 or cf[i]['short'] in allargs:
-                error(f"[internal] option not short or amibiguos: {cf[i]}")
+                allargs[v['long']] = k
+                if v['type'] == bool:
+                    allargs[f"no-{v['long']}"] = k
+
+        if 'short' in v:
+            if len(v['short']) != 1 or v['short'] in allargs:
+                error(f"[internal] option not short or amibiguos: {v}")
             else:
-                allargs[cf[i]['short']] = i
+                allargs[v['short']] = k
+
     i = 1
     help = 0
+    searches = {}
+    argv_cf = {}
     while i < len(argv):
         option = ""
         tmp_option = tmp_arg = None
@@ -339,7 +346,7 @@ def parse_argv(cf, argv):
             if o in allargs:
                 option = allargs[o]
 
-        elif tmp_option in ("--set", "--get", *all_help_args):
+        elif tmp_option in ("--set", "--get", "--show", *all_help_args):
             if tmp_option in help_args:
                 help = 1
             if tmp_option in longhelp_args:
@@ -356,20 +363,26 @@ def parse_argv(cf, argv):
             if var.find("=") > 0:
                 var, tmp_arg = option.split("=", 1)
 
-            if var in allargs:
-                var = allargs[var]
-            else:
+            if tmp_option in all_help_args:
                 stripped = var.lstrip("-").replace("_", "-")
-                candidates = [x for x in allargs if stripped in x]
-                if len(candidates) != 1:
-                    error(f"unknown config option: {tmp_option}. Candidates: "
-                            + repr(candidates))
-                var = allargs[candidates[0]]
+                if stripped in allargs:  # exact match
+                    searches[var] = [allargs[stripped],]
+                    i = i + 1
+                    continue
+                else:
+                    candidates = [x for x in allargs if stripped in x]
+                    if candidates:
+                        searches[var] = [allargs[x] for x in candidates]
+                        i = i + 1
+                        continue
 
-            cmd = f"--{cf[var]['long']}"
+            if var not in allargs:
+                error(f"unknown config option: {var}")
+
+            var = allargs[var]
 
             if tmp_option == "--set":
-                if var in cf and cf[var]['type'] == bool:
+                if cf[var]['type'] == bool:
                     i, tmp_arg = get_next(argv, i, allow_equal = False)
 
                 if var == None:
@@ -381,31 +394,16 @@ def parse_argv(cf, argv):
                 print(cf[var]['val'])
                 sys.exit(0)
 
-            elif tmp_option in all_help_args:
-                print()
+            elif tmp_option in ("--show",):
                 print(f"{var}:")
-                pprint.pprint({k: v for k, v in cf[var].items()
-                    if k not in ("doc", "usage")},
-                        indent=4)
-                print()
-                print(f"{cmd}: {cf[var]['usage']}")
-                print()
-                if 'doc' in cf[var]:
-                    print(cf[var]['doc'])
-                    print()
-
+                pprint.pprint(cf[var])
                 sys.exit(0)
-
-        elif len(tmp_option) > 5 and tmp_option.startswith("--no-"):
-            o = tmp_option[5:]
-            if cf[allargs[o]]['type'] == bool:
-                tmp_arg = not istrue(tmp_arg) if tmp_arg else False
-                if o in allargs:
-                    option = allargs[o]
 
         elif len(tmp_option) > 2 and tmp_option.startswith("--"):
             o = tmp_option[2:]
             if o in allargs:
+                if o.startswith('no-') and cf[allargs[o]]['type'] == bool:
+                    tmp_arg = not istrue(tmp_arg) if tmp_arg else False
                 option = allargs[o]
 
         if option:
@@ -419,11 +417,11 @@ def parse_argv(cf, argv):
                 help = 3
         else:
             print("unknown option `%s'" % argv[i])
-            show_usage(cf)
+            show_usage(cf, 1)
             sys.exit(1)
         if not i:
             break
 
         i = i + 1
-    return help, argv_cf
-# end of parse_argv()
+
+    return help, argv_cf, searches

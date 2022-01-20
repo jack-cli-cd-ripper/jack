@@ -60,6 +60,7 @@ import jack.main_loop
 import jack.progress
 import jack.prepare
 import jack.albumart
+import jack.generic
 
 
 ##############################################################################
@@ -76,15 +77,18 @@ def main():
     user_cf = jack.rc.load(cf, cf['user_rc']['val'])
     jack.checkopts.checkopts(cf, user_cf)
     cf.rupdate(user_cf, "user_rc")
-    help, argv_cf = jack.argv.parse_argv(cf, sys.argv)
+    help_verbosity, argv_cf, searches = jack.argv.parse_argv(cf, sys.argv)
     jack.checkopts.checkopts(cf, argv_cf)
     cf.rupdate(argv_cf, "argv")
 
     # say hello...
-    print("This is", jack.version.name, jack.version.version, jack.version.copyright, jack.version.url)
+    jack.generic.indent("", f"This is {jack.version.name} "
+            f"{jack.version.version} "
+            f"{jack.version.copyright}. "
+            f"{jack.version.url}", show=True)
 
-    if help:
-        jack.argv.show_usage(cf, help-1)
+    if help_verbosity:
+        jack.argv.show_usage(cf, help_verbosity, searches)
         sys.exit(0)
     debug("global_cf: " + repr(global_cf))
     debug("user_cf: " + repr(user_cf))
