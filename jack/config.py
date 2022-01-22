@@ -536,6 +536,12 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
         'long': 'AUTO',
         'short': 'U',
     },
+    'refresh_metadata': {
+        'type': bool,
+        'val': 0,
+        'usage': "forget about choices made in previous queries",
+        'long': 'AUTO',
+    },
     'sloppy': {
         'type': bool,
         'val': 0,

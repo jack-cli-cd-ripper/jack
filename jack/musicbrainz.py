@@ -93,6 +93,18 @@ def musicbrainz_query(cd_id, tracks, file):
     response.close()
 
     chosen_release = None
+    old_chosen_release = None
+    old_release_id = None
+    if not cf['_refresh_metadata']:
+        old_query_data = read_data_from(file)
+        if old_query_data:
+            old_chosen_release = old_query_data['chosen_release']
+            old_release_id = old_query_data['result']['releases'][old_chosen_release]['id']
+
+            # remember the earlier choice to add disambiguation to the album title
+            if 'add_disambiguation' in old_query_data and old_query_data['add_disambiguation']:
+                cf['_add_disambiguation'] = True
+
     if 'releases' in result:
         releases = result['releases']
         if len(releases) == 0:
@@ -108,17 +120,9 @@ def musicbrainz_query(cd_id, tracks, file):
         if len(releases) == 1 and exact_matches == True:
             chosen_release = 0
         else:
-            # FIXME this should be configurable behaviour
-            old_chosen_release = None
-            old_release_id = None
-
-            old_query_data = read_data_from(file)
-            if old_query_data:
-                old_chosen_release = old_query_data['chosen_release']
-                old_release_id = old_query_data['result']['releases'][old_chosen_release]['id']
-
+            if old_release_id:
                 for idx, rel in enumerate(releases):
-                    if old_release_id and rel['id'] == old_release_id:
+                    if rel['id'] == old_release_id:
                         chosen_release = idx
                         warning("automatically selected release " + old_release_id)
 
@@ -189,6 +193,8 @@ def musicbrainz_query(cd_id, tracks, file):
         'chosen_release': chosen_release,
         'result': result,
     }
+    if cf['_add_disambiguation']:
+        query_data['add_disambiguation'] = True
 
     if os.path.exists(file):
         os.rename(file, file + ".bak")
@@ -263,6 +269,10 @@ def musicbrainz_names(cd_id, tracks, todo, name, verb=None, warn=None):
         a_artist = artist_as_sort_name
     else:
         a_artist = artist_as_in_mb
+
+    # remember the earlier choice to add disambiguation to the album title
+    if 'add_disambiguation' in query_data and query_data['add_disambiguation']:
+        cf['_add_disambiguation'] = True
 
     # get the album name for use in constructing the path
     album = release['title']
