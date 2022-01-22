@@ -940,6 +940,12 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
         'usage': "download album art while querying",
         'long': 'AUTO',
     },
+    'overwrite_albumart': {
+        'type': str,
+        'val': 'conditional',
+        'usage': "whether to overwrite existing album art files, 'always', 'never' or 'conditional' (the default)",
+        'long': 'AUTO',
+    },
     'albumart_providers': {
         'type': list,
         'val': ['coverartarchive', 'iTunes', 'discogs'],

@@ -316,7 +316,7 @@ def fetch_caa_albumart(release):
                         session.close()
                         session = requests.Session()
                         session.headers.update(headers)
-                        download(session, url, filename)
+                        download(session, url, filename, cf['_overwrite_albumart'])
 
     session.close()
 
@@ -364,7 +364,7 @@ def fetch_itunes_albumart(artist, album):
                     suffix = "." + size
                 if size in art_urls:
                     filename = prefix + itunes_name + suffix + ".jpg"
-                    download(session, art_urls[size], filename)
+                    download(session, art_urls[size], filename, cf['_overwrite_albumart'])
 
     session.close()
 
@@ -421,17 +421,35 @@ def fetch_discogs_albumart(release):
                                 filename = prefix  + art_type + "." + basename
                             else:
                                 filename = prefix + basename
-                            download(session, url, filename)
+                            download(session, url, filename, cf['_overwrite_albumart'])
                         else:
                             print("discogs albumart (%dx%d) is available but cannot be downloaded without an access token" % (image['width'], image['height']))
                             print("create a personal access token at https://www.discogs.com/settings/developers and use it as --discogs-albumart-token=your_token")
 
     session.close()
 
-def download(session, url, filename):
+def download(session, url, filename, overwrite):
     "fast chunked downloading of binary data with restoring modification date"
-    try:
-        with open(filename, "xb") as fd:
+
+    different = False
+    exists = False
+    if os.path.exists(filename):
+        exists = True
+        stinfo = os.stat(filename)
+        if overwrite == "conditional":
+            r = session.head(url)
+            if r.status_code == 200:
+                remote_length = r.headers.get('Content-Length')
+                if remote_length and int(remote_length) != stinfo.st_size:
+                    different = True
+                last_modified = r.headers.get('Last-Modified')
+                if last_modified:
+                    timestamp = datetime.datetime.timestamp(dateparser.parse(last_modified))
+                    if timestamp != stinfo.st_mtime:
+                        different = True
+
+    if overwrite == "always" or different or not exists:
+        with open(filename, "wb") as fd:
             r = session.get(url, stream=True)
             if r.status_code == 200:
                 old_timestamp = datetime.datetime.now().timestamp()
@@ -458,16 +476,3 @@ def download(session, url, filename):
             else:
                 warning("could not download %s, status %d" % (filename, r.status_code))
                 os.remove(filename)
-    except FileExistsError:
-        r = session.head(url)
-        if r.status_code == 200:
-            remote_length = r.headers.get('Content-Length')
-            if remote_length:
-                local_length = os.stat(filename).st_size
-                if int(remote_length) != local_length:
-                    warning("different remote file size for " + filename)
-            last_modified = r.headers.get('Last-Modified')
-            if last_modified:
-                timestamp = datetime.datetime.timestamp(dateparser.parse(last_modified))
-                if timestamp != os.stat(filename).st_mtime:
-                    warning("different remote timestamp for " + filename)
