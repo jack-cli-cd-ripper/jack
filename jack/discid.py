@@ -16,10 +16,12 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+import datetime
+
 from jack.globals import *
 
 def init(debug=False):
-    global discid_read, DiscError, put, features, v
+    global discid_read, DiscError, put, features, discid_library
 
     try:
         from libdiscid import read as discid_read
@@ -31,7 +33,7 @@ def init(debug=False):
             features |= FEATURE_MCN
         if cf['_toc_isrc']:
             features |= FEATURE_ISRC
-        v = 1
+        discid_library = "libdiscid"
     except ImportError:
         try:
             from discid.disc import read as discid_read
@@ -42,12 +44,12 @@ def init(debug=False):
                 features.append('mcn')
             if cf['_toc_isrc']:
                 features.append('isrc')
-            v = 2
+            discid_library = "discid"
         except ImportError:
             return False
 
     if debug:
-        print("discid v=" + str(v))
+        print("discid_library=" + discid_library)
         disc = read("/dev/cdrom")
         print("toc: " + repr(toc(disc)))
         print("first_track: " + repr(first(disc)))
@@ -59,11 +61,15 @@ def init(debug=False):
 
 
 def read(device):
-    return discid_read(device, features)
+    start = datetime.datetime.now()
+    discid_data = discid_read(device, features)
+    end = datetime.datetime.now()
+    debug("%s read time: %s" % (discid_library, end - start))
+    return discid_data
 
 
 def toc(disc):
-    if v == 1:
+    if discid_library == "libdiscid":
         toc = list(disc.track_offsets)
         toc.append(disc.leadout_track)
         return toc
@@ -78,14 +84,14 @@ def toc(disc):
 
 
 def first(disc):
-    if v == 1:
+    if discid_library == "libdiscid":
         return disc.first_track
     else:
         return disc.first_track_num
 
 
 def last(disc):
-    if v == 1:
+    if discid_library == "libdiscid":
         return disc.last_track
     else:
         return disc.last_track_num
@@ -96,7 +102,7 @@ def mcn(disc):
 
 
 def isrcs(disc):
-    if v == 1:
+    if discid_library == "libdiscid":
         return disc.track_isrcs
 
     else:
