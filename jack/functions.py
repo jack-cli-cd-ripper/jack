@@ -123,6 +123,15 @@ def pprint_speed(s, len=4):
 
 def gettoc(toc_prog):
     "Returns track list"
+
+    global cached_erg
+
+    if 'cached_erg' in globals():
+        if toc_prog in cached_erg:
+            return cached_erg[toc_prog]
+    else:
+        cached_erg = {}
+
     if 'toc_cmd' in jack.helpers.helpers[toc_prog]:
         cmd = (jack.helpers.helpers[toc_prog]['toc_cmd']).replace("%d", cf['_cd_device'])
         p = os.popen(cmd)
@@ -133,6 +142,7 @@ def gettoc(toc_prog):
         if p.close():
             error("%s failed - could not read CD's TOC." % toc_prog)
         else:
+            cached_erg[toc_prog] = erg
             return erg
     else:
         erg = []
@@ -146,6 +156,7 @@ def gettoc(toc_prog):
                CD, you'll have to cd into the directory which is either named
                after the CD's title or still called jack-xxxxxxxx (xxxxxxxx is a
                hex number).""" % toc_prog)
+        cached_erg[toc_prog] = erg
         return erg
 
 
