@@ -126,9 +126,8 @@ def gettoc(toc_prog):
 
     global cached_erg
 
-    if 'cached_erg' in globals():
-        if toc_prog in cached_erg:
-            return cached_erg[toc_prog]
+    if 'cached_erg' in globals() and toc_prog in cached_erg:
+        return cached_erg[toc_prog]
     else:
         cached_erg = {}
 
