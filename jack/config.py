@@ -874,6 +874,12 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
         'usage': "embed album art",
         'long': 'AUTO',
     },
+    'show_albumart': {
+        'type': bool,
+        'val': 0,
+        'usage': "show the album art that has been embedded in an external viewer",
+        'long': 'AUTO',
+    },
     'albumart_file': {
         'type': str,
         'val': None,

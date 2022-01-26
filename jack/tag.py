@@ -1042,6 +1042,8 @@ def tag(metadata_rename):
                 imgobj = Image.open(BytesIO(imgdata))
                 (width, height) = imgobj.size
                 print("Album art: %s %s %dx%d %d bytes" % (cf['_albumart_file'], imgobj.format, width, height, imgsize))
+                if cf['_show_albumart']:
+                    imgobj.show()
             else:
                 warning("no suitable album art found for embedding")
         else:
