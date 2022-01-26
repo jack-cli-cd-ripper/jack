@@ -37,7 +37,6 @@ helpers = {
     'oggenc': {  # based on a patch kindly provided by Bryan Larsen.
         'type': "encoder",
         'target': "ogg",
-        'can_tag': 1,
         'cmd': "oggenc -o %o -b %r %i",
         'otf-cmd': "oggenc -o %o -b %r -",
         'vbr-cmd': "oggenc -o %o -q %q %i",
@@ -113,7 +112,6 @@ if y0 != -1 and y1 != -1:
     'fdkaac': {
         'type': "encoder",
         'target': "m4a",
-        'can_tag': 1,
         'cmd': "fdkaac --bitrate-mode 0 --bitrate %r -o %o %i",
         'vbr-cmd': "fdkaac --bitrate-mode 5 -o %o %i",
         'otf-cmd': "fdkaac --bitrate-mode 0 --bitrate %r -o %o -",
