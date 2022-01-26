@@ -807,7 +807,7 @@ dae_tag_map = [
 
 
 def tag(metadata_rename):
-    global a_artist, a_title
+    global a_artist, a_title, genres
 
     medium_position = 0
     medium_count = 0
@@ -1031,8 +1031,13 @@ def tag(metadata_rename):
             print("All done.", end=' ')
         if cf['_set_tag'] and cf['_year']:
             print("Year: %s" % cf['_year'])
-        if cf['_set_tag'] and cf['_genre']:
-            print("Genre: %s" % cf['_genre'])
+        if cf['_set_tag']:
+            if genres:
+                print("Genre: %s" % " / ".join(genres))
+            elif cf['_genre']:
+                print("Genre: %s" % cf['_genre'])
+            else:
+                warning("no genres defined")
         if cf['_vbr'] and not cf['_only_dae']:
             print("Avg. bitrate: %03.0fkbit" % ((total_size * 0.008) / (total_length / 75)))
         if cf['_set_tag'] and cf['_embed_albumart']:
@@ -1079,6 +1084,8 @@ def standardize_genre(genre):
 
 
 def extended_tag(tag_obj, tag_type, track_position):
+
+    global genres
 
     # prepare data
     chosen_release = mb_query_data['chosen_release']
