@@ -348,7 +348,9 @@ def fetch_itunes_albumart(artist, album):
             itunes_artist = result['artistName']
             itunes_album = result['collectionName']
 
-            itunes_name = jack.utils.unusable_charmap(itunes_artist + " - " + itunes_album)[:60]
+            # generate a safe filename, artist and track names can be extremely long
+            itunes_filename = jack.utils.smart_truncate(itunes_artist) + " - " + jack.utils.smart_truncate(itunes_album)
+            itunes_filename = jack.utils.unusable_charmap(itunes_filename)
 
             # iTunes API shows thumbnail pictures only. This is an undocumented trick to get high quality versions.
             # Taken from https://github.com/bendodson/itunes-artwork-finder
@@ -363,7 +365,7 @@ def fetch_itunes_albumart(artist, album):
                 if len(fetchlist) > 1:
                     suffix = "." + size
                 if size in art_urls:
-                    filename = prefix + itunes_name + suffix + ".jpg"
+                    filename = prefix + itunes_filename + suffix + ".jpg"
                     download(session, art_urls[size], filename, cf['_overwrite_albumart'])
 
     session.close()
