@@ -356,8 +356,8 @@ def musicbrainz_names(cd_id, tracks, todo, name, verb=None, warn=None):
         else:
             t_artist = artist_as_in_mb
         t_title = track['recording']['title']
-        if len(t_title) > 40 and ':' in t_title:
-            t_title = t_title.split(':')[0]
+        t_artist = jack.utils.smart_truncate(t_artist)
+        t_title = jack.utils.smart_truncate(t_title)
         names.append([t_artist, t_title])
 
     # try to use year from chosen release array element

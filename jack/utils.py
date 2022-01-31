@@ -197,6 +197,13 @@ def unusable_charmap(x):
     return x
 
 
+def smart_truncate(content, length=100, suffix='…'):
+    if len(content) <= length:
+        return content
+    else:
+        return content[:length].rsplit(' ', 1)[0] + suffix
+
+
 def mkdirname(names, template):
     "generate mkdir-able directory name(s)"
     year = genre = None
