@@ -23,7 +23,6 @@ import os
 
 import jack.utils
 import jack.version
-import jack.plugins
 import jack.functions
 
 from jack.globals import *
@@ -80,10 +79,6 @@ def checkopts(cf, cf2):
 
 
 def consistency_check(cf):
-
-    # set plugins path and import metadata_server plugin
-    sys.path.extend(list(map(expand, cf['_plugin_path'])))
-    jack.plugins.import_metadata_servers()
 
     # check metadata server
     if 'metadata_server' in cf:
@@ -146,7 +141,7 @@ def consistency_check(cf):
         err_f.close()
         signal.signal(signal.SIGTTOU, signal.SIG_IGN)
 
-    # load plugins, compile stuff
+    # load and compile stuff
     jack.helpers.init()
 
     if cf['_encoder'] not in jack.helpers.helpers or jack.helpers.helpers[cf['_encoder']]['type'] != "encoder":
@@ -227,14 +222,11 @@ def check_rc(cf, global_cf, user_cf, argv_cf):
             else:
                 error("No valid ripper found on your system.")
 
-    # Check whether ripper and encoder exist in $PATH.  Skip the check if
-    # it's a plugin since we cannot assume the name of the plugin
-    # corresponds to the executable.
+    # Check whether ripper and encoder exist in $PATH.
     for t in ("ripper", "encoder"):
         helper = cf[t]["val"]
-        if t in userdef_keys and not helper.startswith("plugin_"):
-            if not jack.utils.in_path(helper):
-                error("Helper %s '%s' not found on your system." % (t, helper))
+        if t in userdef_keys and not jack.utils.in_path(helper):
+            error("Helper %s '%s' not found on your system." % (t, helper))
 
     # If the default CD device doesn't exist, see whether we can find another
     # one

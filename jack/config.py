@@ -52,12 +52,6 @@ cf = jack.misc.dict2({
         'usage': "write debug information to a file",
         'long': 'AUTO',
     },
-    'plugin_path': {
-        'type': list,
-        'val': ["~/.jack.plugins", ],
-        'usage': "directories in which jack plugins are searched for",
-        'long': 'AUTO',
-    },
     'ripper': {
         'type': str,
         'val': "cdparanoia",

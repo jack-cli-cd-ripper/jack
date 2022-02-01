@@ -20,8 +20,6 @@
 import string
 import re
 
-import jack.plugins
-
 from jack.globals import *
 
 helper_new_status = None
@@ -457,8 +455,6 @@ helpers['lame-user'].update({'cmd': "lame --preset cbr %r --strictly-enforce-ISO
 
 
 def init():
-    # import plugin
-    jack.plugins.import_helpers()
 
     # compile exec strings
     for h in list(helpers.keys()):
