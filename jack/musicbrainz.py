@@ -21,6 +21,7 @@ import os
 import json
 import datetime
 import re
+import requests
 
 import jack.functions
 import jack.progress
@@ -30,10 +31,6 @@ import jack.misc
 import jack.version
 
 from jack.globals import *
-
-import urllib.parse
-import urllib.request
-import urllib.error
 
 
 def musicbrainz_template(tracks, names=""):
@@ -52,15 +49,14 @@ def get_response(url):
     debug(f"get_response({ url })")
     headers = {'User-Agent': jack.version.user_agent}
 
-    request = urllib.request.Request(url, None, headers)
     try:
-        response = urllib.request.urlopen(request)
-        return 0, response
-    except urllib.error.HTTPError as e:
+        r = requests.get(url, headers=headers)
+        return 0, r
+    except requests.exceptions.HTTPError as e:
         warning('The server couldn\'t fulfill the request. Error code: '
                 + str(e.code))
         return 1, None
-    except urllib.error.URLError as e:
+    except requests.exceptions.URLError as e:
         warning('The server couldn\'t be reached. Reason: ' + str( e.reason))
         return 1, None
 
@@ -88,8 +84,7 @@ def musicbrainz_query(cd_id, tracks, file):
     err, response = get_response(query_url)
     if err:
         return err
-    response_data = response.read()
-    result = json.loads(response_data)
+    result = json.loads(response.text)
     response.close()
 
     chosen_release = None
