@@ -348,7 +348,7 @@ def fetch_itunes_albumart(artist, album):
             itunes_artist = result['artistName']
             itunes_album = result['collectionName']
 
-            # generate a safe filename, artist and track names can be extremely long
+            # generate a safe filename: artist and album names can be extremely long
             itunes_filename = jack.utils.smart_truncate(itunes_artist) + " - " + jack.utils.smart_truncate(itunes_album)
             itunes_filename = jack.utils.unusable_charmap(itunes_filename)
 
