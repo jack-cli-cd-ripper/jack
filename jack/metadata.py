@@ -115,7 +115,8 @@ def interpret_db_file(all_tracks, todo, metadata_form_file, verb, dirs=0, warn=N
         cd = track_names[0]
         year = genre = None
         if len(cd) > 2:
-            year = cd[2][:4]
+            if cd[2]:
+                year = cd[2][:4]
         if len(cd) > 3:
             genre = repr(cd[3])
         filenames.append('')  # FIXME: possibly put the dir here, but in no
