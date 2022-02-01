@@ -541,4 +541,8 @@ def freedb_names(cd_ids, tracks, todo, name, verb=0, warn=1):
             else:
                 print("Warning: track %i (starting at 0) has no EXTT entry." % i)
 
+    # fetch iTunes albumart if configured
+    if cf['_query_on_start'] and cf['_fetch_albumart'] and 'iTunes' in cf['_albumart_providers']:
+        jack.albumart.fetch_itunes_albumart(album_artist, album_title)
+
     return err, names, read_id, None
