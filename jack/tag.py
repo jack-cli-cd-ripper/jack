@@ -1032,7 +1032,7 @@ def tag(metadata_rename):
         if cf['_set_tag'] and cf['_year']:
             print("Year: %s" % cf['_year'])
         if cf['_set_tag']:
-            if genres:
+            if 'genres' in globals() and genres:
                 print("Genre: %s" % " / ".join(genres))
             elif cf['_genre']:
                 print("Genre: %s" % cf['_genre'])
