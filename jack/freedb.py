@@ -16,12 +16,11 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-import urllib.request, urllib.error, urllib.parse
-import urllib.request, urllib.parse, urllib.error
 import string
 import sys
 import os
 import re
+import requests
 
 import jack.functions
 import jack.progress
@@ -130,6 +129,9 @@ def freedb_template(tracks, names=""):
 
 
 def freedb_query(cd_ids, tracks, file):
+
+    headers = {'User-Agent': jack.version.user_agent}
+
     if cf['_freedb_dir']:
         if local_freedb(cd_ids['cddb'], cf['_freedb_dir'], file) == 0:  # use local database (if any)
             return 0
@@ -139,18 +141,21 @@ def freedb_query(cd_ids, tracks, file):
         qs = qs + repr(i[START] + MSF_OFFSET) + " "
     qs = qs + repr((MSF_OFFSET + tracks[-1][START] + tracks[-1][LEN]) // CDDA_BLOCKS_PER_SECOND)
     hello = "hello=" + cf['_username'] + " " + cf['_hostname'] + " " + jack.metadata.metadata_servers[cf['_metadata_server']]['id']
-    qs = urllib.parse.quote_plus(qs + "&" + hello + "&proto=6", "=&")
+    qs = requests.utils.quote(qs + "&" + hello + "&proto=6", "=&")
     url = "http://" + jack.metadata.metadata_servers[cf['_metadata_server']]['host'] + "/~cddb/cddb.cgi?" + qs
     if cf['_cont_failed_query']:
         try:
-            f = urllib.request.urlopen(url)
-        except IOError:
+            r = requests.get(url, headers=headers, stream=True)
+        except:
             traceback.print_exc()
             err = 1
             return err
     else:
-        f = urllib.request.urlopen(url)
-    buf = f.readline().decode(cf['_charset'])
+        r = requests.get(url, headers=headers, stream=True)
+    lines = list(r.iter_lines(decode_unicode=True))
+    buf = None
+    if lines:
+        buf = lines.pop(0)
     if buf and buf[0:1] == "2":
         if buf[0:3] in ("210", "211"):  # Found inexact or multiple exact matches, list follows
             if buf[0:3] == "211":
@@ -160,7 +165,7 @@ def freedb_query(cd_ids, tracks, file):
             num = 1
             matches = []
             while 1:
-                buf = f.readline().decode(cf['_charset'])
+                buf = lines.pop(0)
                 if not buf:
                     break
                 buf = buf.rstrip()
@@ -192,49 +197,53 @@ def freedb_query(cd_ids, tracks, file):
             freedb_cat = buf[1]
         elif buf[0:3] == "202":
             if cf['_cont_failed_query']:
-                warning(buf + f.read().decode(cf['_charset']) + " How about trying another --server?")
+                warning(buf + "".join(lines) + " How about trying another --server?")
                 err = 1
                 return err
             else:
-                error(buf + f.read().decode(cf['_charset']) + " How about trying another --server?")
+                error(buf + "".join(lines) + " How about trying another --server?")
         else:
             if cf['_cont_failed_query']:
-                warning(buf + f.read().decode(cf['_charset']) + " --don't know what to do, aborting query.")
+                warning(buf + "".join(lines) + " --don't know what to do, aborting query.")
                 err = 1
                 return err
             else:
-                error(buf + f.read().decode(cf['_charset']) + " --don't know what to do, aborting query.")
+                error(buf + "".join(lines) + " --don't know what to do, aborting query.")
 
         cmd = "cmd=cddb read " + freedb_cat + " " + cd_ids['cddb']
-        url = "http://" + jack.metadata.metadata_servers[cf['_metadata_server']]['host'] + "/~cddb/cddb.cgi?" + urllib.parse.quote_plus(cmd + "&" + hello + "&proto=6", "=&")
-        f = urllib.request.urlopen(url)
-        buf = f.readline().decode(cf['_charset'])
+        url = "http://" + jack.metadata.metadata_servers[cf['_metadata_server']]['host'] + "/~cddb/cddb.cgi?" + requests.utils.quote(cmd + "&" + hello + "&proto=6", "=&")
+        r = requests.get(url, headers=headers, stream=True)
+        lines = list(r.iter_lines(decode_unicode=True))
+        buf = None
+        if lines:
+            buf = lines.pop(0)
         if buf and buf[0:3] == "210":  # entry follows
             if os.path.exists(file):
                 os.rename(file, file + ".bak")
             of = open(file, "w")
-            buf = f.readline().decode(cf['_charset'])
+            buf = lines.pop(0)
             while buf:
                 buf = buf.rstrip()
                 if buf != ".":
                     of.write(buf + "\n")
-                buf = f.readline().decode(cf['_charset'])
+                if lines:
+                    buf = lines.pop(0)
+                else:
+                    buf = None
             of.close()
             jack.functions.progress("all", "freedb_cat", freedb_cat)
             jack.progress.status_all['freedb_cat'] = freedb_cat
             err = 0
         else:
             print(buf.rstrip())
-            print(f.read().decode(cf['_charset']))
+            print("".join(lines))
             warning("could not query freedb entry")
             err = 1
-        f.close()
     else:
         print(buf.rstrip())
-        print(f.read().decode(cf['_charset']))
+        print("".join(lines))
         warning("could not check freedb category")
         err = 2
-    f.close()
     return err
 
 
