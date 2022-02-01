@@ -288,12 +288,9 @@ def fetch_caa_albumart(release):
 
     headers = {'User-Agent': jack.version.user_agent}
 
-    session = requests.Session()
-    session.headers.update(headers)
-
-    r = session.get(base_url)
+    r = requests.get(base_url)
     if r.status_code != 200:
-        session.close()
+        r.close()
         return
     query_data = json.loads(r.text)
 
@@ -313,12 +310,13 @@ def fetch_caa_albumart(release):
                                 continue
                         extension = url.split(".")[-1]
                         filename = prefix + art_type + suffix + "." + extension
-                        session.close()
+
+                        # create a new session for each download, to avoid random disconnects
                         session = requests.Session()
                         session.headers.update(headers)
                         download(session, url, filename, cf['_overwrite_albumart'])
+                        session.close()
 
-    session.close()
 
 def fetch_itunes_albumart(artist, album):
     baseurl = 'https://itunes.apple.com/search'
