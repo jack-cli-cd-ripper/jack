@@ -141,7 +141,7 @@ def freedb_query(cd_ids, tracks, file):
         qs = qs + repr(i[START] + MSF_OFFSET) + " "
     qs = qs + repr((MSF_OFFSET + tracks[-1][START] + tracks[-1][LEN]) // CDDA_BLOCKS_PER_SECOND)
     hello = "hello=" + cf['_username'] + " " + cf['_hostname'] + " " + jack.metadata.metadata_servers[cf['_metadata_server']]['id']
-    qs = requests.utils.quote(qs + "&" + hello + "&proto=6", "=&")
+    qs = requests.compat.quote_plus(qs + "&" + hello + "&proto=6", "=&")
     url = "http://" + jack.metadata.metadata_servers[cf['_metadata_server']]['host'] + "/~cddb/cddb.cgi?" + qs
     if cf['_cont_failed_query']:
         try:
@@ -211,7 +211,7 @@ def freedb_query(cd_ids, tracks, file):
                 error(buf + "".join(lines) + " --don't know what to do, aborting query.")
 
         cmd = "cmd=cddb read " + freedb_cat + " " + cd_ids['cddb']
-        url = "http://" + jack.metadata.metadata_servers[cf['_metadata_server']]['host'] + "/~cddb/cddb.cgi?" + requests.utils.quote(cmd + "&" + hello + "&proto=6", "=&")
+        url = "http://" + jack.metadata.metadata_servers[cf['_metadata_server']]['host'] + "/~cddb/cddb.cgi?" + requests.compat.quote_plus(cmd + "&" + hello + "&proto=6", "=&")
         r = requests.get(url, headers=headers, stream=True)
         lines = list(r.iter_lines(decode_unicode=True))
         buf = None
