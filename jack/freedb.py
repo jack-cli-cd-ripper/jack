@@ -164,10 +164,8 @@ def freedb_query(cd_ids, tracks, file):
             print("Found the following matches. Choose one:")
             num = 1
             matches = []
-            while 1:
+            while lines:
                 buf = lines.pop(0)
-                if not buf:
-                    break
                 buf = buf.rstrip()
                 if buf != ".":
                     print("%2i" % num + ".) " + buf)
