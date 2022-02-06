@@ -70,18 +70,10 @@ def imagedepth(mode):
     return None
 
 
-def save_existing_albumart(imgdata, mime):
-    if mime == "image/jpeg":
-        ext = "jpg"
-    elif mime == "image/png":
-        ext = "png"
-    elif mime == "image/gif":
-        ext = "gif"
-    elif mime == "image/webp":
-        ext = "webp"
-    else:
-        ext = "dat"
+def save_existing_albumart(imgdata):
     md5 = hashlib.md5(imgdata).hexdigest()
+    imgobj = Image.open(BytesIO(imgdata))
+    ext = imgobj.format.lower()
     savefile = "%s%s.%s" % (cf['_albumart_save_prefix'], md5, ext)
     if not os.path.exists(savefile):
         debug("saving album art to " + savefile)
@@ -105,7 +97,7 @@ def embed_albumart_id3(tagobj, audiofile, imgfile, imgdata, imgobj):
         if old_pic.encoding != new_pic.encoding or old_pic.mime != new_pic.mime or old_pic.type != new_pic.type or old_pic.data != new_pic.data:
             makechanges += 1
             debug("removing images from " + audiofile)
-            save_existing_albumart(old_pic.data, old_pic.mime)
+            save_existing_albumart(old_pic.data)
     if not old_pics:
         makechanges += 1
 
@@ -125,13 +117,7 @@ def embed_albumart_mp4(tagobj, audiofile, imgfile, imgdata, imgobj):
             makechanges += 1
             debug("replacing image " + imgfile + " into " + audiofile)
             for covr in tagobj.tags['covr']:
-                if covr.imageformat == mp4.MP4Cover.FORMAT_JPEG:
-                    mime = "image/jpeg"
-                elif covr.imageformat == mp4.MP4Cover.FORMAT_PNG:
-                    mime = "image/png"
-                else:
-                    mime = None
-                save_existing_albumart(bytes(covr), mime)
+                save_existing_albumart(bytes(covr))
     else:
         makechanges += 1
         debug("adding image " + imgfile + " into " + audiofile)
@@ -151,7 +137,7 @@ def embed_albumart_flac(tagobj, audiofile, imgfile, imgdata, imgobj):
         for old_pic in tagobj.pictures:
             if old_pic.type != id3.PictureType.COVER_FRONT or old_pic.data != new_pic.data:
                 makechanges += 1
-                save_existing_albumart(old_pic.data, old_pic.mime)
+                save_existing_albumart(old_pic.data)
     else:
         makechanges += 1
     if makechanges:
@@ -176,7 +162,7 @@ def embed_albumart_ogg(tagobj, audiofile, imgfile, imgdata, imgobj):
             old_pic = flac.Picture(base64.b64decode(b64_data))
             if old_pic.type != id3.PictureType.COVER_FRONT or old_pic.data != new_pic.data:
                 makechanges += 1
-                save_existing_albumart(old_pic.data, old_pic.mime)
+                save_existing_albumart(old_pic.data)
     else:
         makechanges += 1
     if makechanges:
