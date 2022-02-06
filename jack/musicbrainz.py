@@ -201,6 +201,7 @@ def musicbrainz_query(cd_id, tracks, file):
     of.write(json.dumps(query_data, indent=4) + "\n")
     of.close()
 
+    release = releases[chosen_release]
     artist_as_credited = ""
     for ac in release['artist-credit']:
         artist_as_credited += ac['name']
