@@ -21,10 +21,11 @@ like it.
 ## Requirements
 
 * Python 3
-* Python 3 modules libdiscid, mutagen, requests, pillow and dateparser
-* an encoder like oggenc for Ogg/Vorbis (default), flac (Free Lossless Audio
-  Codec), lame (MP3) or fdkaac (M4A/AAC)
-* cdparanoia
+* libdiscid, a shared library written in C
+* a Python 3 wrapper for libdiscid, either python-libdiscid or python-discid
+* Python 3 modules mutagen, requests, pillow and dateparser
+* an encoder like oggenc (Ogg/Vorbis), flac, lame (MP3) or fdkaac (M4A/AAC)
+* a ripper like cdparanoia (recommended), cdda2wav, dagrab or tosha
 
 ## Usage
 
@@ -40,7 +41,6 @@ terminated with ';', the next option or the end of the options.
 |--------|------|---------------|-------------|
 | --debug | bool | no | show debug information |
 | --debug-write | bool | no | write debug information to a file |
-| --plugin-path | list | ['~/.jack.plugins'] | directories in which jack plugins are searched for |
 | --ripper | str | 'cdparanoia' | which program to use for extracting the audio data<br><br>use which program to rip: cdparanoia, tosha, cdda2wav, dagrab (untested) |
 | --device | str | '/dev/cdrom' | use which device for ripping |
 | --encoder-name, -E | str | 'oggenc' | use which encoder<br><br>this is a symbolic name (see helpers), NOT the executable's name |
@@ -89,6 +89,7 @@ terminated with ';', the next option or the end of the options.
 | --undo-rename, -u | bool | no | undo the last file renaming and exit |
 | --dont-work, -d | bool | no | don't do DAE, encoding, renaming or tagging |
 | --update-metadata, -U | bool | no | update the metadata info and exit |
+| --refresh-metadata | bool | no | forget about choices made in previous queries |
 | --tracks, -t | str | '' | which tracks to process (e.g. 1, 3, 5-9, 12-) |
 | --query-now, -Q | bool | no | do metadata query when starting |
 | --query-if-needed | bool | no | query metadata server when starting if not queried already |
@@ -117,6 +118,7 @@ terminated with ';', the next option or the end of the options.
 | --write-m3u | bool | no | create a playlist in .m3u format |
 | --download-progress-interval | int | 5 | interval in seconds for showing progress of slow downloads, zero is no progress |
 | --embed-albumart | bool | no | embed album art |
+| --show-albumart | bool | no | show the album art that has been embedded in an external viewer |
 | --albumart-file | str | - | specific album art file to embed |
 | --albumart-search | list | ['.\*[Cc]over.\*\\.(jpg\|jpeg\|png)\$', '.\*[Ff]ront.\*\\.(jpg\|jpeg\|png)\$', '\^[Ff]older\\.(jpg\|jpeg\|png)\$', '\^jack\\.caa\\.front.\*\\.jpg\$', '\^jack\\.itunes.\*\\.jpg\$', '\^jack\\.discogs.\*\\.jpg\$'] | list of regex patterns for matching local album art files |
 | --albumart-ignorecase | bool | yes | ignore case when searching for local album art |
@@ -128,8 +130,9 @@ terminated with ';', the next option or the end of the options.
 | --albumart-max-height | int | 1200 | maximum height when considering album art file |
 | --albumart-min-height | int | 250 | minimum height when considering album art file |
 | --albumart-save-prefix | str | 'jack.saved.' | prefix for saving existing embedded album art |
-| --fetch-albumart | bool | no | download album art from coverartarchive.org while querying |
-| --albumart-providers | list | ['coverartarchive', 'iTunes', 'discogs'] | list of sources for album art, currently 'coverartarchive' or 'iTunes' |
+| --fetch-albumart | bool | no | download album art while querying |
+| --overwrite-albumart | str | 'conditional' | whether to overwrite existing album art files, 'always', 'never' or 'conditional' (the default) |
+| --albumart-providers | list | ['coverartarchive', 'iTunes', 'discogs'] | list of sources for album art, currently 'coverartarchive', 'iTunes' or 'discogs' |
 | --caa-albumart-prefix | str | 'jack.caa.' | prefix for saving fetched album art files from coverartarchive |
 | --caa-albumart-sizes | list | ['original', 'large'] | list of album art sizes to download from coverartarchive: 'original', 'small', 'large', '250', '500' or '1200' |
 | --caa-albumart-types | list | ['front'] | download these album arts from coverartarchive ('front' and/or 'back') |
