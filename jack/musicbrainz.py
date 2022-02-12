@@ -216,8 +216,11 @@ def musicbrainz_query(cd_id, tracks, file):
     if cf['_fetch_albumart'] and 'discogs' in cf['_albumart_providers']:
         jack.albumart.fetch_discogs_albumart(result['releases'][chosen_release])
 
+    country = None
+    if 'country' in release and release['country']:
+        country = release['country'].lower()
     if cf['_fetch_albumart'] and 'iTunes' in cf['_albumart_providers']:
-        jack.albumart.fetch_itunes_albumart(artist_as_credited, release['title'])
+        jack.albumart.fetch_itunes_albumart(artist_as_credited, release['title'], country)
 
     err = 0
     return err

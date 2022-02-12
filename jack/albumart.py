@@ -304,9 +304,9 @@ def fetch_caa_albumart(release):
                         session.close()
 
 
-def fetch_itunes_albumart(artist, album):
+def fetch_itunes_albumart(artist, album, country):
     baseurl = 'https://itunes.apple.com/search'
-    country = cf['_itunes_albumart_country']
+    country = validate_itunes_country(country)
     prefix = cf['_itunes_albumart_prefix']
     limit = cf['_itunes_albumart_limit']
     fetchlist = cf['_itunes_albumart_sizes']
@@ -316,6 +316,7 @@ def fetch_itunes_albumart(artist, album):
 
     search_term = requests.utils.quote(artist + ' ' + album)
     search_url = "%s?term=%s&country=%s&media=music&entity=album&limit=%d" % (baseurl, search_term, country, limit)
+    debug("search_url = " + search_url)
 
     session = requests.Session()
     session.headers.update(headers)
@@ -462,3 +463,21 @@ def download(session, url, filename, overwrite):
             else:
                 warning("could not download %s, status %d" % (filename, r.status_code))
                 os.remove(filename)
+
+def validate_itunes_country(country):
+    itunes_countries = [
+        "ae","ag","ai","al","am","ao","ar","at","au","az","bb","be","bf","bg","bh","bj","bm","bn","bo","br","bs","bt","bw","by",
+        "bz","ca","cg","ch","cl","cn","co","cr","cv","cy","cz","de","dk","dm","do","dz","ec","ee","eg","es","fi","fj","fm","fr",
+        "gb","gd","gh","gm","gr","gt","gw","gy","hk","hn","hr","hu","id","ie","il","in","is","it","jm","jo","jp","ke","kg","kh",
+        "kn","kr","kw","ky","kz","la","lb","lc","lk","lr","lt","lu","lv","md","mg","mk","ml","mn","mo","mr","ms","mt","mu","mw",
+        "mx","my","mz","na","ne","ng","ni","nl","np","no","nz","om","pa","pe","pg","ph","pk","pl","pt","pw","py","qa","ro","ru",
+        "sa","sb","sc","se","sg","si","sk","sl","sn","sr","st","sv","sz","tc","td","th","tj","tm","tn","tr","tt","tw","tz","ua",
+        "ug","us","uy","uz","vc","ve","vg","vn","ye","za","zw",
+    ]
+
+    if country in itunes_countries:
+        return country
+    country =  cf['_itunes_albumart_country']
+    if country in itunes_countries:
+        return country
+    return "us"
