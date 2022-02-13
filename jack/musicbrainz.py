@@ -103,12 +103,8 @@ def musicbrainz_query(cd_id, tracks, file):
             if 'add_disambiguation' in old_query_data and old_query_data['add_disambiguation']:
                 cf['_add_disambiguation'] = True
 
-    if 'releases' in result:
+    if 'releases' in result and result['releases']:
         releases = result['releases']
-        if len(releases) == 0:
-            print("MusicBrainz did not return releases. Try adding one using this URL:\n" + musicbrainz_getlookupurl(tracks, cd_id))
-            err = 1
-            return err
         exact_matches = False
         for release in releases:
             for medium in release['media']:
@@ -183,6 +179,10 @@ def musicbrainz_query(cd_id, tracks, file):
                         print("ok, aborting.")
                         sys.exit()
                 chosen_release = x - 1
+    else:
+        print("MusicBrainz did not return releases. Try adding one using this URL:\n" + musicbrainz_getlookupurl(tracks, cd_id))
+        err = 1
+        return err
 
     query_data = {
         'query_id': mb_id,
