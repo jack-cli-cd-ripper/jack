@@ -19,7 +19,7 @@ REQUIRES = [
     'mutagen',
     'pillow',
     'requests',
-    'dateparser',
+    'python-dateutil',
 ]
 
 if require_discid:

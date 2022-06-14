@@ -23,7 +23,7 @@ like it.
 * Python 3
 * libdiscid, a shared library written in C
 * a Python 3 wrapper for libdiscid, either python-libdiscid or python-discid
-* Python 3 modules mutagen, requests, pillow and dateparser
+* Python 3 modules mutagen, requests, pillow and python-dateutil
 * an encoder like oggenc (Ogg/Vorbis), flac, lame (MP3) or fdkaac (M4A/AAC)
 * a ripper like cdparanoia (recommended), cdda2wav, dagrab or tosha
 

@@ -27,7 +27,7 @@ required_modules = {
     'libdiscid': {'site': 'https://pythonhosted.org/python-libdiscid/', 'distro-name': 'python3-libdiscid'},
     'mutagen': {'site': 'https://mutagen.readthedocs.io/', 'distro-name': 'python3-mutagen'},
     'pillow': {'site': 'https://pillow.readthedocs.io/', 'distro-name': 'python3-pillow'},
-    'dateparser': {'site': 'https://dateparser.readthedocs.io/', 'distro-name': 'python3-dateparser'},
+    'python-dateutil': {'site': 'https://dateutil.readthedocs.io/', 'distro-name': 'python3-dateutil'},
     'requests': {'site': 'https://docs.python-requests.org', 'distro-name': 'python3-requests'},
 }
 
@@ -68,9 +68,9 @@ except:
     sys.exit(1)
 
 try:
-    import dateparser
+    import dateutil
 except:
-    module = 'dateparser'
+    module = 'dateutil'
     print("Please use pip to install the %s module described at %s ,\nor your distribution package manager where it is probably called '%s'." %
         (module, required_modules[module]['site'], required_modules[module]['distro-name']))
     sys.exit(1)

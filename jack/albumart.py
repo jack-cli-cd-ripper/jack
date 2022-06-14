@@ -24,7 +24,7 @@ import hashlib
 import requests
 import json
 import datetime
-import dateparser
+from dateutil.parser import parse as parsedate
 from urllib.parse import urlparse
 from io import BytesIO
 from PIL import Image
@@ -431,7 +431,7 @@ def download(session, url, filename, overwrite):
                     different = True
                 last_modified = r.headers.get('Last-Modified')
                 if last_modified:
-                    timestamp = datetime.datetime.timestamp(dateparser.parse(last_modified))
+                    timestamp = datetime.datetime.timestamp(parsedate(last_modified))
                     if timestamp != stinfo.st_mtime:
                         different = True
 
@@ -457,7 +457,7 @@ def download(session, url, filename, overwrite):
                 info("downloaded " + filename)
                 last_modified = r.headers.get('Last-Modified')
                 if last_modified:
-                    timestamp = datetime.datetime.timestamp(dateparser.parse(last_modified))
+                    timestamp = datetime.datetime.timestamp(parsedate(last_modified))
                     stinfo = os.stat(filename)
                     os.utime(filename, (stinfo.st_atime, timestamp))
             else:
