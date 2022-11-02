@@ -56,8 +56,11 @@ def get_response(url):
         warning('The server couldn\'t fulfill the request. Error code: '
                 + str(e.code))
         return 1, None
-    except requests.exceptions.URLError as e:
-        warning('The server couldn\'t be reached. Reason: ' + str( e.reason))
+    except requests.exceptions.ConnectionError as e:
+        warning('The server couldn\'t be reached. Reason: ' + str(e.reason))
+        return 1, None
+    except requests.exceptions.Timeout as e:
+        warning('The request timed out. Reason: ' + str(e.reason))
         return 1, None
 
 
