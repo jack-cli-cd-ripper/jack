@@ -154,6 +154,7 @@ def _write(file, rc):
     for i in rc:
         if (not i[0]
                 and not i[1]
+                and i[2]
                 and i[2].lstrip().startswith(f"{cf['_rc_version_key']}:")):
             continue
         if i[0]:
