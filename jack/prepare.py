@@ -524,7 +524,7 @@ def query_on_start(todo):
                 else:
                     cf['_query_on_start'] = 0
         else:
-            jack.display.exit()
+            jack.display.exit(1)
 
     if cf['_edit_metadata']:
         file = metadata_form_file

@@ -72,9 +72,8 @@ def init():
                 fill="- ", fill_r=" -", width=jack.term.size_x) + "\n" + center_line(options_string, fill=" ", fill_r=" ", width=jack.term.size_x)
 
 
-def sig_handler(sig, frame):
+def sig_handler(sig, frame, exit_code=0):
     "signal handler and general cleanup procedure"
-    exit_code = 0
 
     # Ignore Ctrl-C while we disable and enable curses, otherwise there may
     # be display problems.
@@ -131,6 +130,6 @@ def center_line(str, fill=" ", fill_sep=" ", fill_r="", width=80):
         return str
 
 
-def exit():
+def exit(exit_code=0):
     "call my own cleanum fkt. and exit"
-    sig_handler(None, None)
+    sig_handler(None, None, exit_code)
