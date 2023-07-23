@@ -427,7 +427,7 @@ def ripread(track, offset=0):
                 buf.fromfile(f, 1176)  # CDDA_BLOCKSIZE / 2
                 if not my_swap_byteorder:  # this is inverted as WAVE swabs them anyway.
                     buf.byteswap()
-                wav.writeframesraw(buf.tostring())
+                wav.writeframesraw(buf.tobytes())
                 if i % 1000 == 0:
                     print(":fAE: Block " + repr(i) + "/" + repr(track[LEN]) + (" (%2i%%)" % (i * 100 // track[LEN])))
                     sys.stdout.flush()
