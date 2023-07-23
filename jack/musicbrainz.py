@@ -180,7 +180,8 @@ def musicbrainz_query(cd_id, tracks, file):
                         x = -1    # start the loop again
                     if not x:
                         print("ok, aborting.")
-                        sys.exit()
+                        print("A new release can be added using this URL:\n" + musicbrainz_getlookupurl(tracks, cd_id))
+                        sys.exit(1)
                 chosen_release = x - 1
     else:
         print("MusicBrainz did not return releases. Try adding one using this URL:\n" + musicbrainz_getlookupurl(tracks, cd_id))
