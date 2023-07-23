@@ -738,7 +738,7 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
         'short': 'f',
     },
     'image_file': {
-        'type': bytes,
+        'type': str,
         'val': None,
         'save': 0,
         'usage': "read audio from an image file",
