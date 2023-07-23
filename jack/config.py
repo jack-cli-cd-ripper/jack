@@ -1015,6 +1015,7 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
     'discogs_albumart_token': {
         'type': str,
         'val': None,
+        'secret': True,
         'usage': "discogs personal authentication token",
         'long': 'AUTO',
     },

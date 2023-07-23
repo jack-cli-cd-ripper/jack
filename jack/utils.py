@@ -159,6 +159,9 @@ def yes(what):
     else:
         s = str(what['val'])
 
+    if what.get("secret"):
+        s = "**secret**"
+
     s = " [%s]" % s
 
     flags = ""
