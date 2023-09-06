@@ -209,6 +209,8 @@ def read_toc_file():
     if os.path.exists(cf['_toc_file']):
         if cf['_image_toc_file']:
             cf['_toc_file'] = cf['_image_toc_file']
+            if not os.path.exists(cf['_def_toc_orig']):
+                shutil.copyfile(cf['_image_toc_file'], cf['_def_toc_orig'])
 
         jack.ripstuff.all_tracks, new_image_file, track1_offset = jack.functions.cdrdao_gettoc(cf['_toc_file'])
 

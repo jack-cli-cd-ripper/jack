@@ -762,6 +762,11 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
         'val': jack.version.name + ".toc",
         'doc': "the default name of the toc file",
     },
+    'def_toc_orig': {
+        'type': str,
+        'val': jack.version.name + ".toc.orig",
+        'doc': "the default name of the source toc file",
+    },
     'out_file': {
         'type': str,
         'val': jack.version.name + ".out",
