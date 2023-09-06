@@ -302,19 +302,19 @@ def real_cdrdao_gettoc(tocfile):     # get toc from cdrdao-style toc-file
 # a virtual track 0 is introduced which gets all of track 1s pregap.
 # it is removed later if it is too small to contain anything interesting.
 
-    actual_track = jack.tocentry.TOCentry()
-    actual_track.number = 0
-    actual_track.type = "audio"
-    actual_track.channels = 2
-    actual_track.media = "image"
-    actual_track.start = 0
-    actual_track.length = 0
-    actual_track.rip = 1
-    actual_track.bitrate = cf['_bitrate']
-    actual_track.image_name = ""
-    actual_track.rip_name = cf['_name'] % 0
-    actual_track.mcn = None
-    actual_track.isrc = None
+    current_track = jack.tocentry.TOCentry()
+    current_track.number = 0
+    current_track.type = "audio"
+    current_track.channels = 2
+    current_track.media = "image"
+    current_track.start = 0
+    current_track.length = 0
+    current_track.rip = 1
+    current_track.bitrate = cf['_bitrate']
+    current_track.image_name = ""
+    current_track.rip_name = cf['_name'] % 0
+    current_track.mcn = None
+    current_track.isrc = None
 
 # tocfile data is read in line by line.
 
@@ -331,16 +331,16 @@ def real_cdrdao_gettoc(tocfile):     # get toc from cdrdao-style toc-file
                 print(bline)
                 error("could not decode above data")
         if not line:
-            if actual_track.channels not in [1, 2, 4]:
+            if current_track.channels not in [1, 2, 4]:
                 debug("track %02d: unknown number of channels, assuming 2" % num)
-                actual_track.channels = 2
-            toc.append(actual_track)
+                current_track.channels = 2
+            toc.append(current_track)
             break
         line = line.strip()
 
         if starts_with(line, "CATALOG "):
             mcn = line[line.find("\"") + 1:line.rfind("\"")]
-            actual_track.mcn = mcn
+            current_track.mcn = mcn
 
 # everytime we encounter "TRACK" we increment num and append the actual
 # track to the toc.
@@ -349,42 +349,42 @@ def real_cdrdao_gettoc(tocfile):     # get toc from cdrdao-style toc-file
             num = num + 1
             new_track = jack.tocentry.TOCentry()
             new_track.number = num
-            if actual_track:
-                if actual_track.channels not in [1, 2, 4]:
+            if current_track:
+                if current_track.channels not in [1, 2, 4]:
                     debug("track %02d: unknown number of channels, assuming 2" % num)
-                    actual_track.channels = 2
-                toc.append(actual_track)
-            actual_track = new_track
-            actual_track.rip = 1
-            actual_track.bitrate = cf['_bitrate']
-            actual_track.start = toc.end_pos
-            actual_track.mcn = mcn
+                    current_track.channels = 2
+                toc.append(current_track)
+            current_track = new_track
+            current_track.rip = 1
+            current_track.bitrate = cf['_bitrate']
+            current_track.start = toc.end_pos
+            current_track.mcn = mcn
             if line == "TRACK AUDIO":
-                actual_track.type = "audio"
+                current_track.type = "audio"
             else:
-                actual_track.type = "other"  # we don't care
-                actual_track.channels = 0
-                actual_track.rip = 0
-                actual_track.bitrate = 0
+                current_track.type = "other"  # we don't care
+                current_track.channels = 0
+                current_track.rip = 0
+                current_track.bitrate = 0
 
 # check the various track flags.
 # FOUR_CHANNEL_AUDIO is not supported.
 # we have to check for this before ripping. later. much later.
 
         elif line == "NO COPY":
-            actual_track.copy = 0
+            current_track.copy = 0
         elif line == "COPY":
-            actual_track.copy = 1
+            current_track.copy = 1
         elif line == "NO PRE_EMPHASIS":
-            actual_track.preemphasis = 0
+            current_track.preemphasis = 0
         elif line == "PRE_EMPHASIS":
-            actual_track.preemphasis = 1
+            current_track.preemphasis = 1
         elif line == "TWO_CHANNEL_AUDIO":
-            actual_track.channels = 2
+            current_track.channels = 2
         elif line == "FOUR_CHANNEL_AUDIO":
-            actual_track.channels = 4
+            current_track.channels = 4
         elif starts_with(line, "ISRC "):
-            actual_track.isrc = line[line.find("\"") + 1:line.rfind("\"")]
+            current_track.isrc = line[line.find("\"") + 1:line.rfind("\"")]
 
 # example: FILE "data.wav" 08:54:22 04:45:53
 
@@ -395,9 +395,9 @@ def real_cdrdao_gettoc(tocfile):     # get toc from cdrdao-style toc-file
 
 # convert time string to blocks(int), update info.
 
-            actual_track.length += jack.cdtime.CDTime(length).blocks
-            actual_track.image_name = os.path.join(tocpath, filename)
-            actual_track.rip_name = cf['_name'] % num
+            current_track.length += jack.cdtime.CDTime(length).blocks
+            current_track.image_name = os.path.join(tocpath, filename)
+            current_track.rip_name = cf['_name'] % num
 
 # example: START 00:01:53. This means the actual track starts 1:53s _after_
 # the start given by the FILE statement. This so-called pregap needs to be
@@ -408,16 +408,16 @@ def real_cdrdao_gettoc(tocfile):     # get toc from cdrdao-style toc-file
         elif starts_with(line, "START "):
             start = line.split()[1]
             pregap = jack.cdtime.CDTime(start).blocks
-            if actual_track.number == 1 and pregap > CDDA_BLOCKS_PER_SECOND * 10:
-                info(f"disc may have a hidden track ({start}) in pregap of track {actual_track.number}")
-            actual_track.pregap = pregap
+            if current_track.number == 1 and pregap > CDDA_BLOCKS_PER_SECOND * 10:
+                info(f"disc may have a hidden track ({start}) in pregap of track {current_track.number}")
+            current_track.pregap = pregap
 
         elif starts_with(line, "SILENCE "):
             length = line.split()[1]
             blocks = jack.cdtime.CDTime(length).blocks
-            if actual_track.number == 1 and blocks:
+            if current_track.number == 1 and blocks:
                 cf['_track_1_pregap_silence'] = blocks
-            actual_track.length += blocks
+            current_track.length += blocks
 
     f.close()
     return toc
