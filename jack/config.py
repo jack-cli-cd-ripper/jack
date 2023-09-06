@@ -1024,6 +1024,18 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
         'usage': "discogs personal authentication token",
         'long': 'AUTO',
     },
+    'track_1_pregap_silence': {
+        'type': int,
+        'val': None,
+        'doc': "amount of silence before start of track 1",
+        'save': False,
+    },
+    'pregap_name': {
+        'type': str,
+        'val': None,
+        'usage': "WAV file name stub to save the track 1 pregap to if it is at least 10 seconds. There could be a hidden track. Currently only works when reading from a disc image file",
+        'long': 'AUTO',
+    },
     'readme': {
         'type': str,
         'val': None,

@@ -36,7 +36,7 @@ class TOCentry:
         self.rip_name = None        # name of file while ripping / encoding
         self.pregap = 0
         self.start = None
-        self.length = None
+        self.length = 0
         self.bitrate = None         # compat?#XXX
         self.rip = None             # compat
         self.mcn = None

@@ -395,7 +395,7 @@ def real_cdrdao_gettoc(tocfile):     # get toc from cdrdao-style toc-file
 
 # convert time string to blocks(int), update info.
 
-            actual_track.length = jack.cdtime.CDTime(length).blocks
+            actual_track.length += jack.cdtime.CDTime(length).blocks
             actual_track.image_name = os.path.join(tocpath, filename)
             actual_track.rip_name = cf['_name'] % num
 
@@ -406,7 +406,18 @@ def real_cdrdao_gettoc(tocfile):     # get toc from cdrdao-style toc-file
 # by setting the pregap attribute.
 
         elif starts_with(line, "START "):
-            actual_track.pregap = jack.cdtime.CDTime(line.split()[1]).blocks
+            start = line.split()[1]
+            pregap = jack.cdtime.CDTime(start).blocks
+            if actual_track.number == 1 and pregap > CDDA_BLOCKS_PER_SECOND * 10:
+                info(f"disc may have a hidden track ({start}) in pregap of track {actual_track.number}")
+            actual_track.pregap = pregap
+
+        elif starts_with(line, "SILENCE "):
+            length = line.split()[1]
+            blocks = jack.cdtime.CDTime(length).blocks
+            if actual_track.number == 1 and blocks:
+                cf['_track_1_pregap_silence'] = blocks
+            actual_track.length += blocks
 
     f.close()
     return toc

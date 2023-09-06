@@ -247,6 +247,7 @@ def start_new_otf(track, ripper, encoder):
     data['enc']['file'] = os.fdopen(data['enc']['fd'])
     return data
 
+
 def start_new_transcoder(track, decoder, encoder):
     "start a new decoder/encoder pair for transcoding"
     data = {}
@@ -332,132 +333,157 @@ def start_new_transcoder(track, decoder, encoder):
     return data
 
 
-
+# FIXME: all this offset stuff has to go, track 0 support has to come.
 def ripread(track, offset=0):
     "rip one track from an image file."
-    data = {}
+
+    if track[NUM] == 1 and track[START] > CDDA_BLOCKS_PER_SECOND * 10 and cf['_pregap_name']:
+        # silently extract the pregap track
+        pregap = track.copy()
+        pregap[NUM] = 0
+        pregap[START] = 0
+        pregap[LEN] = track[START]
+        pregap[NAME] = cf['_pregap_name']
+        extract_track_from_image(pregap, offset, silent=True)
+
+    pid, master_fd = pty.fork()
     start_time = time.time()
-    pid, master_fd = pty.fork()  # this could also be done with a pipe, anyone?
+
     if pid == CHILD:
-        # debug:
-        # so=open("/tmp/stdout", "w")
+        # debug - will trigger 'A failure occured'!:
+        # so=open("/tmp/jack.stdout", "w")
         # sys.stdout = so
-        # se=open("/tmp/stderr", "w+")
+        # se=open("/tmp/jack.stderr", "w+")
         # sys.stderr = se
+
         default_signals()
 
-        # FIXME: all this offset stuff has to go, track 0 support has to come.
+        print_flush(":fAE: waiting for status report...")
+        hdr = extract_track_from_image(track, offset)
+        stop_time = time.time()
+        read_speed = track[LEN] // CDDA_BLOCKS_PER_SECOND // (stop_time - start_time)
 
-        print(":fAE: waiting for status report...")
+        if read_speed < 100:
+            print("[%2.0fx]" % read_speed, end=' ')
+        else:
+            print("[99x]", end=' ')
+        if hdr[0] in ('bin', 'wav'):
+            print("[      - read from image -     ]")
+        else:
+            print("[cdr-WARNING, check byteorder !]")
         sys.stdout.flush()
-        hdr = sndhdr.whathdr(cf['_image_file'])
-        my_swap_byteorder = cf['_swap_byteorder']
-        my_offset = offset
-        if hdr:
+        posix._exit(0)
 
-            # I guess most people use cdparanoia 1- (instead of 0- if applicable)
-            # for image creation, so for a wav file use:
-
-            image_offset = -offset
-
-        else:
-            if (cf['_image_file']).upper()[-4:] == ".CDR":
-                hdr = ('cdr', 44100, 2, -1, 16)  # Unknown header, assuming cdr
-
-                # assume old cdrdao which started at track 1, not at block 0
-                image_offset = -offset
-
-            elif (cf['_image_file']).upper()[-4:] == ".BIN":
-                hdr = ('bin', 44100, 2, -1, 16)  # Unknown header, assuming bin
-
-                # assume new cdrdao which starts at block 0, byteorder is reversed.
-                my_swap_byteorder = not my_swap_byteorder
-                image_offset = 0
-
-            elif (cf['_image_file']).upper()[-4:] == ".RAW":
-                hdr = ('bin', 44100, 2, -1, 16)  # Unknown header, assuming raw
-                image_offset = 0
-
-            else:
-                debug("unsupported image file " + cf['_image_file'])
-                posix._exit(4)
-
-        expected_filesize = jack.functions.tracksize(jack.ripstuff.all_tracks)[CDR] + CDDA_BLOCKSIZE * offset
-
-        # WAVE header is 44 Bytes for normal PCM files...
-        if hdr[0] == 'wav':
-            expected_filesize = expected_filesize + 44
-
-        if abs(jack.utils.filesize(cf['_image_file']) - expected_filesize) > CDDA_BLOCKSIZE:
-            # we *do* allow a difference of one frame
-            debug("image file size mismatch, aborted. %d != %d" % (jack.utils.filesize(cf['_image_file']), expected_filesize))
-            posix._exit(1)
-
-        elif hdr[0] == 'wav' and (hdr[1], hdr[2], hdr[4]) != (44100, 2, 16):
-            debug("unsupported WAV, need CDDA_fmt, aborted.")
-            posix._exit(2)
-
-        elif hdr[0] not in ('wav', 'cdr', 'bin'):
-            debug("unsupported: " + hdr[0] + ", aborted.")
-            posix._exit(3)
-
-        else:
-            f = open(cf['_image_file'], 'rb')
-
-            # set up output wav file:
-
-            wav = wave.open(track[NAME] + ".wav", 'wb')
-            wav.setnchannels(2)
-            wav.setsampwidth(2)
-            wav.setframerate(44100)
-            wav.setnframes(0)
-            wav.setcomptype('NONE', 'not compressed')
-
-            # calculate (and seek to) position in image file
-
-            track_start = (track[START] + image_offset) * CDDA_BLOCKSIZE
-            if hdr[0] == 'wav':
-                track_start = track_start + 44
-            f.seek(track_start)
-
-            # copy / convert the stuff
-
-            for i in range(0, track[LEN]):
-                buf = array.array("h")
-                buf.fromfile(f, 1176)  # CDDA_BLOCKSIZE / 2
-                if not my_swap_byteorder:  # this is inverted as WAVE swabs them anyway.
-                    buf.byteswap()
-                wav.writeframesraw(buf.tobytes())
-                if i % 1000 == 0:
-                    print(":fAE: Block " + repr(i) + "/" + repr(track[LEN]) + (" (%2i%%)" % (i * 100 // track[LEN])))
-                    sys.stdout.flush()
-            wav.close()
-            f.close()
-
-            stop_time = time.time()
-            read_speed = track[LEN] // CDDA_BLOCKS_PER_SECOND // (stop_time - start_time)
-            if read_speed < 100:
-                print("[%2.0fx]" % read_speed, end=' ')
-            else:
-                print("[99x]", end=' ')
-            if hdr[0] in ('bin', 'wav'):
-                print("[      - read from image -     ]")
-            else:
-                print("[cdr-WARNING, check byteorder !]")
-            sys.stdout.flush()
-            posix._exit(0)
-    else:
-        # we are not the child
-        data['start_time'] = start_time
-        data['pid'] = pid
-        data['fd'] = master_fd
-        data['file'] = os.fdopen(master_fd)
-        data['cmd'] = ""
-        data['buf'] = ""
-        data['type'] = "image_reader"
-        data['prog'] = "builtin"
-        data['track'] = track
-        data['percent'] = 0
-        data['otf'] = 0
-        data['elapsed'] = 0
+    # we are not the child
+    data = {}
+    data['start_time'] = start_time
+    data['pid'] = pid
+    data['fd'] = master_fd
+    data['file'] = os.fdopen(master_fd)
+    data['cmd'] = ""
+    data['buf'] = ""
+    data['type'] = "image_reader"
+    data['prog'] = "builtin"
+    data['track'] = track
+    data['percent'] = 0
+    data['otf'] = 0
+    data['elapsed'] = 0
     return data
+
+
+def extract_track_from_image(track, offset=0, silent=False):
+    hdr = sndhdr.whathdr(cf['_image_file'])
+    my_swap_byteorder = cf['_swap_byteorder']
+    size_offset = offset
+    if hdr:
+        # most people probably use cdparanoia 1- (instead of 0- if
+        # applicable) for image creation, so for a wav file use:
+        image_offset = -offset
+    else:
+        if (cf['_image_file']).upper()[-4:] == ".CDR":
+            # Unknown header, assuming cdr
+            hdr = ('cdr', 44100, 2, -1, 16)
+
+            # assume old cdrdao which started at track 1, not at block 0
+            image_offset = -offset
+        elif (cf['_image_file']).upper()[-4:] == ".BIN":
+            # Unknown header, assuming bin
+            hdr = ('bin', 44100, 2, -1, 16)
+
+            # assume new cdrdao which starts at block 0, byteorder is reversed.
+            my_swap_byteorder = not my_swap_byteorder
+
+            if cf['_track_1_pregap_silence'] is None:
+                image_offset = 0
+            else:
+                image_offset = -offset
+                size_offset = 0
+        elif (cf['_image_file']).upper()[-4:] == ".RAW":
+            # Unknown header, assuming raw
+            hdr = ('bin', 44100, 2, -1, 16)
+            image_offset = 0
+        else:
+            warning("unsupported image file " + cf['_image_file'])
+            sys.stdout.flush()
+            posix._exit(4)
+
+    expected_filesize = jack.functions.tracksize(jack.ripstuff.all_tracks)[CDR] + CDDA_BLOCKSIZE * size_offset
+
+    # WAVE header is 44 Bytes for normal PCM files.
+    if hdr[0] == 'wav':
+        expected_filesize = expected_filesize + 44
+
+    if abs(jack.utils.filesize(cf['_image_file']) - expected_filesize) > CDDA_BLOCKSIZE:
+        warning("image file size mismatch, aborted. %d != %d" % (jack.utils.filesize(cf['_image_file']), expected_filesize))
+        sys.stdout.flush()
+        posix._exit(1)
+
+    if hdr[0] == 'wav' and (hdr[1], hdr[2], hdr[4]) != (44100, 2, 16):
+        warning("unsupported WAV, need CDDA_fmt, aborted.")
+        sys.stdout.flush()
+        posix._exit(2)
+
+    if hdr[0] not in ('wav', 'cdr', 'bin'):
+        warning("unsupported: " + hdr[0] + ", aborted.")
+        sys.stdout.flush()
+        posix._exit(3)
+
+    # set up output wav file:
+    wav = wave.open(track[NAME] + ".wav", 'wb')
+    wav.setnchannels(2)
+    wav.setsampwidth(2)
+    wav.setframerate(44100)
+    wav.setnframes(0)
+    wav.setcomptype('NONE', 'not compressed')
+
+    # calculate and seek to position in image file
+    track_start = (track[START] + image_offset) * CDDA_BLOCKSIZE
+    if hdr[0] == 'wav':
+        track_start = track_start + 44
+    f = open(cf['_image_file'], 'rb')
+    f.seek(track_start)
+
+    # copy / convert the data
+    for i in range(0, track[LEN]):
+        buf = array.array("h")
+        buf.fromfile(f, CDDA_BLOCKSIZE // 2)
+
+        # this is inverted as WAVE swabs them again
+        if not my_swap_byteorder:
+            buf.byteswap()
+
+        wav.writeframesraw(buf.tobytes())
+
+        if i % 1000 == 0:
+            print_flush(":fAE: Block " + repr(i) + "/" + repr(track[LEN]) + (" (%2i%%)" % (i * 100 // track[LEN])), silent)
+
+    wav.close()
+    f.close()
+
+    return hdr
+
+
+def print_flush(arg, suppress=False):
+    if not suppress:
+        print(arg)
+        sys.stdout.flush()
