@@ -144,7 +144,7 @@ def musicbrainz_query(cd_id, tracks, file):
                     if 'date' in rel and rel['date'] and len(rel['date']):
                         description += " [" + rel['date'] + "]"
                     if 'media' in rel and len(rel['media']) > 1:
-                        description += " (" + str(len(rel['media'])) + " CD's)"
+                        description += " (" + str(len(rel['media'])) + " CDs)"
                     if 'barcode' in rel and rel['barcode'] and len(rel['barcode']):
                         description += " (barcode: " + rel['barcode'] + ")"
                     labels = None

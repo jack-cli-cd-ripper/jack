@@ -568,13 +568,13 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
     'toc_mcn': {
         'type': bool,
         'val': 1,
-        'doc': "extract the MCN from a disc, may slow down reading old CD's",
+        'doc': "extract the MCN from a disc, may slow down reading old CDs",
         'long': 'AUTO',
     },
     'toc_isrc': {
         'type': bool,
         'val': 1,
-        'doc': "extract ISRCs from a disc, may slow down reading old CD's",
+        'doc': "extract ISRCs from a disc, may slow down reading old CDs",
         'long': 'AUTO',
     },
     # prefs0 -- FREEDB stuff ###
