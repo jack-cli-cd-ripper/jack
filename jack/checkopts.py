@@ -220,7 +220,7 @@ def check_rc(cf, global_cf, user_cf, argv_cf):
                     cf.rupdate({'ripper': {'val': cmd}}, "check")
                     break
             else:
-                error("No valid ripper found on your system.")
+                warning("No valid ripper found on your system.")
 
     # Check whether ripper and encoder exist in $PATH.
     for t in ("ripper", "encoder"):
