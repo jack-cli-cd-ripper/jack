@@ -1039,7 +1039,9 @@ def tag(metadata_rename):
             else:
                 warning("no genres defined")
         if cf['_vbr'] and not cf['_only_dae']:
-            print("Avg. bitrate: %03.0fkbit" % ((total_size * 0.008) / (total_length / 75)))
+            print("Avg. bitrate: %03.0fkbit" % (
+                total_size * 8 / 1000
+                / (total_length / CDDA_BLOCKS_PER_SECOND)))
         if cf['_set_tag'] and cf['_embed_albumart']:
             if cf['_albumart_file'] and os.path.exists(cf['_albumart_file']):
                 imgsize = os.stat(cf['_albumart_file']).st_size

@@ -191,7 +191,10 @@ def guesstoc(names):
             extra_bytes = blocks % CDDA_BLOCKSIZE
             if not extra_bytes == 0:
                 warning("this is not CDDA block-aligned: " + repr(i))
-                yes = input("May I strip %d bytes (= %.4fseconds) off the end? " % (extra_bytes, extra_bytes / 2352.0 / 75.0))
+                yes = input("May I strip %d bytes (= %.4fseconds) off the end? "
+                        % (extra_bytes,
+                            extra_bytes
+                            / CDDA_BLOCKSIZE / CDDA_BLOCKS_PER_SECOND))
                 if not ((yes + "x")[0]).upper() == "Y":
                     print("Sorry, I can't process non-aligned files (yet). Bye!")
                     sys.exit()

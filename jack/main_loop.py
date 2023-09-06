@@ -358,7 +358,9 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset, 
                     else:
                         global_done = global_done + exited_proc['track'][LEN]
                         if cf['_vbr']:
-                            rate = int((jack.utils.filesize(track[NAME] + ext) * 0.008) / (track[LEN] / 75.0))
+                            rate = int(jack.utils.filesize(track[NAME] + ext)
+                                    * 8 / 1000
+                                    / (track[LEN] / CDDA_BLOCKS_PER_SECOND))
                         else:
                             rate = track[RATE]
                         jack.status.enc_stat_upd(num, "[coding @" + '%s' % jack.functions.pprint_speed(speed) + "x done, %dkbit" % rate)

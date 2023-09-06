@@ -18,7 +18,7 @@
 
 import types
 
-CDDA_BLOCKS_PER_SECOND = 75
+from jack.constants import CDDA_BLOCKS_PER_SECOND
 
 
 def strtoblocks(str):
