@@ -960,7 +960,7 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
     'albumart_providers': {
         'type': list,
         'val': ['coverartarchive', 'iTunes', 'discogs'],
-        'usage': "list of sources for album art, currently 'coverartarchive', 'iTunes' or 'discogs'",
+        'usage': "list of sources for album art, currently 'coverartarchive', 'iTunes' or 'discogs'. The providers are processed in list order. If '|' is appended to a provider, the rest of the list is treated as fallbacks.",
         'long': 'AUTO',
     },
     'caa_albumart_prefix': {

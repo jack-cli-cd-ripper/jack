@@ -24,6 +24,9 @@ import hashlib
 import requests
 import json
 import datetime
+import shutil
+import tempfile
+
 from dateutil.parser import parse as parsedate
 from urllib.parse import urlparse
 from io import BytesIO
@@ -259,12 +262,15 @@ def embed_albumart(tagobj, target, audiofile):
         cf['_albumart_file'] = None
 
 def fetch_caa_albumart(release):
+
+    ret = False
+
     if not 'cover-art-archive' in release:
-        return
+        return False
     if not 'artwork' in release['cover-art-archive']:
-        return
+        return False
     if not release['cover-art-archive']['artwork']:
-        return
+        return False
 
     base_url = f'https://coverartarchive.org/release/{ release["id"] }/'
     prefix = cf['_caa_albumart_prefix']
@@ -277,57 +283,64 @@ def fetch_caa_albumart(release):
     r = requests.get(base_url)
     if r.status_code != 200:
         r.close()
-        return
+        return False
+
     query_data = json.loads(r.text)
+    if 'images' not in query_data:
+        return False
 
-    if 'images' in query_data:
-        for image in query_data['images']:
-            for art_type in art_types:
-                if art_type in image and image[art_type]:
-                    for size in fetchlist:
-                        if len(fetchlist) > 1:
-                            suffix = "." + size
-                        if size == 'original':
-                            url = image['image']
+    for image in query_data['images']:
+        for art_type in art_types:
+            if art_type in image and image[art_type]:
+                for size in fetchlist:
+                    if len(fetchlist) > 1:
+                        suffix = "." + size
+                    if size == 'original':
+                        url = image['image']
+                    else:
+                        if size in image['thumbnails']:
+                            url = image['thumbnails'][size]
                         else:
-                            if size in image['thumbnails']:
-                                url = image['thumbnails'][size]
-                            else:
-                                continue
-                        extension = url.split(".")[-1]
-                        filename = prefix + art_type + suffix + "." + extension
+                            continue
+                    extension = url.split(".")[-1]
+                    filename = prefix + art_type + suffix + "." + extension
 
-                        # create a new session for each download, to avoid random disconnects
-                        session = requests.Session()
+                    # create a new session for each download, to avoid random disconnects
+                    with requests.Session() as session:
                         session.headers.update(headers)
-                        download(session, url, filename, cf['_overwrite_albumart'])
-                        session.close()
+                        if download(session, url, filename, cf['_overwrite_albumart']):
+                            ret = True
+    return ret
 
 
 def fetch_itunes_albumart(artist, album, country):
+
+    ret = False
+
     baseurl = 'https://itunes.apple.com/search'
     country = validate_itunes_country(country)
     prefix = cf['_itunes_albumart_prefix']
     limit = cf['_itunes_albumart_limit']
     fetchlist = cf['_itunes_albumart_sizes']
     suffix = ""
-
     headers = {'User-Agent': jack.version.user_agent}
-
     search_term = requests.utils.quote(artist + ' ' + album)
     search_url = "%s?term=%s&country=%s&media=music&entity=album&limit=%d" % (baseurl, search_term, country, limit)
-    debug("search_url = " + search_url)
 
-    session = requests.Session()
-    session.headers.update(headers)
+    debug(f"{search_url=}")
 
-    r = session.get(search_url)
-    if r.status_code != 200:
-        session.close()
-        return
-    querydata = json.loads(r.text)
+    with requests.Session() as session:
+        session.headers.update(headers)
 
-    if 'results' in querydata:
+        r = session.get(search_url)
+        if r.status_code != 200:
+            return False
+
+        querydata = json.loads(r.text)
+
+        if 'results' not in querydata:
+            return False
+
         for result in querydata['results']:
 
             itunes_artist = result['artistName']
@@ -351,18 +364,20 @@ def fetch_itunes_albumart(artist, album, country):
                     suffix = "." + size
                 if size in art_urls:
                     filename = prefix + itunes_filename + suffix + ".jpg"
-                    download(session, art_urls[size], filename, cf['_overwrite_albumart'])
+                    if download(session, art_urls[size], filename, cf['_overwrite_albumart']):
+                        ret = True
 
-    session.close()
+        return ret
+
 
 def fetch_discogs_albumart(release):
+
+    ret = False
 
     prefix = cf['_discogs_albumart_prefix']
     art_types = cf['_discogs_albumart_types']
     access_token = cf['_discogs_albumart_token']
-
     base_url = "https://api.discogs.com/releases/"
-
     headers = {'User-Agent': jack.version.user_agent}
 
     discogs_urls = []
@@ -372,23 +387,25 @@ def fetch_discogs_albumart(release):
                 discogs_urls.append(relation['url']['resource'])
 
     if not discogs_urls:
-        return
+        return False
 
-    session = requests.Session()
-    session.headers.update(headers)
+    with requests.Session() as session:
+        session.headers.update(headers)
 
-    for discogs_url in discogs_urls:
-        discogs_release = discogs_url.split("/")[-1]
-        api_url = base_url + discogs_release
-        if access_token:
-            api_url += "?token=" + access_token
+        for discogs_url in discogs_urls:
+            discogs_release = discogs_url.split("/")[-1]
+            api_url = base_url + discogs_release
+            if access_token:
+                api_url += "?token=" + access_token
 
-        r = session.get(api_url)
-        if r.status_code != 200:
-            continue
-        query_data = json.loads(r.text)
+            r = session.get(api_url)
+            if r.status_code != 200:
+                continue
+            query_data = json.loads(r.text)
 
-        if 'images' in query_data:
+            if 'images' not in query_data:
+                continue
+
             for image in query_data['images']:
                 for art_type in art_types:
                     if 'type' in image and image['type'] == art_type and 'uri' in image:
@@ -408,12 +425,14 @@ def fetch_discogs_albumart(release):
                                 filename = prefix  + art_type + "." + basename
                             else:
                                 filename = prefix + basename
-                            download(session, url, filename, cf['_overwrite_albumart'])
+                            if download(session, url, filename, cf['_overwrite_albumart']):
+                                ret = True
                         else:
                             print("discogs albumart (%dx%d) is available but cannot be downloaded without an access token" % (image['width'], image['height']))
                             print("create a personal access token at https://www.discogs.com/settings/developers and use it as --discogs-albumart-token=your_token")
 
-    session.close()
+        return ret
+
 
 def download(session, url, filename, overwrite):
     "fast chunked downloading of binary data with restoring modification date"
@@ -435,34 +454,43 @@ def download(session, url, filename, overwrite):
                     if timestamp != stinfo.st_mtime:
                         different = True
 
-    if overwrite == "always" or different or not exists:
+    if exists and not different and overwrite != "always":
+        return True
+
+    r = session.get(url, stream=True)
+    if r.status_code != 200:
+        warning("could not download %s, status %d" % (filename, r.status_code))
+        return False
+
+    old_timestamp = datetime.datetime.now().timestamp()
+    current_length = 0
+    remote_length = r.headers.get('Content-Length')
+
+    info(f"downloading {filename} ({remote_length=})")
+    with tempfile.TemporaryFile() as tmpfd:
+        for chunk in r.iter_content(chunk_size=32768):
+            tmpfd.write(chunk)
+            current_length += len(chunk)
+            new_timestamp = datetime.datetime.now().timestamp()
+            if cf['_download_progress_interval'] and new_timestamp - old_timestamp > cf['_download_progress_interval']:
+                progress = "downloading %s: %d bytes" % (filename, current_length)
+                if remote_length:
+                    percent = 100 * current_length // int(remote_length)
+                    progress = "downloading %s: %d/%s bytes (%d%%)" % (filename, current_length, remote_length, percent)
+                info(progress)
+                old_timestamp = new_timestamp
+
+        tmpfd.seek(0)
         with open(filename, "wb") as fd:
-            r = session.get(url, stream=True)
-            if r.status_code == 200:
-                old_timestamp = datetime.datetime.now().timestamp()
-                current_length = 0
-                remote_length = r.headers.get('Content-Length')
-                for chunk in r.iter_content(chunk_size=32768):
-                    fd.write(chunk)
-                    current_length += len(chunk)
-                    new_timestamp = datetime.datetime.now().timestamp()
-                    if cf['_download_progress_interval'] and new_timestamp - old_timestamp > cf['_download_progress_interval']:
-                        progress = "downloading %s: %d bytes" % (filename, current_length)
-                        if remote_length:
-                            percent = 100 * current_length // int(remote_length)
-                            progress = "downloading %s: %d/%s bytes (%d%%)" % (filename, current_length, remote_length, percent)
-                        info(progress)
-                        old_timestamp = new_timestamp
-                fd.close()
-                info("downloaded " + filename)
-                last_modified = r.headers.get('Last-Modified')
-                if last_modified:
-                    timestamp = datetime.datetime.timestamp(parsedate(last_modified))
-                    stinfo = os.stat(filename)
-                    os.utime(filename, (stinfo.st_atime, timestamp))
-            else:
-                warning("could not download %s, status %d" % (filename, r.status_code))
-                os.remove(filename)
+            shutil.copyfileobj(tmpfd, fd)
+
+    last_modified = r.headers.get('Last-Modified')
+    if last_modified:
+        timestamp = datetime.datetime.timestamp(parsedate(last_modified))
+        stinfo = os.stat(filename)
+        os.utime(filename, (stinfo.st_atime, timestamp))
+
+    return True
 
 def validate_itunes_country(country):
     itunes_countries = [

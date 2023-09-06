@@ -214,17 +214,20 @@ def musicbrainz_query(cd_id, tracks, file):
 
     info('matched "%s - %s"' % (artist_as_credited, release['title']))
 
-    if cf['_fetch_albumart'] and 'coverartarchive' in cf['_albumart_providers']:
-        jack.albumart.fetch_caa_albumart(result['releases'][chosen_release])
-
-    if cf['_fetch_albumart'] and 'discogs' in cf['_albumart_providers']:
-        jack.albumart.fetch_discogs_albumart(result['releases'][chosen_release])
-
-    country = None
-    if 'country' in release and release['country']:
-        country = release['country'].lower()
-    if cf['_fetch_albumart'] and 'iTunes' in cf['_albumart_providers']:
-        jack.albumart.fetch_itunes_albumart(artist_as_credited, release['title'], country)
+    country = release['country'].lower() if 'country' in release and release['country'] else None
+    if cf['_fetch_albumart'] and cf['_albumart_providers']:
+        for provider in cf['_albumart_providers']:
+            if provider.startswith('coverartarchive'):
+                res = jack.albumart.fetch_caa_albumart(result['releases'][chosen_release])
+            elif provider.startswith('discogs'):
+                res = jack.albumart.fetch_discogs_albumart(result['releases'][chosen_release])
+            elif provider.startswith('iTunes'):
+                res = jack.albumart.fetch_itunes_albumart(artist_as_credited, release['title'], country)
+            else:
+                warning(f"unknown albumart {provider=}")
+                res = False
+            if res and provider.endswith('|'):
+                break
 
     err = 0
     return err
