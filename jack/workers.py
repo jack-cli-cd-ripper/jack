@@ -16,7 +16,6 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-import sndhdr
 import signal
 import posix
 import array
@@ -390,9 +389,17 @@ def ripread(track, offset=0):
     data['elapsed'] = 0
     return data
 
+def compat_whathdr(filename):
+    try:
+        x = wave.open(filename, "rb")
+    except wave.Error:
+        return None
+    hdr = ("wav", x.getframerate(), x.getnchannels(), x.getnframes(), x.getsampwidth()*8)
+    x.close()
+    return hdr
 
 def extract_track_from_image(track, offset=0, silent=False):
-    hdr = sndhdr.whathdr(cf['_image_file'])
+    hdr = compat_whathdr(cf['_image_file'])
     my_swap_byteorder = cf['_swap_byteorder']
     size_offset = offset
     if hdr:

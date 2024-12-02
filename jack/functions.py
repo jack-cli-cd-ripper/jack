@@ -19,7 +19,7 @@
 
 import codecs
 import traceback
-import sndhdr
+import wave
 import types
 import stat
 import sys
@@ -178,14 +178,15 @@ def guesstoc(names):
             progr.append([num, "dae", "  *   [          simulated           ]"])
             progr.append([num, "enc", repr(x['bitrate']), "[ s i m u l a t e d %3ikbit]" % (x['bitrate'] + 0.5)])
         elif i_ext == ".WAV":
-            x = sndhdr.whathdr(i)
-            if not x:
+            try:
+                x = wave.open(i, "rb")
+            except wave.Error:
                 error("this is not WAV-format: " + i)
-            if (x.filetype != 'wav'
-                    or x.framerate != 44100
-                    or x.nchannels != 2
-                    or x.sampwidth != 16):
+            if (x.getframerate() != 44100
+                    or x.getnchannels() != 2
+                    or x.getsampwidth() != 2):
                 error("unsupported format " + repr(x) + " in " + i)
+            x.close()
             blocks = jack.utils.filesize(i)
             blocks = blocks - 44    # substract WAV header
             extra_bytes = blocks % CDDA_BLOCKSIZE
