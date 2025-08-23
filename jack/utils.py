@@ -63,6 +63,24 @@ def check_path(p1, p2):
     return ok
 
 
+def shorten(path, ext=""):
+    "shorten a unicode string to legal number of bytes."
+    "simple but inefficient"
+
+    ret = path
+    longest = (os.pathconf('.', 'PC_NAME_MAX')
+              - len(ext.encode(cf["_charset"])))
+    while len(ret.encode(cf["_charset"])) > longest:
+        ret = ret[:-1]
+
+    if ret == path:
+        return path
+
+    dots = "…"
+    return (ret[:-(len(dots.encode(cf["_charset"])))]
+            + dots + ext)
+
+
 def rename_path(old, new):
     "this is complicated."
     cwd = os.getcwd()
@@ -76,12 +94,7 @@ def rename_path(old, new):
             error("invalid type for rename_path: " + repr(i))
 
     # weed out empty dirs (which are technically illegal on metadata but exist)
-    tmp = []
-    for i in new:
-        if i:
-            tmp.append(i)
-    new = tmp
-    del tmp
+    new = [x for x in new if x]
 
     for i in old:
         os.chdir(os.pardir)
@@ -89,20 +102,20 @@ def rename_path(old, new):
         if not os.path.exists(i):
             try:
                 os.mkdir(i)
-            except OSError:
-                error('Cannot create directory "%s" (Filename is too long or has unusable characters)' % i)
+            except OSError as e:
+                error(f"can't create directory: {e}")
         if os.path.isdir(i):
             os.chdir(i)
         else:
             error("could not create or change to " + i + " from " + os.getcwd())
 
-    last_of_new = new[-1]
+    last_of_new = shorten(new[-1])
     if os.path.exists(last_of_new):
         error("destination directory already exists: " + os.path.join(*[cf['_base_dir']] + new))
     try:
         os.rename(cwd, last_of_new)
-    except OSError:
-        error('Cannot rename "%s" to "%s" (Filename is too long or has unusable characters)' % (cwd, last_of_new))
+    except OSError as e:
+        error(f"can't rename: {e}")
     os.chdir(last_of_new)
 
     # now remove empty "orphan" dirs
