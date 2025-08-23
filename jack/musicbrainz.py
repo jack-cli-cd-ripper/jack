@@ -370,7 +370,7 @@ def musicbrainz_names(cd_id, tracks, todo, name, verb=None, warn=None):
         names.append([t_artist, t_title])
 
     # try to use year from chosen release array element
-    if cf['_year'] is None:
+    if cf['_year'] is None and 'date' in release:
         try:
             mb_date = release['date'][:4]
             cf['_year'] = mb_date
