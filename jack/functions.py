@@ -410,7 +410,7 @@ def real_cdrdao_gettoc(tocfile):     # get toc from cdrdao-style toc-file
             start = line.split()[1]
             pregap = jack.cdtime.CDTime(start).blocks
             if current_track.number == 1 and pregap > CDDA_BLOCKS_PER_SECOND * 10:
-                info(f"disc may have a hidden track ({start}) in pregap of track {current_track.number}")
+                info(f"disc in \"{tocpath}\" may have a hidden track ({start}) in pregap of track {current_track.number}")
             current_track.pregap = pregap
 
         elif starts_with(line, "SILENCE "):
