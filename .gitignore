@@ -1,2 +1,4 @@
 /build/
 *.pyc
+/.eggs/
+/*.egg-info/
