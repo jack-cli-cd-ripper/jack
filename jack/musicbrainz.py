@@ -124,12 +124,7 @@ def musicbrainz_query(cd_id, tracks, file):
                         warning("automatically selected release " + old_release_id)
 
             if chosen_release == None:
-                if exact_matches:
-                    print("Found multiple exact matches. Choose one:")
-                else:
-                    print("Found the following inexact matches. Choose one:")
                 matches = []
-                num = 1
                 for rel in releases:
                     acp = ""
                     for ac in rel['artist-credit']:
@@ -167,13 +162,21 @@ def musicbrainz_query(cd_id, tracks, file):
                         description += " (label: " + labels + ")"
                     if catalog_numbers:
                         description += " (cat. nr: " + catalog_numbers + ")"
-                    print("%2i" % num + ".) " + description)
-                    num = num + 1
+                    matches.append(description)
+
                 x = -1
-                while x < 0 or x > num - 1:
-                    userinput = input(" 0.) none of the above: ")
-                    if not userinput:
-                        continue
+                filter = ""
+                while x < 0 or x > len(matches):
+                    if exact_matches:
+                        print("Found multiple exact matches. Choose one:")
+                    else:
+                        print("Found the following inexact matches. Choose one:")
+                    for num, description in zip(
+                            range(1, len(matches) + 1),
+                            matches):
+                        if filter.upper() in description.upper():
+                            print("%2i" % num + ".) " + description)
+                    userinput = input(f" 0.) none of the above [/{filter}]: ")
                     try:
                         x = int(userinput)
                     except ValueError:
@@ -182,6 +185,10 @@ def musicbrainz_query(cd_id, tracks, file):
                         print("ok, aborting.")
                         print("A new release can be added using this URL:\n" + musicbrainz_getlookupurl(tracks, cd_id))
                         sys.exit(1)
+                    if userinput.startswith("/"):
+                        filter = userinput[1:]
+                    else:
+                        filter = ""
                 chosen_release = x - 1
     else:
         print("MusicBrainz did not return releases. Try adding one using this URL:\n" + musicbrainz_getlookupurl(tracks, cd_id))
