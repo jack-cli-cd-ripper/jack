@@ -330,7 +330,7 @@ def parse_argv(cf, argv):
                 allargs[v['short']] = k
 
     i = 1
-    help = 0
+    verbosity = 0
     searches = {}
     argv_cf = {}
     while i < len(argv):
@@ -349,9 +349,9 @@ def parse_argv(cf, argv):
 
         elif tmp_option in ("--set", "--get", "--show", *all_help_args):
             if tmp_option in help_args:
-                help = 1
+                verbosity = 1
             if tmp_option in longhelp_args:
-                help = 2
+                verbosity = 2
 
             i, var = get_next(argv, i, tmp_arg)
 
@@ -416,7 +416,7 @@ def parse_argv(cf, argv):
                 argv_cf[option] = {}
             argv_cf[option].update({'val': value})
             if option in ("readme",):
-                help = 3
+                verbosity = 3
         else:
             print("unknown option `%s'" % argv[i])
             show_usage(cf, 1)
@@ -426,4 +426,4 @@ def parse_argv(cf, argv):
 
         i = i + 1
 
-    return help, argv_cf, searches
+    return verbosity, argv_cf, searches
