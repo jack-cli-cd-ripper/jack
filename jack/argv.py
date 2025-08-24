@@ -16,9 +16,9 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+import fnmatch
 import os
 import sys
-import types
 import pprint
 
 import jack.utils
@@ -371,7 +371,8 @@ def parse_argv(cf, argv):
                     i = i + 1
                     continue
                 else:
-                    candidates = [x for x in allargs if stripped in x]
+                    stripped = "*" + stripped + "*"
+                    candidates = fnmatch.filter(allargs, stripped)
                     if candidates:
                         searches[var] = [allargs[x] for x in candidates]
                         i = i + 1
