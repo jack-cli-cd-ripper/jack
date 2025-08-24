@@ -25,21 +25,13 @@
 import os
 import sys
 import time
-import wave
-import types
-import posix
-import string
-import select
 import signal
-import pprint
 import traceback
 import locale
 
 from jack.globals import *
 
 import jack.version
-import jack.misc
-import jack.mp3
 import jack.argv
 import jack.rc
 import jack.helpers
@@ -47,19 +39,14 @@ import jack.targets
 import jack.metadata
 import jack.display
 import jack.term
-import jack.children
 import jack.tag
-import jack.workers
 import jack.utils
 import jack.ripstuff
-import jack.encstuff
 import jack.checkopts
 import jack.status
 import jack.functions
 import jack.main_loop
-import jack.progress
 import jack.prepare
-import jack.albumart
 import jack.generic
 
 

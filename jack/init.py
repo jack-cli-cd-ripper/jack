@@ -16,10 +16,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-import os
 import sys
-
-import jack.discid
 from jack.generic import *
 from jack.globals import *
 
@@ -31,16 +28,7 @@ required_modules = {
     'requests': {'site': 'https://docs.python-requests.org', 'distro-name': 'python3-requests'},
 }
 
-try:
-    from fcntl import F_SETFL
-except:
-    from FCNTL import F_SETFL
-
-try:
-    from os import O_NONBLOCK
-except:
-    from FCNTL import O_NONBLOCK
-
+import jack.discid
 if not jack.discid.init():
     module = 'libdiscid'
     print("Please install the %s module described at %s .\nUse your distribution package manager where it is probably called '%s'." %
@@ -53,7 +41,7 @@ try:
     import mutagen.flac as flac
     import mutagen.mp4 as mp4
     import mutagen.oggvorbis as oggvorbis
-except:
+except ImportError:
     module = 'mutagen'
     print("Please use pip to install the %s module described at %s ,\nor your distribution package manager where it is probably called '%s'." %
         (module, required_modules[module]['site'], required_modules[module]['distro-name']))
@@ -61,7 +49,7 @@ except:
 
 try:
     import requests
-except:
+except ImportError:
     module = 'requests'
     print("Please use pip to install the %s module described at %s ,\nor your distribution package manager where it is probably called '%s'." %
         (module, required_modules[module]['site'], required_modules[module]['distro-name']))
@@ -69,7 +57,7 @@ except:
 
 try:
     import dateutil
-except:
+except ImportError:
     module = 'dateutil'
     print("Please use pip to install the %s module described at %s ,\nor your distribution package manager where it is probably called '%s'." %
         (module, required_modules[module]['site'], required_modules[module]['distro-name']))
@@ -77,7 +65,7 @@ except:
 
 try:
     import PIL
-except:
+except ImportError:
     module = 'pillow'
     print("Please use pip to install the %s module described at %s ,\nor your distribution package manager where it is probably called '%s'." %
         (module, required_modules[module]['site'], required_modules[module]['distro-name']))

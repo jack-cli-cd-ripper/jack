@@ -35,7 +35,6 @@ import jack.tag
 
 from jack.globals import *
 from jack.helpers import helpers
-from jack.init import F_SETFL, O_NONBLOCK
 
 
 def default_signals():
@@ -59,7 +58,7 @@ def start_new_process(args, nice_value=0):
     else:
         data['pid'] = pid
         if os.uname()[0] == "Linux":
-            fcntl.fcntl(master_fd, F_SETFL, O_NONBLOCK)
+            fcntl.fcntl(master_fd, fcntl.F_SETFL, os.O_NONBLOCK)
         data['fd'] = master_fd
         data['file'] = os.fdopen(master_fd)
         data['cmd'] = args
@@ -240,8 +239,8 @@ def start_new_otf(track, ripper, encoder):
     data['rip']['otf-pid'] = data['enc']['pid']
 
     if os.uname()[0] == "Linux":
-        fcntl.fcntl(data['rip']['fd'], F_SETFL, O_NONBLOCK)
-        fcntl.fcntl(data['enc']['fd'], F_SETFL, O_NONBLOCK)
+        fcntl.fcntl(data['rip']['fd'], fcntl.F_SETFL, os.O_NONBLOCK)
+        fcntl.fcntl(data['enc']['fd'], fcntl.F_SETFL, os.O_NONBLOCK)
     data['rip']['file'] = os.fdopen(data['rip']['fd'])
     data['enc']['file'] = os.fdopen(data['enc']['fd'])
     return data
@@ -325,8 +324,8 @@ def start_new_transcoder(track, decoder, encoder):
     data['dec']['otf-pid'] = data['enc']['pid']
 
     if os.uname()[0] == "Linux":
-        fcntl.fcntl(data['dec']['fd'], F_SETFL, O_NONBLOCK)
-        fcntl.fcntl(data['enc']['fd'], F_SETFL, O_NONBLOCK)
+        fcntl.fcntl(data['dec']['fd'], fcntl.F_SETFL, os.O_NONBLOCK)
+        fcntl.fcntl(data['enc']['fd'], fcntl.F_SETFL, os.O_NONBLOCK)
     data['dec']['file'] = os.fdopen(data['dec']['fd'])
     data['enc']['file'] = os.fdopen(data['enc']['fd'])
     return data

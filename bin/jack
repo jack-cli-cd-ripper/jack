@@ -23,13 +23,15 @@
 ### see CHANGELOG for recent changes in this program
 ### see TODO if you want to see what needs to be implemented
 
-import sys, os
+import sys
+import os
+
+import jack.__main__
 
 bindir = os.path.dirname(os.path.abspath(sys.argv[0]))
 maindir, bindir = os.path.split(bindir)
 sys.path.append(maindir)
 
-import jack.__main__
 
 if __name__ == "__main__":
     sys.exit(jack.__main__.main())

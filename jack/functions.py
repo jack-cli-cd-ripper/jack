@@ -20,11 +20,8 @@
 import codecs
 import traceback
 import wave
-import types
-import stat
 import sys
 import os
-import locale
 
 import jack.tocentry
 import jack.cdtime

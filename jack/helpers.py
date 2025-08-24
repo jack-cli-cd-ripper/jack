@@ -17,7 +17,6 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-import string
 import re
 
 from jack.globals import *
@@ -250,6 +249,7 @@ helper_final_status = ("%s" % jack.functions.pprint_speed(speed)) + "x [ DAE don
         'toc': 1,
         'toc_cmd': "cdda2wav --no-infofile -D %d -J -v toc --gui 2>&1",
         'toc_fkt': r"""
+import string
 while 1:
     l = p.readline()
     if not l:
@@ -267,6 +267,7 @@ while 1:
             erg.append([num, length, start, copy, pre, ch, 1, cf['_bitrate'], cf['_name'] % (num + 1), None, None])
 """,
         'toc_fkt_old': r"""
+import string
 new_c2w = 0
 new_toc1 = 0
 new_toc2 = 0
@@ -411,6 +412,7 @@ while l:
         'toc': 1,
         'toc_fkt': r"""
 import jack.discid
+import stat
 jack.discid.init()
 
 if not os.path.exists(cf['_cd_device']):

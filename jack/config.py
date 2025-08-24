@@ -17,12 +17,11 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-import types
 import os
-import jack.misc
 import locale
 import sys
 
+import jack.misc
 import jack.version
 from jack.globals import *
 

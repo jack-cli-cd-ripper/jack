@@ -19,7 +19,6 @@
 
 import os
 import sys
-import re
 
 from io import BytesIO
 from PIL import Image
@@ -30,7 +29,6 @@ import jack.targets
 import jack.helpers
 import jack.metadata
 import jack.utils
-import jack.misc
 import jack.m3u
 import jack.status
 import jack.generic
@@ -42,7 +40,7 @@ from jack.init import flac
 from jack.init import mp4
 from jack.globals import *
 
-track_names = None
+track_names = []
 
 a_artist = None
 a_title = None

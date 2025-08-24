@@ -16,8 +16,6 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-import termios
-import sys
 import signal
 import types
 
@@ -25,7 +23,6 @@ import jack.status
 import jack.ripstuff
 import jack.display
 import jack.term
-import jack.globals
 import jack.version
 
 from jack.globals import *

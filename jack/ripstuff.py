@@ -18,7 +18,6 @@
 
 import jack.metadata
 
-import locale
 import unicodedata
 
 from jack.globals import *

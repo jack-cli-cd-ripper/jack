@@ -19,7 +19,6 @@
 # terminal is one of dumb, curses
 
 import array
-import traceback
 import fcntl
 import sys
 

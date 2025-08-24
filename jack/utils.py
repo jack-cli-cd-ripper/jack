@@ -17,18 +17,12 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 import sys
-import signal
-import types
 import os
 import stat
 import re
 import subprocess
 
-import jack.functions
-import jack.globals
 import jack.misc
-import jack.term
-import jack.config
 
 from jack.globals import *
 

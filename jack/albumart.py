@@ -21,21 +21,19 @@ import os
 import re
 import base64
 import hashlib
-import requests
 import json
 import datetime
 import shutil
 import tempfile
 
-from dateutil.parser import parse as parsedate
 from urllib.parse import urlparse
 from io import BytesIO
 from PIL import Image
 
-import jack.functions
+from dateutil.parser import parse as parsedate
+import requests
+
 import jack.version
-from jack.init import oggvorbis
-from jack.init import mp3
 from jack.init import id3
 from jack.init import flac
 from jack.init import mp4

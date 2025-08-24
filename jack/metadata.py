@@ -16,17 +16,13 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-import string
-import sys
 import os
 import re
 
 from operator import itemgetter
 
 import jack.functions
-import jack.progress
 import jack.utils
-import jack.tag
 import jack.misc
 import jack.freedb
 import jack.musicbrainz

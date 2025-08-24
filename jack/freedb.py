@@ -19,14 +19,10 @@
 import string
 import sys
 import os
-import re
 import requests
 
 import jack.functions
 import jack.progress
-import jack.utils
-import jack.tag
-import jack.misc
 import jack.version
 
 from jack.globals import *

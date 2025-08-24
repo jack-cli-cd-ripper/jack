@@ -20,15 +20,11 @@ import sys
 import os
 import json
 import datetime
-import re
 import requests
 
-import jack.functions
-import jack.progress
 import jack.utils
-import jack.tag
-import jack.misc
 import jack.version
+import jack.albumart
 
 from jack.globals import *
 
