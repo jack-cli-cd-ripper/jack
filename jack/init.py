@@ -28,12 +28,17 @@ required_modules = {
     'requests': {'site': 'https://docs.python-requests.org', 'distro-name': 'python3-requests'},
 }
 
+def please_install(module, use_pip=True):
+    use_pip = "use pip to " if use_pip else ""
+    print("Please %sinstall the %s module described at %s .\n"
+          "or your distribution package manager where it is probably called '%s'." %
+        (use_pip, module,
+         required_modules[module]['site'], required_modules[module]['distro-name']))
+    sys.exit(1)
+
 import jack.discid
 if not jack.discid.init():
-    module = 'libdiscid'
-    print("Please install the %s module described at %s .\nUse your distribution package manager where it is probably called '%s'." %
-        (module, required_modules[module]['site'], required_modules[module]['distro-name']))
-    sys.exit(1)
+    please_install('libdiscid')
 
 try:
     import mutagen.mp3 as mp3
@@ -42,31 +47,19 @@ try:
     import mutagen.mp4 as mp4
     import mutagen.oggvorbis as oggvorbis
 except ImportError:
-    module = 'mutagen'
-    print("Please use pip to install the %s module described at %s ,\nor your distribution package manager where it is probably called '%s'." %
-        (module, required_modules[module]['site'], required_modules[module]['distro-name']))
-    sys.exit(1)
+    please_install('mutagen')
 
 try:
     import requests
 except ImportError:
-    module = 'requests'
-    print("Please use pip to install the %s module described at %s ,\nor your distribution package manager where it is probably called '%s'." %
-        (module, required_modules[module]['site'], required_modules[module]['distro-name']))
-    sys.exit(1)
+    please_install('requests')
 
 try:
     import dateutil
 except ImportError:
-    module = 'dateutil'
-    print("Please use pip to install the %s module described at %s ,\nor your distribution package manager where it is probably called '%s'." %
-        (module, required_modules[module]['site'], required_modules[module]['distro-name']))
-    sys.exit(1)
+    please_install('dateutil')
 
 try:
     import PIL
 except ImportError:
-    module = 'pillow'
-    print("Please use pip to install the %s module described at %s ,\nor your distribution package manager where it is probably called '%s'." %
-        (module, required_modules[module]['site'], required_modules[module]['distro-name']))
-    sys.exit(1)
+    please_install('pillow')
