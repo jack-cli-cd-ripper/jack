@@ -1,3 +1,5 @@
+"""jack.version: define program version and name"""
+
 # jack.version: define program version and name for
 # jack - extract audio from a CD and encode it using 3rd party software
 # Copyright (C) 2002  Arne Zellentin <zarne@users.sf.net>

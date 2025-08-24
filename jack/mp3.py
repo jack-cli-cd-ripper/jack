@@ -1,3 +1,5 @@
+"""jack.mp3 - mp3 layer stuff"""
+
 # jack.mp3 - mp3 layer stuff for
 # jack - extract audio from a CD and MP3ify it using 3rd party software
 # Copyright (C) 1999-2001  Arne Zellentin <zarne@users.sf.net>
@@ -19,7 +21,6 @@
 from jack.init import mp3
 
 def mp3format(file):
-
     audio = mp3.MP3(file)
     x = {}
     x['bitrate'] = audio.info.bitrate

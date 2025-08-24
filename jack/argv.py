@@ -1,3 +1,5 @@
+"""jack.argv - argv parser and help printing"""
+
 # jack.argv - argv parser and help printing -- part of
 # jack - extract audio from a CD and MP3ify it using 3rd party software
 # Copyright (C) 2002-2004  Arne Zellentin <zarne@users.sf.net>
@@ -100,14 +102,17 @@ txt_interaction = """While Jack is running, press q or Q to quit,
     r or R to pause/continue all rippers."""
 
 def show_usage(cf, verbosity, searches=None):
-    "show program usage for config object cf."
-    "verbosity=1: short help for all items"
-    "verbosity=2: long help for all items"
-    "verbosity=2: export full documentation as markdown"
-    "searches=list: short help for items in list or all if list is empty"
+    """show program usage for config object cf.
+    verbosity=1: short help for all items
+    verbosity=2: long help for all items
+    verbosity=2: export full documentation as markdown
+    searches=list: short help for items in list or all if list is empty
+    """
 
     if searches:
         cf_filter = {x for v in searches.values() for x in v}
+    else:
+        cf_filter = {}
 
     _, shorthelp, longhelp, exporthelp = [x == verbosity for x in range(4)]
 

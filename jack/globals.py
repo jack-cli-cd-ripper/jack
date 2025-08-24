@@ -1,5 +1,6 @@
-# -*- coding: utf-8 -*-
-# jack.globals: Global storage space for
+"""jack.globals: global storage space"""
+
+# jack.globals: global storage space for
 # jack - extract audio from a CD and encode it using 3rd party software
 # Copyright (C) 1999-2003  Arne Zellentin <zarne@users.sf.net>
 

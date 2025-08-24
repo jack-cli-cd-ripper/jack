@@ -1,4 +1,6 @@
-# jack.init sanity check and initialization of various modules for
+"""jack.init: sanity check and initialization of various modules"""
+
+# jack.init: sanity check and initialization of various modules for
 # jack - extract audio from a CD and encode it using 3rd party software
 # Copyright (C) 2002-2003  Arne Zellentin <zarne@users.sf.net>
 

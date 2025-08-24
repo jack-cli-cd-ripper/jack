@@ -1,4 +1,5 @@
-# -*- coding: utf-8 -*-
+"""jack.tag: name information (ID3 among others) stuff"""
+
 # jack.tag: name information (ID3 among others) stuff for
 # jack - tag audio from a CD and encode it using 3rd party software
 # Copyright (C) 1999-2003  Arne Zellentin <zarne@users.sf.net>

@@ -1,3 +1,5 @@
+"""constants"""
+
 # jack.constants
 # jack - extract audio from a CD and encode it using 3rd party software
 # Copyright (C) 2002  Arne Zellentin <zarne@users.sf.net>

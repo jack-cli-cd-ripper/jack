@@ -1,4 +1,6 @@
-# jack.metadata: metadata server for use in
+"""jack.freedb: freedb server"""
+
+# jack.freedb: freedb server for use in
 # jack - extract audio from a CD and encode it using 3rd party software
 # Copyright (C) 1999-2003  Arne Zellentin <zarne@users.sf.net>
 
@@ -143,6 +145,7 @@ def freedb_query(cd_ids, tracks, file):
         try:
             r = requests.get(url, headers=headers, stream=True)
         except:
+            import traceback
             traceback.print_exc()
             err = 1
             return err

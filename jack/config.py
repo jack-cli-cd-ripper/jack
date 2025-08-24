@@ -1,4 +1,5 @@
-# -*- coding: utf-8 -*-
+"""jack.config.py: default config settings"""
+
 # jack.config.py: default config settings for
 # jack - extract audio from a CD and encode it using 3rd party software
 # Copyright (C) 2002-2004  Arne Zellentin <zarne@users.sf.net>

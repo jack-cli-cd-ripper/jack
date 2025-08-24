@@ -1,3 +1,5 @@
+"""jack.status: module which holds the ripping and encoding status"""
+
 # jack.status: module which holds the ripping and encoding status for
 # jack - extract audio from a CD and encode it using 3rd party software
 # Copyright (C) 1999-2002  Arne Zellentin <zarne@users.sf.net>

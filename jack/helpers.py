@@ -1,4 +1,5 @@
-# -*- coding: utf-8 -*-
+"""jack.helpers: helper applications"""
+
 # jack.helpers: helper applications for
 # jack - extract audio from a CD and encode it using 3rd party software
 # Copyright (C) 1999-2004  Arne Zellentin <zarne@users.sf.net>

@@ -1,3 +1,5 @@
+"""jack.discid: discid/libdiscid wrapper"""
+
 # jack.discid: discid/libdiscid wrapper for
 # jack - extract audio from a CD and encode it using 3rd party software
 # Copyright (C) 1999-2020  Arne Zellentin <zarne@users.sf.net>

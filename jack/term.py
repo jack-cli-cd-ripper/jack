@@ -1,3 +1,5 @@
+"""jack.term: terminal specific stuff"""
+
 # jack.term: terminal specific stuff for
 # jack - extract audio from a CD and encode it using 3rd party software
 # Copyright (C) 1999-2002  Arne Zellentin <zarne@users.sf.net>

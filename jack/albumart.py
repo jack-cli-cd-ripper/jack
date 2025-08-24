@@ -1,5 +1,6 @@
-# -*- coding: utf-8 -*-
-# jack.tag: name information (ID3 among others) stuff for
+"""jack.albumart: albumart fetching and embedding"""
+
+# jack.albumart: albumart fetching and embedding for
 # jack - tag audio from a CD and encode it using 3rd party software
 # Copyright (C) 1999-2003  Arne Zellentin <zarne@users.sf.net>
 
@@ -414,7 +415,7 @@ def fetch_discogs_albumart(release):
                                 continue
                             content_disposition =  r.headers.get("Content-Disposition")
                             if content_disposition:
-                                basename = content_disposition.split("filename=")[1] 
+                                basename = content_disposition.split("filename=")[1]
                                 basename = basename.replace('"', '')
                             else:
                                 basename = hashlib.md5(url.encode("utf-8")).hexdigest()
