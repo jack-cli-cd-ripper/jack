@@ -26,6 +26,8 @@ import json
 import datetime
 import shutil
 import tempfile
+import time
+import random
 
 from urllib.parse import urlparse
 from io import BytesIO
@@ -33,6 +35,7 @@ from PIL import Image
 
 from dateutil.parser import parse as parsedate
 import requests
+from requests.exceptions import ConnectionError, Timeout, RequestException
 
 import jack.version
 from jack.init import id3
@@ -432,64 +435,81 @@ def fetch_discogs_albumart(release):
 
         return ret
 
+def download(session, url, filename, overwrite, max_retries=5):
+    """Fast chunked downloading of binary data with restoring modification date and retry support."""
+    for attempt in range(max_retries):
+        try:
+            different = False
+            exists = False
 
-def download(session, url, filename, overwrite):
-    "fast chunked downloading of binary data with restoring modification date"
+            if os.path.exists(filename):
+                exists = True
+                stinfo = os.stat(filename)
 
-    different = False
-    exists = False
-    if os.path.exists(filename):
-        exists = True
-        stinfo = os.stat(filename)
-        if overwrite == "conditional":
-            r = session.head(url)
-            if r.status_code == 200:
-                remote_length = r.headers.get('Content-Length')
-                if remote_length and int(remote_length) != stinfo.st_size:
-                    different = True
-                last_modified = r.headers.get('Last-Modified')
-                if last_modified:
-                    timestamp = datetime.datetime.timestamp(parsedate(last_modified))
-                    if timestamp != stinfo.st_mtime:
+                if overwrite == "conditional":
+                    r_head = session.head(url, timeout=30)
+                    r_head.raise_for_status()
+
+                    remote_length = r_head.headers.get('Content-Length')
+                    if remote_length and int(remote_length) != stinfo.st_size:
                         different = True
 
-    if exists and not different and overwrite != "always":
-        return True
+                    last_modified = r_head.headers.get('Last-Modified')
+                    if last_modified:
+                        timestamp = datetime.datetime.timestamp(parsedate(last_modified))
+                        if timestamp != stinfo.st_mtime:
+                            different = True
 
-    r = session.get(url, stream=True)
-    if r.status_code != 200:
-        warning("could not download %s, status %d" % (filename, r.status_code))
-        return False
+            if exists and not different and overwrite != "always":
+                return True
 
-    old_timestamp = datetime.datetime.now().timestamp()
-    current_length = 0
-    remote_length = r.headers.get('Content-Length')
 
-    info(f"downloading {filename} ({remote_length=})")
-    with tempfile.TemporaryFile() as tmpfd:
-        for chunk in r.iter_content(chunk_size=32768):
-            tmpfd.write(chunk)
-            current_length += len(chunk)
-            new_timestamp = datetime.datetime.now().timestamp()
-            if cf['_download_progress_interval'] and new_timestamp - old_timestamp > cf['_download_progress_interval']:
-                progress = "downloading %s: %d bytes" % (filename, current_length)
-                if remote_length:
-                    percent = 100 * current_length // int(remote_length)
-                    progress = "downloading %s: %d/%s bytes (%d%%)" % (filename, current_length, remote_length, percent)
-                info(progress)
-                old_timestamp = new_timestamp
+            r = session.get(url, stream=True, timeout=60)
+            r.raise_for_status()
 
-        tmpfd.seek(0)
-        with open(filename, "wb") as fd:
-            shutil.copyfileobj(tmpfd, fd)
+            old_timestamp = datetime.datetime.now().timestamp()
+            current_length = 0
+            remote_length = r.headers.get('Content-Length')
+            info(f"downloading {filename} ({remote_length=})")
 
-    last_modified = r.headers.get('Last-Modified')
-    if last_modified:
-        timestamp = datetime.datetime.timestamp(parsedate(last_modified))
-        stinfo = os.stat(filename)
-        os.utime(filename, (stinfo.st_atime, timestamp))
+            with tempfile.TemporaryFile() as tmpfd:
+                for chunk in r.iter_content(chunk_size=32768):
+                    if chunk:  # Filter out keep-alive chunks
+                        tmpfd.write(chunk)
+                        current_length += len(chunk)
 
-    return True
+                        new_timestamp = datetime.datetime.now().timestamp()
+                        if cf['_download_progress_interval'] and new_timestamp - old_timestamp > cf['_download_progress_interval']:
+                            progress = f"downloading {filename}: {current_length} bytes"
+                            if remote_length:
+                                percent = 100 * current_length // int(remote_length)
+                                progress = f"downloading {filename}: {current_length}/{remote_length} bytes ({percent}%)"
+                            info(progress)
+                            old_timestamp = new_timestamp
+
+                tmpfd.seek(0)
+                with open(filename, "wb") as fd:
+                    shutil.copyfileobj(tmpfd, fd)
+
+            last_modified = r.headers.get('Last-Modified')
+            if last_modified:
+                timestamp = datetime.datetime.timestamp(parsedate(last_modified))
+                stinfo = os.stat(filename)
+                os.utime(filename, (stinfo.st_atime, timestamp))
+
+            return True
+
+        except (ConnectionError, Timeout, RequestException) as e:
+            if attempt == max_retries - 1:
+                warning(f"Failed to download {url} after {max_retries} attempts: {type(e).__name__}: {e}")
+                return False
+
+            backoff = (2 ** attempt) + random.uniform(0, 1)
+            warning(f"Download failed (attempt {attempt + 1}/{max_retries}): {type(e).__name__}: {e}")
+            info(f"Retrying in {backoff:.1f} seconds...")
+            time.sleep(backoff)
+
+    return False
 
 def validate_itunes_country(country):
     itunes_countries = [

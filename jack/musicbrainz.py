@@ -23,6 +23,7 @@ import os
 import json
 import datetime
 import requests
+from requests.exceptions import ConnectionError, Timeout, RequestException
 
 import jack.utils
 import jack.version
@@ -43,24 +44,30 @@ def musicbrainz_template(tracks, names=""):
         f.write(json.dumps(data, indent=4) + "\n")
 
 
-def get_response(url):
-    debug(f"get_response({ url })")
+def get_response(url, max_retries=5):
+    debug(f"get_response({url})")
     headers = {'User-Agent': jack.version.user_agent}
 
-    try:
-        r = requests.get(url, headers=headers)
-        return 0, r
-    except requests.exceptions.HTTPError as e:
-        warning('The server couldn\'t fulfill the request. Error code: '
-                + str(e.code))
-        return 1, None
-    except requests.exceptions.ConnectionError as e:
-        warning('The server couldn\'t be reached. Reason: ' + str(e.reason))
-        return 1, None
-    except requests.exceptions.Timeout as e:
-        warning('The request timed out. Reason: ' + str(e.reason))
-        return 1, None
+    for attempt in range(max_retries):
+        try:
+            r = requests.get(url, headers=headers, timeout=30)
+            r.raise_for_status()
+            return 0, r
 
+        except HTTPError as e:
+            warning(f"The server couldn't fulfill the request. Status code: {e.response.status_code}")
+            return 1, None
+
+        except (Timeout, RequestException) as e:
+            if attempt == max_retries - 1:
+                warning(f"The server couldn't be reached after {max_retries} attempts: {e}")
+                return 1, None
+
+            backoff = (2 ** attempt) + random.uniform(0, 1)
+            info(f"Transient error ({type(e).__name__}): {e}. Retrying in {backoff:.1f}s...")
+            time.sleep(backoff)
+
+    return 1, None
 
 def read_data_from(file):
     if not os.path.exists(file):
