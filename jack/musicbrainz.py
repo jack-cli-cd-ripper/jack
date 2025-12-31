@@ -22,8 +22,9 @@ import sys
 import os
 import json
 import datetime
+import random
 import requests
-from requests.exceptions import ConnectionError, Timeout, RequestException
+from requests.exceptions import ConnectionError, Timeout, RequestException, HTTPError
 
 import jack.utils
 import jack.version
