@@ -21,35 +21,35 @@ Jack \- rip and encode CDs with one command
 .B jack
 .RI [ options ]
 .SH DESCRIPTION
-.B Jack 
+.B Jack
 transforms your audio-CDs to FLAC, MP3 or Ogg Vorbis files. It uses several
 helper programs in order to achieve things like ripping, encoding and
 ID3-tagging.  Ripping is either done via
 .B cdparanoia
 (in which case the ripping status is displayed by Jack as well) or
 .B cdda2wav.
-Jack works with several encoders, namely 
+Jack works with several encoders, namely:
 .B oggenc, flac, lame, gogo, bladeenc, l3enc, mp3enc
 and
 .B xing.
 Any time during operation (and even when everything is finished and
-the original CD lost) you can let Jack look up the track names at 
+the original CD has been lost) you can let Jack look up the track names at
 .B freedb.org
 and rename the tracks accordingly. ID3-tagging of MP3s (or insertion
 of equivalent comment fields in Ogg Vorbis files) is performed
-as well. 
+as well.
 .PP
 If no freedb-lookup has been performed, Jack drops all files in a
 directory
 .BR ~/jack/jack-xxxxxxxx ,
 with
 .B xxxxxxxx
-representing the CD's CDDB/FreeDB disc ID. 
+representing the CD's CDDB/FreeDB disc ID.
 This directory is renamed by Jack when the appropriate information is known.
 .PP
 Most options like ripper, encoder, preferred FreeDB-Server, directory
-and MP3-filename format, etc. can be user defined by changing the
-defaults in 
+and MP3-filename format, etc. can be user-defined by changing the
+defaults in
 .B /etc/jackrc
 or by saving them to
 .BR ~/.jack3rc .
@@ -67,7 +67,7 @@ disable ripping (for example, if you need the CD drive)
 resume ripping
 .TP
 .BR e " or " E
-pause/continue all encoders 
+pause/continue all encoders.
 .TP
 .BR r " or " R
 pause/continue all rippers.
@@ -103,18 +103,18 @@ Example:
 Jack understands the following options:
 .TP
 .B \-\-append-year=bool
-if known, append the year to dir in the format " (%y)"
+if known, append the year to the directory in the format " (%y)"
 .TP
 .B \-b, \-\-bitrate int
 target bitrate (in kbit/s, default is 160).
 .TP
 .B \-\-char-filter string
-convert file names using a python method
+convert file names using a Python method
 .TP
 .B \-\-charset string
 charset of filenames (defaults to your locale).
 .TP
-.B \-c, \-\-check-toc 
+.B \-c, \-\-check-toc
 compare toc-file and cd-toc, then exit. Jack caches the TOC of a
 CD in a file ("jack.toc"). If you want to know if the inserted CD
 matches the toc-file in the current directory, use this option.
@@ -122,13 +122,13 @@ matches the toc-file in the current directory, use this option.
 .B \-C, \-\-claim-dir
 rename directories even if they were was not created by Jack.
 .TP
-.B  \-\-cont-failed-query  
+.B  \-\-cont-failed-query
 continue without FreeDB data if query fails.
 .TP
-.B \-D, \-\-create-dirs 
+.B \-D, \-\-create-dirs
 tells Jack to create sub-directories in which Jack puts all the
 files for the current CD. If no FreeDB data is available, i.e.
-when not using 
+when not using
 .B -Q
 , these directories will be named "jack-xxxxxxxx"
 where "xxxxxxxx" stands for the CD's FreeDB ID. Otherwise
@@ -136,7 +136,7 @@ dir_template (see above) will be used. This option is turned on
 by default.
 .TP
 .B \-\-device string
-The device-name of your cdrom-drive. The default is 
+The device name of your CD-ROM drive. The default is
 .B /dev/cdrom
 .TP
 .B \-\-dir-template string
@@ -177,7 +177,7 @@ a track comment is contained in the EXTT fields.
 do not ask. Like when deleting incomplete files.
 .TP
 .B \-f, \-\-from-tocfile string
-rip from a cdrdao created CD image on hd. The specified toc-file 
+rip from a CD image created CD image by cdrdao on harddisk. The specified toc-file
 contains the name of the image file. Use
 .B \-F
 if jack can't find the image file.
@@ -191,7 +191,7 @@ do not have a toc-file (or don't specify a toc-file),
 the TOC is read from the CD itself.
 .TP
 .B \-g, \-\-guess-toc list
-make up a TOC from the MP3 file given in mp3_files. Format is 
+make up a TOC from the MP3 file given in mp3_files. Format is
 .B track_01.mp3 ... track_nn.mp3 ;
 Note that the trailing "
 .B ;
@@ -205,26 +205,26 @@ similar, but not identical to the TOC of the CD - do not submit
 these!
 .TP
 .B \-G, \-\-id3-genre string
-set ID3 genre. Use 'help' to get a list of all known genres. (You can also specify the ID3v1 genre as an int)
+set the ID3 genre. Use 'help' to get a list of all known genres. (You can also specify the ID3v1 genre as an int)
 .TP
 .B \-Y, \-\-id3-year int
 set ID3 year.
 .TP
 .B \-h, \-\-help
-Show summary of options.
+show summary of options.
 .TP
 .B \-k, \-\-keep-wavs
 do not delete WAVs after encoding them.
 .TP
 .B \-m, \-\-mail-submit
-submit FreeDB entry via e-mail. HTTP submission is preferred. 
+submit FreeDB entry via e-mail. HTTP submission is preferred.
 You will have to enter the category of the CD.
 .TP
 .B \-l, \-\-max-load float
 only start new encoders if your system's load is below the specified value.
 /proc/loadavg must be readable by you for this to work.
 .TP
-.B \-\-multi-mode         
+.B \-\-multi-mode
 try to query FreeDB for all dirs in searchdirs which
 have no FreeDB data.
 .TP
@@ -243,12 +243,12 @@ you
 something went wrong last time. This is off by default.
 .TP
 .B \-O, \-\-only-dae
-only produce WAVs, implies 
+only produce WAVs, implies
 .B \-\-keep-wavs.
 This is off by default.
 .TP
 .B \-\-otf=bool
-On-the-fly operation. Only on some encoders/rippers. Do not
+on-the-fly operation. Only on some encoders/rippers. Do not
 create WAVs, pipe ripper output through the encoder. Default is
 no as it's a torture for the CDROM drive.
 .TP
@@ -291,15 +291,15 @@ Be careful - don't delete them too early!
 .TP
 .B \-R, \-\-rename
 rename and tag files according to FreeDB file. On startup, Jack
-creates a blank FreeDB entry file (except if 
+creates a blank FreeDB entry file (except if
 .B \-\-query-now
-is used, 
+is used,
 then the file is queried from your FreeDB server). If you have
 changed its contents (e.g. because the CD was unknown to FreeDB)
 and want to rename and tag your MP3s accordingly, use this option.
 Give all other needed options too, like
 .B \-t
-, 
+,
 .B \-E
 , ...
 .TP
@@ -359,7 +359,7 @@ of the CD.
 .B \-S, \-\-swab=bool
 swap byte order from image file. As cdrdao momentarily only
 outputs "raw" .cdr files, you quite likely want to swap the
-byte order. Try this option if your WAVs and encoded files contain 
+byte order. Try this option if your WAVs and encoded files contain
 only noise.
 This is on by default as cdrdao currently generates .cdr files
 that are "wrong".
@@ -393,14 +393,14 @@ update the FreeDB info and exit.
 show the help screen while running.
 .TP
 .B \-v, \-\-vbr=bool
-Generate variable bitrate files, only on encoders which support
+generate variable bitrate files, only on encoders which support
 this. Default is no.
 .TP
 .B \-\-various=bool
-when parsing FreeDB data, Jack assumes that if the disc\'s artist
+when parsing FreeDB data, Jack assumes that if the disc artist
 is set to "Various" the track titles have the format
 "[artist] - [title]". If the disc title is set to something else
-and you still want the above behaviour, use 
+and you still want the above behaviour, use
 .B \-\-various.
 .TP
 .B \-\-various-swap
@@ -433,7 +433,7 @@ used to store the state jack is in so it can resume work when interrupted.
 .PP
 Jack will create a directory called jack-xxxxxxxx for you, there it
 stores all the file for the CD whose id is xxxxxxxx. After a FreeDB query
-this directory is renamed to something human readable, like "Artist -
+this directory is renamed to something human-readable, like "Artist -
 Title".
 .PP
 When jack is interrupted, call it again using the same command line as
@@ -526,9 +526,9 @@ Album release year
 .IP %g
 Album genre
 .SH FILES
-.IP \fI/etc/jackrc\fP 
+.IP \fI/etc/jackrc\fP
 Site-wide configuration file.
-.IP \fI~/.jack3rc\fP 
+.IP \fI~/.jack3rc\fP
 User-specific configuration file. Use the
 .B \-\-save
 option to save your configuration to this file.
