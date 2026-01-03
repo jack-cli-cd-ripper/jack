@@ -16,7 +16,7 @@
 .\" .sp <n>    insert n+1 empty lines
 .\" for manpage-specific macros, see man(7)
 .SH NAME
-Jack \- rip and encode CDs with one command
+Jack \- rip and encode audio CDs with one command
 .SH SYNOPSIS
 .B jack
 .RI [ options ]
@@ -24,7 +24,7 @@ Jack \- rip and encode CDs with one command
 .B Jack
 transforms your audio CDs to FLAC, MP3 or Ogg Vorbis files. It uses
 several helper programs in order to achieve things like ripping,
-encoding and ID3-tagging. Ripping is either done via
+encoding and ID3 tagging. Ripping is either done via
 .B cdparanoia
 (in which case the ripping status is displayed by Jack as well) or
 .B cdda2wav.
@@ -34,20 +34,20 @@ and
 .B xing.
 Any time during operation (and even when everything is finished and
 the original CD has been lost) you can let Jack look up the track names at
-.B freedb.org
-and rename the tracks accordingly. ID3-tagging of MP3s (or insertion
+.B MusicBrainz.org
+and rename the tracks accordingly. ID3 tagging of MP3s (or insertion
 of equivalent comment fields in Ogg Vorbis files) is performed
 as well.
 .PP
-If no freedb-lookup has been performed, Jack drops all files in a
+If no MusicBrainz lookup has been performed, Jack drops all files in a
 directory
 .BR ~/jack/jack-xxxxxxxx ,
 with
 .B xxxxxxxx
-representing the CD's CDDB/FreeDB disc ID.
+representing the CD's CDDB/MusicBrainz disc ID.
 This directory is renamed by Jack when the appropriate information is known.
 .PP
-Most options like ripper, encoder, preferred FreeDB-Server, directory
+Most options like ripper, encoder, preferred MusicBrainz Server, directory
 and MP3-filename format, etc. can be user-defined by changing the
 defaults in
 .B /etc/jackrc
@@ -122,15 +122,15 @@ matches the toc-file in the current directory, use this option.
 rename directories even if they were not created by Jack.
 .TP
 .B  \-\-cont-failed-query
-continue without FreeDB data if query fails.
+continue without MusicBrainz data if query fails.
 .TP
 .B \-D, \-\-create-dirs
 tells Jack to create sub-directories in which Jack puts all the
-files for the current CD. If no FreeDB data is available, i.e.
+files for the current CD. If no MusicBrainz data is available, i.e.
 when not using
 .B -Q
 , these directories will be named "jack-xxxxxxxx"
-where "xxxxxxxx" stands for the CD's FreeDB ID. Otherwise
+where "xxxxxxxx" stands for the CD's MusicBrainz ID. Otherwise
 dir_template (see above) will be used. This option is turned on
 by default.
 .TP
@@ -143,7 +143,7 @@ if directories are renamed, this is the format used (default "%a/%l")
 .TP
 .B \-d, \-\-dont-work
 do not perform DAE, encoding, tagging or renaming. This may be useful
-if you only want to do a FreeDB query, e.g. while another Jack is running.
+if you only want to do a MusicBrainz query, e.g. while another Jack is running.
 .TP
 .B \-\-edit-freedb
 open an editor to change the CDDB information which has been obtained
@@ -162,7 +162,7 @@ run predefined command when finished.
 .TP
 .B \-\-extt-is-artist
 the artist is contained in the EXTT fields. The EXTT fields are lines
-in the FreeDB file which contain additional data for each track. As it is
+in the MusicBrainz file which contain additional data for each track. As it is
 the submitting user's choice what to use them for, Jack cannot determine
 by itself what they were intended for. You have to provide this information.
 .TP
@@ -196,7 +196,7 @@ Note that the trailing "
 .B ;
 " is only necessary if you want to
 append more options to your command line.
-You can use it to do a FreeDB query based on
+You can use it to do a MusicBrainz query based on
 MP3s alone - no need for the CD. Very useful if you have no idea
 which CD the MP3s are from. The MP3s must be given in the same
 order as they were on their CD. The generated TOC file is
@@ -217,7 +217,7 @@ show summary of options.
 do not delete WAVs after encoding them.
 .TP
 .B \-m, \-\-mail-submit
-submit FreeDB entry via e-mail. HTTP submission is preferred.
+submit MusicBrainz entry via e-mail. HTTP submission is preferred.
 You will have to enter the category of the CD.
 .TP
 .B \-l, \-\-max-load float
@@ -225,11 +225,11 @@ only start new encoders if your system's load is below the specified value.
 /proc/loadavg must be readable by you for this to work.
 .TP
 .B \-\-multi-mode
-try to query FreeDB for all dirs in searchdirs which
-have no FreeDB data.
+try to query MusicBrainz for all dirs in searchdirs which
+have no MusicBrainz data.
 .TP
 .B \-\-my-mail string
-your e-mail address, needed for FreeDB submissions.
+your e-mail address, needed for MusicBrainz submissions.
 .TP
 .B \-n, \-\-nice int
 nice-level with which the encoders are started. Default is 12
@@ -253,7 +253,7 @@ create WAVs, pipe ripper output through the encoder. Default is
 no as it is a torture for the CDROM drive.
 .\" .TP
 .\" .B \-\-playorder
-.\" use the FreeDB PLAYORDER field to limit the tracks to
+.\" use the MusicBrainz PLAYORDER field to limit the tracks to
 .\" rip (non-functional, sorry)
 .TP
 .B \-\-quality int
@@ -261,18 +261,18 @@ VBR encoding quality. -1 is lowest, 10 highest (default 6).
 You can also specify a float.
 .TP
 .B \-q, \-\-query
-do FreeDB query when all is done. This is useful if Jack was previously
-run without a FreeDB query. If all tracks are done you do not even
+do MusicBrainz query when all is done. This is useful if Jack was previously
+run without a MusicBrainz query. If all tracks are done you do not even
 have to have a CD inserted as the TOC is cached by Jack. After
 having finished ripping and encoding, Jack will rename the files
 and tag them.
 .TP
 .B \-\-query\-if\-needed=bool
-like \-\-query-now, but only if FreeDB data hasn't been successfully
+like \-\-query-now, but only if MusicBrainz data hasn't been successfully
 queried before.
 .TP
 .B \-Q, \-\-query-now
-do FreeDB query when starting. Use this if you are connected to
+do MusicBrainz query when starting. Use this if you are connected to
 the Internet when starting Jack. Note that the query may need
 user-interaction. After having finished ripping and encoding, Jack
 will rename the files and tag them.
@@ -288,12 +288,12 @@ have Jack remove its temp "jack*-files".
 Be careful - do not delete them too early!
 .TP
 .B \-R, \-\-rename
-rename and tag files according to FreeDB file. On startup, Jack
-creates a blank FreeDB entry file (except if
+rename and tag files according to MusicBrainz file. On startup, Jack
+creates a blank MusicBrainz entry file (except if
 .B \-\-query-now
 is used,
-then the file is queried from your FreeDB server). If you have
-changed its contents (e.g. because the CD was unknown to FreeDB)
+then the file is queried from your MusicBrainz server). If you have
+changed its contents (e.g. because the CD was unknown to MusicBrainz)
 and want to rename and tag your MP3s accordingly, use this option.
 Give all other needed options too, like
 .B \-t
@@ -338,7 +338,7 @@ add these directories to the list of directories searched when looking for
 the workdir (default ".").
 .TP
 .B \-\-server string
-which FreeDB server to use. Do not forget to set your HTTP proxy.
+which MusicBrainz server to use. Do not forget to set your HTTP proxy.
 Currently either "freedb" (default) or "freedb-de".
 .TP
 .B \-\-silent-mode=bool
@@ -352,7 +352,7 @@ will probably fail. The default is to look how much is free and
 to use this value.
 .TP
 .B \-\-submit
-submit FreeDB entry via HTTP. You will have to enter the category
+submit MusicBrainz entry via HTTP. You will have to enter the category
 of the CD.
 .TP
 .B \-S, \-\-swab=bool
@@ -396,14 +396,14 @@ generate variable bitrate files, only on encoders which support
 this. Default is no.
 .TP
 .B \-\-various=bool
-when parsing FreeDB data, Jack assumes that if the disc artist
+when parsing MusicBrainz data, Jack assumes that if the disc artist
 is set to "Various" the track titles have the format
 "[artist] - [title]". If the disc title is set to something else
 and you still want the above behaviour, use
 .B \-\-various.
 .TP
 .B \-\-various-swap
-exchange artist and title, many FreeDB entries have them wrong.
+exchange artist and title, many MusicBrainz entries have them wrong.
 .TP
 .B \-\-wait=bool
 wait for key press before quitting.
@@ -431,7 +431,7 @@ track_nn.mp3 plus jack.toc, jack.freedb, jack.progress. The last three are
 used to store the state Jack is in so it can resume work when interrupted.
 .PP
 Jack will create a directory called jack-xxxxxxxx for you, there it
-stores all the files for the CD whose id is xxxxxxxx. After a FreeDB query
+stores all the files for the CD whose id is xxxxxxxx. After a MusicBrainz query
 this directory is renamed to something human-readable, like "Artist -
 Title".
 .PP
@@ -441,13 +441,13 @@ before to resume work, in this case
 jack
 .RE
 .PP
-Now let us try a FreeDB query:
+Now let us try a MusicBrainz query:
 .RS
 jack -q
 .RE
 If the query is successful the files will be renamed to something more
 readable and will be tagged accordingly using ID3 or Vorbis tags.  The
-file jack.freedb will contain the queried FreeDB entry, and the original
+file jack.freedb will contain the queried MusicBrainz entry, and the original
 file will be backed up as jack.freedb.bak.
 .PP
 You can use the
@@ -468,7 +468,7 @@ For example,
 .RS
 jack -Q --rename-fmt "%n-%t" --unusable-chars A I \; --replacement-chars a i \;
 .RE
-will query the FreeDB server, rip and encode all tracks of the CD and save
+will query the MusicBrainz server, rip and encode all tracks of the CD and save
 the files in a format which will contain the track number and the title.
 All occurrences of the letters
 .B A
