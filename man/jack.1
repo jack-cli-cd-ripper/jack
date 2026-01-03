@@ -97,8 +97,7 @@ an integer number, like in
 .B list
 multiple strings, delimited by the final ";".
 Example:
-.B \-\-guess\-toc file1.mp3 file2.mp3 ... fileN.mp3
-\\;
+.B \-\-guess\-toc file1.mp3 file2.mp3 ... fileN.mp3;
 .PP
 Jack understands the following options:
 .TP
@@ -143,7 +142,7 @@ The device name of your CD-ROM drive. The default is
 if directories are renamed, this is the format used (default "%a/%l")
 .TP
 .B \-d, \-\-dont-work
-don not perform DAE, encoding, tagging or renaming. This may be useful
+do not perform DAE, encoding, tagging or renaming. This may be useful
 if you only want to do a FreeDB query, e.g. while another Jack is running.
 .TP
 .B \-\-edit-freedb
@@ -335,8 +334,8 @@ levels from the current working directory for a matching toc-file (0
 to disable, default 2).
 .TP
 .B \-\-search list
-add these directories to the list of directories searched when looking for the
-workdir (default ".").
+add these directories to the list of directories searched when looking for
+the workdir (default ".").
 .TP
 .B \-\-server string
 which FreeDB server to use. Do not forget to set your HTTP proxy.
