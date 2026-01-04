@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH JACK 1 "November 22, 2004"
+.TH JACK 1 "January 2026"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -16,43 +16,43 @@
 .\" .sp <n>    insert n+1 empty lines
 .\" for manpage-specific macros, see man(7)
 .SH NAME
-Jack \- rip and encode CDs with one command
+Jack \- rip and encode audio CDs with one command
 .SH SYNOPSIS
 .B jack
 .RI [ options ]
 .SH DESCRIPTION
-.B Jack 
-transforms your audio-CDs to FLAC, MP3 or Ogg Vorbis files. It uses several
-helper programs in order to achieve things like ripping, encoding and
-ID3-tagging.  Ripping is either done via
+.B Jack
+transforms your audio CDs to FLAC, MP3 or Ogg Vorbis files. It uses
+several helper programs in order to achieve things like ripping,
+encoding and ID3 tagging. Ripping is either done via
 .B cdparanoia
 (in which case the ripping status is displayed by Jack as well) or
-.B cdda2wav.
-Jack works with several encoders, namely 
-.B oggenc, flac, lame, gogo, bladeenc, l3enc, mp3enc
+.BR cdda2wav .
+Jack works with several encoders, namely:
+.B oggenc, flac, lame, gogo, bladeenc, l3enc, mp3enc,
 and
 .B xing.
 Any time during operation (and even when everything is finished and
-the original CD lost) you can let Jack look up the track names at 
-.B freedb.org
-and rename the tracks accordingly. ID3-tagging of MP3s (or insertion
-of equivalent comment fields in Ogg Vorbis files) is performed
-as well. 
+the original CD has been lost) you can let Jack look up the track names at
+metadata services like
+.B MusicBrainz.org, GnuDB.org
+or others and rename the tracks accordingly. ID3 tagging of MP3s (or insertion
+of equivalent comment fields in Ogg Vorbis files) is performed as well.
 .PP
-If no freedb-lookup has been performed, Jack drops all files in a
+If no lookup has been performed, Jack drops all files in a
 directory
 .BR ~/jack/jack-xxxxxxxx ,
 with
 .B xxxxxxxx
-representing the CD's CDDB/FreeDB disc ID. 
+representing the CD's CDDB/MusicBrainz disc ID.
 This directory is renamed by Jack when the appropriate information is known.
 .PP
-Most options like ripper, encoder, preferred FreeDB-Server, directory
-and MP3-filename format, etc. can be user defined by changing the
-defaults in 
+Most options like ripper, encoder, preferred metadata server, directory
+and MP3-filename format, etc. can be user-defined by changing the
+defaults in
 .B /etc/jackrc
 or by saving them to
-.BR ~/.jack3rc .
+.BR ~/.jack4rc .
 .PP
 While Jack is running, these keyboard commands are available:
 .RS
@@ -67,10 +67,10 @@ disable ripping (for example, if you need the CD drive)
 resume ripping
 .TP
 .BR e " or " E
-pause/continue all encoders 
+pause/continue all encoders
 .TP
 .BR r " or " R
-pause/continue all rippers.
+pause/continue all rippers
 .TP
 .BR ?
 toggle the copyright/help box
@@ -97,368 +97,580 @@ an integer number, like in
 .B list
 multiple strings, delimited by the final ";".
 Example:
-.B \-\-guess\-toc file1.mp3 file2.mp3 ... fileN.mp3
-\\;
+.B \-\-guess\-toc file1.mp3 file2.mp3 ... fileN.mp3;
+
 .PP
 Jack understands the following options:
+
 .TP
-.B \-\-append-year=bool
-if known, append the year to dir in the format " (%y)"
+.B \-\-add-disambiguation
+add disambiguation to the album title
+
 .TP
-.B \-b, \-\-bitrate int
-target bitrate (in kbit/s, default is 160).
+.B \-\-albumart-file <string>
+specific album art file to embed (default: 'None')
+
 .TP
-.B \-\-char-filter string
-convert file names using a python method
+.B \-\-albumart-max-height <int>
+maximum height when considering album art file (default: 1200)
+
 .TP
-.B \-\-charset string
+.B \-\-albumart-max-size <int>
+maximum size when considering album art file (default: 1000000)
+
+.TP
+.B \-\-albumart-max-width <int>
+maximum width when considering album art file (default: 1200)
+
+.TP
+.B \-\-albumart-min-height <int>
+minimum height when considering album art file (default: 250)
+
+.TP
+.B \-\-albumart-min-size <int>
+minimum size when considering album art file (default: 5000)
+
+.TP
+.B \-\-albumart-min-width <int>
+minimum width when considering album art file (default: 250)
+
+.TP
+.B \-\-albumart-providers <string>
+list of sources for album art, currently 'coverartarchive', 'iTunes'
+or 'discogs'. The providers are processed in list order. If '|' is appended to
+a provider, the rest of the list is treated as fallbacks. (default:
+['coverartarchive', 'iTunes', 'discogs'])
+
+.TP
+.B \-\-albumart-recurse
+recurse into subfolders when searching for local album art
+
+.TP
+.B \-\-albumart-save-prefix <string>
+prefix for saving existing embedded album art (default: 'jack.saved.')
+
+.TP
+.B \-\-albumart-search <string>
+list of regex patterns for matching local album art files (default:
+['.*[Cc]over.*\\.(jpg|jpeg|png)$', '.*[Ff]ront.*\\.(jpg|jpeg|png)$',
+ '^[Ff]older\\.(jpg|jpeg|png)$', '^jack\\.caa\\.front.*\\.jpg$',
+ '^jack\\.itunes.*\\.jpg$', '^jack\\.discogs.*\\.jpg$'])
+
+.TP
+.B \-\-append-year <string>
+append this string to the directory name (default: '')
+
+.TP
+.B \-\-bitrate, \-b <int>
+target bitrate in kbit/s (default: 160)
+
+.TP
+.B \-\-caa-albumart-prefix <string>
+prefix for saving fetched album art files from coverartarchive
+(default: 'jack.caa.')
+
+.TP
+.B \-\-caa-albumart-sizes <string>
+list of album art sizes to download from coverartarchive: 'original', 'small',
+ 'large', '250', '500' or '1200'. (default: ['original', 'large'])
+
+.TP
+.B \-\-caa-albumart-types <string>
+download these album arts from coverartarchive ('front' and/or 'back')
+(default: ['front'])
+
+.TP
+.B \-\-char-filter <string>
+convert file names using a Python method (default: '')
+
+.TP
+.B \-\-charset <string>
 charset of filenames (defaults to your locale).
+
 .TP
-.B \-c, \-\-check-toc 
-compare toc-file and cd-toc, then exit. Jack caches the TOC of a
-CD in a file ("jack.toc"). If you want to know if the inserted CD
-matches the toc-file in the current directory, use this option.
+.B \-\-check-toc, \-c
+compare TOC-file and CD-TOC, then exit. Jack caches the TOC of a CD in a file
+("jack.toc"). If you want to know if the inserted CD matches the TOC-file in
+the current directory, use this option.
+
 .TP
-.B \-C, \-\-claim-dir
-rename directories even if they were was not created by Jack.
+.B \-\-claim-dir, \-C
+rename directories even if they were not created by Jack.
+
 .TP
-.B  \-\-cont-failed-query  
-continue without FreeDB data if query fails.
+.B \-\-cont-failed-query
+continue without metadata if query fails.
+
 .TP
-.B \-D, \-\-create-dirs 
-tells Jack to create sub-directories in which Jack puts all the
-files for the current CD. If no FreeDB data is available, i.e.
-when not using 
+.B \-\-create-dirs, \-\-no-create-dirs, \-D <bool>
+tells Jack to create sub-directories in which Jack puts all the files for the
+current CD. If no metadata is available, i.e. when not using
 .B -Q
-, these directories will be named "jack-xxxxxxxx"
-where "xxxxxxxx" stands for the CD's FreeDB ID. Otherwise
-dir_template (see above) will be used. This option is turned on
-by default.
+, these directories will be named "jack-xxxxxxxx" where "xxxxxxxx" stands for
+the CD's ID. Otherwise dir_template (see above) will be used. (default: on)
+
 .TP
-.B \-\-device string
-The device-name of your cdrom-drive. The default is 
-.B /dev/cdrom
+.B \-\-debug
+show debug information.
+
 .TP
-.B \-\-dir-template string
-if directories are renamed, this is the format used (default "%a/%l")
+.B \-\-debug-write
+write debug information to a file.
+
 .TP
-.B \-d, \-\-dont-work
-don't do DAE, encoding, tagging or renaming. This may be useful if you only
-want to do a FreeDB query, e.g. while another jack is running.
+.B \-\-device <string>
+The device name of your CD-ROM drive. (default: /dev/cdrom)
+
 .TP
-.B \-\-edit-freedb
+.B \-\-dir-multi-cd-template <string>
+dir_template, if album consists of multiple discs (default: '%a/%l (CD %d)')
+
+.TP
+.B \-\-dir-multi-cd-unknown-number-template <string>
+dir_template, if album consists of multiple discs, and the number of discs is
+unknown (default: '%a/%l (CD %d)')
+
+.TP
+.B \-\-dir-template <string>
+if directories are renamed, this is the format used (default: '%a/%l')
+
+.TP
+.B \-\-dir-titled-cd-template <string>
+dir_template, if album consists of multiple discs, and the current disc has a
+title (default: '%a/%l (CD %d: %t)')
+
+.TP
+.B \-\-dir-titled-cd-unknown-number-template <string>
+dir_template, if album consists of an unknown number of multiple discs, and
+the current disc has a title (default: '%a/%l (CD %d: %t)')
+
+.TP
+.B \-\-discogs-albumart-prefix <string>
+prefix for saving fetched discogs album art files (default: 'jack.discogs.')
+
+.TP
+.B \-\-discogs-albumart-token <string>
+discogs personal authentication token
+
+.TP
+.B \-\-discogs-albumart-types <string>
+download these album arts from discogs ('primary' and/or 'secondary')
+(default: ['primary'])
+
+.TP
+.B \-\-dont-work, \-d <bool>
+do not perform DAE, encoding, tagging or renaming. This may be useful
+if you only want to do a metadata query, e.g. while another Jack is running.
+
+.TP
+.B \-\-download-progress-interval <int>
+interval in seconds for showing progress of slow downloads, zero is no
+progress (default: 5)
+
+.TP
+.B \-\-edit-metadata <bool>
 open an editor to change the CDDB information which has been obtained
 previously (only useful with -Q).
+
 .TP
-.B \-\-encoder-name, -E string
-use which encoder (default "oggenc")
+.B \-\-embed-albumart <bool>
+embed album art
+
 .TP
-.B \-e, \-\-encoders int
-encode how many files in parallel. If you have a SMP machine or
-simply want to stress your system, you can have Jack encode
-several files at once.
+.B \-\-encoder-name, -E <string>
+use which encoder (default: 'oggenc')
+
 .TP
-.B \-x, \-\-exec
+.B \-e, \-\-encoders <int>
+encode how many files in parallel. If you have a SMP machine or simply want to
+stress your system, you can have Jack encode several files at once. (default:
+1)
+
+.TP
+.B \-\-exec, \-x <string>
 run predefined command when finished.
+
 .TP
-.B \-\-extt-is-artist
+.B \-\-extt-is-artist <bool>
 the artist is contained in the EXTT fields. The EXTT fields are lines in the
-FreeDB file which contain additional data for each track. As it's the
-submitting user's choice what to use them for, Jack can't determine by itself
+metadata file which contain additional data for each track. As it is the
+submitting user's choice what to use them for, Jack cannot determine by itself
 what they were intended for. You have to provide this information.
-.TP
-.B \-\-extt-is-title
-the track title is contained in the EXTT fields.
+
 .TP
 .B \-\-extt-is-comment
 a track comment is contained in the EXTT fields.
+
 .TP
-.B \-\-force
+.B \-\-extt-is-title
+the track title is contained in the EXTT fields.
+
+.TP
+.B \-\-fetch-albumart <bool>
+download album art while querying
+
+.TP
+.B \-\-file-artist <string>
+which metadata artist name to use for filenames (default: 'as-in-mb')
+
+.TP
+.B \-\-force <bool>
 do not ask. Like when deleting incomplete files.
+
 .TP
-.B \-f, \-\-from-tocfile string
-rip from a cdrdao created CD image on hd. The specified toc-file 
-contains the name of the image file. Use
-.B \-F
-if jack can't find the image file.
-.TP
-.B \-F, \-\-from-image string
-read audio data from image file. Like
+.B \-\-from-image, \-F <string>
+read audio data from an image file. Like
 .BR \-\-from-tocfile ,
-but the
-image itself is specified instead of the tocfile. If you
-do not have a toc-file (or don't specify a toc-file),
-the TOC is read from the CD itself.
+but the image itself is specified instead of the TOC-file. If you do not have
+a TOC-file (or do not specify a TOC-file), the TOC is read from the CD itself.
+
 .TP
-.B \-g, \-\-guess-toc list
-make up a TOC from the MP3 file given in mp3_files. Format is 
+.B \-\-from-tocfile, \-f <string>
+rip from a CD image created by cdrdao on harddisk. The specified
+TOC-file contains the name of the image file. Use
+.B \-\-from-image
+if Jack cannot find the image file.
+
+.TP
+.B \-\-genre, \-G <string>
+overrule genre from metadata.
+
+.TP
+.B \-\-get <string>
+show value of a config option
+
+.TP
+.B \-\-guess-toc, -g <list>
+make up a TOC from the MP3 file given in mp3_files. Format is
 .B track_01.mp3 ... track_nn.mp3 ;
 Note that the trailing "
 .B ;
-" is only necessary if you want to
-append more options to your command line.
-You can use it to do a FreeDB query based on
-MP3s alone - no need for the CD. Very useful if you have no idea
-which CD the MP3s are from. The MP3s must be given in the same
-order as they were on their CD. The generated TOC file is
-similar, but not identical to the TOC of the CD - do not submit
-these!
+" is only necessary if you want to append more options to your command line.
+You can use it to do a metadata query based on MP3s alone - no need for the
+CD. Very useful if you have no idea which CD the MP3s are from. The MP3s must
+be given in the same order as they were on their CD. The generated TOC file is
+similar, but not identical to the TOC of the CD - do not submit these!
+
 .TP
-.B \-G, \-\-id3-genre string
-set ID3 genre. Use 'help' to get a list of all known genres. (You can also specify the ID3v1 genre as an int)
+.B \-\-help, \-h
+show summary of options.
+
 .TP
-.B \-Y, \-\-id3-year int
-set ID3 year.
+.B \-\-itunes-albumart-country <string>
+two letter country code of iTunes store to query (default: 'us')
+
 .TP
-.B \-h, \-\-help
-Show summary of options.
+.B \-\-itunes-albumart-limit <int>
+limit number of matches when querying for iTunes album art, zero is no limit
+(default: 1)
+
 .TP
-.B \-k, \-\-keep-wavs
+.B \-\-itunes-albumart-prefix <string>
+prefix for saving fetched iTunes album art files (default: 'jack.itunes.')
+
+.TP
+.B \-\-itunes-albumart-sizes <string>
+list of album art sizes to download from iTunes: 'thumb', 'standard' or 'high'
+(default: ['standard', 'high'])
+
+.TP
+.B \-\-keep-wavs, \-k <bool>
 do not delete WAVs after encoding them.
+
 .TP
-.B \-m, \-\-mail-submit
-submit FreeDB entry via e-mail. HTTP submission is preferred. 
-You will have to enter the category of the CD.
+.B \-\-longhelp (<string>)
+all commandline switches, some have additional information.
+
 .TP
-.B \-l, \-\-max-load float
+.B \-\-lookup <bool>
+start a browser and look up the CD.
+
+.TP
+.B \-\-max-load <float>
 only start new encoders if your system's load is below the specified value.
-/proc/loadavg must be readable by you for this to work.
+/proc/loadavg must be readable by you for this to work. (default: 10.0)
+
 .TP
-.B \-\-multi-mode         
-try to query FreeDB for all dirs in searchdirs which
-have no FreeDB data.
+.B \-\-multi-mode <bool>
+try to query metadata servers for all directories in searchdirs which have no
+metadata.
+
 .TP
-.B \-\-my-mail string
-your e-mail address, needed for FreeDB submissions.
+.B \-\-nice, \-n <int>
+nice-level with which the encoders are started. (default: 12)
+
 .TP
-.B \-n, \-\-nice int
-nice-level with which the encoders are started. Default is 12
-which shouldn't hurt your system much.
+.B \-\-no-albumart-ignorecase
+do not ignore case when searching for local album art.
+
 .TP
-.B \-o, \-\-overwrite
-overwrite existing files, i.e. do not check if already
-ripped WAVs or an already encoded file seem to be OK. Use this if
-you
+.B \-\-no-usage-win
+do not show the help screen while running.
+
+.TP
+.B \-\-only-dae, \-O
+only produce WAVs, implies
+.BR --keep-wavs
+(default: off)
+
+.TP
+.B \-\-otf <bool>
+on-the-fly operation. Only on some encoders/rippers. Do not create WAVs, pipe
+ripper output through the encoder. (default: no)
+
+.TP
+.B \-\-overwrite, \-o <bool>
+overwrite existing files, i.e. do not check if already ripped WAVs or an
+already encoded file seem to be OK. Use this if you
 .B know
-something went wrong last time. This is off by default.
+something went wrong last time. (default: off)
+
 .TP
-.B \-O, \-\-only-dae
-only produce WAVs, implies 
-.B \-\-keep-wavs.
-This is off by default.
+.B \-\-overwrite-albumart <string>
+whether to overwrite existing album art files, 'always', 'never'
+or 'conditional' (default: 'conditional')
+
 .TP
-.B \-\-otf=bool
-On-the-fly operation. Only on some encoders/rippers. Do not
-create WAVs, pipe ripper output through the encoder. Default is
-no as it's a torture for the CDROM drive.
+.B \-\-pregap-name <string>
+WAV file name stub to save the track 1 pregap to if it is at least 10 seconds.
+There could be a hidden track. Currently only works when reading from a disc
+image file (default: 'None')
+
 .TP
-.B \-o, \-\-overwrite=bool
-overwrite existing files.
-.\" .TP
-.\" .B \-\-playorder
-.\" use the FreeDB PLAYORDER field to limit the tracks to
-.\" rip (non-functional, sorry)
+.B \-\-quality <float>
+VBR encoding quality. -1 is lowest, 10 highest (default: 6). You can also
+specify a float.
+
 .TP
-.B \-\-quality int
-vbr encoding quality. -1 is lowest, 10 highest (default 6). You can also specify a float.
+.B \-\-query, \-q <string>
+do metadata query when all is done. This is useful if Jack was previously run
+without a metadata query. If all tracks are done you do not even have to have
+a CD inserted as the TOC is cached by Jack. After having finished ripping and
+encoding, Jack will rename the files and tag them.
+
 .TP
-.B \-q, \-\-query
-do FreeDB query when all is done. This is useful if Jack was previously
-run without a FreeDB query. If all tracks are done you don't even
-have to have a CD inserted as the TOC is cached by Jack. After
-having finished ripping and encoding, Jack will rename the files
-and tag them.
+.B \-\-query\-if\-needed <bool>
+like
+.BR \-\-query-now ,
+but only if metadata has not been successfully queried before.
+
 .TP
-.B \-\-query\-if\-needed=bool
-like \-\-query-now, but only if FreeDB data hasn't been successfully
-queried before.
+.B \-\-query-now, \-Q
+do metadata query when starting. Use this if you are connected to the Internet
+when starting Jack. Note that the query may need user-interaction. After
+having finished ripping and encoding, Jack will rename the files and tag them.
+
 .TP
-.B \-Q, \-\-query-now
-do FreeDB query when starting. Use this if you are connected to
-the Internet when starting Jack. Know that the query may need
-user-interaction. After having finished ripping and encoding, Jack
-will rename the files and tag them.
+.B \-\-read-ahead, \-a <int>
+read how many WAVs in advance. At most read_ahead + num_encoders WAVs are
+ripped before a track has completely been encoded. (default: 99)
+
 .TP
-.B \-a, \-\-read-ahead int
-read how many WAVs in advance. At most read_ahead + num_encoders
-WAVs are ripped before a track has completely been encoded.
-Default is 99 which will read the whole CD, provided there is
-enough disk space.
+.B \-\-readme
+export README.md to given file.
+
+.TP
+.B \-\-refresh-metadata
+forget about choices made in previous queries.
+
 .TP
 .B \-\-remove-files
-have Jack remove its temp jack*-files.
-Be careful - don't delete them too early!
+have Jack remove its temp "jack.*-files". Be careful - do not delete them too
+early!
+
 .TP
-.B \-R, \-\-rename
-rename and tag files according to FreeDB file. On startup, Jack
-creates a blank FreeDB entry file (except if 
+.B \-\-rename, \-R
+rename and tag files according to metadata file. On startup, Jack creates a
+blank metadata entry file (except if
 .B \-\-query-now
-is used, 
-then the file is queried from your FreeDB server). If you have
-changed its contents (e.g. because the CD was unknown to FreeDB)
-and want to rename and tag your MP3s accordingly, use this option.
-Give all other needed options too, like
-.B \-t
-, 
-.B \-E
-, ...
+is used, then the file is queried from your metadata server). If you have
+changed its contents (e.g. because the CD was unknown to the metadata service)
+and want to rename and tag your MP3s accordingly, use this option. Give all
+other needed options too, like
+.BR \-\-tracks ,
+.BR \-\-encoder-name ,
+etc.
+
 .TP
-.B \-\-rename-dir=bool
-rename directory as well (default).
+.B \-\-rename-dir, \-\-no-rename-dir <bool>
+rename directory as well. (default: rename).
+
 .TP
-.B \-\-rename-fmt string
-format of normal files (default "%n - %t")
+.B \-\-rename-fmt <string>
+format of normal files. (default: '%a - %l - %n - %t')
+
 .TP
-.B \-\-rename-fmt-va string
-format of Various Artists files (default "%n - %a - %t")
+.B \-\-rename-fmt-va <string>
+format of Various Artists files. (default: '%l - %n - %a - %t')
+
 .TP
-.B \-\-rename-num string
-format of the track number (%n, printf() style) used to rename the files (default "%02d")
+.B \-\-rename-num <string>
+format of the track number (%n, printf() style) used to rename the files
+(default: '%02d')
+
 .TP
-.B \-r, \-\-reorder=bool
-optimize track-order for disk space. This can save you some peak
-disk space during the encoding process; this may make it possible
-to do a CD which would otherwise fail to be encoded.
+.B \-\-reorder, \-r <bool>
+optimize track-order for disk space. This can save you some peak disk space
+during the encoding process; this may make it possible to do a CD which would
+otherwise fail to be encoded.
+
 .TP
-.B \-\-replacement-chars list
-unusable chars are replaced by the corresponding list item (default "%").
+.B \-\-replacement-chars <list>
+unusable chars are replaced by the corresponding list item
+(default: ['%', ''])
+
 .TP
-.B \-\-ripper string
-which program to use for extracting the audio data (default "cdparanoia").
+.B \-\-ripper <string>
+which program to use for extracting the audio data (default: 'cdparanoia').
+
 .TP
 .B \-\-save
-save options to \fI~/.jack3rc\fP file and exit.
+save options to \fI~/.jack4rc\fP file and exit.
+
 .TP
-.B \-\-scan-dirs int
-Scan this many
-levels from the current working directory for a matching toc-file (0
-to disable, default 2).
+.B \-\-scan-dirs <int>
+Scan this many levels from the current working directory for a matching
+TOC-file (0 to disable, default: 2).
+
 .TP
-.B \-\-search list
-add these directories to the list of directories searched when looking for the
-workdir (default ".").
+.B \-\-search <list>
+add these directories to the list of directories searched when looking for
+the workdir (default: '.').
+
 .TP
-.B \-\-server string
-which FreeDB server to use. Don't forget to set your HTTP proxy.
-Currently either "freedb" (default) or "freedb-de".
+.B \-\-server <string>
+which metadata service to use. Do not forget to set your HTTP proxy.
+Currently either "gnudb" or "musicbrainz" (default: musicbrainz).
+
 .TP
-.B \-\-silent-mode=bool
+.B \-\-set-dae-tag
+set DAE info tags.
+
+.TP
+.B \-\-show-albumart
+show the album art that has been embedded in an external viewer.
+
+.TP
+.B \-\-silent-mode <bool>
 be quiet (no screen output).
+
 .TP
-.B \-s, \-\-space int
-forcibly set usable disk space, in bytes. This option lets you
-limit the disk space Jack uses, maybe you need it for something
-else? Be careful: if set too high or too low, ripping and encoding will
-probably fail. The default is to look how much is free and to use
-this value.
+.B \-\-space, \-s <int>
+forcibly set usable disk space, in bytes. This option lets you limit the disk
+space Jack uses, maybe you need it for something else? Be careful: if set too
+high or too low, ripping and encoding will probably fail. The default is to
+look how much is free and to use this value.
+
 .TP
-.B \-\-submit
-submit FreeDB entry via HTTP. You will have to enter the category
-of the CD.
-.TP
-.B \-S, \-\-swab=bool
-swap byte order from image file. As cdrdao momentarily only
-outputs "raw" .cdr files, you quite likely want to swap the
-byte order. Try this option if your WAVs and encoded files contain 
-only noise.
-This is on by default as cdrdao currently generates .cdr files
-that are "wrong".
+.B \-\-swab, \-\-no-swab, \-S <bool>
+swap byte order from image file. As cdrdao momentarily only outputs "raw" .cdr
+files, you quite likely want to swap the byte order. Try this option if your
+WAVs and encoded files contain only noise. This is on by default as cdrdao
+currently generates .cdr files that are "wrong".
+
 .TP
 .B \-\-todo
 print what would be done and exit.
+
 .TP
-.B \-t, \-\-tracks string
-limit ripping and encoding to the specified tracks, use comma to
-separate tracks. Ranges are also possible; 5-9 is equivalent to
-5,6,7,8,9; 12- is like specifying track 12,...,last_track. The
-default is to process the whole CD.
+.B \-\-tracks, \-t <string>
+limit ripping and encoding to the specified tracks, use comma to separate
+tracks. Ranges are also possible; 5-9 is equivalent to 5,6,7,8,9; 12- is like
+specifying track 12,...,last_track. The default is to process the whole CD.
+
 .TP
-.B \-u, \-\-undo-rename
-undo file renaming and exit. If you don't like how Jack renamed
-your files, use this option to restore the previous state.
-Several levels of undo are possible. Note
-that ID3 tags are not restored.
+.B \-\-undo-rename, \-u <bool>
+undo file renaming and exit. If you do not like how Jack renamed your files,
+use this option to restore the previous state. Several levels of undo are
+possible. Note that ID3 tags are not restored.
+
 .TP
-.B \-\-unusable-chars list
-characters which can't be used in filenames (default "/").
+.B \-\-unusable-chars <list>
+characters which cannot be used in filenames (default: '/').
+
 .TP
 .B \-\-upd-progress
-have Jack re-create its temp files. Use this if you deleted them
-too early.
+have Jack re-create its temp files. Use this if you deleted them too early.
+
 .TP
-.B \-\-update-freedb, -U
-update the FreeDB info and exit.
+.B \-\-update-metadata, \-U
+update the metadata info and exit.
+
 .TP
-.B \-\-usage\-win=bool
+.B \-\-usage\-win <bool>
 show the help screen while running.
+
 .TP
-.B \-v, \-\-vbr=bool
-Generate variable bitrate files, only on encoders which support
-this. Default is no.
-.TP
-.B \-\-various=bool
-when parsing FreeDB data, Jack assumes that if the disc\'s artist
-is set to "Various" the track titles have the format
-"[artist] - [title]". If the disc title is set to something else
-and you still want the above behaviour, use 
+.B \-\-various <bool>
+when parsing metadata, Jack assumes that if the disc artist is set to
+"Various" the track titles have the format "[artist] - [title]". If the disc
+title is set to something else and you still want the above behaviour, use
 .B \-\-various.
+
 .TP
 .B \-\-various-swap
-exchange artist and title, many FreeDB entries have them wrong.
+exchange artist and title, many metadata entries have them wrong.
+
 .TP
-.B \-\-wait=bool
+.B \-\-vbr, \-\-no-vbr, \-v <bool>
+generate variable bitrate files, only on encoders which support this. (default:
+no).
+
+.TP
+.B \-\-wait <bool>
 wait for key press before quitting.
+
 .TP
-.B \-w, \-\-workdir string
+.B \-\-workdir, \-w <string>
 where to create directories and put the files.
-.TP
-.B \-\-write\-id3v1=bool
-write a smart id3v1 tag to the encoded file.
-.TP
-.B \-\-write\-id3v2=bool
-write an id3v2 tag to the encoded file.
+
 .TP
 .B \-\-write-m3u
-create a playlist in .m3u format. This has bugs, don't rely on it.
+create a playlist in .m3u format. This feature is experimental.
+
+.TP
+.B \-\-year, \-Y <int>
+overrule year from metadata (0=do not set)
+
 .SH EXAMPLES
-Insert a CD, fire up jack:
+Insert a CD, fire up Jack:
 .RS
 jack
 .RE
 .PP
-Now watch it work. It's fun for a while. After having finished, you have
-the following files on your HD: track_01.mp3, track_02.mp3, ...,
-track_nn.mp3 plus jack.toc, jack.freedb, jack.progress. The last three are
-used to store the state jack is in so it can resume work when interrupted.
+Now watch it work. After having finished, you have the following files on your
+HD: track_01.mp3, track_02.mp3, ..., track_nn.mp3 plus jack.toc, jack.freedb,
+jack.progress. The last three are used to store the state Jack is in so it can
+resume work when interrupted.
+
 .PP
-Jack will create a directory called jack-xxxxxxxx for you, there it
-stores all the file for the CD whose id is xxxxxxxx. After a FreeDB query
-this directory is renamed to something human readable, like "Artist -
-Title".
+Jack will create a directory called jack-xxxxxxxx for you, there it stores all
+the files for the CD whose id is xxxxxxxx. After a metadata query this
+directory is renamed to something human-readable, like "Artist - Title".
 .PP
-When jack is interrupted, call it again using the same command line as
-before to resume work, in this case
+When Jack is interrupted, call it again using the same command line as before
+to resume work, in this case
 .RS
 jack
 .RE
 .PP
-Now let's try a FreeDB query:
+Now let us try a metadata query:
 .RS
 jack -q
 .RE
-If the query is successful the files will be renamed to something more readable
-and will be tagged accordingly using ID3 or Vorbis tags.  The file jack.freedb
-will contain the queried FreeDB entry, and the original file will be backed up
-as jack.freedb.bak.
+If the query is successful the files will be renamed to something more
+readable and will be tagged accordingly using ID3 or Vorbis tags. The
+file jack.freedb will contain the queried metadata entry, and the original
+file will be backed up as jack.freedb.bak.
 .PP
 You can use the
 .B \-\-rename\-fmt
 option in order to specify the format of the name which will be given to
-your audio tracks.  A list of valid options can be found below.  You may
+your audio tracks. A list of valid options can be found below. You may
 also want to specify a set of characters which are not usable and should
-be replaced.  For example, on Unix systems the slash
+be replaced. For example, on Unix systems the slash
 .B (/)
-should most certainly be replaced with something else.  The VFAT filesystem
+should most certainly be replaced with something else. The VFAT filesystem
 also does not support double quotes
 .B (").
 In order to replace such characters, you can specify the options
@@ -469,22 +681,22 @@ For example,
 .RS
 jack -Q --rename-fmt "%n-%t" --unusable-chars A I \; --replacement-chars a i \;
 .RE
-will query the FreeDB server, rip and encode all tracks of the CD and save
+will query the metadata server, rip and encode all tracks of the CD and save
 the files in a format which will contain the track number and the title.
-All occurances of the letters
+All occurrences of the letters
 .B A
 and
 .B I
-will be replaced with their lower-case versions.  These options can also be
-put in one's configuration file using the following format:
+will be replaced with their lower-case versions. These options can also be put
+in one's configuration file using the following format:
 .RS
 unusable_chars:[\(aq \(aq, \(aq/\(aq]
 .RE
 .RS
 replacement_chars:[\(aq_\(aq, \(aq_\(aq]
 .RE
-This will replace whitespace and slashes with underscores.  If you want to
-convert all characters to lower-case, you don't have to manually specify
+This will replace whitespace and slashes with underscores. If you want to
+convert all characters to lower-case, you do not have to manually specify
 all of them but can use the following option instead:
 .RS
 char_filter:.lower()
@@ -501,12 +713,12 @@ jack -O --remove-files ; gnoise *wav ; jack -g *wav ; jack
 .RE
 Just replace gnoise by the operation you'd like to perform.
 .SH ENVIRONMENT VARIABLES
-There are several environment variables which can be used in jack's exec
+There are several environment variables which can be used in Jack's exec
 hooks:
 .IP JACK_BASE_DIR
-lists jack's base directory in which files are stored.
+lists Jack's base directory in which files are stored.
 .IP JACK_CUR_DIR
-lists the current directory of jack in which files of the current album are
+lists the current directory of Jack in which files of the current album are
 put.
 .IP JACK_JUST_ENCODED
 lists all track names which have just been encoded.
@@ -525,10 +737,13 @@ Album title
 Album release year
 .IP %g
 Album genre
+.IP %d
+Disc number
+
 .SH FILES
-.IP \fI/etc/jackrc\fP 
+.IP \fI/etc/jackrc\fP
 Site-wide configuration file.
-.IP \fI~/.jack3rc\fP 
+.IP \fI~/.jack4rc\fP
 User-specific configuration file. Use the
 .B \-\-save
 option to save your configuration to this file.
