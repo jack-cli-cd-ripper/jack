@@ -339,6 +339,7 @@ def fetch_itunes_albumart(artist, album, country):
             return False
 
         querydata = json.loads(r.text)
+        debug(json.dumps(querydata, indent=4))
 
         if 'results' not in querydata:
             return False
@@ -354,12 +355,14 @@ def fetch_itunes_albumart(artist, album, country):
 
             # iTunes API shows thumbnail pictures only. This is an undocumented trick to get high quality versions.
             # Taken from https://github.com/bendodson/itunes-artwork-finder
-            http_url = urlparse(result['artworkUrl100'])._replace(scheme='http', netloc='is5.mzstatic.com').geturl()
+            standard_url = urlparse(result['artworkUrl100'])._replace(scheme='http', netloc='is5.mzstatic.com').geturl()
+            high_url = urlparse(result['artworkUrl100'])._replace(scheme='http', netloc='a5.mzstatic.com').geturl()
 
             art_urls = {}
-            art_urls['thumb']    = http_url
-            art_urls['standard'] = http_url.replace("100x100bb", "600x600bb")
-            art_urls['high']     = http_url.replace("100x100bb", "100000x100000-999")
+            art_urls['thumb']    = standard_url
+            art_urls['standard'] = standard_url.replace("100x100bb", "600x600bb")
+            art_urls['high']     = high_url.replace("/image/thumb/", "/us/r1000/0/").rsplit('/', 1)[0]
+            debug(json.dumps(art_urls, indent=4))
 
             for size in fetchlist:
                 if len(fetchlist) > 1:
