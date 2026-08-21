@@ -389,11 +389,8 @@ def guess_decode(bytes_string):
     try:
         decoded_string = bytes_string.decode("utf-8")
     except UnicodeDecodeError:
-        try:
-            decoded_string = bytes_string.decode("latin1")
-        except UnicodeDecodeError:
-            print(bytes_string)
-            error("could not decode above data")
+        # latin1 maps all 256 byte values, so this cannot fail
+        decoded_string = bytes_string.decode("latin1")
     return decoded_string
 
 

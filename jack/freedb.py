@@ -257,11 +257,8 @@ def freedb_names(cd_ids, tracks, todo, name, verb=0, warn=1):
         try:
             line = bline.decode("utf-8")
         except UnicodeDecodeError:
-            try:
-                line = bline.decode("latin1")
-            except UnicodeDecodeError:
-                print(bline)
-                error("could not decode above line")
+            # latin1 maps all 256 byte values, so this cannot fail
+            line = bline.decode("latin1")
         line = line.replace("\n", "")
         # cannot use rstrip, we need trailing spaces
         line = line.replace("\r", "")
