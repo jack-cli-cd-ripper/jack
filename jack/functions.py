@@ -20,6 +20,7 @@
 
 import traceback
 import wave
+import shutil
 import sys
 import os
 
@@ -41,35 +42,9 @@ progress_changed = None
 progress_changed = 0
 
 
-def df(fs=".", blocksize=1024):
+def df(fs="."):
     "returns free space on a filesystem (in bytes)"
-    try:
-        from os import statvfs
-        statvfs_found = 1
-    except:
-        statvfs_found = 0
-
-    if statvfs_found:
-        (f_bsize, f_frsize, f_blocks, f_bfree, f_bavail, f_files,
-         f_ffree, f_favail, f_flag, f_namemax) = statvfs(fs)
-        return int(f_bavail) * int(f_bsize)
-    else:
-        # Not very portable
-        p = os.popen("LANG=C df " + fs)
-        s = p.readline().rstrip().split()
-        for i in range(len(s)):
-            if s[i] == "Available":
-                s = p.readline().rstrip().split()
-                p.close()
-                return int(s[i]) * int(blocksize)
-        p.close()
-
-
-def get_sysload_linux_proc():
-    "extract sysload from /proc/loadavg, linux only (?)"
-    f = open("/proc/loadavg", "r")
-    loadavg = float((f.readline()[0]).split())
-    return loadavg
+    return shutil.disk_usage(fs).free
 
 
 def pprint_i(num, fmt="%i%s", scale=2.0**10, max=4):
