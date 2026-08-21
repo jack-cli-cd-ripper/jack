@@ -19,7 +19,6 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 import string
-import sys
 import os
 import requests
 
@@ -180,8 +179,8 @@ def freedb_query(cd_ids, tracks, file):
                 except ValueError:
                     x = -1    # start the loop again
                 if not x:
-                    print("ok, aborting.")
-                    sys.exit()
+                    err = 2  # user rejected all matches
+                    return err
 
             buf = matches[x - 1]
             buf = buf.split(" ", 2)

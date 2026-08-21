@@ -606,7 +606,7 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
     'cont_failed_query': {
         'type': bool,
         'val': 0,
-        'usage': "continue without metadata data if query fails",
+        'usage': "continue without metadata if query fails",
         'long': 'AUTO',
     },
     'edit_cddb': {

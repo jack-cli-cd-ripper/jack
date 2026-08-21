@@ -189,9 +189,9 @@ def musicbrainz_query(cd_id, tracks, file):
                     except ValueError:
                         x = -1    # start the loop again
                     if not x:
-                        print("ok, aborting.")
                         print("A new release can be added using this URL:\n" + musicbrainz_getlookupurl(tracks, cd_id))
-                        sys.exit(1)
+                        err = 2  # user rejected all releases
+                        return err
                     if userinput.startswith("/"):
                         filter = userinput[1:]
                     else:
