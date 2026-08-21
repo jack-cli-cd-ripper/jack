@@ -71,7 +71,7 @@ class CDTime:
                         new_val = new_val[1:-1]
             try:
                 blocks = int(new_val)
-            except:
+            except (ValueError, TypeError):
                 if type(new_val) == str:
                     blocks = strtoblocks(new_val)
                 elif type(new_val) == int:

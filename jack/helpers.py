@@ -297,7 +297,7 @@ while 1:
             x = x.strip()
             try:
                 new_starts.append(int(x))
-            except:
+            except ValueError:
                 pass
         continue
 

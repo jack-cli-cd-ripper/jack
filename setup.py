@@ -10,7 +10,7 @@ import jack.version
 require_discid = False
 try:
     import libdiscid
-except:
+except ImportError:
     require_discid = True
 
 PACKAGES = find_packages(exclude=find_packages(where="deprecated"))

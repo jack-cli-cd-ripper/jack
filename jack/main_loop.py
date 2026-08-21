@@ -173,7 +173,7 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset, 
             readfd.append(i['fd'])
         try:
             rfd, wfd, xfd = select.select(readfd, [], [], cf['_update_interval'])
-        except:
+        except OSError:
             rfd, wfd, xfd = [], [], []
             jack.term.tmod.sig_winch_handler(None, None)
 
@@ -244,7 +244,7 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset, 
                         read_chars = read_chars + 1
                         try:
                             rfd2, wfd2, xfd2 = select.select([i['fd']], [], [], 0.0)
-                        except:
+                        except OSError:
                             rfd2, wfd2, xfd2 = [], [], []
                             jack.term.tmod.sig_winch_handler(None, None)
                         if i['fd'] not in rfd2:

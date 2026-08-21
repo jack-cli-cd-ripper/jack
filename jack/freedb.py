@@ -144,7 +144,7 @@ def freedb_query(cd_ids, tracks, file):
     if cf['_cont_failed_query']:
         try:
             r = requests.get(url, headers=headers, stream=True)
-        except:
+        except requests.RequestException:
             import traceback
             traceback.print_exc()
             err = 1

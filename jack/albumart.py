@@ -180,13 +180,13 @@ def assess_albumart(filename):
     reject = 0
     try:
         imgdata = open(filename, "rb").read()
-    except:
+    except OSError:
         reject += 1
         debug("rejecting %s, reason: can not open" % (filename,))
         return
     try:
         imgobj = Image.open(BytesIO(imgdata))
-    except:
+    except Exception:
         reject += 1
         debug("rejecting %s, reason: can not load as picture" % (filename,))
         return

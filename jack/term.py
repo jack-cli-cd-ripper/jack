@@ -71,7 +71,7 @@ def init(arg_type="auto", arg_xtermset=0):
         try:
             import jack.t_curses as tmod
             term_type = "curses"
-        except:
+        except ImportError:
             import jack.t_dumb as tmod
             term_type = "dump"
     elif arg_type == "dumb":
@@ -114,7 +114,7 @@ def xtermset_enable():
                 os.system("xtermset -geom %dx%d" % (want_x, want_y))
                 geom_changed = 1
                 resize()
-            except:
+            except OSError:
                 warning("failed to call xtermset, is it really installed?")
                 xtermset = 0
         del want_x, want_y
@@ -127,7 +127,7 @@ def xtermset_disable():
         try:
             os.system("xtermset -restore -geom %dx%d" % (orig_size_x, orig_size_y))
             geom_changed = 0
-        except:
+        except OSError:
             pass
 
 
@@ -166,7 +166,7 @@ to convert /usr/include/asm/ioctls.h to IOCTLS.py and install it.""")
         # unpack the data, I hope this is portable:
         winsize.frombytes(data)
         new_y, new_x, xpixel, ypixel = winsize.tolist()
-    except:
+    except OSError:
         can_getsize = 0
         return None, None
     return new_x, new_y

@@ -207,7 +207,7 @@ def save(files, config):
     rcfile_exists = os.path.exists(file)
     try:
         _write(file + ".tmp", newrc)
-    except:
+    except OSError:
         error("can't write config file")
     if os.path.exists(file):
         os.rename(file, file + "~")
