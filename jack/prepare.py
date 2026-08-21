@@ -389,11 +389,8 @@ def guess_decode(bytes_string):
     try:
         decoded_string = bytes_string.decode("utf-8")
     except UnicodeDecodeError:
-        try:
-            decoded_string = bytes_string.decode("latin1")
-        except UnicodeDecodeError:
-            print(bytes_string)
-            error("could not decode above data")
+        # latin1 maps all 256 byte values, so this cannot fail
+        decoded_string = bytes_string.decode("latin1")
     return decoded_string
 
 
@@ -539,20 +536,26 @@ def metadata_lookup():
 def query_on_start(todo):
     info("querying...")
     metadata_form_file = jack.metadata.get_metadata_form_file(jack.metadata.get_metadata_api(cf['_metadata_server']))
-    if jack.metadata.metadata_query(jack.metadata.metadata_id(jack.ripstuff.all_tracks), jack.ripstuff.all_tracks, metadata_form_file):
-        if cf['_cont_failed_query']:
-
-            x = input("\nmetadata search failed, continue? (y/N) ") + "x"
-            if not x or x[0].upper() != "Y":
-                sys.exit(0)
-            if not cf['_edit_metadata']:
-                x = input("\nDo you want to edit the metadata file?  (y/N) ") + "x"
-                if x and x[0].upper() == "Y":
-                    cf['_edit_metadata'] = 1
-                else:
-                    cf['_query_on_start'] = 0
+    err = jack.metadata.metadata_query(jack.metadata.metadata_id(jack.ripstuff.all_tracks), jack.ripstuff.all_tracks, metadata_form_file)
+    if err:
+        # err == 2 means the user rejected all matches; someone is at the
+        # keyboard, so offer to continue even without --cont-failed-query.
+        if err == 2:
+            prompt = "\nno matching release chosen, continue ripping without metadata? (y/N) "
+        elif cf['_cont_failed_query']:
+            prompt = "\nmetadata search failed, continue ripping without metadata? (y/N) "
         else:
             jack.display.exit(1)
+
+        x = input(prompt) + "x"
+        if not x or x[0].upper() != "Y":
+            sys.exit(0)
+        if not cf['_edit_metadata']:
+            x = input("\nDo you want to edit the metadata file?  (y/N) ") + "x"
+            if x and x[0].upper() == "Y":
+                cf['_edit_metadata'] = 1
+            else:
+                cf['_query_on_start'] = 0
 
     if cf['_edit_metadata']:
         file = metadata_form_file
@@ -589,7 +592,8 @@ def query_on_start(todo):
         # don't tag the files.  However, if the metdata can be parsed
         # even though the query failed assume that the query worked and
         # do the tagging (the user might have edited the file by hand).
-        if cf['_cont_failed_query'] and err:
+        # This point is only reached after a failed or rejected query.
+        if err:
             cf['_set_tag'] = 0
         else:
             cf['_query_on_start'] = 1

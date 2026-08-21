@@ -110,11 +110,10 @@ def xtermset_enable():
             want_y = want_y + 1
         want_y += 7  # for the help panel
         if (size_x, size_y) != (want_x, want_y):
-            try:
-                os.system("xtermset -geom %dx%d" % (want_x, want_y))
+            if os.system("xtermset -geom %dx%d" % (want_x, want_y)) == 0:
                 geom_changed = 1
                 resize()
-            except OSError:
+            else:
                 warning("failed to call xtermset, is it really installed?")
                 xtermset = 0
         del want_x, want_y
@@ -124,11 +123,8 @@ def xtermset_disable():
     import os
     global geom_changed
     if xtermset and geom_changed:
-        try:
-            os.system("xtermset -restore -geom %dx%d" % (orig_size_x, orig_size_y))
+        if os.system("xtermset -restore -geom %dx%d" % (orig_size_x, orig_size_y)) == 0:
             geom_changed = 0
-        except OSError:
-            pass
 
 
 def getsize():

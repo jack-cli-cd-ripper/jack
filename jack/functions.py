@@ -298,11 +298,8 @@ def real_cdrdao_gettoc(tocfile, silent=False):     # get toc from cdrdao-style t
         try:
             line = bline.decode("utf-8")
         except UnicodeDecodeError:
-            try:
-                line = bline.decode("latin1")
-            except UnicodeDecodeError:
-                print(bline)
-                error("could not decode above data")
+            # latin1 maps all 256 byte values, so this cannot fail
+            line = bline.decode("latin1")
         if not line:
             if current_track.channels not in [1, 2, 4]:
                 debug("track %02d: unknown number of channels, assuming 2" % num)

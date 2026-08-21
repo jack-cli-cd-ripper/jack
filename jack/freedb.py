@@ -19,7 +19,6 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 import string
-import sys
 import os
 import requests
 
@@ -180,8 +179,8 @@ def freedb_query(cd_ids, tracks, file):
                 except ValueError:
                     x = -1    # start the loop again
                 if not x:
-                    print("ok, aborting.")
-                    sys.exit()
+                    err = 2  # user rejected all matches
+                    return err
 
             buf = matches[x - 1]
             buf = buf.split(" ", 2)
@@ -257,11 +256,8 @@ def freedb_names(cd_ids, tracks, todo, name, verb=0, warn=1):
         try:
             line = bline.decode("utf-8")
         except UnicodeDecodeError:
-            try:
-                line = bline.decode("latin1")
-            except UnicodeDecodeError:
-                print(bline)
-                error("could not decode above line")
+            # latin1 maps all 256 byte values, so this cannot fail
+            line = bline.decode("latin1")
         line = line.replace("\n", "")
         # cannot use rstrip, we need trailing spaces
         line = line.replace("\r", "")
