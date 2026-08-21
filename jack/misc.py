@@ -92,10 +92,9 @@ class dict2(dict):
 def loadavg():
     "extract sysload from /proc/loadavg, linux only (?)"
     try:
-        f = open("/proc/loadavg", "r")
-        load = float(((f.readline())[0]).split())
-        return load
-    except:
+        with open("/proc/loadavg", "r") as f:
+            return float(f.readline().split()[0])
+    except (OSError, IndexError, ValueError):
         return -1
 
 def shorten(s, limit=74, elipsis='…'):
