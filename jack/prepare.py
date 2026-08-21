@@ -397,6 +397,18 @@ def guess_decode(bytes_string):
     return decoded_string
 
 
+def sanitize_progress_file(lines):
+    "rewrite a mixed-encoding progress file as pure utf-8"
+
+    info("progress file contains non-utf-8 lines, rewriting it as utf-8")
+    tmp_file = cf['_progress_file'] + ".tmp"
+    f = open(tmp_file, "w", encoding="utf-8")
+    for line in lines:
+        f.write(line + "\n")
+    f.close()
+    os.replace(tmp_file, cf['_progress_file'])
+
+
 def read_progress(status, todo):
     "now read in the progress file"
 
@@ -405,18 +417,27 @@ def read_progress(status, todo):
     # in that case there will be single lines containing multiple encodings
 
     if os.path.exists(cf['_progress_file']):
+        needs_sanitizing = False
+        decoded_lines = []
         f = open(cf['_progress_file'], "rb")
         while 1:
             rawbuf = f.readline()
             if not rawbuf:
                 break
 
-            # first handle renames 
+            # a line that is not valid utf-8 needs the latin1 fallback,
+            # after which the whole file gets rewritten as utf-8
+            try:
+                rawbuf.decode("utf-8")
+            except UnicodeDecodeError:
+                needs_sanitizing = True
+
+            # first handle renames
             sep = cf['_progr_sep']
             rawsep = sep.encode('utf-8')
             splitline = rawbuf.split(rawsep, 3)
             if splitline[1] == b'ren':
-                splitrename = splitline[2].split(b"-->")
+                splitrename = splitline[2].split(b"-->", 1)
                 oldname = guess_decode(splitrename[0])
                 newname = guess_decode(splitrename[1])
                 buf = splitline[0].decode('utf-8') + sep + "ren"  + sep + oldname + "-->" + newname
@@ -425,6 +446,7 @@ def read_progress(status, todo):
 
             # strip doesn't work here as we may have trailing spaces
             buf = buf.replace("\n", "")
+            decoded_lines.append(buf)
 
             # ignore empty lines
             if not buf:
@@ -444,6 +466,9 @@ def read_progress(status, todo):
             else:
                 status[num][buf[1]] = buf[2:]
         f.close()
+
+        if needs_sanitizing:
+            sanitize_progress_file(decoded_lines)
 
     # names for 'all' can't be initialized earlier...
     status['all']['names'] = [status['all']['mkdir'][-1], ]
