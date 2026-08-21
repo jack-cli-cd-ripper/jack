@@ -73,10 +73,10 @@ def init(arg_type="auto", arg_xtermset=0):
             term_type = "curses"
         except ImportError:
             import jack.t_dumb as tmod
-            term_type = "dump"
+            term_type = "dumb"
     elif arg_type == "dumb":
         import jack.t_dumb as tmod
-        term_type = "dump"
+        term_type = "dumb"
     elif arg_type == "curses":
         import jack.t_curses as tmod
         term_type = "curses"
