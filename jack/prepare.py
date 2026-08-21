@@ -388,10 +388,10 @@ def guess_decode(bytes_string):
 
     try:
         decoded_string = bytes_string.decode("utf-8")
-    except:
+    except UnicodeDecodeError:
         try:
             decoded_string = bytes_string.decode("latin1")
-        except:
+        except UnicodeDecodeError:
             print(bytes_string)
             error("could not decode above data")
     return decoded_string

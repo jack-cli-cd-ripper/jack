@@ -297,10 +297,10 @@ def real_cdrdao_gettoc(tocfile, silent=False):     # get toc from cdrdao-style t
         bline = f.readline()
         try:
             line = bline.decode("utf-8")
-        except:
+        except UnicodeDecodeError:
             try:
                 line = bline.decode("latin1")
-            except:
+            except UnicodeDecodeError:
                 print(bline)
                 error("could not decode above data")
         if not line:

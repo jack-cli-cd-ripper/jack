@@ -256,10 +256,10 @@ def freedb_names(cd_ids, tracks, todo, name, verb=0, warn=1):
             break
         try:
             line = bline.decode("utf-8")
-        except:
+        except UnicodeDecodeError:
             try:
                 line = bline.decode("latin1")
-            except:
+            except UnicodeDecodeError:
                 print(bline)
                 error("could not decode above line")
         line = line.replace("\n", "")
