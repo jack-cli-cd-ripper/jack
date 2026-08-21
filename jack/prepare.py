@@ -108,7 +108,7 @@ def find_workdir():
             for i in dirs:
                 if os.path.exists(os.path.join(i, cf['_toc_file'])):
                     jack_dirs.append(i)
-                    file_toc, dummy, dummy = jack.functions.cdrdao_gettoc(os.path.join(i, cf['_toc_file']))
+                    file_toc, dummy, dummy = jack.functions.cdrdao_gettoc(os.path.join(i, cf['_toc_file']), silent=True)
                     if jack.metadata.metadata_id(jack.ripstuff.all_tracks) == jack.metadata.metadata_id(file_toc):
                         possible_dirs.append(i)
 

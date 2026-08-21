@@ -284,7 +284,7 @@ def starts_with(str, x):
 # meanwhile the wrapper below is used.
 
 
-def real_cdrdao_gettoc(tocfile):     # get toc from cdrdao-style toc-file
+def real_cdrdao_gettoc(tocfile, silent=False):     # get toc from cdrdao-style toc-file
     "returns TOC object, needs name of toc-file to read"
     toc = jack.toc.TOC()
 
@@ -406,7 +406,7 @@ def real_cdrdao_gettoc(tocfile):     # get toc from cdrdao-style toc-file
         elif starts_with(line, "START "):
             start = line.split()[1]
             pregap = jack.cdtime.CDTime(start).blocks
-            if current_track.number == 1 and pregap > CDDA_BLOCKS_PER_SECOND * 10:
+            if current_track.number == 1 and pregap > CDDA_BLOCKS_PER_SECOND * 10 and not silent:
                 info(f"disc in \"{tocpath}\" may have a hidden track ({start}) in pregap of track {current_track.number}")
             current_track.pregap = pregap
 
@@ -421,9 +421,9 @@ def real_cdrdao_gettoc(tocfile):     # get toc from cdrdao-style toc-file
     return toc
 
 
-def cdrdao_gettoc(tocfile):     # get toc from cdrdao-style toc-file
+def cdrdao_gettoc(tocfile, silent=False):     # get toc from cdrdao-style toc-file
     "just a wrapper for real_cdrdao_gettoc."
-    toc = real_cdrdao_gettoc(tocfile)
+    toc = real_cdrdao_gettoc(tocfile, silent)
     tracks = toc.export()
     track1_pregap = tracks[0][1]
     use_filename = toc.image_file
