@@ -393,7 +393,7 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset, 
                         if helper_new_status:
                             try:
                                 jack.status.dae_stat_upd(i['track'][NUM], ":DAE: " + helper_new_status)
-                            except:
+                            except Exception:
                                 debug("error in dae_stat_upd")
 
                 elif i['type'] == "encoder":
@@ -401,7 +401,7 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset, 
                         loc = {'i': i, 'helper_percent': 0}
                         try:
                             exec((jack.helpers.helpers[i['prog']]['percent_fkt']), globals(), loc)
-                        except:
+                        except Exception:
                             debug("error in percent_fkt of %s. Traceback: %s " % (jack.helpers.helpers[i['prog']], traceback.format_exc()))
                         i['percent'] = loc['helper_percent']
                         if i['percent'] > 0:

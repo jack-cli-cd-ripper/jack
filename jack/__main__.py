@@ -238,7 +238,7 @@ def main():
             print("--- Last status: ---------------------------------------------------------------")
             jack.status.print_status(form = 'short')
             sys.exit(0)
-        except:
+        except Exception:
             jack.term.disable()
             warning("abnormal exit")
             traceback.print_exc()

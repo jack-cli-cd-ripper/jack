@@ -121,7 +121,7 @@ def gettoc(toc_prog):
             exec(jack.helpers.helpers[toc_prog]['toc_fkt'])
         except SystemExit:
             sys.exit(1)
-        except:
+        except Exception:
             traceback.print_exc()
             error("""%s could not read the disk's TOC. If you already ripped the
                CD, you'll have to cd into the directory which is either named

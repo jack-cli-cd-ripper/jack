@@ -914,7 +914,7 @@ def tag(metadata_rename):
                             m = id3.ID3(encname)
                             debug("removing ID3 data from" + encname)
                             m.delete()
-                        except:
+                        except Exception:
                             pass
                         keeptags = []
                         if target == "flac":
