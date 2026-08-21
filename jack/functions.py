@@ -18,7 +18,6 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-import codecs
 import traceback
 import wave
 import sys
@@ -524,7 +523,7 @@ def progress(track, what="error", data="error", data2=None):
     else:
         error("illegal progress entry:" + repr(track) + " (" + repr(type(track)) + ")")
     progress_changed = 1
-    f = codecs.open(cf['_progress_file'], "a", "utf-8")
+    f = open(cf['_progress_file'], "a", encoding="utf-8")
     f.write(first + cf['_progr_sep'] + what + cf['_progr_sep'] + str(data))
     if data2:
         f.write(cf['_progr_sep'] + data2)
