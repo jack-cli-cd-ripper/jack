@@ -548,11 +548,7 @@ def query_on_start(todo):
             if not x or x[0].upper() != "Y":
                 sys.exit(1)
             if not cf['_edit_metadata']:
-                x = input("\nDo you want to edit the metadata file?  (y/N) ") + "x"
-                if x and x[0].upper() == "Y":
-                    cf['_edit_metadata'] = 1
-                else:
-                    cf['_query_on_start'] = 0
+                cf['_query_on_start'] = 0
         elif cf['_cont_failed_query'] == 'always':
             # continue unattended; a prompt here would hang scripted runs
             info("metadata query failed, continuing without metadata")
@@ -562,11 +558,7 @@ def query_on_start(todo):
             if not x or x[0].upper() != "Y":
                 sys.exit(1)
             if not cf['_edit_metadata']:
-                x = input("\nDo you want to edit the metadata file?  (y/N) ") + "x"
-                if x and x[0].upper() == "Y":
-                    cf['_edit_metadata'] = 1
-                else:
-                    cf['_query_on_start'] = 0
+                cf['_query_on_start'] = 0
         else:
             jack.display.exit(1)
 
