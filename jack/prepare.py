@@ -542,23 +542,33 @@ def query_on_start(todo):
     err = jack.metadata.metadata_query(jack.metadata.metadata_id(jack.ripstuff.all_tracks), jack.ripstuff.all_tracks, metadata_form_file)
     if err:
         # err == 2 means the user rejected all matches; someone is at the
-        # keyboard, so offer to continue even without --cont-failed-query.
+        # keyboard, so ask how to continue.
         if err == 2:
-            prompt = "\nno matching release chosen, continue ripping without metadata? (y/N) "
-        elif cf['_cont_failed_query']:
-            prompt = "\nmetadata search failed, continue ripping without metadata? (y/N) "
+            x = input("\nno matching release chosen, continue ripping without metadata? (y/N) ") + "x"
+            if not x or x[0].upper() != "Y":
+                sys.exit(1)
+            if not cf['_edit_metadata']:
+                x = input("\nDo you want to edit the metadata file?  (y/N) ") + "x"
+                if x and x[0].upper() == "Y":
+                    cf['_edit_metadata'] = 1
+                else:
+                    cf['_query_on_start'] = 0
+        elif cf['_cont_failed_query'] == 'always':
+            # continue unattended; a prompt here would hang scripted runs
+            info("metadata query failed, continuing without metadata")
+            cf['_query_on_start'] = 0
+        elif cf['_cont_failed_query'] == 'ask':
+            x = input("\nmetadata search failed, continue ripping without metadata? (y/N) ") + "x"
+            if not x or x[0].upper() != "Y":
+                sys.exit(1)
+            if not cf['_edit_metadata']:
+                x = input("\nDo you want to edit the metadata file?  (y/N) ") + "x"
+                if x and x[0].upper() == "Y":
+                    cf['_edit_metadata'] = 1
+                else:
+                    cf['_query_on_start'] = 0
         else:
             jack.display.exit(1)
-
-        x = input(prompt) + "x"
-        if not x or x[0].upper() != "Y":
-            sys.exit(1)
-        if not cf['_edit_metadata']:
-            x = input("\nDo you want to edit the metadata file?  (y/N) ") + "x"
-            if x and x[0].upper() == "Y":
-                cf['_edit_metadata'] = 1
-            else:
-                cf['_query_on_start'] = 0
 
     if cf['_edit_metadata']:
         file = metadata_form_file

@@ -198,8 +198,10 @@ the current directory, use this option.
 rename directories even if they were not created by Jack.
 
 .TP
-.B \-\-cont-failed-query
-continue without metadata if query fails.
+.B \-\-cont-failed-query <str>
+whether to continue without metadata if the query fails: 'always'
+(continue unattended), 'never' (abort, the default) or 'ask'
+(prompt for confirmation).
 
 .TP
 .B \-\-create-dirs, \-\-no-create-dirs, \-D <bool>
