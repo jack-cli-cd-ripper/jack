@@ -57,8 +57,21 @@ def get_response(url, max_retries=5):
             return 0, r
 
         except HTTPError as e:
-            warning(f"The MusicBrainz server couldn't fulfill the request. Status code: {e.response.status_code}")
-            return 1, None
+            status = e.response.status_code
+            if status not in (429, 503) or attempt == max_retries - 1:
+                warning(f"The MusicBrainz server couldn't fulfill the request. Status code: {status}")
+                return 1, None
+
+            # the server is rate limiting us; back off exponentially, and
+            # let a Retry-After header lengthen the wait (to at most a
+            # minute) but never shorten it: MusicBrainz sends Retry-After: 0
+            backoff = (2 ** attempt) + random.uniform(0, 1)
+            try:
+                backoff = min(max(float(e.response.headers["Retry-After"]), backoff), 60)
+            except (KeyError, ValueError):
+                pass
+            info(f"The MusicBrainz server is busy (status {status}). Retrying in {backoff:.1f}s...")
+            time.sleep(backoff)
 
         except (Timeout, RequestException) as e:
             if attempt == max_retries - 1:
