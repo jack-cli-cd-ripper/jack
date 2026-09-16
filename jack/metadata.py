@@ -31,6 +31,10 @@ import jack.musicbrainz
 import jack.version
 import jack.discid
 
+# set when the user chooses to rip on after a failed or rejected metadata
+# query; such a run ends with exit status 4 ("ripped without metadata")
+ripping_without_metadata = False
+
 from jack.globals import *
 
 
