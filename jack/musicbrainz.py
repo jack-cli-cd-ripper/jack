@@ -57,12 +57,12 @@ def get_response(url, max_retries=5):
             return 0, r
 
         except HTTPError as e:
-            warning(f"The server couldn't fulfill the request. Status code: {e.response.status_code}")
+            warning(f"The MusicBrainz server couldn't fulfill the request. Status code: {e.response.status_code}")
             return 1, None
 
         except (Timeout, RequestException) as e:
             if attempt == max_retries - 1:
-                warning(f"The server couldn't be reached after {max_retries} attempts: {e}")
+                warning(f"The MusicBrainz server couldn't be reached after {max_retries} attempts: {e}")
                 return 1, None
 
             backoff = (2 ** attempt) + random.uniform(0, 1)
