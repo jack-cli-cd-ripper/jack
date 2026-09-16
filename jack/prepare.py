@@ -113,6 +113,7 @@ def find_workdir():
                         possible_dirs.append(i)
 
             if cf['_multi_mode']:
+                multi_failed = 0
                 unique_dirs = []
                 for i in range(len(jack_dirs)):
                     found = 0
@@ -138,7 +139,9 @@ def find_workdir():
                             os.execvp(ch_args[0], ch_args)
                         else:
                             respid, res = os.waitpid(pid, 0)
-                sys.exit()
+                            if os.waitstatus_to_exitcode(res):
+                                multi_failed += 1
+                sys.exit(1 if multi_failed else 0)
 
             unique_dirs = []
             for i in range(len(possible_dirs)):
@@ -549,7 +552,7 @@ def query_on_start(todo):
 
         x = input(prompt) + "x"
         if not x or x[0].upper() != "Y":
-            sys.exit(0)
+            sys.exit(1)
         if not cf['_edit_metadata']:
             x = input("\nDo you want to edit the metadata file?  (y/N) ") + "x"
             if x and x[0].upper() == "Y":
@@ -595,6 +598,7 @@ def query_on_start(todo):
         # This point is only reached after a failed or rejected query.
         if err:
             cf['_set_tag'] = 0
+            jack.metadata.ripping_without_metadata = True
         else:
             cf['_query_on_start'] = 1
     return metadata_rename
@@ -848,7 +852,7 @@ def remove_files(remove_q):
             info("(forced)")
         else:
             if not x or x[0].upper() != "Y":
-                sys.exit(0)
+                sys.exit(1)
 
         for i in remove_q:
             os.remove(i)

@@ -184,7 +184,7 @@ def main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset, 
             cmd = jack.term.tmod.getkey()
             sys.stdin.flush()
             if cmd.upper() == "Q":
-                jack.display.exit()
+                jack.display.exit(1)
             elif not pause and cmd.upper() == "P":
                 pause = 1
                 flags = flags[:1] + "P" + flags[2:]

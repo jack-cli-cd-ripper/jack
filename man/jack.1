@@ -632,6 +632,28 @@ create a playlist in .m3u format. This feature is experimental.
 .B \-\-year, \-Y <int>
 overrule year from metadata (0=do not set)
 
+.SH EXIT STATUS
+The exit status tells wrapper scripts whether a run completed, so that
+for example only finished discs get ejected.
+.IP 0
+The run completed: everything requested was done, including metadata
+lookup, renaming and tagging where applicable.
+.IP 1
+The run failed or was aborted before completing, for example after an
+error, after declining one of Jack's prompts, or by quitting with the
+.B q
+key.
+.IP 2
+Jack was terminated by a signal.
+.IP 3
+In silent mode, files were found that have to be removed before Jack
+can continue.
+.IP 4
+A requested metadata query failed or all matches were rejected, and
+ripping continued without metadata: the tracks keep their generic
+names and are not tagged. A run that never requested a metadata query
+exits with 0.
+
 .SH EXAMPLES
 Insert a CD, fire up Jack:
 .RS

@@ -232,12 +232,12 @@ def main():
         try:
             jack.term.enable()
             global_error = jack.main_loop.main_loop(mp3s_todo, wavs_todo, space, dae_queue, enc_queue, track1_offset, trc_tracks)
-        except SystemExit:
+        except SystemExit as e:
             jack.term.disable()
             print(jack.display.options_string)
             print("--- Last status: ---------------------------------------------------------------")
             jack.status.print_status(form = 'short')
-            sys.exit(0)
+            sys.exit(e.code)
         except Exception:
             jack.term.disable()
             warning("abnormal exit")
@@ -252,7 +252,7 @@ def main():
     if cf['_query_when_ready']:
         info("querying...")
         if jack.metadata.metadata_query(jack.metadata.metadata_id(jack.ripstuff.all_tracks), jack.ripstuff.all_tracks, metadata_form_file):
-            jack.display.exit()
+            jack.display.exit(4)
 
     if cf['_query_when_ready'] or cf['_read_metadata_file'] or cf['_query_on_start']:
         err, jack.tag.track_names, metadata_rename, jack.tag.mb_query_data = jack.metadata.interpret_db_file(jack.ripstuff.all_tracks, todo, metadata_form_file, verb = 1, dirs = 1)
@@ -284,7 +284,8 @@ def main():
     if cf['_exec_when_done']:
         os.system(cf['_exec_no_err'])
 
-    jack.display.exit()      # call the cleanup function & exit
+    # call the cleanup function & exit
+    jack.display.exit(4 if jack.metadata.ripping_without_metadata else 0)
 
 if __name__ == "__main__":
     sys.exit(main())
