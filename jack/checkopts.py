@@ -83,6 +83,11 @@ def consistency_check(cf):
         if cf['metadata_server']['val'] not in jack.metadata.metadata_servers:
             error("unknown server, choose one: " + repr(list(jack.metadata.metadata_servers.keys())))
 
+    # editing metadata needs a dialog
+    if cf['_non_interactive'] and cf['_edit_metadata']:
+        warning("--edit-metadata is ignored with --non-interactive")
+        cf.rupdate({'edit_metadata': {'val': 0}}, "check")
+
     # check dir_template and scan_dirs
     if len(cf['_dir_template'].split(os.path.sep)) > cf['_scan_dirs']:
         warning("dir-template consists of more sub-paths (%i) than scan-dirs (%i). Jack may not find the workdir next time it is run. (Auto-raised)" % (len(cf['_dir_template'].split(os.path.sep)), cf['_scan_dirs']))

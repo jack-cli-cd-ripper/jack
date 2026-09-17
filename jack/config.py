@@ -415,6 +415,13 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
         'short': 'n',
         'long': 'nice',
     },
+    'non_interactive': {
+        'type': bool,
+        'val': 0,
+        'help': 1,
+        'usage': "never ask questions; only use metadata from a single exact match",
+        'long': 'AUTO',
+    },
     'overwrite': {
         'type': bool,
         'val': 0,
