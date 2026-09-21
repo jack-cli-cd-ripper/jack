@@ -93,7 +93,7 @@ def musicbrainz_query(cd_id, tracks, file):
     toc = musicbrainz_gettoc(tracks)
     mb_id = cd_id['musicbrainzngs']
     includes = "artists+artist-credits+artist-rels+recordings+release-groups+release-rels+recording-rels+release-group-rels+isrcs+labels+label-rels+genres+url-rels+work-rels"
-    query_url = "http://" + host + "/ws/2/discid/" + mb_id + "?toc=" + toc + "&inc=" + includes + "&fmt=json"
+    query_url = "https://" + host + "/ws/2/discid/" + mb_id + "?toc=" + toc + "&inc=" + includes + "&fmt=json"
     err, response = get_response(query_url)
     if err:
         return err
@@ -421,7 +421,7 @@ def musicbrainz_getlookupurl(tracks, cd_id):
     host = jack.metadata.get_metadata_host('musicbrainz')
     toc = musicbrainz_gettoc(tracks)
     mb_id = cd_id['musicbrainzngs']
-    url = "http://" + host + "/cdtoc/attach?id=" + mb_id + "&tracks=" + str(len(tracks)) + "&toc=" + toc
+    url = "https://" + host + "/cdtoc/attach?id=" + mb_id + "&tracks=" + str(len(tracks)) + "&toc=" + toc
 
     return url
 
