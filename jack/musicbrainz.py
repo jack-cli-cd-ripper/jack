@@ -122,9 +122,10 @@ def musicbrainz_query(cd_id, tracks, file):
             old_chosen_release = old_query_data['chosen_release']
             old_release_id = old_query_data['result']['releases'][old_chosen_release]['id']
 
-            # remember the earlier choice to add disambiguation to the album title
-            if 'add_disambiguation' in old_query_data and old_query_data['add_disambiguation']:
-                cf['_add_disambiguation'] = True
+            # remember the earlier choices to add disambiguation
+            for key in ('add_disambiguation', 'add_artist_disambiguation'):
+                if old_query_data.get(key):
+                    cf['_' + key] = True
 
     if 'releases' in result and result['releases']:
         releases = result['releases']
@@ -226,8 +227,9 @@ def musicbrainz_query(cd_id, tracks, file):
         'chosen_release': chosen_release,
         'result': result,
     }
-    if cf['_add_disambiguation']:
-        query_data['add_disambiguation'] = True
+    for key in ('add_disambiguation', 'add_artist_disambiguation'):
+        if cf['_' + key]:
+            query_data[key] = True
 
     if os.path.exists(file):
         os.rename(file, file + ".bak")
@@ -266,6 +268,23 @@ def musicbrainz_query(cd_id, tracks, file):
 
 mb_names_calls = 0
 
+def artist_credit_name(artist_credit, disambiguate=False):
+    "join an artist credit into one name, in the form selected by file_artist"
+
+    name = ""
+    for ac in artist_credit:
+        if cf['_file_artist'] == 'as-credited':
+            name += ac['name']
+        elif cf['_file_artist'] == 'as-sort-name':
+            name += ac['artist']['sort-name']
+        else:
+            name += ac['artist']['name']
+        if disambiguate and ac['artist'].get('disambiguation'):
+            name += " (" + ac['artist']['disambiguation'] + ")"
+        if 'joinphrase' in ac:
+            name += ac['joinphrase']
+    return name
+
 def musicbrainz_names(cd_id, tracks, todo, name, verb=None, warn=None):
     "returns err, [(artist, albumname), (track_01-artist, track_01-name), ...], cd_id, mb_query_data"
 
@@ -291,29 +310,15 @@ def musicbrainz_names(cd_id, tracks, todo, name, verb=None, warn=None):
         chosen_release = int(query_data['chosen_release'])
     release = query_data['result']['releases'][chosen_release]
 
-    # get the artist name for use in constructing the path
-    artist_as_credited = ""
-    artist_as_in_mb = ""
-    artist_as_sort_name = ""
-    for ac in release['artist-credit']:
-        artist_as_credited += ac['name']
-        artist_as_in_mb += ac['artist']['name']
-        artist_as_sort_name += ac['artist']['sort-name']
-        if 'joinphrase' in ac:
-            artist_as_credited += ac['joinphrase']
-            artist_as_in_mb += ac['joinphrase']
-            artist_as_sort_name += ac['joinphrase']
+    # remember the earlier choices to add disambiguation
+    for key in ('add_disambiguation', 'add_artist_disambiguation'):
+        if query_data.get(key):
+            cf['_' + key] = True
 
-    if cf['_file_artist'] == 'as-credited':
-        a_artist = artist_as_credited
-    elif cf['_file_artist'] == 'as-sort-name':
-        a_artist = artist_as_sort_name
-    else:
-        a_artist = artist_as_in_mb
-
-    # remember the earlier choice to add disambiguation to the album title
-    if 'add_disambiguation' in query_data and query_data['add_disambiguation']:
-        cf['_add_disambiguation'] = True
+    # the artist name for the tags, and the one for the directory name,
+    # which may carry the artist disambiguation
+    a_artist = artist_credit_name(release['artist-credit'])
+    dir_artist = artist_credit_name(release['artist-credit'], cf['_add_artist_disambiguation'])
 
     # get the album name for use in constructing the path
     album = release['title']
@@ -376,25 +381,9 @@ def musicbrainz_names(cd_id, tracks, todo, name, verb=None, warn=None):
     disc_subtitle = None
     if 'title' in medium and len(medium['title']):
         disc_subtitle = medium['title']
-    names.append([a_artist, album, date, genre, medium_position, medium_count, disc_subtitle])
+    names.append([a_artist, album, date, genre, medium_position, medium_count, disc_subtitle, dir_artist])
     for track in medium['tracks']:
-        artist_as_credited = ""
-        artist_as_in_mb = ""
-        artist_as_sort_name = ""
-        for ac in track['recording']['artist-credit']:
-            artist_as_credited += ac['name']
-            artist_as_in_mb += ac['artist']['name']
-            artist_as_sort_name += ac['artist']['sort-name']
-            if 'joinphrase' in ac:
-                artist_as_credited += ac['joinphrase']
-                artist_as_in_mb += ac['joinphrase']
-                artist_as_sort_name += ac['joinphrase']
-        if cf['_file_artist'] == 'as-credited':
-            t_artist = artist_as_credited
-        elif cf['_file_artist'] == 'as-sort-name':
-            t_artist = artist_as_sort_name
-        else:
-            t_artist = artist_as_in_mb
+        t_artist = artist_credit_name(track['recording']['artist-credit'])
         t_title = track['recording']['title']
         t_artist = jack.utils.smart_truncate(t_artist)
         t_title = jack.utils.smart_truncate(t_title)

@@ -103,8 +103,19 @@ Example:
 Jack understands the following options:
 
 .TP
+.B \-\-add-album-disambiguation
+add the MusicBrainz disambiguation comment to the album title, giving for
+example "Peter Gabriel (Car)" instead of a fourth "Peter Gabriel". The
+choice is remembered in the metadata file of that rip. The former name
 .B \-\-add-disambiguation
-add disambiguation to the album title
+is still accepted.
+
+.TP
+.B \-\-add-artist-disambiguation
+add the MusicBrainz disambiguation comment to the artist name in the
+directory name, giving for example "Bill Evans (pianist)". Only the
+directory name is affected; tags keep the plain artist name. The choice is
+remembered in the metadata file of that rip.
 
 .TP
 .B \-\-albumart-file <string>

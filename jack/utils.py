@@ -229,6 +229,10 @@ def mkdirname(names, template):
 
     artist = names[0][0]
     album_title = names[0][1]
+    if len(names[0]) >= 8:
+        # MusicBrainz metadata may carry a separate artist name for the
+        # directory, with the artist disambiguation added
+        artist = names[0][7]
     if len(names[0]) >= 7:
         medium_position = names[0][4]
         medium_count = names[0][5]
