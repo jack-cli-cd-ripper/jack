@@ -375,6 +375,46 @@ def fetch_itunes_albumart(artist, album, country):
         return ret
 
 
+def discogs_image_id(url):
+    """the image id from a signed discogs image url, or None
+
+    The url is imgproxy style: after the signature and the processing
+    options, the trailing path segments hold the source path, base64url
+    encoded, like s3://discogs-database-images/R-261718-1449656596-1124.jpeg.
+    The id is that basename without its extension, and it is also what
+    discogs puts in the Content-Disposition of the download. This is an
+    implementation detail of discogs, so callers must cope with None.
+    """
+
+    path = re.sub(r"\.[A-Za-z0-9]{2,5}$", "", urlparse(url).path.strip("/"))
+    segments = path.split("/")
+    for start in range(len(segments)):
+        blob = "".join(segments[start:])
+        try:
+            decoded = base64.urlsafe_b64decode(blob + "=" * (-len(blob) % 4)).decode("ascii")
+        except (ValueError, UnicodeDecodeError):
+            continue
+        if decoded.startswith("s3://"):
+            return os.path.splitext(decoded.rsplit("/", 1)[1])[0]
+    return None
+
+
+def existing_file_with_stem(prefix, stem):
+    "an existing <prefix>[<type>.]<stem>.<ext> in the current directory, whatever the extension, or None"
+
+    for name in sorted(os.listdir(".")):
+        if name.startswith(prefix) and os.path.splitext(name)[0].endswith(stem):
+            return name
+    return None
+
+
+def discogs_files_for_release(prefix, discogs_release):
+    "the files downloaded earlier for this discogs release, by the release number in their image ids"
+
+    pattern = re.compile(r"(^|\.)R-%s-\d+" % re.escape(discogs_release))
+    return sorted(name for name in os.listdir(".") if name.startswith(prefix) and pattern.search(name))
+
+
 def fetch_discogs_albumart(release):
 
     ret = False
@@ -382,6 +422,7 @@ def fetch_discogs_albumart(release):
     prefix = cf['_discogs_albumart_prefix']
     art_types = cf['_discogs_albumart_types']
     access_token = cf['_discogs_albumart_token']
+    overwrite = cf['_overwrite_albumart']
     base_url = "https://api.discogs.com/releases/"
     headers = {'User-Agent': jack.version.user_agent}
 
@@ -399,6 +440,18 @@ def fetch_discogs_albumart(release):
 
         for discogs_url in discogs_urls:
             discogs_release = discogs_url.split("/")[-1]
+
+            # discogs re-encodes its images now and then, so a modification
+            # time or length never matches an earlier download. What stays
+            # the same is the image id in the file name. With 'never', files
+            # from an earlier run settle it without asking discogs at all.
+            if overwrite == "never":
+                existing = discogs_files_for_release(prefix, discogs_release)
+                if existing:
+                    debug("keeping existing discogs album art " + " ".join(existing))
+                    ret = True
+                    continue
+
             api_url = base_url + discogs_release
             if access_token:
                 api_url += "?token=" + access_token
@@ -416,6 +469,15 @@ def fetch_discogs_albumart(release):
                     if 'type' in image and image['type'] == art_type and 'uri' in image:
                         url = image['uri']
                         if len(url):
+                            # the id in the url names the file an earlier run
+                            # wrote; if it is there, keep it without a request
+                            if overwrite != "always":
+                                image_id = discogs_image_id(url)
+                                existing = image_id and existing_file_with_stem(prefix, image_id)
+                                if existing:
+                                    debug("keeping existing " + existing)
+                                    ret = True
+                                    continue
                             r = session.head(url)
                             if r.status_code != 200:
                                 continue
@@ -430,7 +492,12 @@ def fetch_discogs_albumart(release):
                                 filename = prefix  + art_type + "." + basename
                             else:
                                 filename = prefix + basename
-                            if download(session, url, filename, cf['_overwrite_albumart']):
+                            # the same, for a url whose id could not be read
+                            if overwrite != "always" and os.path.exists(filename):
+                                debug("keeping existing " + filename)
+                                ret = True
+                                continue
+                            if download(session, url, filename, overwrite):
                                 ret = True
                         else:
                             print("discogs albumart (%dx%d) is available but cannot be downloaded without an access token" % (image['width'], image['height']))

@@ -142,7 +142,7 @@ terminated with ';', the next option or the end of the options.
 | --albumart-min-height | int | 250 | minimum height when considering album art file |
 | --albumart-save-prefix | str | 'jack.saved.' | prefix for saving existing embedded album art |
 | --fetch-albumart | bool | no | download album art while querying |
-| --overwrite-albumart | str | 'conditional' | whether to overwrite existing album art files, 'always', 'never' or 'conditional' (the default) |
+| --overwrite-albumart | str | 'conditional' | whether to overwrite existing album art files, 'always', 'never' or 'conditional' (the default); discogs images already on disk are recognized by their image id and kept |
 | --albumart-providers | list | ['coverartarchive', 'iTunes', 'discogs'] | list of sources for album art, currently 'coverartarchive', 'iTunes' or 'discogs' |
 | --caa-albumart-prefix | str | 'jack.caa.' | prefix for saving fetched album art files from coverartarchive |
 | --caa-albumart-sizes | list | ['original', 'large'] | list of album art sizes to download from coverartarchive: 'original', 'small', 'large', '250', '500' or '1200' |
@@ -153,7 +153,7 @@ terminated with ';', the next option or the end of the options.
 | --itunes-albumart-prefix | str | 'jack.itunes.' | prefix for saving fetched iTunes album art files |
 | --discogs-albumart-prefix | str | 'jack.discogs.' | prefix for saving fetched discogs album art files |
 | --discogs-albumart-types | list | ['primary'] | download these album arts from discogs ('primary' and/or 'secondary') |
-| --discogs-albumart-token | str | - | discogs personal authentication token |
+| --discogs-albumart-token | str | - | discogs personal access token, optional: raises the discogs request limit from 25 to 60 per minute |
 | --readme | str | - | export README.md to given file |
 
 ## Interaction

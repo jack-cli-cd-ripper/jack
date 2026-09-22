@@ -250,7 +250,11 @@ prefix for saving fetched discogs album art files (default: 'jack.discogs.')
 
 .TP
 .B \-\-discogs-albumart-token <string>
-discogs personal authentication token
+discogs personal access token. Optional: discogs serves its images without
+a token these days, the token only raises the discogs request limit from 25
+per minute per IP address to 60 per token. To skip discogs altogether, leave
+it out of
+.BR \-\-albumart-providers .
 
 .TP
 .B \-\-discogs-albumart-types <string>
@@ -442,7 +446,12 @@ something went wrong last time. (default: off)
 .TP
 .B \-\-overwrite-albumart <string>
 whether to overwrite existing album art files, 'always', 'never'
-or 'conditional' (default: 'conditional')
+or 'conditional' (default: 'conditional'). 'conditional' downloads again
+when the remote length or modification time differs. Discogs re-encodes its
+images now and then, so for discogs an image already on disk is recognized
+by the image id in its name and kept without asking discogs; 'never' skips
+discogs altogether once files for the release exist, and only 'always'
+downloads again.
 
 .TP
 .B \-\-pregap-name <string>
