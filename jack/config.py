@@ -684,6 +684,13 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
         'usage': "start a browser and look up the CD",
         'long': 'lookup',
     },
+    'open_release': {
+        'type': bool,
+        'val': 0,
+        'save': 0,
+        'usage': "start a browser and open the chosen MusicBrainz release",
+        'long': 'open-release',
+    },
     'set_tag': {
         'type': bool,
         'val': 0,
