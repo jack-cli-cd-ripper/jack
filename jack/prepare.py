@@ -545,6 +545,7 @@ def query_on_start(todo):
         # and let the run end with exit status 4
         if cf['_non_interactive']:
             info("continuing without metadata")
+            jack.metadata.ripping_without_metadata = True
             cf['_query_on_start'] = 0
         else:
             # err == 2 means the user rejected all matches; someone is at
