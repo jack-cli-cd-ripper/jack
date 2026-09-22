@@ -449,3 +449,27 @@ def musicbrainz_lookup(tracks, cd_id):
     url = musicbrainz_getlookupurl(tracks, cd_id)
     print("opening url", url, "in browser")
     webbrowser.open(url)
+
+
+def musicbrainz_getreleaseurl(file):
+    "return the url of the release chosen in the metadata file, or None"
+
+    query_data = read_data_from(file)
+    if not query_data:
+        return None
+    try:
+        release_id = query_data['result']['releases'][query_data['chosen_release']]['id']
+    except (KeyError, IndexError, TypeError):
+        return None
+    return "https://" + jack.metadata.get_metadata_host('musicbrainz') + "/release/" + release_id
+
+
+def musicbrainz_open_release(file):
+
+    import webbrowser
+
+    url = musicbrainz_getreleaseurl(file)
+    if not url:
+        error("no MusicBrainz release has been chosen for this CD")
+    print("opening url", url, "in browser")
+    webbrowser.open(url)

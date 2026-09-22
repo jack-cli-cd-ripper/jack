@@ -37,6 +37,7 @@ import jack.rc
 import jack.helpers
 import jack.targets
 import jack.metadata
+import jack.musicbrainz
 import jack.display
 import jack.term
 import jack.tag
@@ -139,6 +140,11 @@ def main():
     ### Lookup the CD on MusicBrainz
     if cf['_metadata_lookup']:
         jack.prepare.metadata_lookup()
+        sys.exit(0)
+
+    ### open the chosen MusicBrainz release in a browser
+    if cf['_open_release']:
+        jack.musicbrainz.musicbrainz_open_release(jack.metadata.get_metadata_form_file('musicbrainzngs'))
         sys.exit(0)
 
     ### do query on start

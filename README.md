@@ -103,6 +103,7 @@ terminated with ';', the next option or the end of the options.
 | --extt-is-comment | bool | no | extt contains track comment |
 | --rename, -R | bool | no | rename according to metadata file, eg. after editing it |
 | --lookup | bool | no | start a browser and look up the CD |
+| --open-release | bool | no | start a browser and open the chosen MusicBrainz release |
 | --set-dae-tag | bool | no | set DAE info tags<br><br>depends on set_extended_tag |
 | --genre, -G | str | - | overrule genre from metadata |
 | --year, -Y | str | - | overrule year from metadata (0=don't set) |
