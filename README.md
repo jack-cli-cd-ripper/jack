@@ -1,5 +1,15 @@
 # Jack
 
+> **The default branch has been renamed.** Development now happens on
+> `main`, formerly `python3-mb`. The old `master` branch, which still held
+> the Python 2 code from 2020, has been renamed to `python2` and is kept as
+> an archive only. Existing clones need this once:
+>
+>     git branch -m python3-mb main
+>     git fetch origin --prune
+>     git branch -u origin/main main
+>     git remote set-head origin -a
+
 Jack is command-line CD ripper. It extracts audio from a CD, encodes it using
 3rd party software and augments it with metadata from various sources.
 
