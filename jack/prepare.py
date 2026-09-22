@@ -515,7 +515,7 @@ def read_progress(status, todo):
                 if tracknum[i][fields.index(p_what)] == p_from:
                     tracknum[i][fields.index(p_what)] = p_to
                 else:
-                    error("illegal patch %s. " % j, + "Track %02d: %s is %d" % (i, p_what, todo[jack.utils.has_track(todo, i)][fields.index(p_what)]))
+                    error("illegal patch %s. " % j + "Track %02d: %s is %d" % (i, p_what, todo[jack.utils.has_track(todo, i)][fields.index(p_what)]))
 
         if status[i]['off']:
             if jack.utils.has_track(jack.ripstuff.all_tracks_todo_sorted, i) >= 0:
