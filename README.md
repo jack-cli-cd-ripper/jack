@@ -112,6 +112,7 @@ terminated with ';', the next option or the end of the options.
 | --extt-is-title | bool | no | extt contains track title |
 | --extt-is-comment | bool | no | extt contains track comment |
 | --rename, -R | bool | no | rename according to metadata file, eg. after editing it |
+| --repair-toc | bool | no | drop a trailing data track that an old toc reader listed as audio, then exit |
 | --lookup | bool | no | start a browser and look up the CD |
 | --open-release | bool | no | start a browser and open the chosen MusicBrainz release |
 | --set-dae-tag | bool | no | set DAE info tags<br><br>depends on set_extended_tag |

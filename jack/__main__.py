@@ -129,6 +129,11 @@ def main():
     ### now read in the progress file
     status = jack.prepare.read_progress(status, jack.ripstuff.all_tracks)
 
+    ### repair the toc of a rip with a trailing data track (operation mode)
+    if cf['_repair_toc']:
+        jack.prepare.repair_toc(toc_just_read)
+        sys.exit(0)
+
     ### filter out data tracks
     jack.prepare.filter_tracks(toc_just_read, status)
 

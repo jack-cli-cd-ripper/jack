@@ -816,6 +816,13 @@ replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
         'usage': "re-generate progress file if \"lost\"",
         'long': 'AUTO',
     },
+    'repair_toc': {
+        'type': bool,
+        'val': 0,
+        'save': 0,
+        'usage': "drop a trailing data track that an old toc reader listed as audio, then exit",
+        'long': 'AUTO',
+    },
     'multi_mode': {
         'type': bool,
         'val': 0,

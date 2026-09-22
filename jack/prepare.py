@@ -409,6 +409,84 @@ def sanitize_progress_file(lines):
     os.replace(tmp_file, cf['_progress_file'])
 
 
+# frames that libdiscid (and cdparanoia) leave out before a data session
+# at the end of a CD-Extra disc: lead-out, lead-in and pregap
+XA_INTERVAL = 11400
+
+
+def repair_datatrack_toc(tracks, progress_lines, sep):
+    """drop a trailing data track that an old toc reader listed as audio
+
+    Rips made before jack used libdiscid have such a track in their toc,
+    with the last audio track running right up to it, so their disc ID
+    does not match MusicBrainz. Old jack did notice that the ripper did
+    not see the track: it recorded it as non-audio and corrected the
+    length of the audio track before it, both in the progress file.
+    Takes the tracks as read from the toc file and the lines of the
+    progress file, and returns both with the data track gone, the audio
+    track shortened by XA_INTERVAL and the correction lines removed.
+    Anything that does not match this verified pattern exactly raises
+    ValueError with the reason, as nobody has checked what the right
+    repair would be for it.
+    """
+
+    off = {}
+    patch = {}
+    for line in progress_lines:
+        f = line.split(sep, 3)
+        if len(f) >= 3 and f[1] in ("off", "patch") and f[0].isdigit():
+            (off if f[1] == "off" else patch).setdefault(int(f[0]), set()).add(f[2])
+
+    data_track = tracks[-1][NUM]
+    if len(tracks) < 2 or off != {data_track: {"non-audio"}}:
+        raise ValueError("the only non-audio track must be the last track of the disc")
+    audio_track = tracks[-2]
+    expected = "LEN %d -> %d" % (audio_track[LEN], audio_track[LEN] - XA_INTERVAL)
+    if patch != {audio_track[NUM]: {expected}}:
+        raise ValueError("track %02d must have exactly one length patch, \"%s\"" % (audio_track[NUM], expected))
+
+    new_tracks = [t[:] for t in tracks[:-1]]
+    new_tracks[-1][LEN] -= XA_INTERVAL
+    dropped = ((data_track, "off"), (audio_track[NUM], "patch"))
+    new_lines = []
+    for line in progress_lines:
+        f = line.split(sep, 3)
+        if len(f) >= 3 and f[0].isdigit() and (int(f[0]), f[1]) in dropped:
+            continue
+        new_lines.append(line)
+    return new_tracks, new_lines
+
+
+def repair_toc(toc_just_read):
+    "rewrite the toc and progress file of a rip that still lists a trailing data track"
+
+    if toc_just_read or not os.path.exists(cf['_progress_file']):
+        error("there is no toc file and progress file to repair")
+    with open(cf['_progress_file'], encoding="utf-8") as f:
+        progress_lines = f.read().splitlines()
+    try:
+        tracks, progress_lines = repair_datatrack_toc(jack.ripstuff.all_tracks_orig, progress_lines, cf['_progr_sep'])
+    except ValueError as e:
+        error("cannot repair the toc: " + str(e))
+
+    # keep the originals, and never overwrite an earlier backup
+    for file in (cf['_toc_file'], cf['_progress_file']):
+        if os.path.exists(file + ".bak"):
+            error(file + ".bak already exists, not repairing")
+    for file in (cf['_toc_file'], cf['_progress_file']):
+        os.rename(file, file + ".bak")
+
+    cd_id = jack.metadata.metadata_id(tracks)
+    jack.functions.cdrdao_puttoc(cf['_toc_file'], tracks, cd_id)
+    tmp_file = cf['_progress_file'] + ".tmp"
+    with open(tmp_file, "w", encoding="utf-8") as f:
+        for line in progress_lines:
+            f.write(line + "\n")
+    os.replace(tmp_file, cf['_progress_file'])
+    info("dropped data track %02d from the toc, the disc ID is now %s" % (jack.ripstuff.all_tracks_orig[-1][NUM], cd_id['musicbrainzngs']))
+    warning("the metadata on file still describes the old toc, query again (for example with --query-now --rename)")
+
+
 def read_progress(status, todo):
     "now read in the progress file"
 
