@@ -169,6 +169,10 @@ def freedb_query(cd_ids, tracks, file):
                     print("%2i" % num + ".) " + buf)
                     matches.append(buf)
                     num = num + 1
+            if cf['_non_interactive']:
+                info("no unique exact match, continuing without metadata")
+                err = 2  # no match chosen
+                return err
             x = -1
             while x < 0 or x > num - 1:
                 userinput = input(" 0.) none of the above: ")

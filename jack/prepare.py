@@ -541,24 +541,32 @@ def query_on_start(todo):
     metadata_form_file = jack.metadata.get_metadata_form_file(jack.metadata.get_metadata_api(cf['_metadata_server']))
     err = jack.metadata.metadata_query(jack.metadata.metadata_id(jack.ripstuff.all_tracks), jack.ripstuff.all_tracks, metadata_form_file)
     if err:
-        # err == 2 means the user rejected all matches; someone is at the
-        # keyboard, so offer to continue even without --cont-failed-query.
-        if err == 2:
-            prompt = "\nno matching release chosen, continue ripping without metadata? (y/N) "
-        elif cf['_cont_failed_query']:
-            prompt = "\nmetadata search failed, continue ripping without metadata? (y/N) "
+        # metadata was requested but will not be used; rip on without it
+        # and let the run end with exit status 4
+        if cf['_non_interactive']:
+            info("continuing without metadata")
+            jack.metadata.ripping_without_metadata = True
+            cf['_query_on_start'] = 0
         else:
-            jack.display.exit(1)
-
-        x = input(prompt) + "x"
-        if not x or x[0].upper() != "Y":
-            sys.exit(1)
-        if not cf['_edit_metadata']:
-            x = input("\nDo you want to edit the metadata file?  (y/N) ") + "x"
-            if x and x[0].upper() == "Y":
-                cf['_edit_metadata'] = 1
+            # err == 2 means the user rejected all matches; someone is at
+            # the keyboard, so offer to continue even without
+            # --cont-failed-query.
+            if err == 2:
+                prompt = "\nno matching release chosen, continue ripping without metadata? (y/N) "
+            elif cf['_cont_failed_query']:
+                prompt = "\nmetadata search failed, continue ripping without metadata? (y/N) "
             else:
-                cf['_query_on_start'] = 0
+                jack.display.exit(1)
+
+            x = input(prompt) + "x"
+            if not x or x[0].upper() != "Y":
+                sys.exit(1)
+            if not cf['_edit_metadata']:
+                x = input("\nDo you want to edit the metadata file?  (y/N) ") + "x"
+                if x and x[0].upper() == "Y":
+                    cf['_edit_metadata'] = 1
+                else:
+                    cf['_query_on_start'] = 0
 
     if cf['_edit_metadata']:
         file = metadata_form_file
@@ -834,13 +842,13 @@ def check_cd():
 
 
 def remove_files(remove_q):
-    if cf['_silent_mode'] or cf['_dont_work']:
+    if cf['_silent_mode'] or cf['_dont_work'] or cf['_non_interactive']:
         print("remove these files before going on:")
         for i in remove_q:
             print(i)
         print("### . ###")
 
-        if cf['_silent_mode']:
+        if cf['_silent_mode'] or cf['_non_interactive']:
             sys.exit(3)
 
     else:

@@ -144,6 +144,10 @@ def musicbrainz_query(cd_id, tracks, file):
                         warning("automatically selected release " + old_release_id)
 
             if chosen_release == None:
+                if cf['_non_interactive']:
+                    info("no unique exact match, continuing without metadata")
+                    err = 2  # no release chosen
+                    return err
                 matches = []
                 for rel in releases:
                     acp = ""
