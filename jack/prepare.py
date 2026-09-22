@@ -372,15 +372,15 @@ def update_progress(status, todo):
                         x = oggvorbis.OggVorbis(i[NAME] + ext)
                         temp_rate = int(x.info.bitrate / 1000 + 0.5)
                     elif ext.upper() == ".FLAC" and flac:
-                        f = flac.FLAC(filename + ext)
-                        size = os.path.getsize(filename + ext)
+                        f = flac.FLAC(i[NAME] + ext)
+                        size = os.path.getsize(i[NAME] + ext)
                         if f.info and size:
                             temp_rate = int(size * 8 * f.info.sample_rate // f.info.total_samples // 1000)
                         else:
                             temp_rate = 0
                     elif ext.upper() == ".M4A" and mp4:
-                        m = mp4.MP4(filename + ext)
-                        temp_rate = mp4.info.bitrate
+                        m = mp4.MP4(i[NAME] + ext)
+                        temp_rate = int(m.info.bitrate / 1000 + 0.5)
                     else:
                         error("don't know how to handle %s files." % ext)
                     status[num]['enc'] = repr(temp_rate) + cf['_progr_sep'] + "[simulated]"
