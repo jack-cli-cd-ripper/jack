@@ -868,7 +868,7 @@ def tag(metadata_rename):
                 encname = i[NAME] + check_ext
                 if os.path.exists(encname):
                     all_exts.append(check_ext)
-            
+
             for cur_ext in all_exts:
                 target = cur_ext[1:]
                 encname = i[NAME] + cur_ext
@@ -1103,7 +1103,7 @@ def extended_tag(tag_obj, tag_type, track_position):
     release['medium-count'] = len(release['media'])
 
     # make artist names easier to parse
-    for subtree in [release, release['release-group'], track, track['recording']]: 
+    for subtree in [release, release['release-group'], track, track['recording']]:
         if 'artist-credit' in subtree:
             subtree['artist-credit-phrase'] = ""
             for ac in subtree['artist-credit']:
@@ -1279,7 +1279,7 @@ def extended_tag(tag_obj, tag_type, track_position):
                     value_list.append(built_path)
                 else:
                     error("built_path is not a string or an int for " + map_entry['name'])
-            
+
             if len(value_list):
                 if len(mbpaths) > 1:
                     if 'mbpaths-attempt' in map_entry and map_entry['mbpaths-attempt'] == "any":

@@ -35,4 +35,3 @@ vorbisgain -a $JACK_JUST_ENCODED
 # is included to show how you can process individual files.
 
 IFS="$OLDIFS"
-

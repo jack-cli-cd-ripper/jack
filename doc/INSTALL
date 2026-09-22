@@ -87,4 +87,3 @@ All links must be satisfied; if a library cannot be found, ldd will tell you.
 In this case install all missing libraries. Some Linux systems don't install
 termcap libraries, fix this; e.g. on RedHat systems, you need
 libtermcap-*.rpm.
-
