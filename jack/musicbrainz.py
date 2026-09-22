@@ -319,11 +319,15 @@ def musicbrainz_names(cd_id, tracks, todo, name, verb=None, warn=None):
     # which may carry the artist disambiguation
     a_artist = artist_credit_name(release['artist-credit'])
     dir_artist = artist_credit_name(release['artist-credit'], cf['_add_artist_disambiguation'])
+    if cf['_add_artist_disambiguation'] and dir_artist == a_artist and mb_names_calls == 0:
+        warning("artist disambiguation requested, but MusicBrainz has none for this artist")
 
     # get the album name for use in constructing the path
     album = release['title']
     if cf['_add_disambiguation'] and 'disambiguation' in release and len(release['disambiguation']):
         album += " (" + release['disambiguation'] + ")"
+    elif cf['_add_disambiguation'] and mb_names_calls == 0:
+        warning("album disambiguation requested, but MusicBrainz has none for this release")
     if 'date' in release:
         date = release['date']
     else:

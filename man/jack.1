@@ -106,7 +106,8 @@ Jack understands the following options:
 .B \-\-add-album-disambiguation
 add the MusicBrainz disambiguation comment to the album title, giving for
 example "Peter Gabriel (Car)" instead of a fourth "Peter Gabriel". The
-choice is remembered in the metadata file of that rip. The former name
+choice is remembered in the metadata file of that rip. A warning is
+printed when the release has no disambiguation comment. The former name
 .B \-\-add-disambiguation
 is still accepted.
 
@@ -115,7 +116,8 @@ is still accepted.
 add the MusicBrainz disambiguation comment to the artist name in the
 directory name, giving for example "Bill Evans (pianist)". Only the
 directory name is affected; tags keep the plain artist name. The choice is
-remembered in the metadata file of that rip.
+remembered in the metadata file of that rip. A warning is printed when
+the artist has no disambiguation comment.
 
 .TP
 .B \-\-albumart-file <string>
