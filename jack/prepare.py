@@ -236,6 +236,20 @@ def filter_tracks(toc_just_read, status):
     "filter out data tracks"
     global datatracks
 
+    if toc_just_read:
+        # libdiscid leaves out the data track of a CD-Extra disc and the
+        # lead-out behind it; keep what the drive reports for possible
+        # future use, see jack.rawtoc
+        kernel = jack.rawtoc.read_kernel_toc(cf['_cd_device'])
+        if kernel and not jack.rawtoc.agrees_with(kernel, jack.ripstuff.all_tracks):
+            line = jack.rawtoc.format_line(*kernel)
+            jack.functions.progress("all", "rawtoc", line)
+            data = len([1 for dummy, is_data in kernel[3] if is_data])
+            if data:
+                info("the drive reports %d data track(s) that the toc leaves out, recorded in the progress file" % data)
+            else:
+                info("the drive's table of contents differs from the toc, recorded in the progress file")
+
     if toc_just_read and "toc_cmd" in jack.helpers.helpers[cf['_ripper']] and cf['_ripper'] != cf['_toc_prog']:
         ripper_tracks = jack.functions.gettoc(cf['_ripper'])
         if ripper_tracks != jack.ripstuff.all_tracks:

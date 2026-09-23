@@ -741,7 +741,10 @@ jack
 Now watch it work. After having finished, you have the following files on your
 HD: track_01.mp3, track_02.mp3, ..., track_nn.mp3 plus jack.toc, jack.freedb,
 jack.progress. The last three are used to store the state Jack is in so it can
-resume work when interrupted.
+resume work when interrupted. For an enhanced CD, jack.progress also holds the
+table of contents as the drive reports it, with the data track and the real
+lead-out that jack.toc leaves out, for possible future use such as AccurateRip
+lookups.
 
 .PP
 Jack will create a directory called jack-xxxxxxxx for you, there it stores all

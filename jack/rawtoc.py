@@ -29,8 +29,26 @@
 # is the first and the last track, the lead-out, then the offset of every
 # track in the libdiscid convention (frames from the start of the disc,
 # including the 150 frames of the first pregap), data tracks suffixed d.
+#
+# For a new rip the same facts come from the kernel, which reports the
+# table of contents as the drive has it. That is Linux only and a bonus
+# reading: when it fails, nothing is recorded and the rip goes on.
+
+import fcntl
+import os
+import struct
 
 from jack.constants import NUM, LEN, START, MSF_OFFSET
+
+# from <linux/cdrom.h>
+CDROMREADTOCHDR = 0x5305
+CDROMREADTOCENTRY = 0x5306
+CDROM_LBA = 0x01
+CDROM_LEADOUT = 0xAA
+CDROM_DATA_TRACK = 0x04     # in cdte_ctrl
+# struct cdrom_tocentry: cdte_track, cdte_adr:4 cdte_ctrl:4, cdte_format,
+# union cdrom_addr (int lba), cdte_datamode; native alignment, 12 bytes
+TOCENTRY = struct.Struct("BBBxiBxxx")
 
 
 def format_line(first, last, leadout, offsets):
@@ -46,3 +64,48 @@ def from_tracks(tracks, data_tracks=()):
     leadout = tracks[-1][START] + tracks[-1][LEN] + MSF_OFFSET
     offsets = [(t[START] + MSF_OFFSET, t[NUM] in data_tracks) for t in tracks]
     return format_line(tracks[0][NUM], tracks[-1][NUM], leadout, offsets)
+
+
+def decode_entry(buf):
+    "the (offset, is_data) pair from a struct cdrom_tocentry read in LBA format"
+
+    dummy, adr_ctrl, dummy, lba, dummy = TOCENTRY.unpack(buf)
+    return lba + MSF_OFFSET, bool(adr_ctrl >> 4 & CDROM_DATA_TRACK)
+
+
+def read_kernel_toc(device):
+    """the table of contents as the kernel reports it, or None
+
+    Returns (first, last, leadout, offsets) as format_line takes them, or
+    None when this is not Linux, the drive is empty or cannot be read.
+    """
+
+    if os.uname()[0] != "Linux":
+        return None
+    try:
+        # non-blocking like libdiscid, so an empty or busy drive fails fast
+        fd = os.open(device, os.O_RDONLY | os.O_NONBLOCK)
+    except OSError:
+        return None
+    try:
+        first, last = struct.unpack("BB", fcntl.ioctl(fd, CDROMREADTOCHDR, b"\0\0"))
+        entries = []
+        for num in list(range(first, last + 1)) + [CDROM_LEADOUT]:
+            request = TOCENTRY.pack(num, 0, CDROM_LBA, 0, 0)
+            entries.append(decode_entry(fcntl.ioctl(fd, CDROMREADTOCENTRY, request)))
+    except OSError:
+        return None
+    finally:
+        os.close(fd)
+    leadout, dummy = entries.pop()
+    return first, last, leadout, entries
+
+
+def agrees_with(kernel, tracks):
+    "whether the tracks as read with libdiscid already say everything the kernel says"
+
+    first, last, leadout, offsets = kernel
+    return (not any(is_data for dummy, is_data in offsets)
+            and (first, last) == (tracks[0][NUM], tracks[-1][NUM])
+            and [offset for offset, dummy in offsets] == [t[START] + MSF_OFFSET for t in tracks]
+            and leadout == tracks[-1][START] + tracks[-1][LEN] + MSF_OFFSET)
