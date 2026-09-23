@@ -20,6 +20,9 @@ from jack.constants import ISRC, MCN
 
 FIXTURES = os.path.join(os.path.dirname(__file__), "fixtures", "phoenix-alphabetical")
 SEP = "/|\\"
+# the disc as the drive reports it, taken from the old toc: 11 tracks, the
+# last one data, and the real lead-out behind it
+RAWTOC = "1 11 230657 150 13733 31019 42517 62385 80537 96577 102028 119828 135361 180720d"
 
 
 def read_toc(name):
@@ -59,8 +62,13 @@ class RepairDatatrackToc(unittest.TestCase):
         expected = [l for l in self.lines
                     if not l.startswith("11" + SEP + "off" + SEP)
                     and not l.startswith("10" + SEP + "patch" + SEP)]
-        self.assertEqual(lines, expected)
+        self.assertEqual(lines[:-1], expected)
         self.assertLess(len(lines), len(self.lines))
+
+    def test_the_old_toc_is_kept_as_a_rawtoc_line(self):
+        dummy, lines = self.repair()
+        self.assertEqual(lines[-1], "all" + SEP + "rawtoc" + SEP + RAWTOC)
+        self.assertEqual(len([l for l in lines if SEP + "rawtoc" + SEP in l]), 1)
 
     def test_written_toc_reads_back(self):
         tracks, dummy = self.repair()

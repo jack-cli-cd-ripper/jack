@@ -514,9 +514,12 @@ match MusicBrainz and a metadata query is refused. The data track is
 dropped from "jack.toc", the audio track before it is shortened by the
 11400 frames of the intervening lead-out, lead-in and pregap, and the
 lines in "jack.progress" that recorded the old correction are removed.
-The originals are kept as "jack.toc.bak" and "jack.progress.bak";
-"jack.freedb" is left alone. Jack refuses to repair anything that does
-not match this pattern exactly.
+The data track and the real lead-out, which the repaired toc no longer
+has, are kept as a "rawtoc" line in "jack.progress" for possible future
+use, such as AccurateRip lookups. The originals are kept as
+"jack.toc.bak" and "jack.progress.bak"; "jack.freedb" is left alone.
+Jack refuses to repair anything that does not match this pattern
+exactly.
 
 .TP
 .B \-\-rename-dir, \-\-no-rename-dir <bool>

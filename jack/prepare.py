@@ -32,6 +32,7 @@ import jack.ripstuff
 import jack.targets
 import jack.helpers
 import jack.metadata
+import jack.rawtoc
 import jack.status
 import jack.encstuff
 import jack.misc
@@ -425,6 +426,8 @@ def repair_datatrack_toc(tracks, progress_lines, sep):
     Takes the tracks as read from the toc file and the lines of the
     progress file, and returns both with the data track gone, the audio
     track shortened by XA_INTERVAL and the correction lines removed.
+    The old toc is the only record of the data track and the real
+    lead-out, so they are kept as a rawtoc line in the progress file.
     Anything that does not match this verified pattern exactly raises
     ValueError with the reason, as nobody has checked what the right
     repair would be for it.
@@ -454,6 +457,7 @@ def repair_datatrack_toc(tracks, progress_lines, sep):
         if len(f) >= 3 and f[0].isdigit() and (int(f[0]), f[1]) in dropped:
             continue
         new_lines.append(line)
+    new_lines.append(sep.join(("all", "rawtoc", jack.rawtoc.from_tracks(tracks, data_tracks=(data_track,)))))
     return new_tracks, new_lines
 
 
