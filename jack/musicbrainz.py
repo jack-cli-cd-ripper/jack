@@ -100,7 +100,7 @@ def read_data_from(file):
 def musicbrainz_query(cd_id, tracks, file):
 
     if jack.prepare.datatracks:
-        error("The toc for this disc contains data tracks. It was created using an older version of jack. Run jack --repair-toc to drop a trailing data track, or create a new toc from the original media.")
+        error("The toc for this disc contains data tracks. It was created using an older version of jack. Run jack --repair-toc to drop a trailing data track, or create a new toc from the original medium.")
 
     host = jack.metadata.get_metadata_host('musicbrainz')
     toc = musicbrainz_gettoc(tracks)
