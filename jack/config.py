@@ -278,7 +278,8 @@ unusable_chars:["|", "/", "*", ":", "<", ">", "\\", "\"", "?"]
 replacement_chars:["¦", "∕", "•", "꞉", "‹", "›", "﹨", "”", "？"]
 
 example 3: a regular expression, here to append an invisible character to
-a name ending in a dot, which Windows forbids as well:
+a name ending in a dot, which Windows forbids as well; think of a directory
+named after R.E.M.:
 unusable_chars:[r"/\.$/"]
 replacement_chars:[".\u200b"]""",
         'long': 'AUTO',
