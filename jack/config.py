@@ -273,10 +273,14 @@ unusable_chars:[" "]
 replacement_chars:["_"]
 
 example 2: keep file names usable on Windows and SMB shares by replacing
-the characters those forbid with look-alikes, and append an invisible
-character to a name ending in a dot, which they forbid as well:
-unusable_chars:["|", "/", "*", ":", "<", ">", "\\", "\"", "?", r"/\.$/"]
-replacement_chars:["¦", "∕", "•", "꞉", "‹", "›", "﹨", "”", "？", ".\u200b"]""",
+the characters those forbid with look-alikes:
+unusable_chars:["|", "/", "*", ":", "<", ">", "\\", "\"", "?"]
+replacement_chars:["¦", "∕", "•", "꞉", "‹", "›", "﹨", "”", "？"]
+
+example 3: a regular expression, here to append an invisible character to
+a name ending in a dot, which Windows forbids as well:
+unusable_chars:[r"/\.$/"]
+replacement_chars:[".\u200b"]""",
         'long': 'AUTO',
     },
     'replacement_chars': {
