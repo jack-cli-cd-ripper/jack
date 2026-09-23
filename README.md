@@ -93,6 +93,8 @@ terminated with ';', the next option or the end of the options.
 | --exec, -x | bool | no | run predefined command when finished |
 | --force | bool | no | don't ask. |
 | --swab, -S | bool | yes | swap byteorder when reading from image |
+| --toc-isrc | bool | yes | read the ISRCs from the disc (old discs and CD-Rs have none, and the drive takes long to give up) |
+| --toc-mcn | bool | yes | read the MCN (catalog number) from the disc (old discs and CD-Rs have none, and the drive takes long to give up) |
 | --todo | bool | no | print what would be done and exit |
 | --space, -s | int | 0 | force usable disk space, in bytes |
 | --check-toc | bool | no | compare toc-file and cd-toc, then exit |

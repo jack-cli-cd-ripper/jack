@@ -583,6 +583,21 @@ WAVs and encoded files contain only noise. This is on by default as cdrdao
 currently generates .cdr files that are "wrong".
 
 .TP
+.B \-\-toc-isrc, \-\-no-toc-isrc <bool>
+read the ISRCs from the disc when reading its toc (default: yes). Old discs
+and CD-Rs have none, and the drive retries for a long time before giving
+up, so
+.B \-\-no-toc-isrc
+makes such discs start much faster.
+
+.TP
+.B \-\-toc-mcn, \-\-no-toc-mcn <bool>
+read the MCN (catalog number) from the disc when reading its toc (default:
+yes). Like the ISRCs, old discs and CD-Rs have none, and
+.B \-\-no-toc-mcn
+saves the retries.
+
+.TP
 .B \-\-todo
 print what would be done and exit.
 
