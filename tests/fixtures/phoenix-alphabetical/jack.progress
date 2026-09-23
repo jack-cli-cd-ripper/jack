@@ -1,0 +1,87 @@
+all/|\mkdir/|\jack-8c0c010b
+10/|\patch/|\LEN 45359 -> 33959
+11/|\off/|\non-audio
+all/|\freedb_cat/|\misc
+all/|\ren/|\jack-8c0c010b-->Phoenix/Alphabetical
+10/|\patch/|\LEN 45359 -> 33959
+11/|\off/|\non-audio
+02/|\dae/|\12.1x [                              ]
+03/|\dae/|\11.6x [                              ]
+02/|\enc/|\160/|\[coding @12.10× done, mp3 OK]
+03/|\enc/|\160/|\[coding @11.84× done, mp3 OK]
+04/|\dae/|\12.0x [                              ]
+05/|\dae/|\11.6x [                              ]
+04/|\enc/|\160/|\[coding @11.55× done, mp3 OK]
+06/|\dae/|\11.4x [                              ]
+05/|\enc/|\160/|\[coding @12.00× done, mp3 OK]
+07/|\dae/|\ 9.5x [                              ]
+06/|\enc/|\160/|\[coding @12.23× done, mp3 OK]
+07/|\enc/|\160/|\[coding @12.32× done, mp3 OK]
+08/|\dae/|\11.3x [                              ]
+09/|\dae/|\11.0x [                              ]
+08/|\enc/|\160/|\[coding @5.97× done, mp3 OK]
+09/|\enc/|\160/|\[coding @11.39× done, mp3 OK]
+10/|\dae/|\11.5x [                              ]
+10/|\enc/|\160/|\[coding @3.28× done, mp3 OK]
+10/|\patch/|\LEN 45359 -> 33959
+11/|\off/|\non-audio
+10/|\patch/|\LEN 45359 -> 33959
+11/|\off/|\non-audio
+01/|\dae/|\11.7x [                              ]
+01/|\enc/|\160/|\[coding @8.61× done, mp3 OK]
+01/|\ren/|\track_01-->01. Everything is eveything
+02/|\ren/|\track_02-->02. Run run run
+03/|\ren/|\track_03-->03. I'm an actor
+04/|\ren/|\track_04-->04. Love for granted
+05/|\ren/|\track_05-->05. Victim of the crime
+06/|\ren/|\track_06-->06. Anybody
+07/|\ren/|\track_07-->07. Congratulations
+08/|\ren/|\track_08-->08. If it's not wih you
+09/|\ren/|\track_09-->09. Holdin' on together
+10/|\ren/|\track_10-->10. Alphabetical
+10/|\patch/|\LEN 45359 -> 33959
+11/|\off/|\non-audio
+01/|\enc/|\160/|\[coding @11.44× done,173kbit]
+02/|\enc/|\160/|\[coding @9.01× done,156kbit]
+03/|\enc/|\160/|\[coding @11.68× done,155kbit]
+04/|\enc/|\160/|\[coding @12.10× done,142kbit]
+05/|\enc/|\160/|\[coding @11.90× done,151kbit]
+06/|\enc/|\160/|\[coding @11.79× done,158kbit]
+07/|\enc/|\160/|\[coding @11.55× done,138kbit]
+08/|\enc/|\160/|\[coding @12.03× done,144kbit]
+09/|\enc/|\160/|\[coding @12.02× done,144kbit]
+10/|\enc/|\160/|\[coding @13.93× done,094kbit]
+11/|\off/|\non-audio
+10/|\patch/|\LEN 45359 -> 33959
+11/|\off/|\non-audio
+01/|\dae/|\10.4x [                              ]
+01/|\enc/|\160/|\[coding @28.12× done,1026kbit]
+02/|\dae/|\10.8x [                              ]
+02/|\enc/|\160/|\[coding @29.62× done,969kbit]
+03/|\dae/|\10.6x [                              ]
+03/|\enc/|\160/|\[coding @34.58× done,908kbit]
+04/|\dae/|\10.7x [                              ]
+04/|\enc/|\160/|\[coding @34.02× done,859kbit]
+05/|\dae/|\10.9x [                              ]
+05/|\enc/|\160/|\[coding @37.09× done,988kbit]
+06/|\dae/|\10.5x [                              ]
+06/|\enc/|\160/|\[coding @34.17× done,1012kbit]
+07/|\dae/|\ 9.5x [                              ]
+07/|\enc/|\160/|\[coding @49.11× done,950kbit]
+08/|\dae/|\10.3x [                              ]
+08/|\enc/|\160/|\[coding @39.81× done,804kbit]
+09/|\dae/|\11.1x [                              ]
+09/|\enc/|\160/|\[coding @29.70× done,904kbit]
+10/|\dae/|\10.2x [                              ]
+10/|\enc/|\160/|\[coding @64.39× done,531kbit]
+01/|\ren/|\01. Everything is eveything-->01. Everything is everything
+01/|\enc/|\160/|\[coding @14.06× done,172kbit]
+02/|\enc/|\160/|\[coding @21.24× done,155kbit]
+03/|\enc/|\160/|\[coding @20.97× done,153kbit]
+04/|\enc/|\160/|\[coding @11.04× done,141kbit]
+05/|\enc/|\160/|\[coding @18.99× done,150kbit]
+06/|\enc/|\160/|\[coding @20.58× done,157kbit]
+07/|\enc/|\160/|\[coding @20.82× done,137kbit]
+08/|\enc/|\160/|\[coding @20.94× done,144kbit]
+09/|\enc/|\160/|\[coding @20.66× done,143kbit]
+10/|\enc/|\160/|\[coding @24.19× done,094kbit]
