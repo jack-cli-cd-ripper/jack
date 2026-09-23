@@ -243,7 +243,14 @@ cf = jack.misc.dict2({
     'add_disambiguation': {
         'type': bool,
         'val': 0,
-        'usage': "add disambiguation to the album title",
+        'usage': "add the MusicBrainz disambiguation comment to the album title",
+        'long': 'add-album-disambiguation',
+        'alias': ['add-disambiguation'],
+    },
+    'add_artist_disambiguation': {
+        'type': bool,
+        'val': 0,
+        'usage': "add the MusicBrainz disambiguation comment to the artist name in the directory name",
         'long': 'AUTO',
     },
     'char_filter': {

@@ -327,6 +327,13 @@ def parse_argv(cf, argv):
                 allargs[v['long']] = k
                 if v['type'] == bool:
                     allargs[f"no-{v['long']}"] = k
+            # former names of renamed options keep working
+            for alias in v.get('alias', []):
+                if len(alias) < 2 or alias in allargs:
+                    error(f"[internal] alias not long or ambiguous: {v}")
+                allargs[alias] = k
+                if v['type'] == bool:
+                    allargs[f"no-{alias}"] = k
 
         if 'short' in v:
             if len(v['short']) != 1 or v['short'] in allargs:
