@@ -531,7 +531,8 @@ otherwise fail to be encoded.
 .TP
 .B \-\-replacement-chars <list>
 unusable chars are replaced by the corresponding list item
-(default: ['%', ''])
+(default: ['%', '']). A shorter list is stretched with its last entry, so
+a single '' removes every unusable character.
 
 .TP
 .B \-\-ripper <string>
@@ -615,7 +616,20 @@ possible. Note that ID3 tags are not restored.
 
 .TP
 .B \-\-unusable-chars <list>
-characters which cannot be used in filenames (default: '/').
+characters which cannot be used in file names (default: ['/', '\\r']),
+each replaced by the entry at the same position in
+.BR \-\-replacement-chars .
+An entry written as /regex/ is treated as a regular expression. A typical
+setting keeps file names usable on Windows and SMB shares by replacing the
+characters those forbid with look-alikes, and appends an invisible
+character to a name ending in a dot, which they forbid as well; in
+.BR ~/.jack4rc :
+.RS
+.nf
+unusable_chars:["|", "/", "*", ":", "<", ">", "\\\\", "\\"", "?", r"/\\.$/"]
+replacement_chars:["¦", "∕", "•", "꞉", "‹", "›", "﹨", "”", "？", ".\\u200b"]
+.fi
+.RE
 
 .TP
 .B \-\-upd-progress

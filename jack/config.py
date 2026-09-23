@@ -264,23 +264,25 @@ cf = jack.misc.dict2({
         'type': list,
         'val': ["/", "\r"],
         'usage': "characters which can't be used in filenames",
-        'doc': """put chars which can't be used in filenames here and their replacements
-in replacement_chars.
+        'doc': r"""put characters which can't be used in file names here and their
+replacements, in the same order, in replacement_chars. Both are lists.
+An entry written as /regex/ is treated as a regular expression.
 
-example 1: replace all " " by "_":
-unusable_chars = " "
-replacement_chars = "_"
+example 1: replace spaces by underscores:
+unusable_chars:[" "]
+replacement_chars:["_"]
 
-example 2: replace umlauts by an alternate representation and kill some
-            special characters:
-unusable_chars = "äöüÄÖÜß?*^()[]{}"
-replacement_chars = ["ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", ""]""",
+example 2: keep file names usable on Windows and SMB shares by replacing
+the characters those forbid with look-alikes, and append an invisible
+character to a name ending in a dot, which they forbid as well:
+unusable_chars:["|", "/", "*", ":", "<", ">", "\\", "\"", "?", r"/\.$/"]
+replacement_chars:["¦", "∕", "•", "꞉", "‹", "›", "﹨", "”", "？", ".\u200b"]""",
         'long': 'AUTO',
     },
     'replacement_chars': {
         'type': list,
         'val': ["%", ""],
-        'doc': "this is stretched to match unusable_chars' length using the last char as fill",
+        'doc': "one replacement per entry of unusable_chars; a shorter list is stretched with its last entry, so a single \"\" removes every unusable character",
         'usage': "unusable chars are replaced by the corresponding list item",
         'long': 'AUTO',
     },
