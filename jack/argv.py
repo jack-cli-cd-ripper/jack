@@ -55,7 +55,7 @@ like it.
 * a Python 3 wrapper for libdiscid, either python-libdiscid or python-discid
 * Python 3 modules mutagen, requests, pillow and dateutil
 * an encoder like oggenc (Ogg/Vorbis), flac, lame (MP3) or fdkaac (M4A/AAC)
-* a ripper like cdparanoia (recommended), cdda2wav, dagrab or tosha
+* cdparanoia for ripping
 
 ## Usage
 
