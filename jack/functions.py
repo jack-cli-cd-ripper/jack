@@ -93,15 +93,14 @@ def pprint_speed(s, len=4):
         return "X" * len
 
 
+cached_erg = {}     # track list per TOC reader, so the disc is read once
+
+
 def gettoc(toc_prog):
     "Returns track list"
 
-    global cached_erg
-
-    if 'cached_erg' in globals() and toc_prog in cached_erg:
+    if toc_prog in cached_erg:
         return cached_erg[toc_prog]
-    else:
-        cached_erg = {}
 
     if 'toc_cmd' in jack.helpers.helpers[toc_prog]:
         cmd = (jack.helpers.helpers[toc_prog]['toc_cmd']).replace("%d", cf['_cd_device'])
