@@ -182,7 +182,7 @@ def main():
 
     #### Reorder if told so
     if cf['_reorder']:
-        todo.sort(jack.utils.cmp_toc)
+        todo.sort(key=jack.utils.track_len)
         todo.reverse()
 
     #### check how much bytes we can burn
