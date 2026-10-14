@@ -181,11 +181,6 @@ def find_workdir():
     return toc_just_read
 
 
-def cmp(a, b):
-    "python2 compatible cmp function"
-    return (a > b) - (a < b)
-
-
 def check_toc():
     "compare CD toc to tocfile"
 
@@ -202,7 +197,7 @@ def check_toc():
         print("And This is what we expect:")
         pprint.pprint(file_toc)
         print()
-        if cmp(cd_toc, file_toc) == 0:
+        if cd_toc == file_toc:
             print('Yes, toc-file ("' + cf['_toc_file'] + '") matches inserted CD.')
         else:
             print('No, toc-file ("' + cf['_toc_file'] + '") *DOES NOT* match inserted CD.')
@@ -844,7 +839,7 @@ def what_todo(space, todo):
                 wavs_todo.remove(track)
 
     if cf['_reorder']:
-        mp3s_todo.sort(jack.utils.cmp_toc)
+        mp3s_todo.sort(key=jack.utils.track_len)
 
     dae_queue = []                  # This stores the tracks to rip
     enc_queue = []                  # WAVs go here to get some codin'

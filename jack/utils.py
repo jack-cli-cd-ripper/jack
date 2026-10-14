@@ -124,15 +124,9 @@ def rename_path(old, new):
             pass
 
 
-def cmp_toc(x, y):
-    "compare two track's length"
-    x, y = x[LEN], y[LEN]
-    if x > y:
-        return 1
-    elif x == y:
-        return 0
-    elif x < y:
-        return -1
+def track_len(track):
+    "sort key for the reorder option: the track's length"
+    return track[LEN]
 
 
 NUM, LEN, START, COPY, PRE, CH, RIP, RATE, NAME = list(range(9))
