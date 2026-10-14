@@ -211,19 +211,9 @@ def check_rc(cf, global_cf, user_cf, argv_cf):
     if 'base_dir' not in all_keys:
         warning(f"You have no standard location set, putting files into the current directory. Please consider setting base_dir in {cf['_user_rc'][0]}.")
 
-    # Check if the default ripper is installed, and if not, look for another
-    # one
-    if 'ripper' not in all_keys:
-        default_ripper = cf["ripper"]["val"]
-        if not jack.utils.in_path(default_ripper):
-            rippers = [i for i in jack.helpers.helpers if jack.helpers.helpers[i]["type"] == "ripper" and "toc_cmd" in jack.helpers.helpers[i]]
-            for cmd in rippers:
-                if jack.utils.in_path(cmd):
-                    warning("Using ripper %s since default ripper %s is not available." % (cmd, default_ripper))
-                    cf.rupdate({'ripper': {'val': cmd}}, "check")
-                    break
-            else:
-                warning("No valid ripper found on your system.")
+    # Check if the ripper is installed
+    if 'ripper' not in all_keys and not jack.utils.in_path(cf["ripper"]["val"]):
+        warning("No valid ripper found on your system.")
 
     # Check whether ripper and encoder exist in $PATH.
     for t in ("ripper", "encoder"):

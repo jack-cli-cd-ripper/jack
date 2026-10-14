@@ -35,7 +35,7 @@ like it.
 * a Python 3 wrapper for libdiscid, either python-libdiscid or python-discid
 * Python 3 modules mutagen, requests, pillow and python-dateutil
 * an encoder like oggenc (Ogg/Vorbis), flac, lame (MP3) or fdkaac (M4A/AAC)
-* a ripper like cdparanoia (recommended), cdda2wav, dagrab or tosha
+* cdparanoia for ripping
 
 ## Usage
 
@@ -51,7 +51,7 @@ terminated with ';', the next option or the end of the options.
 |--------|------|---------------|-------------|
 | --debug | bool | no | show debug information |
 | --debug-write | bool | no | write debug information to a file |
-| --ripper | str | 'cdparanoia' | which program to use for extracting the audio data<br><br>use which program to rip: cdparanoia, tosha, cdda2wav, dagrab (untested) |
+| --ripper | str | 'cdparanoia' | which program to use for extracting the audio data<br><br>use which program to rip: cdparanoia is the only one supported |
 | --device | str | '/dev/cdrom' | use which device for ripping |
 | --encoder-name, -E | str | 'oggenc' | use which encoder<br><br>this is a symbolic name (see helpers), NOT the executable's name |
 | --vbr, -v | bool | yes | generate variable bitrate files<br><br>use variable bitrate for encoders which support it |

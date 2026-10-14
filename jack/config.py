@@ -55,7 +55,7 @@ cf = jack.misc.dict2({
     'ripper': {
         'type': str,
         'val': "cdparanoia",
-        'doc': "use which program to rip: cdparanoia, tosha, cdda2wav, dagrab (untested)",
+        'doc': "use which program to rip: cdparanoia is the only one supported",
         'usage': "which program to use for extracting the audio data",
         'long': 'AUTO',
     },
