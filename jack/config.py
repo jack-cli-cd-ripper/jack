@@ -924,7 +924,7 @@ replacement_chars:[".\u200b"]""",
     },
     'albumart_search': {
         'type': list,
-        'val': [r'.*[Cc]over.*\.(jpg|jpeg|png)$', r'.*[Ff]ront.*\.(jpg|jpeg|png)$', r'^[Ff]older\.(jpg|jpeg|png)$', r'^jack\.caa\.front.*\.jpg$', r'^jack\.itunes.*\.jpg$', r'^jack\.discogs.*\.jpg$'],
+        'val': [r'.*[Cc]over.*\.(jpg|jpeg|png)$', r'.*[Ff]ront.*\.(jpg|jpeg|png)$', r'^[Ff]older\.(jpg|jpeg|png)$', r'^jack\.caa\.front.*\.jpg$', r'^jack\.itunes.*\.(jpg|png)$', r'^jack\.discogs.*\.jpg$'],
         'usage': "list of regex patterns for matching local album art files",
         'long': 'AUTO',
     },
@@ -1022,7 +1022,7 @@ replacement_chars:[".\u200b"]""",
     'itunes_albumart_sizes': {
         'type': list,
         'val': ['standard','high'],
-        'usage': "list of album art sizes to download from iTunes: 'thumb', 'standard' or 'high'",
+        'usage': "list of album art sizes to download from iTunes: 'thumb' (100x100), 'standard' (600x600) or 'high' (the native resolution as a lossless PNG, big)",
         'long': 'AUTO',
     },
     'itunes_albumart_limit': {

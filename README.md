@@ -135,7 +135,7 @@ terminated with ';', the next option or the end of the options.
 | --embed-albumart | bool | no | embed album art |
 | --show-albumart | bool | no | show the album art that has been embedded in an external viewer |
 | --albumart-file | str | - | specific album art file to embed |
-| --albumart-search | list | ['.\*[Cc]over.\*\\.(jpg\|jpeg\|png)\$', '.\*[Ff]ront.\*\\.(jpg\|jpeg\|png)\$', '\^[Ff]older\\.(jpg\|jpeg\|png)\$', '\^jack\\.caa\\.front.\*\\.jpg\$', '\^jack\\.itunes.\*\\.jpg\$', '\^jack\\.discogs.\*\\.jpg\$'] | list of regex patterns for matching local album art files |
+| --albumart-search | list | ['.\*[Cc]over.\*\\.(jpg\|jpeg\|png)\$', '.\*[Ff]ront.\*\\.(jpg\|jpeg\|png)\$', '\^[Ff]older\\.(jpg\|jpeg\|png)\$', '\^jack\\.caa\\.front.\*\\.jpg\$', '\^jack\\.itunes.\*\\.(jpg\|png)\$', '\^jack\\.discogs.\*\\.jpg\$'] | list of regex patterns for matching local album art files |
 | --albumart-ignorecase | bool | yes | ignore case when searching for local album art |
 | --albumart-recurse | bool | no | recurse into subfolders when searching for local album art |
 | --albumart-max-size | int | 1000000 | maximum size when considering album art file |
@@ -151,7 +151,7 @@ terminated with ';', the next option or the end of the options.
 | --caa-albumart-prefix | str | 'jack.caa.' | prefix for saving fetched album art files from coverartarchive |
 | --caa-albumart-sizes | list | ['original', 'large'] | list of album art sizes to download from coverartarchive: 'original', 'small', 'large', '250', '500' or '1200' |
 | --caa-albumart-types | list | ['front'] | download these album arts from coverartarchive ('front' and/or 'back') |
-| --itunes-albumart-sizes | list | ['standard', 'high'] | list of album art sizes to download from iTunes: 'thumb', 'standard' or 'high' |
+| --itunes-albumart-sizes | list | ['standard', 'high'] | list of album art sizes to download from iTunes: 'thumb' (100x100), 'standard' (600x600) or 'high' (the native resolution as a lossless PNG, big) |
 | --itunes-albumart-limit | int | 1 | limit number of matches when querying for iTunes album art, zero is no limit |
 | --itunes-albumart-country | str | 'us' | two letter country code of iTunes store to query |
 | --itunes-albumart-prefix | str | 'jack.itunes.' | prefix for saving fetched iTunes album art files |

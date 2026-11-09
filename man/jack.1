@@ -166,7 +166,7 @@ prefix for saving existing embedded album art (default: 'jack.saved.')
 list of regex patterns for matching local album art files (default:
 ['.*[Cc]over.*\\.(jpg|jpeg|png)$', '.*[Ff]ront.*\\.(jpg|jpeg|png)$',
  '^[Ff]older\\.(jpg|jpeg|png)$', '^jack\\.caa\\.front.*\\.jpg$',
- '^jack\\.itunes.*\\.jpg$', '^jack\\.discogs.*\\.jpg$'])
+ '^jack\\.itunes.*\\.(jpg|png)$', '^jack\\.discogs.*\\.jpg$'])
 
 .TP
 .B \-\-append-year <string>
@@ -386,7 +386,8 @@ prefix for saving fetched iTunes album art files (default: 'jack.itunes.')
 
 .TP
 .B \-\-itunes-albumart-sizes <string>
-list of album art sizes to download from iTunes: 'thumb', 'standard' or 'high'
+list of album art sizes to download from iTunes: 'thumb' (100x100), 'standard'
+(600x600) or 'high' (the native resolution as a lossless PNG, big)
 (default: ['standard', 'high'])
 
 .TP

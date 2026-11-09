@@ -315,6 +315,33 @@ def fetch_caa_albumart(release):
     return ret
 
 
+def itunes_art_urls(artwork_url):
+    """the thumb, standard and high resolution urls for the artworkUrl100 of an iTunes search result
+
+    The search API only hands out a 100x100 thumbnail, but its url ends in a
+    rendering spec that the image server takes orders from, like
+    .../26UMGIM57737.rgb.jpg/100x100bb.jpg: a bounding box, optional flags,
+    an optional JPEG quality after a dash (-999 is the best) and the output
+    format. The server never scales up, so a huge box gives the native
+    resolution, and boxes over 10000 pixels get a 400. That is how
+    https://bendodson.com/projects/itunes-artwork-finder/ built its "hires"
+    link. Its "uncompressed" link, the label's original file from
+    a5.mzstatic.com/us/r1000/0/, is what jack fetched as 'high' until that
+    server started answering 403 in 2026 and the finder was declared
+    deprecated. The original is out of reach now, so 'high' is the next
+    best thing: the native resolution as a lossless PNG, the exact pixels
+    the server decodes from the original. That is big, 15 MB for a
+    3000x3000 cover, and only meant for users who ask for it.
+    """
+
+    base = artwork_url.rsplit('/', 1)[0]
+    return {
+        'thumb': artwork_url,
+        'standard': base + "/600x600bb.jpg",
+        'high': base + "/10000x10000bb.png",
+    }
+
+
 def fetch_itunes_albumart(artist, album, country):
 
     ret = False
@@ -353,22 +380,15 @@ def fetch_itunes_albumart(artist, album, country):
             itunes_filename = jack.utils.smart_truncate(itunes_artist) + " - " + jack.utils.smart_truncate(itunes_album)
             itunes_filename = jack.utils.unusable_charmap(itunes_filename)
 
-            # iTunes API shows thumbnail pictures only. This is an undocumented trick to get high quality versions.
-            # Taken from https://github.com/bendodson/itunes-artwork-finder
-            standard_url = urlparse(result['artworkUrl100'])._replace(scheme='http', netloc='is5.mzstatic.com').geturl()
-            high_url = urlparse(result['artworkUrl100'])._replace(scheme='http', netloc='a5.mzstatic.com').geturl()
-
-            art_urls = {}
-            art_urls['thumb']    = standard_url
-            art_urls['standard'] = standard_url.replace("100x100bb", "600x600bb")
-            art_urls['high']     = high_url.replace("/image/thumb/", "/us/r1000/0/").rsplit('/', 1)[0]
+            art_urls = itunes_art_urls(result['artworkUrl100'])
             debug(json.dumps(art_urls, indent=4))
 
             for size in fetchlist:
                 if len(fetchlist) > 1:
                     suffix = "." + size
                 if size in art_urls:
-                    filename = prefix + itunes_filename + suffix + ".jpg"
+                    extension = art_urls[size].rsplit('.', 1)[1]
+                    filename = prefix + itunes_filename + suffix + "." + extension
                     if download(session, art_urls[size], filename, cf['_overwrite_albumart']):
                         ret = True
 
