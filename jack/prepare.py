@@ -500,6 +500,25 @@ def repair_toc(toc_just_read):
     warning("the metadata on file still describes the old toc, query again (for example with --query-now --rename)")
 
 
+def apply_patch(track, patch):
+    """correct a track from a "patch" progress line, "FIELD old -> new"
+
+    jack writes these when the ripper's table of contents differs from
+    the one in the toc file. A toc file that already holds the ripper's
+    value needs no correction: old jack ignored the pregap of track 1 in
+    its own toc files and patched it in from the ripper on every run.
+    Returns False when the track matches neither value.
+    """
+
+    p_what, p_from, dummy, p_to = patch.split()
+    field = fields.index(p_what)
+    if track[field] == int(p_from):
+        track[field] = int(p_to)
+    elif track[field] != int(p_to):
+        return False
+    return True
+
+
 def read_progress(status, todo):
     "now read in the progress file"
 
@@ -598,15 +617,10 @@ def read_progress(status, todo):
         if status[i]['dae'] and len(status[i]['dae']) == 1:
             status[i]['dae'] = status[i]['dae'][0]
 
-        if status[i]['patch']:
-            for j in status[i]['patch']:
-                p_what, p_from, dummy, p_to = j.split()
-                p_from = int(p_from)
-                p_to = int(p_to)
-                if tracknum[i][fields.index(p_what)] == p_from:
-                    tracknum[i][fields.index(p_what)] = p_to
-                else:
-                    error("illegal patch %s. " % j + "Track %02d: %s is %d" % (i, p_what, todo[jack.utils.has_track(todo, i)][fields.index(p_what)]))
+        for j in status[i]['patch']:
+            if not apply_patch(tracknum[i], j):
+                p_what = j.split()[0]
+                error("illegal patch %s. " % j + "Track %02d: %s is %d" % (i, p_what, tracknum[i][fields.index(p_what)]))
 
         if status[i]['off']:
             if jack.utils.has_track(jack.ripstuff.all_tracks_todo_sorted, i) >= 0:

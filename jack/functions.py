@@ -271,6 +271,18 @@ def real_cdrdao_gettoc(tocfile, silent=False):     # get toc from cdrdao-style t
 
     tocpath, tocfiledummy = os.path.split(tocfile)
 
+    def close_track(track, silence, has_start):
+        "finish a track and add it to the toc"
+        if track.channels not in [1, 2, 4]:
+            debug("track %02d: unknown number of channels, assuming 2" % track.number)
+            track.channels = 2
+        if track.number == 1 and silence and not has_start:
+            # jack 1.3 wrote the pregap of track 1 as SILENCE and nothing
+            # else; since jack 2.99 SILENCE is part of the track and START
+            # marks the pregap, as it does in cdrdao's own toc files
+            track.pregap = silence
+        toc.append(track)
+
 # a virtual track 0 is introduced which gets all of track 1s pregap.
 # it is removed later if it is too small to contain anything interesting.
 
@@ -292,6 +304,8 @@ def real_cdrdao_gettoc(tocfile, silent=False):     # get toc from cdrdao-style t
 
     num = 0
     mcn = None
+    silence = 0         # blocks of SILENCE in the current track
+    has_start = False   # whether the current track has a START statement
     while 1:
         bline = f.readline()
         try:
@@ -300,10 +314,7 @@ def real_cdrdao_gettoc(tocfile, silent=False):     # get toc from cdrdao-style t
             # latin1 maps all 256 byte values, so this cannot fail
             line = bline.decode("latin1")
         if not line:
-            if current_track.channels not in [1, 2, 4]:
-                debug("track %02d: unknown number of channels, assuming 2" % num)
-                current_track.channels = 2
-            toc.append(current_track)
+            close_track(current_track, silence, has_start)
             break
         line = line.strip()
 
@@ -319,11 +330,10 @@ def real_cdrdao_gettoc(tocfile, silent=False):     # get toc from cdrdao-style t
             new_track = jack.tocentry.TOCentry()
             new_track.number = num
             if current_track:
-                if current_track.channels not in [1, 2, 4]:
-                    debug("track %02d: unknown number of channels, assuming 2" % num)
-                    current_track.channels = 2
-                toc.append(current_track)
+                close_track(current_track, silence, has_start)
             current_track = new_track
+            silence = 0
+            has_start = False
             current_track.rip = 1
             current_track.bitrate = cf['_bitrate']
             current_track.start = toc.end_pos
@@ -380,6 +390,7 @@ def real_cdrdao_gettoc(tocfile, silent=False):     # get toc from cdrdao-style t
             if current_track.number == 1 and pregap > CDDA_BLOCKS_PER_SECOND * 10 and not silent:
                 info(f"disc in \"{tocpath}\" may have a hidden track ({start}) in pregap of track {current_track.number}")
             current_track.pregap = pregap
+            has_start = True
 
         elif starts_with(line, "SILENCE "):
             length = line.split()[1]
@@ -387,6 +398,7 @@ def real_cdrdao_gettoc(tocfile, silent=False):     # get toc from cdrdao-style t
             if current_track.number == 1 and blocks:
                 cf['_track_1_pregap_silence'] = blocks
             current_track.length += blocks
+            silence += blocks
 
     f.close()
     return toc
