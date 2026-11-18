@@ -791,7 +791,7 @@ together with
 .B replacement_chars.
 For example,
 .RS
-jack -Q --rename-fmt "%n-%t" --unusable-chars A I \; --replacement-chars a i \;
+jack -Q --rename-fmt "%n-%t" --unusable-chars A I \\; --replacement-chars a i \\;
 .RE
 will query the metadata server, rip and encode all tracks of the CD and save
 the files in a format which will contain the track number and the title.
