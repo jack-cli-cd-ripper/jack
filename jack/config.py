@@ -394,13 +394,6 @@ replacement_chars:[".\u200b"]""",
         'short': 'D',
         'long': 'AUTO',
     },
-    'reorder': {
-        'type': bool,
-        'val': 0,
-        'usage': "reorder tracks to save space while encoding",
-        'short': 'r',
-        'long': 'AUTO',
-    },
     'keep_wavs': {
         'type': bool,
         'val': 0,

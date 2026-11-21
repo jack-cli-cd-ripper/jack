@@ -83,7 +83,6 @@ terminated with ';', the next option or the end of the options.
 | --encoders, -e | int | 1 | encode how many files in parallel |
 | --otf | bool | no | on-the-fly encoding \*experimental\* |
 | --create-dirs, -D | bool | yes | create subdir for files |
-| --reorder, -r | bool | no | reorder tracks to save space while encoding |
 | --keep-wavs, -k | bool | no | do not delete WAVs after encoding them |
 | --only-dae, -O | bool | no | only produce WAVs, implies --keep_wavs |
 | --read-ahead, -a | int | 99 | read how many WAVs in advance |

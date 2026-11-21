@@ -124,11 +124,6 @@ def rename_path(old, new):
             pass
 
 
-def track_len(track):
-    "sort key for the reorder option: the track's length"
-    return track[LEN]
-
-
 NUM, LEN, START, COPY, PRE, CH, RIP, RATE, NAME = list(range(9))
 
 

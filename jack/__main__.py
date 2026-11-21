@@ -180,11 +180,6 @@ def main():
         jack.prepare.undo_rename(status, todo)
         sys.exit(0)
 
-    #### Reorder if told so
-    if cf['_reorder']:
-        todo.sort(key=jack.utils.track_len)
-        todo.reverse()
-
     #### check how much bytes we can burn
     if cf['space_from_argv']['history'][-1][0] == "argv":
         space = jack.ripstuff.raw_space = cf['_space_from_argv']
