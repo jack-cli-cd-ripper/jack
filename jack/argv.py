@@ -384,7 +384,7 @@ def parse_argv(cf, argv):
                     error(f"{tmp_option} needs an argument")
 
             if var.find("=") > 0:
-                var, tmp_arg = option.split("=", 1)
+                var, tmp_arg = var.split("=", 1)
 
             if tmp_option in all_help_args:
                 stripped = var.lstrip("-").replace("_", "-")
@@ -406,7 +406,7 @@ def parse_argv(cf, argv):
             var = allargs[var]
 
             if tmp_option == "--set":
-                if cf[var]['type'] == bool:
+                if cf[var]['type'] == bool and tmp_arg is None:
                     i, tmp_arg = get_next(argv, i, allow_equal = False)
 
                 if var == None:
