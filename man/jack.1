@@ -353,7 +353,9 @@ overrule genre from metadata.
 
 .TP
 .B \-\-get <string>
-show value of a config option
+show the value of a config option and exit. The option is given by its
+long name without the leading dashes, as in
+.B \-\-get dir-template
 
 .TP
 .B \-\-guess-toc, -g <list>
@@ -588,6 +590,23 @@ the workdir (default: ['.']).
 .B \-\-server <string>
 which metadata service to use. Do not forget to set your HTTP proxy.
 Currently either "gnudb" or "musicbrainz" (default: musicbrainz).
+
+.TP
+.B \-\-set <string> <value>
+set a config option by its long name:
+.B \-\-set bitrate 192
+and
+.B \-\-set bitrate=192
+are the same as
+.B \-\-bitrate
+192. Unlike a bool option on the command line, a bool set this way
+always needs its value, as in
+.B \-\-set vbr no
+.RB ( \-\-set
+vbr alone would take the next argument for the value). Together with
+.B \-\-save
+this is the counterpart of
+.BR \-\-get .
 
 .TP
 .B \-\-set-dae-tag
