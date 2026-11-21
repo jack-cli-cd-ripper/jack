@@ -103,7 +103,7 @@ cf = jack.misc.dict2({
     'metadata_server': {
         'type': str,
         'val': "musicbrainz",
-        'doc': "your metadata server, see metadata_servers",
+        'doc': "'musicbrainz' or 'gnudb' ('freedb' is accepted as another name for 'gnudb')",
         'usage': "use which metadata server",
         'long': 'server',
     },
@@ -243,7 +243,7 @@ cf = jack.misc.dict2({
     'add_disambiguation': {
         'type': bool,
         'val': 0,
-        'usage': "add the MusicBrainz disambiguation comment to the album title",
+        'usage': "add the MusicBrainz disambiguation comment to the album title (formerly --add-disambiguation)",
         'long': 'add-album-disambiguation',
         'alias': ['add-disambiguation'],
     },
@@ -271,22 +271,17 @@ cf = jack.misc.dict2({
         'type': list,
         'val': ["/", "\r"],
         'usage': "characters which can't be used in filenames",
-        'doc': r"""put characters which can't be used in file names here and their
-replacements, in the same order, in replacement_chars. Both are lists.
-An entry written as /regex/ is treated as a regular expression.
+        'doc': r"""put characters which can't be used in file names here and their replacements, in the same order, in replacement_chars. Both are lists. An entry written as /regex/ is treated as a regular expression.
 
 example 1: replace spaces by underscores:
 unusable_chars:[" "]
 replacement_chars:["_"]
 
-example 2: keep file names usable on Windows and SMB shares by replacing
-the characters those forbid with look-alikes:
+example 2: keep file names usable on Windows and SMB shares by replacing the characters those forbid with look-alikes:
 unusable_chars:["|", "/", "*", ":", "<", ">", "\\", "\"", "?"]
 replacement_chars:["¦", "∕", "•", "꞉", "‹", "›", "﹨", "”", "？"]
 
-example 3: a regular expression, here to append an invisible character to
-a name ending in a dot, which Windows forbids as well; think of a directory
-named after R.E.M.:
+example 3: a regular expression, here to append an invisible character to a name ending in a dot, which Windows forbids as well; think of a directory named after R.E.M.:
 unusable_chars:[r"/\.$/"]
 replacement_chars:[".\u200b"]""",
         'long': 'AUTO',
@@ -404,7 +399,7 @@ replacement_chars:[".\u200b"]""",
     'only_dae': {
         'type': bool,
         'val': 0,
-        'usage': "only produce WAVs, implies --keep_wavs",
+        'usage': "only produce WAVs, implies --keep-wavs",
         'short': 'O',
         'long': 'AUTO',
     },
@@ -583,14 +578,12 @@ replacement_chars:[".\u200b"]""",
         'type': bool,
         'val': 1,
         'usage': "read the MCN (catalog number) from the disc (old discs and CD-Rs have none, and the drive takes long to give up)",
-        'doc': "extract the MCN from a disc, may slow down reading old CDs",
         'long': 'AUTO',
     },
     'toc_isrc': {
         'type': bool,
         'val': 1,
         'usage': "read the ISRCs from the disc (old discs and CD-Rs have none, and the drive takes long to give up)",
-        'doc': "extract ISRCs from a disc, may slow down reading old CDs",
         'long': 'AUTO',
     },
     # prefs0 -- FREEDB stuff ###
