@@ -30,6 +30,16 @@ from jack.globals import *
 
 txt_readme_md = """# Jack
 
+> **The default branch has been renamed.** Development now happens on
+> `main`, formerly `python3-mb`. The old `master` branch, which still held
+> the Python 2 code from 2020, has been renamed to `python2` and is kept as
+> an archive only. Existing clones need this once:
+>
+>     git branch -m python3-mb main
+>     git fetch origin --prune
+>     git branch -u origin/main main
+>     git remote set-head origin -a
+
 Jack is command-line CD ripper. It extracts audio from a CD, encodes it using
 3rd party software and augments it with metadata from various sources.
 
@@ -53,7 +63,7 @@ like it.
 * Python 3
 * libdiscid, a shared library written in C
 * a Python 3 wrapper for libdiscid, either python-libdiscid or python-discid
-* Python 3 modules mutagen, requests, pillow and dateutil
+* Python 3 modules mutagen, requests, pillow and python-dateutil
 * an encoder like oggenc (Ogg/Vorbis), flac, lame (MP3) or fdkaac (M4A/AAC)
 * cdparanoia for ripping
 
@@ -222,7 +232,7 @@ def doc_md(cf, index):
             f"{default}",
             f"{desc}"]
 
-    for i in "|*^$":
+    for i in "\\|*^$":
         line = [x.replace(i, "\\" + i) for x in line]
     line = " | ".join(line)
     line = f"| {line} |"
@@ -374,7 +384,7 @@ def parse_argv(cf, argv):
                     error(f"{tmp_option} needs an argument")
 
             if var.find("=") > 0:
-                var, tmp_arg = option.split("=", 1)
+                var, tmp_arg = var.split("=", 1)
 
             if tmp_option in all_help_args:
                 stripped = var.lstrip("-").replace("_", "-")
@@ -396,7 +406,7 @@ def parse_argv(cf, argv):
             var = allargs[var]
 
             if tmp_option == "--set":
-                if cf[var]['type'] == bool:
+                if cf[var]['type'] == bool and tmp_arg is None:
                     i, tmp_arg = get_next(argv, i, allow_equal = False)
 
                 if var == None:

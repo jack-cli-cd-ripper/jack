@@ -57,7 +57,7 @@ terminated with ';', the next option or the end of the options.
 | --vbr, -v | bool | yes | generate variable bitrate files<br><br>use variable bitrate for encoders which support it |
 | --quality | float | 6 | vbr encoding quality. -1 is lowest, 10 highest. |
 | --bitrate, -b | int | 160 | target bitrate in kbit/s<br><br>default bitrate |
-| --server | str | 'musicbrainz' | use which metadata server<br><br>your metadata server, see metadata_servers |
+| --server | str | 'musicbrainz' | use which metadata server<br><br>'musicbrainz' or 'gnudb' ('freedb' is accepted as another name for 'gnudb') |
 | --rename-fmt | str | '%a - %l - %n - %t' | format of normal files<br><br>specify how the resulting files are named:<br>    %n: track number<br>    %a: artist<br>    %t: track title<br>    %l: album title<br>    %y: album release year - individual track years are unsupported<br>    %Y: smart year - transforms to the append_year template if year is set<br>    %g: album genre - individual track genres are unsupported |
 | --rename-fmt-va | str | '%l - %n - %a - %t' | format of Various Artists files<br><br>specify how the resulting files are named:<br>    %n: track number<br>    %a: artist<br>    %t: track title<br>    %l: album title<br>    %y: album release year - individual track years are unsupported<br>    %Y: smart year - transforms to the append_year template if year is set<br>    %g: album genre - individual track genres are unsupported |
 | --rename-num | str | '%02d' | track number format for %n, printf() style |
@@ -73,7 +73,7 @@ terminated with ';', the next option or the end of the options.
 | --add-artist-disambiguation | bool | no | add the MusicBrainz disambiguation comment to the artist name in the directory name |
 | --char-filter | str | '' | convert file names using a python method<br><br>an example which converts to lowercase, even with non-ascii charsets: ".lower()"  |
 | --charset | str | 'UTF-8' | charset of filenames<br><br>examples: latin-1, utf-8, ... |
-| --unusable-chars | list | ['/', '\r'] | characters which can't be used in filenames<br><br>put characters which can't be used in file names here and their replacements, in the same order, in replacement_chars. Both are lists. An entry written as /regex/ is treated as a regular expression.<br><br>example 1: replace spaces by underscores:<br>unusable_chars:[" "]<br>replacement_chars:["_"]<br><br>example 2: keep file names usable on Windows and SMB shares by replacing the characters those forbid with look-alikes:<br>unusable_chars:["\|", "/", "\*", ":", "<", ">", "\\\\", "\"", "?"]<br>replacement_chars:["¦", "∕", "•", "꞉", "‹", "›", "﹨", "”", "？"]<br><br>example 3: a regular expression, here to append an invisible character to a name ending in a dot, which Windows forbids as well; think of a directory named after R.E.M.:<br>unusable_chars:[r"/\\.$/"]<br>replacement_chars:[".\\u200b"] |
+| --unusable-chars | list | ['/', '\\r'] | characters which can't be used in filenames<br><br>put characters which can't be used in file names here and their replacements, in the same order, in replacement_chars. Both are lists. An entry written as /regex/ is treated as a regular expression.<br><br>example 1: replace spaces by underscores:<br>unusable_chars:[" "]<br>replacement_chars:["_"]<br><br>example 2: keep file names usable on Windows and SMB shares by replacing the characters those forbid with look-alikes:<br>unusable_chars:["\|", "/", "\*", ":", "<", ">", "\\\\", "\\"", "?"]<br>replacement_chars:["¦", "∕", "•", "꞉", "‹", "›", "﹨", "”", "？"]<br><br>example 3: a regular expression, here to append an invisible character to a name ending in a dot, which Windows forbids as well; think of a directory named after R.E.M.:<br>unusable_chars:[r"/\\.\$/"]<br>replacement_chars:[".\\u200b"] |
 | --replacement-chars | list | ['%', ''] | unusable chars are replaced by the corresponding list item<br><br>one replacement per entry of unusable_chars; a shorter list is stretched with its last entry, so a single "" removes every unusable character |
 | --scan-dirs | int | 2 | scan in cwd n dir levels deep, e.g. 0 to disable |
 | --search | list | ['.'] | search which directories |
@@ -84,17 +84,16 @@ terminated with ';', the next option or the end of the options.
 | --otf | bool | no | on-the-fly encoding \*experimental\* |
 | --create-dirs, -D | bool | yes | create subdir for files |
 | --keep-wavs, -k | bool | no | do not delete WAVs after encoding them |
-| --only-dae, -O | bool | no | only produce WAVs, implies --keep_wavs |
+| --only-dae, -O | bool | no | only produce WAVs, implies --keep-wavs |
 | --read-ahead, -a | int | 99 | read how many WAVs in advance |
 | --nice, -n | int | 12 | nice-level of encoders |
+| --non-interactive | bool | no | never ask questions; only use metadata from a single exact match |
 | --overwrite, -o | bool | no | overwrite existing files |
 | --remove-files | bool | no | remove jack.\* file when done |
 | --silent-mode | bool | no | be quiet (no screen output) |
 | --exec, -x | bool | no | run predefined command when finished |
 | --force | bool | no | don't ask. |
 | --swab, -S | bool | yes | swap byteorder when reading from image |
-| --toc-isrc | bool | yes | read the ISRCs from the disc (old discs and CD-Rs have none, and the drive takes long to give up) |
-| --toc-mcn | bool | yes | read the MCN (catalog number) from the disc (old discs and CD-Rs have none, and the drive takes long to give up) |
 | --todo | bool | no | print what would be done and exit |
 | --space, -s | int | 0 | force usable disk space, in bytes |
 | --check-toc | bool | no | compare toc-file and cd-toc, then exit |
@@ -103,10 +102,12 @@ terminated with ';', the next option or the end of the options.
 | --update-metadata, -U | bool | no | update the metadata info and exit |
 | --refresh-metadata | bool | no | forget about choices made in previous queries |
 | --tracks, -t | str | '' | which tracks to process (e.g. 1, 3, 5-9, 12-) |
+| --toc-mcn | bool | yes | read the MCN (catalog number) from the disc (old discs and CD-Rs have none, and the drive takes long to give up) |
+| --toc-isrc | bool | yes | read the ISRCs from the disc (old discs and CD-Rs have none, and the drive takes long to give up) |
 | --query-now, -Q | bool | no | do metadata query when starting |
 | --query-if-needed | bool | no | query metadata server when starting if not queried already |
 | --query, -q | bool | no | do metadata query when all is done |
-| --cont-failed-query | bool | no | continue without metadata data if query fails |
+| --cont-failed-query | bool | no | continue without metadata if query fails |
 | --edit-metadata | bool | no | edit metadata information before using it |
 | --various | bool | - | assume CD has various artists |
 | --various-swap | bool | no | exchange artist and title |
@@ -114,16 +115,16 @@ terminated with ';', the next option or the end of the options.
 | --extt-is-title | bool | no | extt contains track title |
 | --extt-is-comment | bool | no | extt contains track comment |
 | --rename, -R | bool | no | rename according to metadata file, eg. after editing it |
-| --repair-toc | bool | no | drop a trailing data track that an old toc reader listed as audio, then exit |
 | --lookup | bool | no | start a browser and look up the CD |
 | --open-release | bool | no | start a browser and open the chosen MusicBrainz release |
 | --set-dae-tag | bool | no | set DAE info tags<br><br>depends on set_extended_tag |
 | --genre, -G | str | - | overrule genre from metadata |
 | --year, -Y | str | - | overrule year from metadata (0=don't set) |
 | --from-tocfile, -f | str | - | read another toc file which may point to an image-file |
-| --from-image, -F | bytes | - | read audio from an image file |
+| --from-image, -F | str | - | read audio from an image file |
 | --guess-toc, -g | list | [] | guess TOC from files (until terminating ";") |
 | --upd-progress | bool | no | re-generate progress file if "lost" |
+| --repair-toc | bool | no | drop a trailing data track that an old toc reader listed as audio, then exit |
 | --multi-mode | bool | no | try to query metadata server for all dirs in searchdirs which have no metadata |
 | --claim-dir, -C | bool | no | rename the dir even if it was not created by jack |
 | --wait | bool | no | wait for key press before quitting |
@@ -134,7 +135,7 @@ terminated with ';', the next option or the end of the options.
 | --embed-albumart | bool | no | embed album art |
 | --show-albumart | bool | no | show the album art that has been embedded in an external viewer |
 | --albumart-file | str | - | specific album art file to embed |
-| --albumart-search | list | ['.\*[Cc]over.\*\\.(jpg\|jpeg\|png)\$', '.\*[Ff]ront.\*\\.(jpg\|jpeg\|png)\$', '\^[Ff]older\\.(jpg\|jpeg\|png)\$', '\^jack\\.caa\\.front.\*\\.jpg\$', '\^jack\\.itunes.\*\\.(jpg\|png)\$', '\^jack\\.discogs.\*\\.jpg\$'] | list of regex patterns for matching local album art files |
+| --albumart-search | list | ['.\*[Cc]over.\*\\\\.(jpg\|jpeg\|png)\$', '.\*[Ff]ront.\*\\\\.(jpg\|jpeg\|png)\$', '\^[Ff]older\\\\.(jpg\|jpeg\|png)\$', '\^jack\\\\.caa\\\\.front.\*\\\\.jpg\$', '\^jack\\\\.itunes.\*\\\\.(jpg\|png)\$', '\^jack\\\\.discogs.\*\\\\.jpg\$'] | list of regex patterns for matching local album art files |
 | --albumart-ignorecase | bool | yes | ignore case when searching for local album art |
 | --albumart-recurse | bool | no | recurse into subfolders when searching for local album art |
 | --albumart-max-size | int | 1000000 | maximum size when considering album art file |
@@ -145,8 +146,8 @@ terminated with ';', the next option or the end of the options.
 | --albumart-min-height | int | 250 | minimum height when considering album art file |
 | --albumart-save-prefix | str | 'jack.saved.' | prefix for saving existing embedded album art |
 | --fetch-albumart | bool | no | download album art while querying |
-| --overwrite-albumart | str | 'conditional' | whether to overwrite existing album art files, 'always', 'never' or 'conditional' (the default); discogs images already on disk are recognized by their image id and kept |
-| --albumart-providers | list | ['coverartarchive', 'iTunes', 'discogs'] | list of sources for album art, currently 'coverartarchive', 'iTunes' or 'discogs' |
+| --overwrite-albumart | str | 'conditional' | whether to overwrite existing album art files, 'always', 'never' or 'conditional' (the default)<br><br>'conditional' downloads again when the remote length or modification time differs. Discogs re-encodes its images now and then, so for discogs an image already on disk is recognized by the image id in its name and kept; 'never' then skips discogs altogether once files for the release exist, and only 'always' downloads again. |
+| --albumart-providers | list | ['coverartarchive', 'iTunes', 'discogs'] | list of sources for album art, currently 'coverartarchive', 'iTunes' or 'discogs'. The providers are processed in list order. If '\|' is appended to a provider, the rest of the list is treated as fallbacks. |
 | --caa-albumart-prefix | str | 'jack.caa.' | prefix for saving fetched album art files from coverartarchive |
 | --caa-albumart-sizes | list | ['original', 'large'] | list of album art sizes to download from coverartarchive: 'original', 'small', 'large', '250', '500' or '1200' |
 | --caa-albumart-types | list | ['front'] | download these album arts from coverartarchive ('front' and/or 'back') |
@@ -156,7 +157,8 @@ terminated with ';', the next option or the end of the options.
 | --itunes-albumart-prefix | str | 'jack.itunes.' | prefix for saving fetched iTunes album art files |
 | --discogs-albumart-prefix | str | 'jack.discogs.' | prefix for saving fetched discogs album art files |
 | --discogs-albumart-types | list | ['primary'] | download these album arts from discogs ('primary' and/or 'secondary') |
-| --discogs-albumart-token | str | - | discogs personal access token, optional: raises the discogs request limit from 25 to 60 per minute |
+| --discogs-albumart-token | str | - | discogs personal access token, optional: raises the discogs request limit from 25 to 60 per minute<br><br>discogs serves its images without a token these days; the token only raises the API limit from 25 requests per minute per IP address to 60 per token. To skip discogs altogether, leave it out of albumart_providers. |
+| --pregap-name | str | - | WAV file name stub to save the track 1 pregap to if it is at least 10 seconds. There could be a hidden track. Currently only works when reading from a disc image file |
 | --readme | str | - | export README.md to given file |
 
 ## Interaction

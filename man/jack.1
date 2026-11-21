@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH JACK 1 "January 2026"
+.TH JACK 1 "November 2026"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -22,7 +22,7 @@ Jack \- rip and encode audio CDs with one command
 .RI [ options ]
 .SH DESCRIPTION
 .B Jack
-transforms your audio CDs to FLAC, MP3 or Ogg Vorbis files. It uses
+transforms your audio CDs to FLAC, MP3, Ogg Vorbis or M4A (AAC) files. It uses
 several helper programs in order to achieve things like ripping,
 encoding and ID3 tagging. Ripping is done via
 .B cdparanoia
@@ -40,7 +40,7 @@ of equivalent comment fields in Ogg Vorbis files) is performed as well.
 .PP
 If no lookup has been performed, Jack drops all files in a
 directory
-.BR ~/jack/jack-xxxxxxxx ,
+.BR jack-xxxxxxxx ,
 with
 .B xxxxxxxx
 representing the CD's CDDB/MusicBrainz disc ID.
@@ -120,7 +120,7 @@ the artist has no disambiguation comment.
 
 .TP
 .B \-\-albumart-file <string>
-specific album art file to embed (default: 'None')
+specific album art file to embed
 
 .TP
 .B \-\-albumart-max-height <int>
@@ -147,7 +147,7 @@ minimum size when considering album art file (default: 5000)
 minimum width when considering album art file (default: 250)
 
 .TP
-.B \-\-albumart-providers <string>
+.B \-\-albumart-providers <list>
 list of sources for album art, currently 'coverartarchive', 'iTunes'
 or 'discogs'. The providers are processed in list order. If '|' is appended to
 a provider, the rest of the list is treated as fallbacks. (default:
@@ -162,11 +162,11 @@ recurse into subfolders when searching for local album art
 prefix for saving existing embedded album art (default: 'jack.saved.')
 
 .TP
-.B \-\-albumart-search <string>
+.B \-\-albumart-search <list>
 list of regex patterns for matching local album art files (default:
-['.*[Cc]over.*\\.(jpg|jpeg|png)$', '.*[Ff]ront.*\\.(jpg|jpeg|png)$',
- '^[Ff]older\\.(jpg|jpeg|png)$', '^jack\\.caa\\.front.*\\.jpg$',
- '^jack\\.itunes.*\\.(jpg|png)$', '^jack\\.discogs.*\\.jpg$'])
+['.*[Cc]over.*\\\\.(jpg|jpeg|png)$', '.*[Ff]ront.*\\\\.(jpg|jpeg|png)$',
+ '^[Ff]older\\\\.(jpg|jpeg|png)$', '^jack\\\\.caa\\\\.front.*\\\\.jpg$',
+ '^jack\\\\.itunes.*\\\\.(jpg|png)$', '^jack\\\\.discogs.*\\\\.jpg$'])
 
 .TP
 .B \-\-append-year <string>
@@ -182,12 +182,12 @@ prefix for saving fetched album art files from coverartarchive
 (default: 'jack.caa.')
 
 .TP
-.B \-\-caa-albumart-sizes <string>
+.B \-\-caa-albumart-sizes <list>
 list of album art sizes to download from coverartarchive: 'original', 'small',
  'large', '250', '500' or '1200'. (default: ['original', 'large'])
 
 .TP
-.B \-\-caa-albumart-types <string>
+.B \-\-caa-albumart-types <list>
 download these album arts from coverartarchive ('front' and/or 'back')
 (default: ['front'])
 
@@ -200,7 +200,7 @@ convert file names using a Python method (default: '')
 charset of filenames (defaults to your locale).
 
 .TP
-.B \-\-check-toc, \-c
+.B \-\-check-toc
 compare TOC-file and CD-TOC, then exit. Jack caches the TOC of a CD in a file
 ("jack.toc"). If you want to know if the inserted CD matches the TOC-file in
 the current directory, use this option.
@@ -269,7 +269,7 @@ it out of
 .BR \-\-albumart-providers .
 
 .TP
-.B \-\-discogs-albumart-types <string>
+.B \-\-discogs-albumart-types <list>
 download these album arts from discogs ('primary' and/or 'secondary')
 (default: ['primary'])
 
@@ -303,7 +303,7 @@ stress your system, you can have Jack encode several files at once. (default:
 1)
 
 .TP
-.B \-\-exec, \-x <string>
+.B \-\-exec, \-x
 run predefined command when finished.
 
 .TP
@@ -353,7 +353,9 @@ overrule genre from metadata.
 
 .TP
 .B \-\-get <string>
-show value of a config option
+show the value of a config option and exit. The option is given by its
+long name without the leading dashes, as in
+.B \-\-get dir-template
 
 .TP
 .B \-\-guess-toc, -g <list>
@@ -385,7 +387,7 @@ limit number of matches when querying for iTunes album art, zero is no limit
 prefix for saving fetched iTunes album art files (default: 'jack.itunes.')
 
 .TP
-.B \-\-itunes-albumart-sizes <string>
+.B \-\-itunes-albumart-sizes <list>
 list of album art sizes to download from iTunes: 'thumb' (100x100), 'standard'
 (600x600) or 'high' (the native resolution as a lossless PNG, big)
 (default: ['standard', 'high'])
@@ -470,7 +472,7 @@ downloads again.
 .B \-\-pregap-name <string>
 WAV file name stub to save the track 1 pregap to if it is at least 10 seconds.
 There could be a hidden track. Currently only works when reading from a disc
-image file (default: 'None')
+image file
 
 .TP
 .B \-\-quality <float>
@@ -478,7 +480,7 @@ VBR encoding quality. -1 is lowest, 10 highest (default: 6). You can also
 specify a float.
 
 .TP
-.B \-\-query, \-q <string>
+.B \-\-query, \-q
 do metadata query when all is done. This is useful if Jack was previously run
 without a metadata query. If all tracks are done you do not even have to have
 a CD inserted as the TOC is cached by Jack. After having finished ripping and
@@ -502,7 +504,7 @@ read how many WAVs in advance. At most read_ahead + num_encoders WAVs are
 ripped before a track has completely been encoded. (default: 99)
 
 .TP
-.B \-\-readme
+.B \-\-readme <string>
 export README.md to given file.
 
 .TP
@@ -582,12 +584,29 @@ TOC-file (0 to disable, default: 2).
 .TP
 .B \-\-search <list>
 add these directories to the list of directories searched when looking for
-the workdir (default: '.').
+the workdir (default: ['.']).
 
 .TP
 .B \-\-server <string>
 which metadata service to use. Do not forget to set your HTTP proxy.
 Currently either "gnudb" or "musicbrainz" (default: musicbrainz).
+
+.TP
+.B \-\-set <string> <value>
+set a config option by its long name:
+.B \-\-set bitrate 192
+and
+.B \-\-set bitrate=192
+are the same as
+.B \-\-bitrate
+192. Unlike a bool option on the command line, a bool set this way
+always needs its value, as in
+.B \-\-set vbr no
+.RB ( \-\-set
+vbr alone would take the next argument for the value). Together with
+.B \-\-save
+this is the counterpart of
+.BR \-\-get .
 
 .TP
 .B \-\-set-dae-tag
@@ -709,7 +728,7 @@ where to create directories and put the files.
 create a playlist in .m3u format. This feature is experimental.
 
 .TP
-.B \-\-year, \-Y <int>
+.B \-\-year, \-Y <string>
 overrule year from metadata (0=do not set)
 
 .SH EXIT STATUS
@@ -742,7 +761,8 @@ jack
 .RE
 .PP
 Now watch it work. After having finished, you have the following files on your
-HD: track_01.mp3, track_02.mp3, ..., track_nn.mp3 plus jack.toc, jack.freedb,
+HD: track_01.ogg, track_02.ogg, ..., track_nn.ogg plus jack.toc,
+jack.musicbrainz (jack.freedb when gnudb is the metadata server) and
 jack.progress. The last three are used to store the state Jack is in so it can
 resume work when interrupted. For an enhanced CD, jack.progress also holds the
 table of contents as the drive reports it, with the data track and the real
@@ -766,8 +786,8 @@ jack -q
 .RE
 If the query is successful the files will be renamed to something more
 readable and will be tagged accordingly using ID3 or Vorbis tags. The
-file jack.freedb will contain the queried metadata entry, and the original
-file will be backed up as jack.freedb.bak.
+file jack.musicbrainz (or jack.freedb) will contain the queried metadata
+entry, and the original file will be backed up with .bak appended.
 .PP
 You can use the
 .B \-\-rename\-fmt
@@ -841,10 +861,20 @@ Track title
 Album title
 .IP %y
 Album release year
+.IP %Y
+Smart year: expands to the
+.B \-\-append-year
+template if the year is known, and to nothing otherwise
 .IP %g
 Album genre
+.PP
+The directory templates know %a, %l, %y, %Y and %g as well, and in addition:
 .IP %d
 Disc number
+.IP %D
+Number of discs
+.IP %t
+Disc title (in a file name format %t is the track title)
 
 .SH FILES
 .IP \fI/etc/jackrc\fP
@@ -858,6 +888,7 @@ Arne Zellentin <zarne@users.sf.net> is the author of Jack.
 .SH SEE ALSO
 .BR cdparanoia (1),
 .BR flac (1),
-.BR oggenc (1)
-and
+.BR oggenc (1),
 .BR lame (1)
+and
+.BR fdkaac (1)
