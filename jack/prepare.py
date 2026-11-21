@@ -852,9 +852,6 @@ def what_todo(space, todo):
             if track in jack.encstuff.mp3s_ready and track in wavs_todo:
                 wavs_todo.remove(track)
 
-    if cf['_reorder']:
-        mp3s_todo.sort(key=jack.utils.track_len)
-
     dae_queue = []                  # This stores the tracks to rip
     enc_queue = []                  # WAVs go here to get some codin'
 
@@ -935,7 +932,7 @@ def check_space(space, wavs_todo, mp3s_todo):
                 break
 
     if (space + freeable_space < space_needed or not will_work) and not cf['_dont_work']:
-        error(("insufficient disk space (%sBytes needed), " + "try reorder or " * (not cf['_reorder']) + "free %sBytes.") % (
+        error("insufficient disk space (%sBytes needed), free %sBytes." % (
             jack.functions.pprint_i(space_needed - freeable_space, "%i %s"), jack.functions.pprint_i(space_needed - freeable_space - jack.ripstuff.raw_space, "%i %s")))
 
 
